@@ -2,6 +2,48 @@
 
 Instructions for AI coding assistants using OpenSpec for spec-driven development.
 
+## Project-Level Collaboration Rules
+
+This file is the primary AI collaboration guide for this repository. Follow the
+OpenSpec workflow below, and also apply these repository-specific rules.
+
+### Primary Rule Source
+
+- Treat the root `AGENTS.md` as an OpenSpec bootstrap file only.
+- Treat this file as the main repository-level instruction source for AI
+  collaboration.
+- Treat `claude.md` as a compatibility note only. It is not a parallel workflow
+  definition and must not override this file.
+
+### Preferred Agent Style
+
+- Prefer Codex or a tool-agnostic coding agent workflow over a
+  Claude-supervisor/Codex-worker chain.
+- Prefer concise engineering communication and direct execution over custom
+  supervisory rituals.
+- English-first documentation is preferred, but user interaction may be in
+  Chinese or English. Do not reject Chinese requests.
+
+### Default Repository Context
+
+- Default ownership context: prioritize the `places` module and `apps/api`
+  backend when evaluating impact, risk, and sequencing.
+- For any `places` or backend change, check whether shared contracts, schemas,
+  or types under `packages/shared` also need updates.
+- Respect the existing project split:
+  - `apps/mobile/src/pages/places`: places frontend
+  - `apps/api/src/**`: backend and shared BFF behavior
+  - `packages/shared`: cross-app contracts, schemas, and shared types
+
+### When OpenSpec Is Required
+
+- Follow the OpenSpec change process for new capabilities, breaking changes,
+  architecture shifts, or behavior-changing security/performance work.
+- Do not require an OpenSpec proposal for configuration changes, bug fixes,
+  typo/comment updates, or non-breaking dependency/tooling adjustments.
+- If the request is ambiguous and the impact could be architectural, review
+  `openspec/project.md`, active changes, and relevant specs before implementing.
+
 ## TL;DR Quick Checklist
 
 - Search existing work: `openspec spec list --long`, `openspec list` (use `rg` only for full-text search)
