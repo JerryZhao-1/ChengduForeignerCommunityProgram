@@ -26,7 +26,7 @@
 | Provider 接口 | `apps/api/src/providers/types.ts` | 后端能力总接口定义 |
 | 默认实现 | `apps/api/src/providers/mock/index.ts` | 默认 provider，对接 mock service |
 | 业务实现 | `packages/shared/src/mock/service.ts` | 当前大部分接口的实际业务实现 |
-| CloudBase 特例 | `apps/api/src/providers/cloudbase/index.ts` | 当前仅覆盖 places 浏览基线，部分管理接口未实现 |
+| CloudBase Provider | `apps/api/src/providers/cloudbase/index.ts` | 当前复用 mock provider，CloudBase handler 已覆盖 public places 与 admin places 路径 |
 | 移动端调用入口 | `apps/mobile/src/api/client.ts` | 小程序端 API 客户端入口 |
 | 管理端调用入口 | `apps/admin/src/api/client.ts` | 管理后台 API 客户端入口 |
 | 通用 HTTP Client | `packages/shared/src/client.ts` | 统一封装请求逻辑和路径调用 |
@@ -36,15 +36,7 @@
 | 运行模式 | 文件 | 说明 |
 | --- | --- | --- |
 | `mock` | `apps/api/src/providers/mock/index.ts` | 当前默认模式，大多数接口都可用 |
-| `cloudbase` | `apps/api/src/providers/cloudbase/index.ts` | 复用了 mock provider，但 `admin/places` 相关 3 个接口会抛出未实现错误 |
-
-`cloudbase` 当前明确未实现的接口：
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| `GET` | `/admin/places` | 地点管理列表 |
-| `POST` | `/admin/places` | 新建地点 |
-| `PATCH` | `/admin/places/:id` | 更新地点 |
+| `cloudbase` | `apps/api/src/providers/cloudbase/index.ts` | 当前复用 mock provider；CloudBase handler 已覆盖 public places、map markers、detail、admin places create/list/update |
 
 ## 4. 接口清单
 
@@ -87,9 +79,18 @@
 | `GET` | `/places` | 获取地点列表，支持分页、关键字、分类、推荐、排序 | `apps/api/src/routes/places.ts` | `packages/shared/src/contracts/places.ts` | `packages/shared/src/mock/service.ts` 中 `places.list` | 已实现 |
 | `GET` | `/places/map-markers` | 获取地图标记点列表 | `apps/api/src/routes/places.ts` | `packages/shared/src/contracts/places.ts` | `packages/shared/src/mock/service.ts` 中 `places.mapMarkers` | 已实现 |
 | `GET` | `/places/:id` | 获取地点详情 | `apps/api/src/routes/places.ts` | `packages/shared/src/contracts/places.ts` | `packages/shared/src/mock/service.ts` 中 `places.detail` | 已实现 |
-| `GET` | `/admin/places` | 管理端地点列表 | `apps/api/src/routes/places.ts` | `packages/shared/src/contracts/places.ts` | `packages/shared/src/mock/service.ts` 中 `places.listAdmin` | 未实现 |
-| `POST` | `/admin/places` | 管理端新建地点 | `apps/api/src/routes/places.ts` | `packages/shared/src/contracts/places.ts` | `packages/shared/src/mock/service.ts` 中 `places.create` | 未实现 |
-| `PATCH` | `/admin/places/:id` | 管理端更新地点 | `apps/api/src/routes/places.ts` | `packages/shared/src/contracts/places.ts` | `packages/shared/src/mock/service.ts` 中 `places.update` | 未实现 |
+| `GET` | `/admin/places` | 管理端地点列表 | `apps/api/src/routes/places.ts` | `packages/shared/src/contracts/places.ts` | `packages/shared/src/mock/service.ts` 中 `places.listAdmin` | 已实现 |
+| `POST` | `/admin/places` | 管理端新建地点 | `apps/api/src/routes/places.ts` | `packages/shared/src/contracts/places.ts` | `packages/shared/src/mock/service.ts` 中 `places.create` | 已实现 |
+| `PATCH` | `/admin/places/:id` | 管理端更新地点 | `apps/api/src/routes/places.ts` | `packages/shared/src/contracts/places.ts` | `packages/shared/src/mock/service.ts` 中 `places.update` | 已实现 |
+
+`GET /places` 当前是 public places list v1 的浏览入口：
+
+- 支持 query：`page`、`pageSize`、`communityId`、`keyword`、`category`、`recommended`、`sort`
+- `sort` 仅支持 `recommended` 与 `name`，非法值会返回 `400`
+- 响应分页 envelope 为 `items`、`page`、`pageSize`、`total`
+- public list 只返回 `status=published` 且属于目标 `communityId` 的地点
+- list item 保持卡片字段边界，不返回详情专用字段，例如 `gallery_urls`、`navigation`、完整地址字段
+- `/places/:id` 负责详情字段，包括 `gallery_urls` 与 `navigation`
 
 ### 4.5 公告 Announcements
 
@@ -143,12 +144,13 @@
 接口联调与基础行为验证主要位于：
 
 - `apps/api/test/app.spec.ts`
+- `apps/api/test/cloudbase.spec.ts`
 
 当前测试已覆盖的重点包括：
 
 - `events` 列表、详情、报名
 - `discover` 列表、发帖
-- `places` 列表、详情、地图标记、查询参数、管理端新增
+- `places` 列表、详情、地图标记、查询参数、public published 可见性、管理端新增/更新
 - `announcements` 列表
 - 管理端权限校验
 - 参数校验失败返回 `400`

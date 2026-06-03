@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+ROOT_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/../../.." && pwd)"
+LOG_DIR="$SCRIPT_DIR/logs"
+
+mkdir -p "$LOG_DIR"
+cd "$ROOT_DIR"
+
+corepack pnpm vitest run \
+  packages/shared/test/contracts.spec.ts \
+  packages/shared/test/client.spec.ts \
+  packages/shared/test/places-marker-contract.spec.ts \
+  2>&1 | tee "$LOG_DIR/vitest.log"
+

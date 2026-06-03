@@ -142,8 +142,70 @@ describe("shared contracts", () => {
     expect(query.page).toBe(2);
     expect(query.pageSize).toBe(12);
     expect(query.communityId).toBe("tongzilin");
+    expect(query.keyword).toBe("coffee");
+    expect(query.category).toBe("cafe");
     expect(query.recommended).toBe(true);
     expect(query.sort).toBe("recommended");
+
+    const defaults = PlaceListQuerySchema.parse({});
+
+    expect(defaults).toEqual({
+      page: 1,
+      pageSize: 10,
+      communityId: "tongzilin",
+      sort: "recommended"
+    });
+  });
+
+  it("keeps places list items limited to card browsing fields", () => {
+    const item = PlaceListItemSchema.parse({
+      _id: "place_001",
+      name_zh: "桐梓林社区中心",
+      name_en: "Tongzilin Community Center",
+      cover_url: "https://example.com/place.jpg",
+      category_level_1: "public-service",
+      category_level_2: "community-center",
+      short_address_zh: "成都市武侯区",
+      short_address_en: "Wuhou District, Chengdu",
+      summary_zh: "简介",
+      summary_en: "Summary",
+      tag_ids: ["service"],
+      is_recommended: true,
+      recommended_reason_zh: "推荐理由",
+      recommended_reason_en: "Reason",
+      supports_navigation: true,
+      gallery_urls: ["https://example.com/gallery.jpg"],
+      address_zh: "成都",
+      navigation: {
+        latitude: 30.6,
+        longitude: 104.0,
+        name_zh: "桐梓林社区中心",
+        name_en: "Tongzilin Community Center",
+        address_zh: "成都",
+        address_en: "Chengdu"
+      }
+    });
+
+    expect(Object.keys(item).sort()).toEqual([
+      "_id",
+      "category_level_1",
+      "category_level_2",
+      "cover_url",
+      "is_recommended",
+      "name_en",
+      "name_zh",
+      "recommended_reason_en",
+      "recommended_reason_zh",
+      "short_address_en",
+      "short_address_zh",
+      "summary_en",
+      "summary_zh",
+      "supports_navigation",
+      "tag_ids"
+    ]);
+    expect(item).not.toHaveProperty("gallery_urls");
+    expect(item).not.toHaveProperty("navigation");
+    expect(item).not.toHaveProperty("address_zh");
   });
 
   it("rejects invalid places list sort values", () => {

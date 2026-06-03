@@ -1,0 +1,10 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/contracts.spec.ts (8 tests) 3ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  21:51:30
+   Duration  272ms (transform 71ms, setup 0ms, collect 98ms, tests 3ms, environment 0ms, prepare 37ms)
+

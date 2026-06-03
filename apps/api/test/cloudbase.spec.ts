@@ -34,7 +34,7 @@ describe("cloudbase event handler", () => {
         {
           eventID: "req_cloud_002",
           httpContext: {
-            url: "http://localhost/places?communityId=tongzilin&recommended=true",
+            url: "http://localhost/places?communityId=tongzilin&keyword=community&category=public-service&recommended=true&sort=recommended&page=1&pageSize=1",
             httpMethod: "GET"
           }
         } as any
@@ -43,7 +43,18 @@ describe("cloudbase event handler", () => {
 
       expect(listResponse.statusCode).toBe(200);
       expect(listBody.success).toBe(true);
-      expect(listBody.data.items.every((item: { is_recommended: boolean }) => item.is_recommended)).toBe(true);
+      expect(listBody.data.page).toBe(1);
+      expect(listBody.data.pageSize).toBe(1);
+      expect(listBody.data.total).toBe(1);
+      expect(
+        listBody.data.items.every(
+          (item: { category_level_1: string; is_recommended: boolean }) =>
+            item.category_level_1 === "public-service" && item.is_recommended
+        )
+      ).toBe(true);
+      expect(listBody.data.items[0]).not.toHaveProperty("gallery_urls");
+      expect(listBody.data.items[0]).not.toHaveProperty("navigation");
+      expect(listBody.data.items[0]).not.toHaveProperty("address_zh");
 
       const placeId = listBody.data.items[0]._id;
       const detailResponse = await main(
@@ -91,6 +102,21 @@ describe("cloudbase event handler", () => {
       expect(markerBody.data[0]).not.toHaveProperty("navigation");
       expect(markerBody.data[0]).not.toHaveProperty("gallery_urls");
       expect(markerBody.data[0]).not.toHaveProperty("address_zh");
+
+      const invalidSortResponse = await main(
+        {},
+        {
+          eventID: "req_cloud_004_invalid_sort",
+          httpContext: {
+            url: "http://localhost/places?sort=latest",
+            httpMethod: "GET"
+          }
+        } as any
+      );
+      const invalidSortBody = invalidSortResponse.body as any;
+
+      expect(invalidSortResponse.statusCode).toBe(400);
+      expect(invalidSortBody.error.code).toBe("VALIDATION_ERROR");
     } finally {
       delete process.env.API_PROVIDER;
     }
@@ -221,6 +247,22 @@ describe("cloudbase event handler", () => {
       expect(createResponse.statusCode).toBe(201);
       expect(createBody.data.category_level_1).toBe("community");
       expect(createBody.data.status).toBe("draft");
+
+      const draftListResponse = await main(
+        {},
+        {
+          eventID: "req_cloud_005_public_draft_list",
+          httpContext: {
+            url: "http://localhost/places?keyword=Cloud%20Function%20Draft%20Place",
+            httpMethod: "GET"
+          }
+        } as any
+      );
+      const draftListBody = draftListResponse.body as any;
+
+      expect(draftListResponse.statusCode).toBe(200);
+      expect(draftListBody.data.items).toEqual([]);
+      expect(draftListBody.data.total).toBe(0);
 
       const updateResponse = await main(
         {

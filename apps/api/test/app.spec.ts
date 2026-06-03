@@ -99,6 +99,8 @@ describe("api routes", () => {
       expect(placesData.data.items.length).toBeGreaterThan(0);
       expect(placesData.data.items[0]).toHaveProperty("short_address_zh");
       expect(placesData.data.items[0]).not.toHaveProperty("gallery_urls");
+      expect(placesData.data.items[0]).not.toHaveProperty("navigation");
+      expect(placesData.data.items[0]).not.toHaveProperty("address_zh");
 
       const placeDetailResponse = await fetch(
         `${baseUrl}/places/${placesData.data.items[0]._id}`
@@ -161,6 +163,14 @@ describe("api routes", () => {
       });
       const draftPlaceData = await createDraftPlaceResponse.json();
       expect(createDraftPlaceResponse.status).toBe(201);
+
+      const publicDraftListResponse = await fetch(
+        `${baseUrl}/places?keyword=Draft%20Map%20Place`
+      );
+      const publicDraftListData = await publicDraftListResponse.json();
+      expect(publicDraftListResponse.status).toBe(200);
+      expect(publicDraftListData.data.items).toEqual([]);
+      expect(publicDraftListData.data.total).toBe(0);
 
       const markersAfterResponse = await fetch(`${baseUrl}/places/map-markers`);
       const markersAfterData = await markersAfterResponse.json();
@@ -359,6 +369,9 @@ describe("api routes", () => {
       expect(keywordResponse.status).toBe(200);
       expect(keywordData.data.items).toHaveLength(1);
       expect(keywordData.data.items[0].name_en).toBe("Global Corner Cafe");
+      expect(keywordData.data.items[0]).not.toHaveProperty("gallery_urls");
+      expect(keywordData.data.items[0]).not.toHaveProperty("navigation");
+      expect(keywordData.data.items[0]).not.toHaveProperty("address_zh");
 
       const filteredResponse = await fetch(
         `${baseUrl}/places?communityId=tongzilin&category=public-service&recommended=true&sort=recommended`
