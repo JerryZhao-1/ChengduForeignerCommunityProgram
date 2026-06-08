@@ -91,6 +91,7 @@ export const PlaceDetailSchema = z.object({
 
 export const PlaceListQuerySchema = PageQuerySchema.extend({
   category: z.string().trim().min(1).optional(),
+  tag: z.string().trim().min(1).optional(),
   recommended: z.coerce.boolean().optional(),
   sort: PlaceListSortSchema.default("recommended")
 });

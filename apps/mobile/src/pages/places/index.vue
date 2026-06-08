@@ -18,6 +18,7 @@ const { loading, error, run } = usePlaceAsyncState();
 const filters = ref({
   keyword: "",
   category: "",
+  tag: "",
   recommended: false,
   sort: "recommended" as "recommended" | "name"
 });
@@ -49,6 +50,7 @@ const load = async () => {
         communityId: state.communityId,
         keyword: filters.value.keyword || undefined,
         category: filters.value.category || undefined,
+        tag: filters.value.tag || undefined,
         recommended: filters.value.recommended || undefined,
         sort: filters.value.sort
       }),
@@ -81,10 +83,16 @@ const handleCategoryChange = (event: { detail: { value: number | string } }) => 
   load();
 };
 
+const applyTag = (tag: string) => {
+  filters.value.tag = tag;
+  load();
+};
+
 const resetFilters = () => {
   filters.value = {
     keyword: "",
     category: "",
+    tag: "",
     recommended: false,
     sort: "recommended"
   };
@@ -94,6 +102,7 @@ const resetFilters = () => {
 onLoad((query) => {
   filters.value.keyword = String(query?.keyword ?? "");
   filters.value.category = String(query?.category ?? "");
+  filters.value.tag = String(query?.tag ?? "");
   filters.value.recommended = query?.recommended === "true";
   filters.value.sort = query?.sort === "name" ? "name" : "recommended";
 
@@ -148,6 +157,11 @@ onLoad((query) => {
         </button>
         <button class="chip ghost" @click="resetFilters">{{ listCopy.clearFilters }}</button>
       </view>
+      <view v-if="filters.tag" class="active-filter-row">
+        <button class="chip active" @click="filters.tag = ''; load()">
+          {{ listCopy.activeTag }} #{{ filters.tag }} ×
+        </button>
+      </view>
 
       <AsyncStateCard v-if="loading" variant="loading" :text="listCopy.loading" />
       <AsyncStateCard v-else-if="error" variant="error" :text="error" />
@@ -187,7 +201,14 @@ onLoad((query) => {
           pickLocalized(state.locale, place.summary_zh, place.summary_en)
         }}</view>
         <view v-if="place.tag_ids.length" class="tags">
-          <text v-for="tag in place.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
+          <button
+            v-for="tag in place.tag_ids"
+            :key="tag"
+            class="tag"
+            @click.stop="applyTag(tag)"
+          >
+            #{{ tag }}
+          </button>
         </view>
       </view>
     </SectionPanel>
@@ -202,7 +223,8 @@ onLoad((query) => {
 }
 
 .toolbar,
-.sort-row {
+.sort-row,
+.active-filter-row {
   display: flex;
   gap: 16rpx;
   margin-bottom: 16rpx;
@@ -279,6 +301,7 @@ onLoad((query) => {
   padding: 6rpx 14rpx;
   border-radius: 8rpx;
   font-size: 22rpx;
+  line-height: 1.4;
 }
 
 .badge {
@@ -294,6 +317,7 @@ onLoad((query) => {
 }
 
 .tag {
+  margin: 0;
   background: #e6f4ff;
   color: #0052d9;
 }

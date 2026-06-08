@@ -144,6 +144,7 @@ describe("shared contracts", () => {
       communityId: "tongzilin",
       keyword: "coffee",
       category: "cafe",
+      tag: "english-friendly",
       recommended: "true",
       sort: "recommended"
     });
@@ -153,6 +154,7 @@ describe("shared contracts", () => {
     expect(query.communityId).toBe("tongzilin");
     expect(query.keyword).toBe("coffee");
     expect(query.category).toBe("cafe");
+    expect(query.tag).toBe("english-friendly");
     expect(query.recommended).toBe(true);
     expect(query.sort).toBe("recommended");
 

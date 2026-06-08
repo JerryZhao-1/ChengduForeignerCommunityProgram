@@ -17,6 +17,7 @@ export const placesPagePaths = {
   list: (query?: {
     keyword?: string;
     category?: string;
+    tag?: string;
     recommended?: boolean;
     sort?: "recommended" | "name";
   }) => withQuery("/pages/places/index", query),

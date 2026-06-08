@@ -268,10 +268,10 @@ End goal:
 
 ## Known Conflicts / Required Plan Adjustments
 
-- `apps/api/src/providers/cloudbase/index.ts` currently reuses the mock provider. CloudBase handler/mock parity exists, but a real CloudBase database provider remains pending.
+- `apps/api/src/providers/cloudbase/index.ts` still defaults to mock fallback, but live mode now covers the places list/map/detail/admin paths with CloudBase document reads/writes and temporary file URL resolution. Non-places live providers and production CloudBase deployment remain pending.
 - `apps/mobile/src/manifest.json` now contains the real root AppID and `mp-weixin.appid`; Week 4 follow-up is limited to WeChat DevTools retest and manual map acceptance.
 - The mobile API client currently supports mock or `uni.request`/fetch-style HTTP calls. Production Mini Program deployment must add a CloudBase HTTP function call mode so release builds do not depend on local HTTP or mock actor headers.
-- The Week 5 admin places gallery flow has moved away from manually entered URLs and now attaches gallery files through the files flow; full live CloudBase file-asset resolution remains a backend foundation follow-up.
+- The Week 6 places flow now uses `tag` as the public list tag filter, keeps recommended places as `/places?recommended=true&sort=recommended`, and keeps admin gallery attachment file-backed through `gallery_file_ids`; production CloudBase acceptance remains a later deployment task.
 - The original plan placed CloudBase/Koa parity in Week 10. The minimum deployment baseline now starts in Week 4 so Week 8 can verify `places` against CloudBase `dev`.
 
 ## Test Plan
@@ -582,10 +582,10 @@ End goal:
 
 ## 已知冲突 / 必须调整的计划点
 
-- `apps/api/src/providers/cloudbase/index.ts` 当前仍复用 mock provider。CloudBase handler/mock parity 已有，但真实 CloudBase 数据库 provider 仍待接入。
+- `apps/api/src/providers/cloudbase/index.ts` 默认仍回退 mock，但 live mode 已覆盖 places list/map/detail/admin 路径，使用 CloudBase 文档读写和临时文件 URL 解析。非 places live providers 与生产 CloudBase 部署仍待完成。
 - `apps/mobile/src/manifest.json` 已包含真实根 AppID 和 `mp-weixin.appid`；第 4 周后续只需要微信开发者工具复测和地图人工验收。
 - 当前移动端 API client 支持 mock 或 `uni.request`/fetch 风格 HTTP 调用。生产小程序部署必须新增 CloudBase HTTP function 调用模式，避免发布版本依赖本地 HTTP 或 mock actor header。
-- 第 5 周后台 places 图集已改为通过 files flow 挂接文件，不再依赖手填 URL；完整 CloudBase live 文件资产解析仍是 backend foundation 后续项。
+- 第 6 周 places 流程已使用 `tag` 作为 public list 标签筛选参数，推荐地点保持 `/places?recommended=true&sort=recommended` 过滤入口，后台图集继续通过 `gallery_file_ids` 走 files flow；生产 CloudBase 验收仍是后续部署任务。
 - 原计划把 CloudBase/Koa parity 放在第 10 周。现在最低部署基线必须从第 4 周开始建立，否则第 8 周无法用 CloudBase `dev` 验证 places。
 
 ## Test Plan

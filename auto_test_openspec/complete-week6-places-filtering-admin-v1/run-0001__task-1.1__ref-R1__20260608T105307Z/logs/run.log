@@ -1,0 +1,15 @@
+repo=/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+node=v24.14.0
+pnpm=10.6.5
++ corepack pnpm vitest run packages/shared/test/contracts.spec.ts packages/shared/test/client.spec.ts
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/client.spec.ts (4 tests) 3ms
+ ✓ packages/shared/test/contracts.spec.ts (8 tests) 4ms
+
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+   Start at  18:54:58
+   Duration  250ms (transform 83ms, setup 0ms, collect 221ms, tests 7ms, environment 0ms, prepare 58ms)
+

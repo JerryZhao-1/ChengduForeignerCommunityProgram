@@ -81,6 +81,7 @@ export interface CommunityMapApiClient {
       communityId?: string;
       keyword?: string;
       category?: string;
+      tag?: string;
       recommended?: boolean;
       sort?: "recommended" | "name";
     }): Promise<ApiResult<PageResult<PlaceListItem>>>;

@@ -10,6 +10,9 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url))
     }
   },
+  optimizeDeps: {
+    exclude: ["@community-map/shared"]
+  },
   server: {
     port: 5173
   }

@@ -85,6 +85,7 @@ export interface ApiProvider {
       keyword?: string;
       communityId?: string;
       category?: string;
+      tag?: string;
       recommended?: boolean;
       sort?: "recommended" | "name";
     }): Promise<PageResult<PlaceListItem>>;

@@ -290,6 +290,10 @@ const createLivePlacesProvider = (context: LiveCloudbaseContext): ApiProvider["p
           return false;
         }
 
+        if (input.tag && !place.tag_ids.includes(input.tag)) {
+          return false;
+        }
+
         if (input.recommended && !place.is_recommended) {
           return false;
         }

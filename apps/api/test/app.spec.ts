@@ -138,6 +138,16 @@ describe("api routes", () => {
       expect(recommendedResponse.status).toBe(200);
       expect(recommendedData.data.items.every((item: { is_recommended: boolean }) => item.is_recommended)).toBe(true);
 
+      const taggedResponse = await fetch(`${baseUrl}/places?tag=service`);
+      const taggedData = await taggedResponse.json();
+      expect(taggedResponse.status).toBe(200);
+      expect(
+        taggedData.data.items.every((item: { tag_ids: string[] }) =>
+          item.tag_ids.includes("service")
+        )
+      ).toBe(true);
+      expect(taggedData.data.items[0]).not.toHaveProperty("gallery_media");
+
       const createDraftPlaceResponse = await fetch(`${baseUrl}/admin/places`, {
         method: "POST",
         headers: {
@@ -506,7 +516,7 @@ describe("api routes", () => {
       expect(keywordData.data.items[0]).not.toHaveProperty("address_zh");
 
       const filteredResponse = await fetch(
-        `${baseUrl}/places?communityId=tongzilin&category=public-service&recommended=true&sort=recommended`
+        `${baseUrl}/places?communityId=tongzilin&category=public-service&tag=service&recommended=true&sort=recommended`
       );
       const filteredData = await filteredResponse.json();
 
@@ -517,11 +527,21 @@ describe("api routes", () => {
         filteredData.data.items.every(
           (item: {
             category_level_1: string;
+            tag_ids: string[];
             is_recommended: boolean;
           }) =>
-            item.category_level_1 === "public-service" && item.is_recommended
+            item.category_level_1 === "public-service" &&
+            item.tag_ids.includes("service") &&
+            item.is_recommended
         )
       ).toBe(true);
+
+      const emptyTagResponse = await fetch(`${baseUrl}/places?tag=missing-tag`);
+      const emptyTagData = await emptyTagResponse.json();
+
+      expect(emptyTagResponse.status).toBe(200);
+      expect(emptyTagData.data.items).toEqual([]);
+      expect(emptyTagData.data.total).toBe(0);
 
       const nameSortResponse = await fetch(`${baseUrl}/places?sort=name`);
       const nameSortData = await nameSortResponse.json();

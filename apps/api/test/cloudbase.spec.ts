@@ -106,7 +106,7 @@ describe("cloudbase event handler", () => {
         {
           eventID: "req_cloud_002",
           httpContext: {
-            url: "http://localhost/places?communityId=tongzilin&keyword=community&category=public-service&recommended=true&sort=recommended&page=1&pageSize=1",
+            url: "http://localhost/places?communityId=tongzilin&keyword=community&category=public-service&tag=service&recommended=true&sort=recommended&page=1&pageSize=1",
             httpMethod: "GET"
           }
         } as any
@@ -120,8 +120,14 @@ describe("cloudbase event handler", () => {
       expect(listBody.data.total).toBe(1);
       expect(
         listBody.data.items.every(
-          (item: { category_level_1: string; is_recommended: boolean }) =>
-            item.category_level_1 === "public-service" && item.is_recommended
+          (item: {
+            category_level_1: string;
+            tag_ids: string[];
+            is_recommended: boolean;
+          }) =>
+            item.category_level_1 === "public-service" &&
+            item.tag_ids.includes("service") &&
+            item.is_recommended
         )
       ).toBe(true);
       expect(listBody.data.items[0]).not.toHaveProperty("gallery_urls");
@@ -195,6 +201,22 @@ describe("cloudbase event handler", () => {
 
       expect(invalidSortResponse.statusCode).toBe(400);
       expect(invalidSortBody.error.code).toBe("VALIDATION_ERROR");
+
+      const emptyTagResponse = await main(
+        {},
+        {
+          eventID: "req_cloud_004_empty_tag",
+          httpContext: {
+            url: "http://localhost/places?tag=missing-tag",
+            httpMethod: "GET"
+          }
+        } as any
+      );
+      const emptyTagBody = emptyTagResponse.body as any;
+
+      expect(emptyTagResponse.statusCode).toBe(200);
+      expect(emptyTagBody.data.items).toEqual([]);
+      expect(emptyTagBody.data.total).toBe(0);
     } finally {
       delete process.env.API_PROVIDER;
     }
@@ -207,6 +229,7 @@ describe("cloudbase event handler", () => {
     const query = {
       communityId: "tongzilin",
       category: "public-service",
+      tag: "service",
       page: 1,
       pageSize: 1,
       recommended: true,
@@ -226,7 +249,9 @@ describe("cloudbase event handler", () => {
     expect(cloudbaseList.pageSize).toBe(1);
     expect(
       cloudbaseList.items.every(
-        (item) => item.category_level_1 === "public-service"
+        (item) =>
+          item.category_level_1 === "public-service" &&
+          item.tag_ids.includes("service")
       )
     ).toBe(true);
 
