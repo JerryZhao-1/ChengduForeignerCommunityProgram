@@ -53,6 +53,14 @@ export const PlaceShareSchema = z.object({
   summary_en: z.string()
 });
 
+export const PlaceGalleryMediaSchema = z.object({
+  file_id: z.string(),
+  cloud_path: z.string(),
+  url: z.string().url(),
+  alt_zh: z.string(),
+  alt_en: z.string()
+});
+
 export const PlaceDetailSchema = z.object({
   _id: z.string(),
   community_id: z.string(),
@@ -69,6 +77,7 @@ export const PlaceDetailSchema = z.object({
   business_hours_en: z.string(),
   intro_zh: z.string(),
   intro_en: z.string(),
+  gallery_media: z.array(PlaceGalleryMediaSchema),
   gallery_urls: z.array(z.string().url()),
   is_recommended: z.boolean(),
   recommended_reason_zh: z.string().nullable(),

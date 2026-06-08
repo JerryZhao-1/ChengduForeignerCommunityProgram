@@ -34,7 +34,8 @@ const openRecommendedList = () => {
 
 .redirect-card {
   padding: 28rpx 24rpx;
-  border-radius: 20rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 16rpx;
   background: #ffffff;
   color: #475569;
   line-height: 1.6;
@@ -42,7 +43,8 @@ const openRecommendedList = () => {
 
 .secondary {
   margin-top: 20rpx;
-  background: #ccfbf1;
-  color: #115e59;
+  border-radius: 8rpx;
+  background: #e6f4ff;
+  color: #0052d9;
 }
 </style>

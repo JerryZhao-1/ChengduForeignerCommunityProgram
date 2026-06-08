@@ -7,6 +7,7 @@ import type {
   FileAsset,
   Place,
   PlaceDetail,
+  PlaceGalleryMedia,
   PlaceListItem,
   Post,
   User
@@ -131,7 +132,58 @@ const toPlaceListItem = (place: Place): PlaceListItem => ({
   supports_navigation: place.supports_navigation
 });
 
-const toPlaceDetail = (place: Place): PlaceDetail => ({
+const mockPublicFileUrls: Record<string, string> = {
+  "public/places/place_001/1.jpg":
+    "https://images.unsplash.com/photo-1494526585095-c41746248156",
+  "public/places/place_002/1.jpg":
+    "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb"
+};
+
+const publicFileUrl = (cloudPath: string) =>
+  mockPublicFileUrls[cloudPath] ??
+  `https://example.com/${cloudPath.replace(/^\/+/, "")}`;
+
+const toPlaceGalleryMedia = (
+  place: Place,
+  fileAssets: FileAsset[]
+): PlaceGalleryMedia[] => {
+  const activeGalleryAssets = new Map(
+    fileAssets
+      .filter(
+        (asset) =>
+          asset.biz_type === "place_gallery" &&
+          asset.biz_id === place._id &&
+          asset.visibility === "public" &&
+          asset.status === "active"
+      )
+      .map((asset) => [asset.file_id, asset])
+  );
+
+  return place.gallery_file_ids
+    .map((fileId, index) => {
+      const asset = activeGalleryAssets.get(fileId);
+      if (!asset) {
+        return null;
+      }
+
+      return {
+        file_id: asset.file_id,
+        cloud_path: asset.cloud_path,
+        url: publicFileUrl(asset.cloud_path),
+        alt_zh: `${place.name_zh} 图集 ${index + 1}`,
+        alt_en: `${place.name_en} gallery ${index + 1}`
+      };
+    })
+    .filter((item): item is PlaceGalleryMedia => item !== null);
+};
+
+const toPlaceDetail = (
+  place: Place,
+  fileAssets: FileAsset[] = []
+): PlaceDetail => {
+  const gallery_media = toPlaceGalleryMedia(place, fileAssets);
+
+  return {
   _id: place._id,
   community_id: place.community_id,
   name_zh: place.name_zh,
@@ -147,7 +199,8 @@ const toPlaceDetail = (place: Place): PlaceDetail => ({
   business_hours_en: place.business_hours_en,
   intro_zh: place.intro_zh,
   intro_en: place.intro_en,
-  gallery_urls: place.gallery_urls,
+  gallery_media,
+  gallery_urls: gallery_media.map((media) => media.url),
   is_recommended: place.is_recommended,
   recommended_reason_zh: place.recommended_reason_zh,
   recommended_reason_en: place.recommended_reason_en,
@@ -168,7 +221,8 @@ const toPlaceDetail = (place: Place): PlaceDetail => ({
     summary_zh: place.recommended_reason_zh ?? place.intro_zh,
     summary_en: place.recommended_reason_en ?? place.intro_en
   }
-});
+  };
+};
 
 export const createMockService = (seed?: Partial<MockDataset>) => {
   const state: MockDataset = {
@@ -453,7 +507,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           return null;
         }
 
-        return toPlaceDetail(place);
+        return toPlaceDetail(place, state.fileAssets);
       },
       mapMarkers() {
         return sortPlacesForMapMarkers(

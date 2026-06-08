@@ -16,9 +16,9 @@ defineProps<{
 <style scoped>
 .panel {
   background: #ffffff;
-  border-radius: 24rpx;
+  border-radius: 16rpx;
   padding: 28rpx;
-  box-shadow: 0 12rpx 40rpx rgba(15, 23, 42, 0.06);
+  border: 1rpx solid #e5e7eb;
 }
 
 .panel-title {

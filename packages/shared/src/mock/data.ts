@@ -130,7 +130,7 @@ export const createMockDataset = (): MockDataset => ({
       is_recommended: true,
       recommended_rank: 1,
       gallery_file_ids: ["cloud://place-001-1"],
-      gallery_urls: ["https://example.com/public/places/place_001/1.jpg"],
+      gallery_urls: [],
       supports_navigation: true,
       supports_favorite: true,
       supports_share: true,
@@ -162,7 +162,7 @@ export const createMockDataset = (): MockDataset => ({
       is_recommended: true,
       recommended_rank: 2,
       gallery_file_ids: ["cloud://place-002-1"],
-      gallery_urls: ["https://example.com/public/places/place_002/1.jpg"],
+      gallery_urls: [],
       supports_navigation: true,
       supports_favorite: true,
       supports_share: true,
@@ -276,6 +276,26 @@ export const createMockDataset = (): MockDataset => ({
       biz_type: "event_cover",
       biz_id: "event_001",
       uploaded_by: "user_002",
+      status: "active"
+    },
+    {
+      _id: "file_place_001_1",
+      file_id: "cloud://place-001-1",
+      cloud_path: "public/places/place_001/1.jpg",
+      visibility: "public",
+      biz_type: "place_gallery",
+      biz_id: "place_001",
+      uploaded_by: "user_001",
+      status: "active"
+    },
+    {
+      _id: "file_place_002_1",
+      file_id: "cloud://place-002-1",
+      cloud_path: "public/places/place_002/1.jpg",
+      visibility: "public",
+      biz_type: "place_gallery",
+      biz_id: "place_002",
+      uploaded_by: "user_001",
       status: "active"
     }
   ]

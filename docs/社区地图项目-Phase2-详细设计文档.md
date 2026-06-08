@@ -723,7 +723,8 @@ V1.2 采用“公私分层”策略：
 | `business_hours_zh / business_hours_en` | 双语营业时间 |
 | `intro_zh / intro_en` | 双语简介 |
 | `gallery_file_ids` | 图集文件列表 |
-| `gallery_urls` | 图集访问地址 |
+| `gallery_media` | 由 files flow 解析出的结构化图集媒体 |
+| `gallery_urls` | 由 `gallery_media.url` 派生的兼容访问地址 |
 | `status` | 发布状态 |
 
 #### 8.3.6 帖子 `post`

@@ -123,6 +123,15 @@ describe("shared api clients", () => {
         business_hours_en: "Every day",
         intro_zh: "简介",
         intro_en: "Intro",
+        gallery_media: [
+          {
+            file_id: "cloud://place-http-001-1",
+            cloud_path: "public/places/place_http_001/1.jpg",
+            url: "https://example.com/gallery.jpg",
+            alt_zh: "社区中心 图集 1",
+            alt_en: "Community Center gallery 1"
+          }
+        ],
         gallery_urls: ["https://example.com/gallery.jpg"],
         is_recommended: true,
         recommended_reason_zh: "推荐理由",
@@ -158,6 +167,12 @@ describe("shared api clients", () => {
     expect(mockResult.success).toBe(true);
     expect(httpResult.success).toBe(true);
     expect(mockResult.data).toHaveProperty("navigation");
+    expect(mockResult.data).toHaveProperty("gallery_media");
+    expect(mockResult.data.gallery_media[0].url).toContain("images.unsplash.com");
+    expect(mockResult.data.gallery_urls).toEqual(
+      mockResult.data.gallery_media.map((media) => media.url)
+    );
+    expect(httpResult.data).toHaveProperty("gallery_media");
     expect(httpResult.data).toHaveProperty("gallery_urls");
     expect(requester).toHaveBeenCalledWith(
       "GET",

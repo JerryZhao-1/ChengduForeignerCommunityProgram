@@ -14,14 +14,25 @@ defineProps<{
 <style scoped>
 .status-card {
   padding: 28rpx 24rpx;
-  border-radius: 24rpx;
-  background: #f1f5f9;
-  color: #475569;
+  border-radius: 16rpx;
+  background: #f3f4f6;
+  color: #4b5563;
   line-height: 1.6;
+  text-align: center;
+}
+
+.status-card.loading {
+  background: #e6f4ff;
+  color: #0052d9;
+}
+
+.status-card.empty {
+  background: #f9fafb;
+  color: #6b7280;
 }
 
 .status-card.error {
-  background: #fee2e2;
-  color: #991b1b;
+  background: #fff1f0;
+  color: #c41d7f;
 }
 </style>

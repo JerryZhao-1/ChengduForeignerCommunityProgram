@@ -89,8 +89,10 @@
 - `sort` 仅支持 `recommended` 与 `name`，非法值会返回 `400`
 - 响应分页 envelope 为 `items`、`page`、`pageSize`、`total`
 - public list 只返回 `status=published` 且属于目标 `communityId` 的地点
-- list item 保持卡片字段边界，不返回详情专用字段，例如 `gallery_urls`、`navigation`、完整地址字段
-- `/places/:id` 负责详情字段，包括 `gallery_urls` 与 `navigation`
+- list item 保持卡片字段边界，不返回详情专用字段，例如 `gallery_media`、`gallery_urls`、`navigation`、完整地址字段
+- `/places/:id` 负责详情字段，包括结构化 `gallery_media`、派生兼容字段 `gallery_urls` 与 `navigation`
+- `gallery_media` 是移动端详情页渲染图集的主字段；mock/本地 HTTP 路径会从已登记的 `file_assets` 与 `gallery_file_ids` 解析，`gallery_urls` 仅从 `gallery_media.url` 派生
+- 当前 Week 5 切片尚未实现完整 CloudBase live files provider；CloudBase live 文件资产解析留到后续 backend foundation 工作
 
 ### 4.5 公告 Announcements
 

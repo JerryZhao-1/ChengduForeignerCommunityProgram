@@ -271,7 +271,7 @@ End goal:
 - `apps/api/src/providers/cloudbase/index.ts` currently reuses the mock provider. CloudBase handler/mock parity exists, but a real CloudBase database provider remains pending.
 - `apps/mobile/src/manifest.json` now contains the real root AppID and `mp-weixin.appid`; Week 4 follow-up is limited to WeChat DevTools retest and manual map acceptance.
 - The mobile API client currently supports mock or `uni.request`/fetch-style HTTP calls. Production Mini Program deployment must add a CloudBase HTTP function call mode so release builds do not depend on local HTTP or mock actor headers.
-- The current admin places gallery flow still accepts manually entered URLs. This conflicts with the cloud storage + files flow and must be replaced during Week 5-6 media work.
+- The Week 5 admin places gallery flow has moved away from manually entered URLs and now attaches gallery files through the files flow; full live CloudBase file-asset resolution remains a backend foundation follow-up.
 - The original plan placed CloudBase/Koa parity in Week 10. The minimum deployment baseline now starts in Week 4 so Week 8 can verify `places` against CloudBase `dev`.
 
 ## Test Plan
@@ -449,6 +449,7 @@ End goal:
 - 扩展后端详情 payload，让前端不再依赖占位数据。
 - 通过 files 流开始支持地点图集，让详情页可以渲染真实媒体。
 - 确保详情页媒体渲染使用已注册的云存储 / files flow，不再依赖硬编码或后台手填的 gallery URL 文本。
+- Week 5 详情 payload 以 `gallery_media` 作为主字段，`gallery_urls` 仅作为由媒体 URL 派生的兼容字段；完整 CloudBase live files provider 留到后续 backend foundation 工作。
 - 验证 `places` 详情页能将真实图片 URL 渲染为图片，不再把 gallery URL 当普通文本显示。
 - 将现有小程序 UI 统一到 TDesign MiniProgram 规范；Week 5 至少覆盖 `places` 详情页以及当周触达的列表、弹窗、按钮、反馈、加载和空状态。
 
@@ -584,7 +585,7 @@ End goal:
 - `apps/api/src/providers/cloudbase/index.ts` 当前仍复用 mock provider。CloudBase handler/mock parity 已有，但真实 CloudBase 数据库 provider 仍待接入。
 - `apps/mobile/src/manifest.json` 已包含真实根 AppID 和 `mp-weixin.appid`；第 4 周后续只需要微信开发者工具复测和地图人工验收。
 - 当前移动端 API client 支持 mock 或 `uni.request`/fetch 风格 HTTP 调用。生产小程序部署必须新增 CloudBase HTTP function 调用模式，避免发布版本依赖本地 HTTP 或 mock actor header。
-- 当前后台 places 图集仍可手填 URL。这与云存储 + files flow 冲突，必须在第 5-6 周媒体工作中替换。
+- 第 5 周后台 places 图集已改为通过 files flow 挂接文件，不再依赖手填 URL；完整 CloudBase live 文件资产解析仍是 backend foundation 后续项。
 - 原计划把 CloudBase/Koa parity 放在第 10 周。现在最低部署基线必须从第 4 周开始建立，否则第 8 周无法用 CloudBase `dev` 验证 places。
 
 ## Test Plan

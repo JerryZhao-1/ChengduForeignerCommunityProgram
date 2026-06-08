@@ -15,6 +15,23 @@ const { state } = useAppStore();
 const place = ref<PlaceDetail | null>(null);
 const { loading, error, run, setError } = usePlaceAsyncState();
 const detailCopy = computed(() => getPlacesCopy(state.locale, "detail"));
+const galleryMedia = computed(() => {
+  if (!place.value) {
+    return [];
+  }
+
+  if (place.value.gallery_media.length > 0) {
+    return place.value.gallery_media;
+  }
+
+  return place.value.gallery_urls.map((url, index) => ({
+    file_id: `legacy-gallery-${index + 1}`,
+    cloud_path: "",
+    url,
+    alt_zh: `${place.value?.name_zh ?? ""} 图集 ${index + 1}`,
+    alt_en: `${place.value?.name_en ?? ""} gallery ${index + 1}`
+  }));
+});
 
 onLoad(async (query) => {
   if (!query?.id) {
@@ -98,21 +115,39 @@ const sharePlaceholder = () => {
       :title="pickLocalized(state.locale, place.name_zh, place.name_en)"
       :subtitle="`${place.category_level_1} / ${place.category_level_2}`"
     >
-      <view v-if="place.cover_url" class="hero-image">{{ place.cover_url }}</view>
+      <image
+        v-if="place.cover_url"
+        class="hero-image"
+        :src="place.cover_url"
+        mode="aspectFill"
+      />
       <view class="tag-row">
         <text v-for="tag in place.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
       </view>
-      <view class="line">
-        {{ pickLocalized(state.locale, place.address_zh, place.address_en) }}
+      <view class="info-block">
+        <view class="info-label">{{ detailCopy.address }}</view>
+        <view class="line">
+          {{ pickLocalized(state.locale, place.address_zh, place.address_en) }}
+        </view>
       </view>
-      <view class="line">
-        {{ detailCopy.businessHours }}：{{
-          pickLocalized(state.locale, place.business_hours_zh, place.business_hours_en)
-        }}
+      <view class="info-block">
+        <view class="info-label">{{ detailCopy.businessHours }}</view>
+        <view class="line">
+          {{
+            pickLocalized(
+              state.locale,
+              place.business_hours_zh,
+              place.business_hours_en
+            )
+          }}
+        </view>
       </view>
-      <view class="line">{{
-        pickLocalized(state.locale, place.intro_zh, place.intro_en)
-      }}</view>
+      <view class="info-block">
+        <view class="info-label">{{ detailCopy.intro }}</view>
+        <view class="line">{{
+          pickLocalized(state.locale, place.intro_zh, place.intro_en)
+        }}</view>
+      </view>
       <view v-if="place.is_recommended" class="recommendation">
         {{
           pickLocalized(
@@ -122,24 +157,40 @@ const sharePlaceholder = () => {
           )
         }}
       </view>
-      <view v-if="place.gallery_urls.length" class="gallery">
-        <view
-          v-for="galleryUrl in place.gallery_urls"
-          :key="galleryUrl"
-          class="gallery-item"
+      <view class="gallery">
+        <view class="info-label">{{ detailCopy.gallery }}</view>
+        <scroll-view
+          v-if="galleryMedia.length"
+          class="gallery-scroll"
+          scroll-x
+          enable-flex
         >
-          {{ galleryUrl }}
-        </view>
+          <image
+            v-for="media in galleryMedia"
+            :key="media.file_id"
+            class="gallery-item"
+            :src="media.url"
+            :alt="pickLocalized(state.locale, media.alt_zh, media.alt_en)"
+            mode="aspectFill"
+          />
+        </scroll-view>
+        <AsyncStateCard v-else variant="empty" :text="detailCopy.noGallery" />
       </view>
       <view class="button-row">
-        <button class="primary" @click="openNavigation">{{ detailCopy.openNavigation }}</button>
-        <button class="secondary" @click="openMapPosition">
+        <button class="action-button primary" @click="openNavigation">
+          {{ detailCopy.openNavigation }}
+        </button>
+        <button class="action-button secondary" @click="openMapPosition">
           {{ detailCopy.openMapPosition }}
         </button>
       </view>
       <view class="button-row">
-        <button class="ghost" @click="favoritePlaceholder">{{ detailCopy.favoriteEntry }}</button>
-        <button class="ghost" @click="sharePlaceholder">{{ detailCopy.shareEntry }}</button>
+        <button class="action-button ghost" @click="favoritePlaceholder">
+          {{ detailCopy.favoriteEntry }}
+        </button>
+        <button class="action-button ghost" @click="sharePlaceholder">
+          {{ detailCopy.shareEntry }}
+        </button>
       </view>
     </SectionPanel>
     <AsyncStateCard v-else variant="empty" :text="detailCopy.empty" />
@@ -153,14 +204,13 @@ const sharePlaceholder = () => {
   min-height: 100vh;
 }
 
-.hero-image,
-.gallery-item {
+.hero-image {
+  display: block;
+  width: 100%;
+  height: 360rpx;
   margin-bottom: 16rpx;
-  padding: 24rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   background: #e2e8f0;
-  color: #334155;
-  word-break: break-all;
 }
 
 .tag-row,
@@ -173,41 +223,72 @@ const sharePlaceholder = () => {
 
 .tag {
   padding: 6rpx 14rpx;
-  border-radius: 999rpx;
-  background: #dbeafe;
-  color: #1d4ed8;
+  border-radius: 8rpx;
+  background: #e6f4ff;
+  color: #0052d9;
   font-size: 22rpx;
 }
 
+.info-block {
+  margin-bottom: 18rpx;
+}
+
+.info-label {
+  margin-bottom: 6rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
 .line {
-  margin-bottom: 16rpx;
   line-height: 1.7;
+  color: #1f2937;
 }
 
 .recommendation {
   margin-bottom: 16rpx;
   padding: 20rpx;
-  border-radius: 20rpx;
-  background: #ecfccb;
-  color: #3f6212;
+  border-radius: 12rpx;
+  background: #fff7e6;
+  color: #ad5a00;
 }
 
 .gallery {
   margin-bottom: 16rpx;
 }
 
+.gallery-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.gallery-item {
+  display: inline-block;
+  width: 520rpx;
+  height: 320rpx;
+  margin-right: 16rpx;
+  border-radius: 16rpx;
+  background: #e5e7eb;
+}
+
+.action-button {
+  min-width: 220rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
 .primary {
-  background: #0f766e;
+  background: #0052d9;
   color: white;
 }
 
 .secondary {
-  background: #ccfbf1;
-  color: #115e59;
+  background: #e6f4ff;
+  color: #0052d9;
 }
 
 .ghost {
-  background: #e2e8f0;
-  color: #334155;
+  background: #f3f4f6;
+  color: #374151;
 }
 </style>

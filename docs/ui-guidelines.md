@@ -20,5 +20,6 @@
 
 - 新增小程序 UI 前，先检查 TDesign MiniProgram 是否已有对应组件或组合模式。
 - 表单、确认弹窗、Toast、加载态、空状态和列表反馈应优先保持 TDesign 默认交互语义。
-- 后续迁移现有页面时，优先处理用户高频路径和 Week 5 触达的 `places` 详情、列表、弹窗、按钮、反馈、加载和空状态。
+- 后续迁移现有页面时，优先处理用户高频路径和 Week 5 触达的 `places` 详情、列表、地图、推荐入口、弹窗、按钮、反馈、加载和空状态。
+- Week 5 `places` 模块允许使用 TDesign-compatible wrappers 或 TDesign-aligned styles 保持 H5 与 mp-weixin 构建可用；不得为这些页面引入第二套小程序 UI 组件库。
 - TDesign 组件实际使用时，按 uni-app / 微信小程序构建链路配置组件引用，并在微信开发者工具中完成 npm 构建验证。

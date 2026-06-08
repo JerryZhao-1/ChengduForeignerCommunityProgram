@@ -7,6 +7,7 @@ import {
   type PageResult,
   type Place,
   type PlaceDetail,
+  type PlaceGalleryMedia,
   type PlaceListItem,
   type PlaceMapMarker
 } from "@community-map/shared";
@@ -17,11 +18,13 @@ import type { ApiProvider } from "../types";
 const DEFAULT_COMMUNITY_ID = "tongzilin";
 const MAX_PLACES_FETCH = 1000;
 
+type CloudbaseApp = ReturnType<typeof tcb.init>;
 type PlacesCollection = ReturnType<
   ReturnType<ReturnType<typeof tcb.init>["database"]>["collection"]
 >;
 
 interface LiveCloudbaseContext {
+  app: CloudbaseApp;
   places: PlacesCollection;
 }
 
@@ -101,44 +104,111 @@ const toPlaceListItem = (place: Place): PlaceListItem => ({
   supports_navigation: place.supports_navigation
 });
 
-const toPlaceDetail = (place: Place): PlaceDetail => ({
-  _id: place._id,
-  community_id: place.community_id,
-  name_zh: place.name_zh,
-  name_en: place.name_en,
-  cover_url: place.cover_url,
-  category_level_1: place.category_level_1,
-  category_level_2: place.category_level_2,
-  tag_ids: place.tag_ids,
-  address_zh: place.address_zh,
-  address_en: place.address_en,
-  location: place.location,
-  business_hours_zh: place.business_hours_zh,
-  business_hours_en: place.business_hours_en,
-  intro_zh: place.intro_zh,
-  intro_en: place.intro_en,
-  gallery_urls: place.gallery_urls,
-  is_recommended: place.is_recommended,
-  recommended_reason_zh: place.recommended_reason_zh,
-  recommended_reason_en: place.recommended_reason_en,
-  supports_navigation: place.supports_navigation,
-  supports_favorite: place.supports_favorite,
-  supports_share: place.supports_share,
-  navigation: {
-    latitude: place.location.latitude,
-    longitude: place.location.longitude,
+const toFallbackGalleryMedia = (place: Place): PlaceGalleryMedia[] =>
+  place.gallery_urls.map((url, index) => {
+    const parsedUrl = new URL(url);
+
+    return {
+      file_id: place.gallery_file_ids[index] ?? `legacy-url-${index + 1}`,
+      cloud_path: parsedUrl.pathname.replace(/^\/+/, ""),
+      url,
+      alt_zh: `${place.name_zh} 图集 ${index + 1}`,
+      alt_en: `${place.name_en} gallery ${index + 1}`
+    };
+  });
+
+const cloudPathFromFileId = (fileId: string) => {
+  const withoutScheme = fileId.replace(/^cloud:\/\//, "");
+  const pathStart = withoutScheme.indexOf("/");
+
+  return pathStart >= 0 ? withoutScheme.slice(pathStart + 1) : withoutScheme;
+};
+
+const toCloudbaseGalleryMedia = async (
+  context: LiveCloudbaseContext,
+  place: Place
+): Promise<PlaceGalleryMedia[]> => {
+  if (place.gallery_file_ids.length === 0) {
+    return [];
+  }
+
+  const result = await context.app.getTempFileURL({
+    fileList: place.gallery_file_ids
+  });
+  const urlsByFileId = new Map(
+    result.fileList
+      .filter((item) => item.tempFileURL)
+      .map((item) => [item.fileID, item.tempFileURL])
+  );
+
+  return place.gallery_file_ids
+    .map((fileId, index) => {
+      const url = urlsByFileId.get(fileId);
+      if (!url) {
+        return null;
+      }
+
+      return {
+        file_id: fileId,
+        cloud_path: cloudPathFromFileId(fileId),
+        url,
+        alt_zh: `${place.name_zh} 图集 ${index + 1}`,
+        alt_en: `${place.name_en} gallery ${index + 1}`
+      };
+    })
+    .filter((item): item is PlaceGalleryMedia => item !== null);
+};
+
+const toPlaceDetail = async (
+  context: LiveCloudbaseContext,
+  place: Place
+): Promise<PlaceDetail> => {
+  const cloudbaseGalleryMedia = await toCloudbaseGalleryMedia(context, place);
+  const gallery_media =
+    cloudbaseGalleryMedia.length > 0
+      ? cloudbaseGalleryMedia
+      : toFallbackGalleryMedia(place);
+
+  return {
+    _id: place._id,
+    community_id: place.community_id,
     name_zh: place.name_zh,
     name_en: place.name_en,
+    cover_url: place.cover_url,
+    category_level_1: place.category_level_1,
+    category_level_2: place.category_level_2,
+    tag_ids: place.tag_ids,
     address_zh: place.address_zh,
-    address_en: place.address_en
-  },
-  share: {
-    title_zh: place.name_zh,
-    title_en: place.name_en,
-    summary_zh: place.intro_zh,
-    summary_en: place.intro_en
-  }
-});
+    address_en: place.address_en,
+    location: place.location,
+    business_hours_zh: place.business_hours_zh,
+    business_hours_en: place.business_hours_en,
+    intro_zh: place.intro_zh,
+    intro_en: place.intro_en,
+    gallery_media,
+    gallery_urls: gallery_media.map((media) => media.url),
+    is_recommended: place.is_recommended,
+    recommended_reason_zh: place.recommended_reason_zh,
+    recommended_reason_en: place.recommended_reason_en,
+    supports_navigation: place.supports_navigation,
+    supports_favorite: place.supports_favorite,
+    supports_share: place.supports_share,
+    navigation: {
+      latitude: place.location.latitude,
+      longitude: place.location.longitude,
+      name_zh: place.name_zh,
+      name_en: place.name_en,
+      address_zh: place.address_zh,
+      address_en: place.address_en
+    },
+    share: {
+      title_zh: place.name_zh,
+      title_en: place.name_en,
+      summary_zh: place.intro_zh,
+      summary_en: place.intro_en
+    }
+  };
+};
 
 const getCloudbaseEnvId = () =>
   process.env.CLOUDBASE_ENV_ID ?? process.env.TCB_ENV;
@@ -154,6 +224,7 @@ const createLiveContext = (): LiveCloudbaseContext | null => {
   const db = app.database();
 
   return {
+    app,
     places: db.collection("places")
   };
 };
@@ -245,7 +316,7 @@ const createLivePlacesProvider = (context: LiveCloudbaseContext): ApiProvider["p
       return null;
     }
 
-    return toPlaceDetail(place);
+    return toPlaceDetail(context, place);
   },
   async mapMarkers() {
     return sortPlacesForMapMarkers(

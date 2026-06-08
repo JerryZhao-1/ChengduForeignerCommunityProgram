@@ -211,26 +211,28 @@ onLoad((query) => {
 
 .secondary,
 .chip {
-  background: #ccfbf1;
-  color: #115e59;
+  border-radius: 8rpx;
+  background: #e6f4ff;
+  color: #0052d9;
   font-size: 24rpx;
 }
 
 .chip.active {
-  background: #0f766e;
+  background: #0052d9;
   color: #ffffff;
 }
 
 .chip.ghost {
-  background: #e2e8f0;
-  color: #334155;
+  background: #f3f4f6;
+  color: #374151;
 }
 
 .field,
 .picker {
   margin-bottom: 16rpx;
   background: #ffffff;
-  border-radius: 18rpx;
+  border: 1rpx solid #d1d5db;
+  border-radius: 8rpx;
   padding: 20rpx 24rpx;
   font-size: 26rpx;
 }
@@ -238,7 +240,8 @@ onLoad((query) => {
 .card {
   margin-top: 16rpx;
   background: #ffffff;
-  border-radius: 22rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 16rpx;
   padding: 24rpx;
   overflow: hidden;
 }
@@ -274,13 +277,13 @@ onLoad((query) => {
   display: inline-flex;
   align-items: center;
   padding: 6rpx 14rpx;
-  border-radius: 999rpx;
+  border-radius: 8rpx;
   font-size: 22rpx;
 }
 
 .badge {
-  background: #dcfce7;
-  color: #166534;
+  background: #fff7e6;
+  color: #ad5a00;
 }
 
 .tags {
@@ -291,7 +294,7 @@ onLoad((query) => {
 }
 
 .tag {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #e6f4ff;
+  color: #0052d9;
 }
 </style>

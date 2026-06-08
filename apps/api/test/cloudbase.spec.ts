@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import { FILE_PATH_RULES, createMockDataset } from "@community-map/shared";
 import { main } from "../src/cloudbase";
 import { createCloudbaseProvider } from "../src/providers/cloudbase";
 import { createMockProvider } from "../src/providers/mock";
@@ -46,6 +47,56 @@ describe("cloudbase event handler", () => {
     expect(body.data[0]).toHaveProperty("location");
   });
 
+  it("blocks non-admin place gallery files in cloudbase handler", async () => {
+    const uploadResponse = await main(
+      {
+        biz_type: "place_gallery",
+        biz_id: "place_001",
+        file_name: "forbidden.jpg",
+        visibility: "public",
+        target_prefix: FILE_PATH_RULES.placeGallery
+      },
+      {
+        eventID: "req_cloud_forbidden_gallery_upload",
+        httpContext: {
+          url: "http://localhost/files/upload-requests",
+          httpMethod: "POST",
+          headers: {
+            "x-mock-user-id": "user_002"
+          }
+        }
+      } as any
+    );
+    const uploadBody = uploadResponse.body as any;
+
+    expect(uploadResponse.statusCode).toBe(403);
+    expect(uploadBody.error.code).toBe("FORBIDDEN");
+
+    const completeResponse = await main(
+      {
+        biz_type: "place_gallery",
+        biz_id: "place_001",
+        file_id: "cloud://public/places/place_001/forbidden.jpg",
+        cloud_path: `${FILE_PATH_RULES.placeGallery}place_001/forbidden.jpg`,
+        visibility: "public"
+      },
+      {
+        eventID: "req_cloud_forbidden_gallery_complete",
+        httpContext: {
+          url: "http://localhost/files/complete",
+          httpMethod: "POST",
+          headers: {
+            "x-mock-user-id": "user_002"
+          }
+        }
+      } as any
+    );
+    const completeBody = completeResponse.body as any;
+
+    expect(completeResponse.statusCode).toBe(403);
+    expect(completeBody.error.code).toBe("FORBIDDEN");
+  });
+
   it("returns places list, detail, and markers in cloudbase mode", async () => {
     process.env.API_PROVIDER = "cloudbase";
 
@@ -74,6 +125,7 @@ describe("cloudbase event handler", () => {
         )
       ).toBe(true);
       expect(listBody.data.items[0]).not.toHaveProperty("gallery_urls");
+      expect(listBody.data.items[0]).not.toHaveProperty("gallery_media");
       expect(listBody.data.items[0]).not.toHaveProperty("navigation");
       expect(listBody.data.items[0]).not.toHaveProperty("address_zh");
 
@@ -92,7 +144,11 @@ describe("cloudbase event handler", () => {
 
       expect(detailResponse.statusCode).toBe(200);
       expect(detailBody.data).toHaveProperty("navigation");
+      expect(detailBody.data).toHaveProperty("gallery_media");
       expect(detailBody.data).toHaveProperty("gallery_urls");
+      expect(detailBody.data.gallery_urls).toEqual(
+        detailBody.data.gallery_media.map((media: { url: string }) => media.url)
+      );
 
       const markerResponse = await main(
         {},
@@ -122,6 +178,7 @@ describe("cloudbase event handler", () => {
       ]);
       expect(markerBody.data[0]).not.toHaveProperty("navigation");
       expect(markerBody.data[0]).not.toHaveProperty("gallery_urls");
+      expect(markerBody.data[0]).not.toHaveProperty("gallery_media");
       expect(markerBody.data[0]).not.toHaveProperty("address_zh");
 
       const invalidSortResponse = await main(
@@ -383,6 +440,94 @@ describe("cloudbase event handler", () => {
       ).toBe(true);
     } finally {
       delete process.env.API_PROVIDER;
+    }
+  });
+
+  it("resolves live CloudBase gallery file ids into detail media", async () => {
+    const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+    const previousEnvId = process.env.CLOUDBASE_ENV_ID;
+    const liveGalleryFileId =
+      "cloud://test-env.public/public/places/place_live_001/1.jpg";
+    const livePlace = {
+      ...createMockDataset().places[0],
+      _id: "place_live_001",
+      name_zh: "实时图集地点",
+      name_en: "Live Gallery Place",
+      gallery_file_ids: [liveGalleryFileId],
+      gallery_urls: [],
+      status: "published" as const
+    };
+    const getTempFileURL = vi.fn(
+      async (input: { fileList: string[] }) => ({
+        fileList: input.fileList.map((fileID) => ({
+          code: "SUCCESS",
+          fileID,
+          tempFileURL: `https://cdn.example.com/${encodeURIComponent(fileID)}`
+        })),
+        requestId: "req_live_temp_url"
+      })
+    );
+    const placesCollection = {
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({
+          data: [livePlace]
+        }))
+      }))
+    };
+    const initCloudbase = vi.fn(() => ({
+      database: () => ({
+        collection: () => placesCollection
+      }),
+      getTempFileURL
+    }));
+
+    try {
+      vi.resetModules();
+      vi.doMock("@cloudbase/node-sdk", () => ({
+        default: {
+          init: initCloudbase
+        }
+      }));
+      process.env.CLOUDBASE_PROVIDER_MODE = "live";
+      process.env.CLOUDBASE_ENV_ID = "test-env";
+
+      const { createCloudbaseProvider: createLiveProvider } = await import(
+        "../src/providers/cloudbase"
+      );
+      const provider = createLiveProvider();
+      const detail = await provider.places.detail(livePlace._id);
+
+      expect(initCloudbase).toHaveBeenCalledWith({ env: "test-env" });
+      expect(getTempFileURL).toHaveBeenCalledWith({
+        fileList: [liveGalleryFileId]
+      });
+      expect(detail?.gallery_media).toEqual([
+        {
+          file_id: liveGalleryFileId,
+          cloud_path: "public/places/place_live_001/1.jpg",
+          url: `https://cdn.example.com/${encodeURIComponent(liveGalleryFileId)}`,
+          alt_zh: "实时图集地点 图集 1",
+          alt_en: "Live Gallery Place gallery 1"
+        }
+      ]);
+      expect(detail?.gallery_urls).toEqual([
+        `https://cdn.example.com/${encodeURIComponent(liveGalleryFileId)}`
+      ]);
+    } finally {
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+
+      if (previousEnvId === undefined) {
+        delete process.env.CLOUDBASE_ENV_ID;
+      } else {
+        process.env.CLOUDBASE_ENV_ID = previousEnvId;
+      }
+
+      vi.doUnmock("@cloudbase/node-sdk");
+      vi.resetModules();
     }
   });
 });

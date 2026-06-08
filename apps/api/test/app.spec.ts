@@ -1,5 +1,7 @@
 import { createServer } from "node:http";
 
+import { FILE_PATH_RULES } from "@community-map/shared";
+
 import { createApp } from "../src/app";
 
 const createTestBaseUrl = async () => {
@@ -99,6 +101,7 @@ describe("api routes", () => {
       expect(placesData.data.items.length).toBeGreaterThan(0);
       expect(placesData.data.items[0]).toHaveProperty("short_address_zh");
       expect(placesData.data.items[0]).not.toHaveProperty("gallery_urls");
+      expect(placesData.data.items[0]).not.toHaveProperty("gallery_media");
       expect(placesData.data.items[0]).not.toHaveProperty("navigation");
       expect(placesData.data.items[0]).not.toHaveProperty("address_zh");
 
@@ -109,6 +112,13 @@ describe("api routes", () => {
       expect(placeDetailResponse.status).toBe(200);
       expect(placeDetailData.data).toHaveProperty("navigation");
       expect(placeDetailData.data).toHaveProperty("share");
+      expect(placeDetailData.data.gallery_media.length).toBeGreaterThan(0);
+      expect(placeDetailData.data.gallery_media[0].url).toContain(
+        "images.unsplash.com"
+      );
+      expect(placeDetailData.data.gallery_urls).toEqual(
+        placeDetailData.data.gallery_media.map((media: { url: string }) => media.url)
+      );
 
       const markersBeforeResponse = await fetch(
         `${baseUrl}/places/map-markers`
@@ -119,6 +129,7 @@ describe("api routes", () => {
       expect(markersBeforeData.data[0]).toHaveProperty("category_level_1");
       expect(markersBeforeData.data[0]).toHaveProperty("is_recommended");
       expect(markersBeforeData.data[0]).not.toHaveProperty("address_zh");
+      expect(markersBeforeData.data[0]).not.toHaveProperty("gallery_media");
 
       const recommendedResponse = await fetch(
         `${baseUrl}/places?recommended=true`
@@ -231,6 +242,126 @@ describe("api routes", () => {
 
       expect(response.status).toBe(403);
       expect(body.error.code).toBe("FORBIDDEN");
+
+      const placeGalleryResponse = await fetch(`${baseUrl}/admin/places/place_001`, {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_002"
+        },
+        body: JSON.stringify({
+          gallery_file_ids: ["cloud://forbidden-place-gallery"]
+        })
+      });
+      const placeGalleryBody = await placeGalleryResponse.json();
+
+      expect(placeGalleryResponse.status).toBe(403);
+      expect(placeGalleryBody.error.code).toBe("FORBIDDEN");
+
+      const createPlaceResponse = await fetch(`${baseUrl}/admin/places`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          name_zh: "无权限图集测试地点",
+          name_en: "Forbidden Gallery Test Place",
+          cover_file_id: null,
+          cover_url: null,
+          category_level_1: "community",
+          category_level_2: "support-desk",
+          tag_ids: [],
+          address_zh: "成都",
+          address_en: "Chengdu",
+          location: { latitude: 30.616, longitude: 104.064 },
+          business_hours_zh: "周一至周日",
+          business_hours_en: "Every day",
+          intro_zh: "图集权限测试",
+          intro_en: "Gallery permission test",
+          recommended_reason_zh: null,
+          recommended_reason_en: null,
+          is_recommended: false,
+          recommended_rank: 0,
+          gallery_file_ids: [],
+          gallery_urls: [],
+          tencent_map_poi_id: null,
+          supports_navigation: true,
+          supports_favorite: true,
+          supports_share: true,
+          status: "published"
+        })
+      });
+      const createPlaceBody = await createPlaceResponse.json();
+      expect(createPlaceResponse.status).toBe(201);
+
+      const forbiddenCloudPath = `${FILE_PATH_RULES.placeGallery}${createPlaceBody.data._id}/forbidden.jpg`;
+      const forbiddenFileId = `cloud://${forbiddenCloudPath}`;
+      const forbiddenUploadRequest = await fetch(
+        `${baseUrl}/files/upload-requests`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-mock-user-id": "user_002"
+          },
+          body: JSON.stringify({
+            biz_type: "place_gallery",
+            biz_id: createPlaceBody.data._id,
+            file_name: "forbidden.jpg",
+            visibility: "public",
+            target_prefix: FILE_PATH_RULES.placeGallery
+          })
+        }
+      );
+      const forbiddenUploadBody = await forbiddenUploadRequest.json();
+
+      expect(forbiddenUploadRequest.status).toBe(403);
+      expect(forbiddenUploadBody.error.code).toBe("FORBIDDEN");
+
+      const forbiddenCompleteResponse = await fetch(`${baseUrl}/files/complete`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_002"
+        },
+        body: JSON.stringify({
+          biz_type: "place_gallery",
+          biz_id: createPlaceBody.data._id,
+          file_id: forbiddenFileId,
+          cloud_path: forbiddenCloudPath,
+          visibility: "public"
+        })
+      });
+      const forbiddenCompleteBody = await forbiddenCompleteResponse.json();
+
+      expect(forbiddenCompleteResponse.status).toBe(403);
+      expect(forbiddenCompleteBody.error.code).toBe("FORBIDDEN");
+
+      const attachForbiddenFileResponse = await fetch(
+        `${baseUrl}/admin/places/${createPlaceBody.data._id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "content-type": "application/json",
+            "x-mock-user-id": "user_001"
+          },
+          body: JSON.stringify({
+            gallery_file_ids: [forbiddenFileId],
+            gallery_urls: []
+          })
+        }
+      );
+      expect(attachForbiddenFileResponse.status).toBe(200);
+
+      const detailResponse = await fetch(
+        `${baseUrl}/places/${createPlaceBody.data._id}`
+      );
+      const detailBody = await detailResponse.json();
+
+      expect(detailResponse.status).toBe(200);
+      expect(detailBody.data.gallery_media).toEqual([]);
+      expect(detailBody.data.gallery_urls).toEqual([]);
     } finally {
       await close();
     }
@@ -370,6 +501,7 @@ describe("api routes", () => {
       expect(keywordData.data.items).toHaveLength(1);
       expect(keywordData.data.items[0].name_en).toBe("Global Corner Cafe");
       expect(keywordData.data.items[0]).not.toHaveProperty("gallery_urls");
+      expect(keywordData.data.items[0]).not.toHaveProperty("gallery_media");
       expect(keywordData.data.items[0]).not.toHaveProperty("navigation");
       expect(keywordData.data.items[0]).not.toHaveProperty("address_zh");
 
@@ -442,6 +574,7 @@ describe("api routes", () => {
         "place_002"
       ]);
       expect(markerData.data[0]).not.toHaveProperty("gallery_urls");
+      expect(markerData.data[0]).not.toHaveProperty("gallery_media");
       expect(markerData.data[0]).not.toHaveProperty("navigation");
       expect(markerData.data[0]).not.toHaveProperty("address_zh");
 

@@ -85,7 +85,16 @@ describe("shared contracts", () => {
       business_hours_en: "Every day",
       intro_zh: "简介",
       intro_en: "Intro",
-      gallery_urls: ["https://example.com/gallery.jpg"],
+      gallery_media: [
+        {
+          file_id: "cloud://place-001-1",
+          cloud_path: "public/places/place_001/1.jpg",
+          url: "https://images.unsplash.com/photo-1494526585095-c41746248156",
+          alt_zh: "桐梓林社区中心 图集 1",
+          alt_en: "Tongzilin Community Center gallery 1"
+        }
+      ],
+      gallery_urls: ["https://images.unsplash.com/photo-1494526585095-c41746248156"],
       is_recommended: true,
       recommended_reason_zh: "推荐理由",
       recommended_reason_en: "Reason",
@@ -175,6 +184,15 @@ describe("shared contracts", () => {
       recommended_reason_en: "Reason",
       supports_navigation: true,
       gallery_urls: ["https://example.com/gallery.jpg"],
+      gallery_media: [
+        {
+          file_id: "cloud://place-001-1",
+          cloud_path: "public/places/place_001/1.jpg",
+          url: "https://example.com/gallery.jpg",
+          alt_zh: "图集",
+          alt_en: "Gallery"
+        }
+      ],
       address_zh: "成都",
       navigation: {
         latitude: 30.6,
@@ -204,6 +222,7 @@ describe("shared contracts", () => {
       "tag_ids"
     ]);
     expect(item).not.toHaveProperty("gallery_urls");
+    expect(item).not.toHaveProperty("gallery_media");
     expect(item).not.toHaveProperty("navigation");
     expect(item).not.toHaveProperty("address_zh");
   });

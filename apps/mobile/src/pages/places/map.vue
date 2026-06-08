@@ -72,7 +72,7 @@ const renderedMarkers = computed<RenderedMarker[]>(() =>
       fontSize: 12,
       borderRadius: 16,
       bgColor:
-        place._id === selectedPlace.value?._id ? "#0f766e" : "#334155",
+        place._id === selectedPlace.value?._id ? "#0052d9" : "#334155",
       padding: 8,
       display: "BYCLICK"
     }
@@ -193,7 +193,7 @@ onLoad((query) => {
 .map-card {
   width: 100%;
   height: 720rpx;
-  border-radius: 24rpx;
+  border-radius: 16rpx;
   overflow: hidden;
   background: #e2e8f0;
 }
@@ -206,16 +206,17 @@ onLoad((query) => {
 
 .secondary {
   flex: 1;
-  background: #ccfbf1;
-  color: #115e59;
+  border-radius: 8rpx;
+  background: #e6f4ff;
+  color: #0052d9;
 }
 
 .summary-card {
   margin-top: 24rpx;
   background: #ffffff;
-  border-radius: 24rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 16rpx;
   padding: 28rpx;
-  box-shadow: 0 20rpx 40rpx rgba(15, 118, 110, 0.08);
 }
 
 .summary-title {
@@ -232,15 +233,16 @@ onLoad((query) => {
   display: inline-flex;
   margin-top: 14rpx;
   padding: 6rpx 14rpx;
-  border-radius: 999rpx;
-  background: #dcfce7;
-  color: #166534;
+  border-radius: 8rpx;
+  background: #fff7e6;
+  color: #ad5a00;
   font-size: 22rpx;
 }
 
 .primary {
   margin-top: 24rpx;
-  background: #0f766e;
+  border-radius: 8rpx;
+  background: #0052d9;
   color: #ffffff;
 }
 </style>

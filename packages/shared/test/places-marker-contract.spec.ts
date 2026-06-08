@@ -68,6 +68,15 @@ describe("places marker contract", () => {
       address_zh: "成都",
       intro_zh: "简介",
       gallery_urls: ["https://example.com/gallery.jpg"],
+      gallery_media: [
+        {
+          file_id: "cloud://place-001-1",
+          cloud_path: "public/places/place_001/1.jpg",
+          url: "https://example.com/gallery.jpg",
+          alt_zh: "图集",
+          alt_en: "Gallery"
+        }
+      ],
       navigation: {
         latitude: 30.615,
         longitude: 104.0625,
@@ -92,6 +101,7 @@ describe("places marker contract", () => {
     expect(marker).not.toHaveProperty("address_zh");
     expect(marker).not.toHaveProperty("intro_zh");
     expect(marker).not.toHaveProperty("gallery_urls");
+    expect(marker).not.toHaveProperty("gallery_media");
     expect(marker).not.toHaveProperty("navigation");
   });
 

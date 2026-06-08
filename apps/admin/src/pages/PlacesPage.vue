@@ -9,11 +9,12 @@ import {
   type Place
 } from "@community-map/shared";
 
-import { adminApi } from "@/api/client";
+import { FILE_PATH_RULES, adminApi } from "@/api/client";
 
 const loading = ref(false);
 const places = ref<Place[]>([]);
 const saving = ref(false);
+const registeringGallery = ref(false);
 const editingId = ref<string | null>(null);
 const submittingError = ref("");
 
@@ -48,7 +49,8 @@ const createEmptyForm = () => ({
   recommended_reason_en: "",
   is_recommended: false,
   recommended_rank: 0,
-  gallery_urls_text: "",
+  gallery_file_ids: [] as string[],
+  gallery_file_name: "",
   status: "draft" as Place["status"],
   supports_navigation: true,
   supports_favorite: true,
@@ -93,7 +95,8 @@ const fillForm = (place?: Place) => {
     recommended_reason_en: place.recommended_reason_en ?? "",
     is_recommended: place.is_recommended,
     recommended_rank: place.recommended_rank,
-    gallery_urls_text: place.gallery_urls.join(","),
+    gallery_file_ids: [...place.gallery_file_ids],
+    gallery_file_name: "",
     status: place.status,
     supports_navigation: place.supports_navigation,
     supports_favorite: place.supports_favorite,
@@ -127,11 +130,8 @@ const buildPayload = () => ({
   recommended_reason_en: form.recommended_reason_en || null,
   is_recommended: form.is_recommended,
   recommended_rank: Number(form.recommended_rank),
-  gallery_file_ids: [],
-  gallery_urls: form.gallery_urls_text
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean),
+  gallery_file_ids: form.gallery_file_ids,
+  gallery_urls: [],
   supports_navigation: form.supports_navigation,
   supports_favorite: form.supports_favorite,
   supports_share: form.supports_share,
@@ -192,6 +192,57 @@ const startEdit = (place: Place) => fillForm(place);
 const quickPublish = async (place: Place, status: Place["status"]) => {
   await adminApi.admin.updatePlace(place._id, { status });
   await load();
+};
+
+const removeGalleryFile = (fileId: string) => {
+  form.gallery_file_ids = form.gallery_file_ids.filter((item) => item !== fileId);
+};
+
+const registerGalleryFile = async () => {
+  if (!editingId.value) {
+    ElMessage.warning("请先创建并保存地点，再登记图集文件。");
+    return;
+  }
+
+  const fileName = form.gallery_file_name.trim();
+  if (!fileName) {
+    ElMessage.warning("请输入图集文件名。");
+    return;
+  }
+
+  registeringGallery.value = true;
+  try {
+    const uploadRequest = await adminApi.files.createUploadRequest({
+      biz_type: "place_gallery",
+      biz_id: editingId.value,
+      file_name: fileName,
+      visibility: "public",
+      target_prefix: FILE_PATH_RULES.placeGallery
+    });
+    const fileId = `cloud://${uploadRequest.data.cloud_path}`;
+    const completion = await adminApi.files.complete({
+      biz_type: "place_gallery",
+      biz_id: editingId.value,
+      file_id: fileId,
+      cloud_path: uploadRequest.data.cloud_path,
+      visibility: "public"
+    });
+    const galleryFileIds = [
+      ...new Set([...form.gallery_file_ids, completion.data.file_id])
+    ];
+
+    await adminApi.admin.updatePlace(editingId.value, {
+      gallery_file_ids: galleryFileIds,
+      gallery_urls: []
+    });
+
+    form.gallery_file_ids = galleryFileIds;
+    form.gallery_file_name = "";
+    ElMessage.success("图集文件已登记并挂接。");
+    await load();
+  } finally {
+    registeringGallery.value = false;
+  }
 };
 
 onMounted(async () => {
@@ -255,10 +306,6 @@ onMounted(async () => {
             :min="0"
             placeholder="推荐排序"
           />
-          <el-input
-            v-model="form.gallery_urls_text"
-            placeholder="图集 URL，逗号分隔"
-          />
         </div>
         <div v-if="submittingError" class="error-text">{{ submittingError }}</div>
         <el-input
@@ -279,6 +326,40 @@ onMounted(async () => {
           <el-switch v-model="form.supports_navigation" active-text="支持导航" />
           <el-switch v-model="form.supports_favorite" active-text="收藏入口" />
           <el-switch v-model="form.supports_share" active-text="分享入口" />
+        </div>
+        <div class="gallery-manager">
+          <div class="gallery-header">
+            <h4>地点图集</h4>
+            <span>通过 files flow 登记并挂接，移动端详情页按文件资产解析图片。</span>
+          </div>
+          <div class="gallery-register-row">
+            <el-input
+              v-model="form.gallery_file_name"
+              placeholder="图集文件名，例如 entrance.jpg"
+            />
+            <el-button
+              type="primary"
+              :loading="registeringGallery"
+              :disabled="!editingId"
+              @click="registerGalleryFile"
+            >
+              登记图集文件
+            </el-button>
+          </div>
+          <div v-if="!editingId" class="hint-text">
+            新建地点需先保存草稿，获得地点 ID 后再登记图集文件。
+          </div>
+          <div v-if="form.gallery_file_ids.length" class="gallery-file-list">
+            <el-tag
+              v-for="fileId in form.gallery_file_ids"
+              :key="fileId"
+              closable
+              @close="removeGalleryFile(fileId)"
+            >
+              {{ fileId }}
+            </el-tag>
+          </div>
+          <div v-else class="hint-text">暂无已挂接图集文件。</div>
         </div>
         <div class="editor-actions">
           <el-button @click="startCreate">重置</el-button>
@@ -345,6 +426,40 @@ onMounted(async () => {
 .error-text {
   margin-bottom: 12px;
   color: #b91c1c;
+}
+
+.gallery-manager {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.gallery-header {
+  margin-bottom: 12px;
+}
+
+.gallery-header h4 {
+  margin: 0 0 4px;
+}
+
+.gallery-header span,
+.hint-text {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.gallery-register-row,
+.gallery-file-list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.gallery-file-list {
+  margin-top: 12px;
 }
 
 .mt-12 {

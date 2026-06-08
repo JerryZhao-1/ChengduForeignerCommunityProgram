@@ -20,6 +20,10 @@ import {
 
 import { apiError, ApiAppError } from "./lib/errors";
 import { parseOrThrow } from "./lib/http";
+import {
+  isProtectedGalleryCompletion,
+  isProtectedGalleryUploadRequest
+} from "./lib/protected-files";
 import { createProvider } from "./providers";
 import type { ApiProvider } from "./providers/types";
 
@@ -357,12 +361,28 @@ export const main: CloudbaseEventHandler = async (event, context) => {
 
     if (method === "POST" && pathname === "/files/upload-requests") {
       const input = parseOrThrow(CreateUploadRequestInputSchema, body);
+      if (isProtectedGalleryUploadRequest(input)) {
+        await requireRole(provider, { eventID: requestId, httpContext }, [
+          "community_admin",
+          "system_admin"
+        ]);
+      }
       return ok(await provider.files.createUploadRequest(input), requestId, 201);
     }
 
     if (method === "POST" && pathname === "/files/complete") {
       const input = parseOrThrow(CompleteUploadInputSchema, body);
-      return ok(await provider.files.complete(input, actorId), requestId, 201);
+      const actor = isProtectedGalleryCompletion(input)
+        ? await requireRole(provider, { eventID: requestId, httpContext }, [
+            "community_admin",
+            "system_admin"
+          ])
+        : null;
+      return ok(
+        await provider.files.complete(input, actor?._id ?? actorId),
+        requestId,
+        201
+      );
     }
 
     if (method === "POST" && pathname === "/files/private-url") {
