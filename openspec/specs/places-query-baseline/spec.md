@@ -11,7 +11,7 @@ The system SHALL keep `places` public read behavior aligned across mock provider
 
 - **WHEN** a client requests the places list for a community
 - **THEN** the system returns only `published` places for that `communityId`
-- **AND** applies pagination, keyword, category, tags, recommendation, and v1 sort semantics consistently across provider paths
+- **AND** applies pagination, keyword, category, tag, recommendation, and v1 sort semantics consistently across provider paths
 
 #### Scenario: Detail hides unpublished places
 
@@ -24,4 +24,3 @@ The system SHALL keep `places` public read behavior aligned across mock provider
 - **WHEN** a client requests map markers
 - **THEN** the system returns only published markers for the active community
 - **AND** the result set follows the same visibility rules as the public list and detail endpoints
-

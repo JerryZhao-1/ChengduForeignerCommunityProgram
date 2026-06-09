@@ -27,7 +27,13 @@ The system SHALL let users refine the public places list through keyword search 
 
 - **WHEN** the user switches the category entry on the list page
 - **THEN** the system refreshes the list using the selected category filter
-- **AND** the category control behaves as an explicit filter entry instead of free-text category input
+- **AND** the category control uses query values derived from the shared top-level places taxonomy
+
+#### Scenario: Select a tag entry
+
+- **WHEN** the user selects a tag from a place card or filter entry
+- **THEN** the system refreshes the list using the selected tag filter
+- **AND** the page shows a clear way back to the unfiltered list
 
 #### Scenario: Open the recommended entry
 
@@ -45,4 +51,3 @@ The system SHALL expose the home page `Places` section as a real entry into plac
 - **THEN** the system navigates to the full places list page
 - **AND** the home page keeps place preview items and a recommended entry
 - **AND** the section no longer presents the places module as a reserved or placeholder-only area
-
