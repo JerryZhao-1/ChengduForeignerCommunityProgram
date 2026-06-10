@@ -1,3 +1,5 @@
+import type { PlaceDetail, PlaceMapMarker } from "@community-map/shared";
+
 const withQuery = (
   path: string,
   query?: Record<string, string | number | boolean | undefined>
@@ -28,4 +30,81 @@ export const placesPagePaths = {
       recommended: true,
       sort: "recommended"
     })
+};
+
+type PlacesLocale = "zh" | "en";
+
+export interface PlaceNavigationFeedback {
+  unavailable: string;
+  failed: string;
+}
+
+export type PlaceNavigationTarget = {
+  latitude: number;
+  longitude: number;
+  name: string;
+  address: string;
+};
+
+export const pickPlaceText = (
+  locale: PlacesLocale,
+  zhText: string,
+  enText: string
+) => (locale === "zh" ? zhText : enText);
+
+export const buildPlaceDetailNavigationTarget = (
+  navigation: PlaceDetail["navigation"],
+  locale: PlacesLocale
+): PlaceNavigationTarget => ({
+  latitude: navigation.latitude,
+  longitude: navigation.longitude,
+  name: pickPlaceText(locale, navigation.name_zh, navigation.name_en),
+  address: pickPlaceText(locale, navigation.address_zh, navigation.address_en)
+});
+
+export const buildPlaceMarkerNavigationTarget = (
+  marker: PlaceMapMarker,
+  locale: PlacesLocale
+): PlaceNavigationTarget => ({
+  latitude: marker.location.latitude,
+  longitude: marker.location.longitude,
+  name: pickPlaceText(locale, marker.name_zh, marker.name_en),
+  address: ""
+});
+
+export const hasValidPlaceNavigationTarget = (
+  target: PlaceNavigationTarget
+) =>
+  Number.isFinite(target.latitude) &&
+  Number.isFinite(target.longitude) &&
+  Math.abs(target.latitude) <= 90 &&
+  Math.abs(target.longitude) <= 180;
+
+export const openPlaceNativeNavigation = (
+  target: PlaceNavigationTarget,
+  feedback: PlaceNavigationFeedback
+) => {
+  if (!hasValidPlaceNavigationTarget(target)) {
+    uni.showToast({
+      title: feedback.unavailable,
+      icon: "none"
+    });
+    return false;
+  }
+
+  uni.openLocation({
+    latitude: target.latitude,
+    longitude: target.longitude,
+    name: target.name,
+    address: target.address,
+    scale: 16,
+    fail: () => {
+      uni.showToast({
+        title: feedback.failed,
+        icon: "none"
+      });
+    }
+  });
+
+  return true;
 };

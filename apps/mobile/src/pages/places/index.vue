@@ -114,7 +114,7 @@ onLoad((query) => {
   <view class="page">
     <SectionPanel :title="listCopy.title" :subtitle="listCopy.subtitle">
       <view class="toolbar">
-        <button class="secondary" @click="openRecommended">
+        <button class="place-action secondary" @click="openRecommended">
           {{ listCopy.recommendedFilter }}
         </button>
       </view>
@@ -174,7 +174,7 @@ onLoad((query) => {
         v-else
         v-for="place in places"
         :key="place._id"
-        class="card"
+        class="place-card"
         @click="openDetail(place._id)"
       >
         <image
@@ -187,7 +187,7 @@ onLoad((query) => {
           <view class="card-title">{{
             pickLocalized(state.locale, place.name_zh, place.name_en)
           }}</view>
-          <view v-if="place.is_recommended" class="badge">
+          <view v-if="place.is_recommended" class="place-badge">
             {{ listCopy.recommendedBadge }}
           </view>
         </view>
@@ -231,12 +231,20 @@ onLoad((query) => {
   flex-wrap: wrap;
 }
 
-.secondary,
+.place-action,
 .chip {
   border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.place-action {
+  min-width: 220rpx;
+}
+
+.secondary,
+.chip {
   background: #e6f4ff;
   color: #0052d9;
-  font-size: 24rpx;
 }
 
 .chip.active {
@@ -259,11 +267,11 @@ onLoad((query) => {
   font-size: 26rpx;
 }
 
-.card {
+.place-card {
   margin-top: 16rpx;
   background: #ffffff;
   border: 1rpx solid #e5e7eb;
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   padding: 24rpx;
   overflow: hidden;
 }
@@ -294,7 +302,7 @@ onLoad((query) => {
   line-height: 1.5;
 }
 
-.badge,
+.place-badge,
 .tag {
   display: inline-flex;
   align-items: center;
@@ -304,7 +312,7 @@ onLoad((query) => {
   line-height: 1.4;
 }
 
-.badge {
+.place-badge {
   background: #fff7e6;
   color: #ad5a00;
 }

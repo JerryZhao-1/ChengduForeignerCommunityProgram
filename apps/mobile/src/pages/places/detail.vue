@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { onLoad } from "@dcloudio/uni-app";
+import { onLoad, onShareAppMessage } from "@dcloudio/uni-app";
 import type { PlaceDetail } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
@@ -8,13 +8,21 @@ import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import SectionPanel from "@/components/SectionPanel.vue";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 import { getPlacesCopy } from "./copy";
-import { placesPagePaths } from "./navigation";
+import { usePlaceFavoriteState } from "./favorite-state";
+import {
+  buildPlaceDetailNavigationTarget,
+  openPlaceNativeNavigation,
+  placesPagePaths
+} from "./navigation";
 import { usePlaceAsyncState } from "./usePlaceAsyncState";
 
 const { state } = useAppStore();
 const place = ref<PlaceDetail | null>(null);
 const { loading, error, run, setError } = usePlaceAsyncState();
 const detailCopy = computed(() => getPlacesCopy(state.locale, "detail"));
+const { isFavorite, toggleFavorite } = usePlaceFavoriteState(
+  () => place.value?._id ?? null
+);
 const galleryMedia = computed(() => {
   if (!place.value) {
     return [];
@@ -32,6 +40,45 @@ const galleryMedia = computed(() => {
     alt_en: `${place.value?.name_en ?? ""} gallery ${index + 1}`
   }));
 });
+const shareTitle = computed(() => {
+  if (!place.value) {
+    return detailCopy.value.shareFallbackTitle;
+  }
+
+  return pickLocalized(
+    state.locale,
+    place.value.share.title_zh || place.value.name_zh,
+    place.value.share.title_en || place.value.name_en
+  );
+});
+const shareSummary = computed(() => {
+  if (!place.value) {
+    return "";
+  }
+
+  return pickLocalized(
+    state.locale,
+    place.value.share.summary_zh || place.value.intro_zh,
+    place.value.share.summary_en || place.value.intro_en
+  );
+});
+const sharePath = computed(() =>
+  place.value ? placesPagePaths.detail(place.value._id) : placesPagePaths.list()
+);
+const shareImageUrl = computed(() => place.value?.cover_url ?? undefined);
+
+const syncShareMenuAvailability = () => {
+  if (place.value?.supports_share === false) {
+    uni.hideShareMenu?.({
+      hideShareItems: ["shareAppMessage", "shareTimeline"]
+    });
+    return;
+  }
+
+  uni.showShareMenu?.({
+    menus: ["shareAppMessage", "shareTimeline"]
+  });
+};
 
 onLoad(async (query) => {
   if (!query?.id) {
@@ -46,34 +93,26 @@ onLoad(async (query) => {
 
   if (result) {
     place.value = result.data;
+    syncShareMenuAvailability();
   }
 });
+
+onShareAppMessage(() => ({
+  title: shareTitle.value,
+  path: sharePath.value,
+  imageUrl: shareImageUrl.value
+}));
 
 const openNavigation = () => {
   if (!place.value) {
     return;
   }
 
-  uni.openLocation({
-    latitude: place.value.navigation.latitude,
-    longitude: place.value.navigation.longitude,
-    name: pickLocalized(
-      state.locale,
-      place.value.navigation.name_zh,
-      place.value.navigation.name_en
-    ),
-    address: pickLocalized(
-      state.locale,
-      place.value.navigation.address_zh,
-      place.value.navigation.address_en
-    ),
-    scale: 16,
-    fail: () => {
-      uni.showToast({
-        title: detailCopy.value.navigationFailed,
-        icon: "none"
-      });
-    }
+  openPlaceNativeNavigation({
+    ...buildPlaceDetailNavigationTarget(place.value.navigation, state.locale)
+  }, {
+    unavailable: detailCopy.value.navigationUnavailable,
+    failed: detailCopy.value.navigationFailed
   });
 };
 
@@ -87,23 +126,63 @@ const openMapPosition = () => {
   });
 };
 
-const favoritePlaceholder = () => {
+const toggleFavoriteState = () => {
+  const nextState = !isFavorite.value;
+  if (!toggleFavorite()) {
+    return;
+  }
+
   uni.showToast({
-    title: detailCopy.value.favoritePending,
+    title: nextState
+      ? detailCopy.value.favoriteAdded
+      : detailCopy.value.favoriteRemoved,
     icon: "none"
   });
 };
 
-const sharePlaceholder = () => {
+const shareCurrentPlace = () => {
+  if (place.value?.supports_share === false) {
+    uni.showToast({
+      title: detailCopy.value.shareUnavailable,
+      icon: "none"
+    });
+    return;
+  }
+
   uni.showShareMenu?.({
     menus: ["shareAppMessage", "shareTimeline"]
   });
 
-  uni.showToast({
-    title: detailCopy.value.sharePending,
-    icon: "none"
+  const link = sharePath.value;
+  uni.setClipboardData?.({
+    data: link,
+    success: () => {
+      uni.showToast({
+        title: detailCopy.value.shareCopied,
+        icon: "none"
+      });
+    },
+    fail: () => {
+      uni.showToast({
+        title: detailCopy.value.shareReady,
+        icon: "none"
+      });
+    }
   });
+
+  if (!uni.setClipboardData) {
+    uni.showToast({
+      title: detailCopy.value.shareReady,
+      icon: "none"
+    });
+  }
 };
+
+const shareButtonLabel = computed(() =>
+  place.value?.supports_share === false
+    ? detailCopy.value.shareUnavailable
+    : detailCopy.value.shareEntry
+);
 </script>
 
 <template>
@@ -117,12 +196,12 @@ const sharePlaceholder = () => {
     >
       <image
         v-if="place.cover_url"
-        class="hero-image"
+        class="place-hero"
         :src="place.cover_url"
         mode="aspectFill"
       />
-      <view class="tag-row">
-        <text v-for="tag in place.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
+      <view class="chip-row">
+        <text v-for="tag in place.tag_ids" :key="tag" class="place-chip">#{{ tag }}</text>
       </view>
       <view class="info-block">
         <view class="info-label">{{ detailCopy.address }}</view>
@@ -148,7 +227,7 @@ const sharePlaceholder = () => {
           pickLocalized(state.locale, place.intro_zh, place.intro_en)
         }}</view>
       </view>
-      <view v-if="place.is_recommended" class="recommendation">
+      <view v-if="place.is_recommended" class="place-badge">
         {{
           pickLocalized(
             state.locale,
@@ -176,22 +255,33 @@ const sharePlaceholder = () => {
         </scroll-view>
         <AsyncStateCard v-else variant="empty" :text="detailCopy.noGallery" />
       </view>
-      <view class="button-row">
-        <button class="action-button primary" @click="openNavigation">
+      <view class="action-row">
+        <button class="place-action primary" @click="openNavigation">
           {{ detailCopy.openNavigation }}
         </button>
-        <button class="action-button secondary" @click="openMapPosition">
+        <button class="place-action secondary" @click="openMapPosition">
           {{ detailCopy.openMapPosition }}
         </button>
       </view>
-      <view class="button-row">
-        <button class="action-button ghost" @click="favoritePlaceholder">
-          {{ detailCopy.favoriteEntry }}
+      <view class="action-row">
+        <button
+          class="place-action ghost"
+          :class="{ active: isFavorite }"
+          :disabled="place.supports_favorite === false"
+          @click="toggleFavoriteState"
+        >
+          {{ isFavorite ? detailCopy.favoriteActive : detailCopy.favoriteEntry }}
         </button>
-        <button class="action-button ghost" @click="sharePlaceholder">
-          {{ detailCopy.shareEntry }}
+        <button
+          class="place-action ghost"
+          open-type="share"
+          :disabled="place.supports_share === false"
+          @click="shareCurrentPlace"
+        >
+          {{ shareButtonLabel }}
         </button>
       </view>
+      <view v-if="shareSummary" class="share-summary">{{ shareSummary }}</view>
     </SectionPanel>
     <AsyncStateCard v-else variant="empty" :text="detailCopy.empty" />
   </view>
@@ -204,24 +294,24 @@ const sharePlaceholder = () => {
   min-height: 100vh;
 }
 
-.hero-image {
+.place-hero {
   display: block;
   width: 100%;
   height: 360rpx;
   margin-bottom: 16rpx;
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   background: #e2e8f0;
 }
 
-.tag-row,
-.button-row {
+.chip-row,
+.action-row {
   display: flex;
   gap: 16rpx;
   flex-wrap: wrap;
   margin-bottom: 16rpx;
 }
 
-.tag {
+.place-chip {
   padding: 6rpx 14rpx;
   border-radius: 8rpx;
   background: #e6f4ff;
@@ -245,12 +335,13 @@ const sharePlaceholder = () => {
   color: #1f2937;
 }
 
-.recommendation {
+.place-badge {
   margin-bottom: 16rpx;
-  padding: 20rpx;
-  border-radius: 12rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 8rpx;
   background: #fff7e6;
   color: #ad5a00;
+  line-height: 1.6;
 }
 
 .gallery {
@@ -267,11 +358,11 @@ const sharePlaceholder = () => {
   width: 520rpx;
   height: 320rpx;
   margin-right: 16rpx;
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   background: #e5e7eb;
 }
 
-.action-button {
+.place-action {
   min-width: 220rpx;
   border-radius: 8rpx;
   font-size: 26rpx;
@@ -279,7 +370,7 @@ const sharePlaceholder = () => {
 
 .primary {
   background: #0052d9;
-  color: white;
+  color: #ffffff;
 }
 
 .secondary {
@@ -290,5 +381,22 @@ const sharePlaceholder = () => {
 .ghost {
   background: #f3f4f6;
   color: #374151;
+}
+
+.ghost.active {
+  background: #fff7e6;
+  color: #ad5a00;
+}
+
+.place-action[disabled] {
+  color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.share-summary {
+  margin-top: 4rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.6;
 }
 </style>

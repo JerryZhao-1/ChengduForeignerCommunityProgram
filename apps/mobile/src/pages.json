@@ -57,7 +57,7 @@
     {
       "path": "pages/places/recommended",
       "style": {
-        "navigationBarTitleText": "推荐筛选跳转"
+        "navigationBarTitleText": "推荐地点"
       }
     },
     {
