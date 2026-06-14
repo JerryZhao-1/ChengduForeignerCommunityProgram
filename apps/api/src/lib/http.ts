@@ -7,6 +7,23 @@ import { ApiFailureResultSchema } from "@community-map/shared";
 
 import { ApiAppError, apiError } from "./errors";
 
+export const corsMiddleware = async (ctx: Context, next: Next) => {
+  ctx.set("Access-Control-Allow-Origin", ctx.get("origin") || "*");
+  ctx.set("Vary", "Origin");
+  ctx.set("Access-Control-Allow-Methods", "GET,POST,PATCH,OPTIONS");
+  ctx.set(
+    "Access-Control-Allow-Headers",
+    "content-type,x-mock-user-id,x-requested-with"
+  );
+
+  if (ctx.method === "OPTIONS") {
+    ctx.status = 204;
+    return;
+  }
+
+  await next();
+};
+
 export const requestIdMiddleware = async (ctx: Context, next: Next) => {
   ctx.state.requestId = randomUUID();
   await next();

@@ -22,6 +22,23 @@ export interface HttpClientOptions {
 const buildUrl = (baseUrl: string, path: string) =>
   `${baseUrl.replace(/\/$/, "")}${path}`;
 
+const buildQuerySuffix = (query?: Record<string, unknown>) => {
+  const entries = Object.entries(query ?? {}).filter(
+    ([, value]) => value !== undefined && value !== null
+  );
+
+  if (entries.length === 0) {
+    return "";
+  }
+
+  return `?${entries
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
+    )
+    .join("&")}`;
+};
+
 export const createFetchRequester = (
   fetchImpl: typeof fetch = fetch
 ): HttpRequester => {
@@ -61,13 +78,7 @@ export const createHttpClient = (
     },
     events: {
       list: (query) => {
-        const searchParams = new URLSearchParams();
-        Object.entries(query ?? {}).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            searchParams.set(key, String(value));
-          }
-        });
-        const suffix = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+        const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.events.list}${suffix}`);
       },
       detail: (id) => request("GET", apiPaths.events.detail(id)),
@@ -79,13 +90,7 @@ export const createHttpClient = (
     },
     discover: {
       listPosts: (query) => {
-        const searchParams = new URLSearchParams();
-        Object.entries(query ?? {}).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            searchParams.set(key, String(value));
-          }
-        });
-        const suffix = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+        const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.discover.listPosts}${suffix}`);
       },
       detailPost: (id) => request("GET", apiPaths.discover.detailPost(id)),
@@ -95,13 +100,7 @@ export const createHttpClient = (
     },
     places: {
       list: (query) => {
-        const searchParams = new URLSearchParams();
-        Object.entries(query ?? {}).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            searchParams.set(key, String(value));
-          }
-        });
-        const suffix = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+        const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.places.list}${suffix}`);
       },
       detail: (id) => request("GET", apiPaths.places.detail(id)),
