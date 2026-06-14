@@ -1,0 +1,43 @@
+Change 'complete-week8-places-cloudbase-integration-and-volunteer-import' is valid
+
+> chengdu-foreigner-community-program@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> corepack pnpm -r --if-present typecheck
+
+Scope: 4 of 5 workspace projects
+packages/shared typecheck$ tsc --noEmit -p tsconfig.json
+packages/shared typecheck: Done
+apps/api typecheck$ tsc --noEmit -p tsconfig.json
+apps/admin typecheck$ vue-tsc --noEmit -p tsconfig.json
+apps/mobile typecheck$ vue-tsc --noEmit -p tsconfig.json
+apps/api typecheck: Done
+apps/mobile typecheck: Done
+apps/admin typecheck: Done
+
+> chengdu-foreigner-community-program@0.1.0 test /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> vitest run
+
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ apps/mobile/src/pages/places/navigation.spec.ts (4 tests) 1ms
+ ✓ apps/mobile/src/pages/places/favorite-state.spec.ts (2 tests) 1ms
+ ✓ packages/shared/test/client.spec.ts (4 tests) 3ms
+ ✓ packages/shared/test/contracts.spec.ts (8 tests) 4ms
+ ✓ apps/mobile/src/pages/places/list-categories.spec.ts (1 test) 1ms
+ ✓ packages/shared/test/places-marker-contract.spec.ts (4 tests) 8ms
+Parsed 19 records; mapped 19 draft places.
+Parsed 19 records; mapped 19 draft places.
+Parsed 19 records; mapped 19 draft places.
+ ✓ packages/shared/test/volunteer-import.spec.ts (3 tests) 110ms
+ ✓ apps/api/test/cloudbase.spec.ts (8 tests) 18ms
+ ✓ apps/api/test/app.spec.ts (4 tests) 47ms
+
+ Test Files  9 passed (9)
+      Tests  38 passed (38)
+   Start at  14:35:41
+   Duration  419ms (transform 321ms, setup 0ms, collect 1.19s, tests 194ms, environment 1ms, prepare 295ms)
+
+
+> chengdu-foreigner-community-program@0.1.0 lint /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> eslint .
+

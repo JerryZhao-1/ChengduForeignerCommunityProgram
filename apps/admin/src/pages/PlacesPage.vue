@@ -28,6 +28,49 @@ const statusOptions = PLACE_STATUSES.map((value) => ({
   label: value
 }));
 
+const hasUsableCoordinates = (place: Place) =>
+  Number.isFinite(place.location.latitude) &&
+  Number.isFinite(place.location.longitude) &&
+  place.location.latitude >= -90 &&
+  place.location.latitude <= 90 &&
+  place.location.longitude >= -180 &&
+  place.location.longitude <= 180;
+
+const getReviewIndicators = (place: Place) => {
+  const indicators: Array<{ type: "danger" | "warning" | "info"; label: string }> = [];
+
+  if (place.import_review) {
+    indicators.push({ type: "info", label: "志愿者导入" });
+  }
+  if (place.status === "draft") {
+    indicators.push({ type: "warning", label: "草稿" });
+  }
+  if (!hasUsableCoordinates(place)) {
+    indicators.push({ type: "danger", label: "缺坐标/不可出地图点" });
+  }
+  if (!place.address_zh || !place.address_en) {
+    indicators.push({ type: "warning", label: "地址待补齐" });
+  }
+  if (!place.name_en || !place.intro_en || !place.business_hours_en) {
+    indicators.push({ type: "warning", label: "英文待补齐" });
+  }
+  if (place.tag_ids.length === 0) {
+    indicators.push({ type: "warning", label: "缺标签" });
+  }
+  if (place.gallery_file_ids.length === 0 && place.gallery_urls.length === 0) {
+    indicators.push({ type: "info", label: "缺图集" });
+  }
+  if (!place.is_recommended) {
+    indicators.push({ type: "info", label: "非推荐" });
+  }
+
+  for (const blocker of place.import_review?.review_blockers ?? []) {
+    indicators.push({ type: "danger", label: blocker });
+  }
+
+  return indicators;
+};
+
 const createEmptyForm = () => ({
   name_zh: "新增地点草稿",
   name_en: "New Draft Place",
@@ -373,6 +416,24 @@ onMounted(async () => {
       <el-table-column prop="name_zh" label="中文名" min-width="180" />
       <el-table-column prop="name_en" label="英文名" min-width="180" />
       <el-table-column prop="category_level_1" label="一级分类" width="140" />
+      <el-table-column label="审核提示" min-width="280">
+        <template #default="{ row }">
+          <div class="review-indicators">
+            <el-tag
+              v-for="indicator in getReviewIndicators(row)"
+              :key="indicator.label"
+              :type="indicator.type"
+              size="small"
+            >
+              {{ indicator.label }}
+            </el-tag>
+          </div>
+          <div v-if="row.import_review" class="review-source">
+            {{ row.import_review.source_column }} ·
+            {{ row.import_review.volunteer_category_raw || "未填类型" }}
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="is_recommended" label="推荐" width="90">
         <template #default="{ row }">
           {{ row.is_recommended ? "是" : "否" }}
@@ -451,7 +512,8 @@ onMounted(async () => {
 }
 
 .gallery-register-row,
-.gallery-file-list {
+.gallery-file-list,
+.review-indicators {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
@@ -464,5 +526,11 @@ onMounted(async () => {
 
 .mt-12 {
   margin-top: 12px;
+}
+
+.review-source {
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 12px;
 }
 </style>

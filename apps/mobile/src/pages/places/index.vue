@@ -43,6 +43,14 @@ const activeCategoryIndex = computed(() =>
   )
 );
 
+const localizedText = (zh: string, en: string) =>
+  pickLocalized(state.locale, zh, en).trim();
+
+const placeCategoryLabel = (place: PlaceListItem) =>
+  place.category_level_2
+    ? `${place.category_level_1} / ${place.category_level_2}`
+    : place.category_level_1;
+
 const load = async () => {
   const result = await run(
     async () =>
@@ -191,15 +199,16 @@ onLoad((query) => {
             {{ listCopy.recommendedBadge }}
           </view>
         </view>
-        <view class="card-meta">
-          {{ place.category_level_1 }} / {{ place.category_level_2 }}
+        <view class="card-meta">{{ placeCategoryLabel(place) }}</view>
+        <view
+          v-if="localizedText(place.short_address_zh, place.short_address_en)"
+          class="card-text"
+        >
+          {{ localizedText(place.short_address_zh, place.short_address_en) }}
         </view>
-        <view class="card-text">{{
-          pickLocalized(state.locale, place.short_address_zh, place.short_address_en)
-        }}</view>
-        <view class="card-text">{{
-          pickLocalized(state.locale, place.summary_zh, place.summary_en)
-        }}</view>
+        <view v-if="localizedText(place.summary_zh, place.summary_en)" class="card-text">
+          {{ localizedText(place.summary_zh, place.summary_en) }}
+        </view>
         <view v-if="place.tag_ids.length" class="tags">
           <button
             v-for="tag in place.tag_ids"

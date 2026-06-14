@@ -273,6 +273,7 @@ End goal:
 - The mobile API client currently supports mock or `uni.request`/fetch-style HTTP calls. Production Mini Program deployment must add a CloudBase HTTP function call mode so release builds do not depend on local HTTP or mock actor headers.
 - The Week 6 places flow now uses `tag` as the public list tag filter, keeps recommended places as `/places?recommended=true&sort=recommended`, and keeps admin gallery attachment file-backed through `gallery_file_ids`; production CloudBase acceptance remains a later deployment task.
 - The original plan placed CloudBase/Koa parity in Week 10. The minimum deployment baseline now starts in Week 4 so Week 8 can verify `places` against CloudBase `dev`.
+- Week 8 repo-side places integration is complete for volunteer import, admin review indicators, edge-case hardening, and local validation. Live CloudBase dev deployment and `/api` route confirmation remain deferred because the 2026-06-14 CloudBase MCP session required authentication; see `docs/week8-places-cloudbase-integration.md`.
 
 ## Test Plan
 
@@ -587,6 +588,7 @@ End goal:
 - 当前移动端 API client 支持 mock 或 `uni.request`/fetch 风格 HTTP 调用。生产小程序部署必须新增 CloudBase HTTP function 调用模式，避免发布版本依赖本地 HTTP 或 mock actor header。
 - 第 6 周 places 流程已使用 `tag` 作为 public list 标签筛选参数，推荐地点保持 `/places?recommended=true&sort=recommended` 过滤入口，后台图集继续通过 `gallery_file_ids` 走 files flow；生产 CloudBase 验收仍是后续部署任务。
 - 原计划把 CloudBase/Koa parity 放在第 10 周。现在最低部署基线必须从第 4 周开始建立，否则第 8 周无法用 CloudBase `dev` 验证 places。
+- 第 8 周仓库侧 places 整合已完成志愿者导入、后台审核提示、真实数据边界处理和本地验证。CloudBase dev 正式部署与 `/api` route 确认仍然延期，因为 2026-06-14 的 CloudBase MCP 会话需要重新认证；详见 `docs/week8-places-cloudbase-integration.md`。
 
 ## Test Plan
 

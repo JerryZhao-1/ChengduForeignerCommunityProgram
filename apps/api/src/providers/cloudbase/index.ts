@@ -267,7 +267,8 @@ const createPlaceFromInput = (input: Partial<Place>): Place =>
     supports_navigation: input.supports_navigation ?? true,
     supports_favorite: input.supports_favorite ?? true,
     supports_share: input.supports_share ?? true,
-    status: input.status ?? "draft"
+    status: input.status ?? "draft",
+    import_review: input.import_review ?? null
   });
 
 const createLivePlacesProvider = (context: LiveCloudbaseContext): ApiProvider["places"] => ({

@@ -121,7 +121,8 @@ export const CreatePlaceInputSchema = PlaceSchema.pick({
   supports_navigation: true,
   supports_favorite: true,
   supports_share: true,
-  status: true
+  status: true,
+  import_review: true
 }).extend({
   cover_file_id: z.string().nullable().default(null),
   cover_url: z.string().url().nullable().default(null),
@@ -136,7 +137,8 @@ export const CreatePlaceInputSchema = PlaceSchema.pick({
   supports_navigation: z.boolean().default(true),
   supports_favorite: z.boolean().default(true),
   supports_share: z.boolean().default(true),
-  status: z.enum(PLACE_STATUSES).default("draft")
+  status: z.enum(PLACE_STATUSES).default("draft"),
+  import_review: PlaceSchema.shape.import_review.default(null)
 });
 
 export const UpdatePlaceInputSchema = CreatePlaceInputSchema.partial();

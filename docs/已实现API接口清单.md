@@ -93,8 +93,11 @@
 - list item 保持卡片字段边界，不返回详情专用字段，例如 `gallery_media`、`gallery_urls`、`navigation`、完整地址字段
 - `/places/:id` 负责详情字段，包括结构化 `gallery_media`、派生兼容字段 `gallery_urls` 与 `navigation`
 - 后台 places v1 支持维护双语简介、分类、标签、推荐状态/理由/排序、发布状态、坐标、腾讯 POI、导航/收藏/分享开关，并通过 `gallery_file_ids` 保存图集归属
+- 后台 places v1 可保存志愿者导入草稿的 `import_review` 审核元数据；该字段仅属于 canonical/admin place 记录，public list、map marker、detail payload 均不返回原始采集证据或审核备注
+- `scripts/places_volunteer_import.mjs` 可将 `docs/志愿者点位采集表.xlsx` 的 19 条点位列映射为 draft places，并可通过 `POST /admin/places` 执行导入
 - `gallery_media` 是移动端详情页渲染图集的主字段；mock/本地 HTTP 路径会从已登记的 `file_assets` 与 `gallery_file_ids` 解析，CloudBase live places detail 会通过 CloudBase 临时文件 URL 解析 `gallery_file_ids`，`gallery_urls` 仅从 `gallery_media.url` 派生
 - 当前尚未声明 CloudBase 生产部署完成；非 places live providers 与完整线上验收仍属于后续 backend foundation / deployment 工作
+- Week 8 CloudBase dev 部署与 `/api` route 仍未声明完成；2026-06-14 验证时 CloudBase MCP 未登录，详见 `docs/week8-places-cloudbase-integration.md`
 
 ### 4.5 公告 Announcements
 

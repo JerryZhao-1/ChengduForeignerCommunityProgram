@@ -1,6 +1,6 @@
 # CloudBase Week 4 Deployment Baseline
 
-Last updated: 2026-06-07
+Last updated: 2026-06-14
 
 ```text
 Mini Program AppID: wx7518a3c1fcdd39a5
@@ -78,3 +78,16 @@ code integration:
 - `apps/api/src/providers/cloudbase/index.ts` now has a live `places` provider path for CloudBase NoSQL, while events/discover/files/notifications still use the mock fallback until their collections and security rules are ready.
 - Production CloudBase environment creation is moved to Week 11 full-chain integration.
 - `/api` route creation is moved to Week 8 and remains deferred until `community-map-api` is deployed as the formal HTTP function.
+
+## Week 8 Update
+
+Week 8 repo-side readiness is documented in `docs/week8-places-cloudbase-integration.md`.
+
+Current CloudBase live status from the 2026-06-14 run:
+
+- CloudBase MCP returned `AUTH_REQUIRED`; no environment was bound in the active tool session.
+- `community-map-api` could not be queried or deployed from this thread.
+- The `/api` route was not created or confirmed, because function verification did not succeed.
+- Route creation remains gated on verifying `community-map-api` as the formal HTTP function entry for `apps/api/src/cloudbase.ts`.
+
+No production CloudBase environment or production data was modified.

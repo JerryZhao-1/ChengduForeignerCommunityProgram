@@ -1,0 +1,4 @@
+
+> @community-map/admin@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/admin
+> vue-tsc --noEmit -p tsconfig.json
+

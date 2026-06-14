@@ -185,43 +185,43 @@ const toPlaceDetail = (
   const gallery_media = toPlaceGalleryMedia(place, fileAssets);
 
   return {
-  _id: place._id,
-  community_id: place.community_id,
-  name_zh: place.name_zh,
-  name_en: place.name_en,
-  cover_url: place.cover_url,
-  category_level_1: place.category_level_1,
-  category_level_2: place.category_level_2,
-  tag_ids: place.tag_ids,
-  address_zh: place.address_zh,
-  address_en: place.address_en,
-  location: place.location,
-  business_hours_zh: place.business_hours_zh,
-  business_hours_en: place.business_hours_en,
-  intro_zh: place.intro_zh,
-  intro_en: place.intro_en,
-  gallery_media,
-  gallery_urls: gallery_media.map((media) => media.url),
-  is_recommended: place.is_recommended,
-  recommended_reason_zh: place.recommended_reason_zh,
-  recommended_reason_en: place.recommended_reason_en,
-  supports_navigation: place.supports_navigation,
-  supports_favorite: place.supports_favorite,
-  supports_share: place.supports_share,
-  navigation: {
-    latitude: place.location.latitude,
-    longitude: place.location.longitude,
+    _id: place._id,
+    community_id: place.community_id,
     name_zh: place.name_zh,
     name_en: place.name_en,
+    cover_url: place.cover_url,
+    category_level_1: place.category_level_1,
+    category_level_2: place.category_level_2,
+    tag_ids: place.tag_ids,
     address_zh: place.address_zh,
-    address_en: place.address_en
-  },
-  share: {
-    title_zh: place.name_zh,
-    title_en: place.name_en,
-    summary_zh: place.recommended_reason_zh ?? place.intro_zh,
-    summary_en: place.recommended_reason_en ?? place.intro_en
-  }
+    address_en: place.address_en,
+    location: place.location,
+    business_hours_zh: place.business_hours_zh,
+    business_hours_en: place.business_hours_en,
+    intro_zh: place.intro_zh,
+    intro_en: place.intro_en,
+    gallery_media,
+    gallery_urls: gallery_media.map((media) => media.url),
+    is_recommended: place.is_recommended,
+    recommended_reason_zh: place.recommended_reason_zh,
+    recommended_reason_en: place.recommended_reason_en,
+    supports_navigation: place.supports_navigation,
+    supports_favorite: place.supports_favorite,
+    supports_share: place.supports_share,
+    navigation: {
+      latitude: place.location.latitude,
+      longitude: place.location.longitude,
+      name_zh: place.name_zh,
+      name_en: place.name_en,
+      address_zh: place.address_zh,
+      address_en: place.address_en
+    },
+    share: {
+      title_zh: place.name_zh,
+      title_en: place.name_en,
+      summary_zh: place.recommended_reason_zh ?? place.intro_zh,
+      summary_en: place.recommended_reason_en ?? place.intro_en
+    }
   };
 };
 
@@ -561,7 +561,8 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           supports_navigation: input.supports_navigation ?? true,
           supports_favorite: input.supports_favorite ?? true,
           supports_share: input.supports_share ?? true,
-          status: input.status ?? "draft"
+          status: input.status ?? "draft",
+          import_review: input.import_review ?? null
         };
 
         state.places.unshift(place);

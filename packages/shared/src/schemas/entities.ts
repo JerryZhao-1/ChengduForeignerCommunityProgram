@@ -17,6 +17,19 @@ import {
 } from "./common";
 import { PlaceTopLevelCategorySchema } from "./place-categories";
 
+export const PlaceImportReviewMetadataSchema = z.object({
+  source_type: z.literal("volunteer_spreadsheet"),
+  source_file: z.string(),
+  source_sheet: z.string(),
+  source_column: z.string(),
+  source_import_id: z.string(),
+  volunteer_category_raw: z.string().nullable(),
+  category_code_candidate_raw: z.string().nullable(),
+  raw_fields: z.record(z.string()),
+  review_blockers: z.array(z.string()),
+  review_notes: z.array(z.string())
+});
+
 export const UserSchema = z.object({
   _id: z.string(),
   openid: z.string().optional(),
@@ -104,7 +117,8 @@ export const PlaceSchema = z.object({
   supports_navigation: z.boolean(),
   supports_favorite: z.boolean(),
   supports_share: z.boolean(),
-  status: z.enum(PLACE_STATUSES)
+  status: z.enum(PLACE_STATUSES),
+  import_review: PlaceImportReviewMetadataSchema.nullable().optional()
 });
 
 export const PostSchema = z.object({

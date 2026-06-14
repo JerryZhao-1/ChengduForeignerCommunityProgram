@@ -1,0 +1,3 @@
+Start Mobile H5: pnpm --filter @community-map/mobile dev:h5
+Start Admin: pnpm --filter @community-map/admin dev
+GUI scope: execute tests/gui_runbook.md with Browser MCP.

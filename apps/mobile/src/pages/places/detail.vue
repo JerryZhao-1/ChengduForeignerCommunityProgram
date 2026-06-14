@@ -66,6 +66,35 @@ const sharePath = computed(() =>
   place.value ? placesPagePaths.detail(place.value._id) : placesPagePaths.list()
 );
 const shareImageUrl = computed(() => place.value?.cover_url ?? undefined);
+const localizedText = (zh: string, en: string) =>
+  pickLocalized(state.locale, zh, en).trim();
+const categorySubtitle = computed(() => {
+  if (!place.value) {
+    return "";
+  }
+
+  return place.value.category_level_2
+    ? `${place.value.category_level_1} / ${place.value.category_level_2}`
+    : place.value.category_level_1;
+});
+const hasUsableCoordinates = computed(() => {
+  if (!place.value) {
+    return false;
+  }
+
+  const { latitude, longitude } = place.value.location;
+  return (
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    latitude >= -90 &&
+    latitude <= 90 &&
+    longitude >= -180 &&
+    longitude <= 180
+  );
+});
+const canOpenNavigation = computed(
+  () => place.value?.supports_navigation !== false && hasUsableCoordinates.value
+);
 
 const syncShareMenuAvailability = () => {
   if (place.value?.supports_share === false) {
@@ -104,7 +133,11 @@ onShareAppMessage(() => ({
 }));
 
 const openNavigation = () => {
-  if (!place.value) {
+  if (!place.value || !canOpenNavigation.value) {
+    uni.showToast({
+      title: detailCopy.value.navigationUnavailable,
+      icon: "none"
+    });
     return;
   }
 
@@ -117,7 +150,11 @@ const openNavigation = () => {
 };
 
 const openMapPosition = () => {
-  if (!place.value) {
+  if (!place.value || !hasUsableCoordinates.value) {
+    uni.showToast({
+      title: detailCopy.value.navigationUnavailable,
+      icon: "none"
+    });
     return;
   }
 
@@ -192,7 +229,7 @@ const shareButtonLabel = computed(() =>
     <SectionPanel
       v-else-if="place"
       :title="pickLocalized(state.locale, place.name_zh, place.name_en)"
-      :subtitle="`${place.category_level_1} / ${place.category_level_2}`"
+      :subtitle="categorySubtitle"
     >
       <image
         v-if="place.cover_url"
@@ -200,32 +237,28 @@ const shareButtonLabel = computed(() =>
         :src="place.cover_url"
         mode="aspectFill"
       />
-      <view class="chip-row">
+      <view v-if="place.tag_ids.length" class="chip-row">
         <text v-for="tag in place.tag_ids" :key="tag" class="place-chip">#{{ tag }}</text>
       </view>
-      <view class="info-block">
+      <view
+        v-if="localizedText(place.address_zh, place.address_en)"
+        class="info-block"
+      >
         <view class="info-label">{{ detailCopy.address }}</view>
-        <view class="line">
-          {{ pickLocalized(state.locale, place.address_zh, place.address_en) }}
-        </view>
+        <view class="line">{{ localizedText(place.address_zh, place.address_en) }}</view>
       </view>
-      <view class="info-block">
+      <view
+        v-if="localizedText(place.business_hours_zh, place.business_hours_en)"
+        class="info-block"
+      >
         <view class="info-label">{{ detailCopy.businessHours }}</view>
         <view class="line">
-          {{
-            pickLocalized(
-              state.locale,
-              place.business_hours_zh,
-              place.business_hours_en
-            )
-          }}
+          {{ localizedText(place.business_hours_zh, place.business_hours_en) }}
         </view>
       </view>
-      <view class="info-block">
+      <view v-if="localizedText(place.intro_zh, place.intro_en)" class="info-block">
         <view class="info-label">{{ detailCopy.intro }}</view>
-        <view class="line">{{
-          pickLocalized(state.locale, place.intro_zh, place.intro_en)
-        }}</view>
+        <view class="line">{{ localizedText(place.intro_zh, place.intro_en) }}</view>
       </view>
       <view v-if="place.is_recommended" class="place-badge">
         {{
@@ -256,10 +289,18 @@ const shareButtonLabel = computed(() =>
         <AsyncStateCard v-else variant="empty" :text="detailCopy.noGallery" />
       </view>
       <view class="action-row">
-        <button class="place-action primary" @click="openNavigation">
+        <button
+          class="place-action primary"
+          :disabled="!canOpenNavigation"
+          @click="openNavigation"
+        >
           {{ detailCopy.openNavigation }}
         </button>
-        <button class="place-action secondary" @click="openMapPosition">
+        <button
+          class="place-action secondary"
+          :disabled="!hasUsableCoordinates"
+          @click="openMapPosition"
+        >
           {{ detailCopy.openMapPosition }}
         </button>
       </view>
