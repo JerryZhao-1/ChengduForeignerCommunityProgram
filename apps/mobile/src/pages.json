@@ -19,6 +19,12 @@
       }
     },
     {
+      "path": "pages/events/signup",
+      "style": {
+        "navigationBarTitleText": "活动报名"
+      }
+    },
+    {
       "path": "pages/discover/index",
       "style": {
         "navigationBarTitleText": "Discover"
@@ -58,6 +64,12 @@
       "path": "pages/places/recommended",
       "style": {
         "navigationBarTitleText": "推荐筛选跳转"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "Profile"
       }
     },
     {
@@ -117,6 +129,10 @@
       {
         "pagePath": "pages/places/map",
         "text": "Places"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "Profile"
       }
     ]
   }

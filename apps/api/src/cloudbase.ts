@@ -1,5 +1,6 @@
 import {
   AnnouncementListQuerySchema,
+  API_ERROR_CODES,
   CheckinInputSchema,
   CompleteUploadInputSchema,
   CreateCommentInputSchema,
@@ -15,7 +16,8 @@ import {
   PrivateUrlRequestInputSchema,
   ReviewEventInputSchema,
   UpdateEventInputSchema,
-  UpdatePlaceInputSchema
+  UpdatePlaceInputSchema,
+  type ApiErrorCode
 } from "@community-map/shared";
 
 import { apiError, ApiAppError } from "./lib/errors";
@@ -128,6 +130,33 @@ const fail = (error: ApiAppError, requestId: string): IntegrationResponse => ({
     requestId
   }
 });
+
+const toApiAppError = (error: unknown) => {
+  if (error instanceof ApiAppError) {
+    return error;
+  }
+
+  if (
+    error instanceof Error &&
+    "code" in error &&
+    "status" in error &&
+    typeof error.code === "string" &&
+    typeof error.status === "number" &&
+    isApiErrorCode(error.code)
+  ) {
+    return apiError(
+      error.code,
+      error.message,
+      error.status,
+      "details" in error ? error.details : undefined
+    );
+  }
+
+  return apiError("INTERNAL_ERROR", "Unexpected server error.", 500);
+};
+
+const isApiErrorCode = (value: string): value is ApiErrorCode =>
+  API_ERROR_CODES.includes(value as ApiErrorCode);
 
 const requireRole = async (
   provider: ApiProvider,
@@ -497,13 +526,6 @@ export const main: CloudbaseEventHandler = async (event, context) => {
 
     throw apiError("NOT_FOUND", `No handler for ${method} ${pathname}`, 404);
   } catch (error) {
-    if (error instanceof ApiAppError) {
-      return fail(error, requestId);
-    }
-
-    return fail(
-      apiError("INTERNAL_ERROR", "Unexpected server error.", 500),
-      requestId
-    );
+    return fail(toApiAppError(error), requestId);
   }
 };

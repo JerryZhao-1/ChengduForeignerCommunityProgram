@@ -2,6 +2,9 @@ import { z } from "zod";
 
 import { EventRegistrationSchema, EventSchema, EventTicketSchema } from "./entities";
 
+export const EVENT_CONTACT_NAME_PATTERN = /^[\p{L}\p{M}]+(?: [\p{L}\p{M}]+)*$/u;
+export const EVENT_CONTACT_PHONE_PATTERN = /^\+\d{2} \d{4} \d{6}$/;
+
 export const EventListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(50).default(10),
@@ -38,8 +41,8 @@ export const ReviewEventInputSchema = z.object({
 });
 
 export const CreateEventRegistrationInputSchema = z.object({
-  contact_name: z.string().min(1),
-  contact_phone: z.string().min(6),
+  contact_name: z.string().trim().min(1).regex(EVENT_CONTACT_NAME_PATTERN),
+  contact_phone: z.string().trim().regex(EVENT_CONTACT_PHONE_PATTERN),
   attendee_count: z.number().int().min(1).max(10),
   source_channel: z.string().default("miniapp")
 });

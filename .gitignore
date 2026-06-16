@@ -6,3 +6,4 @@ coverage
 .DS_Store
 .env.local
 .env.*.local
+project.private.config.json

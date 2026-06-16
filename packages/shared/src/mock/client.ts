@@ -11,9 +11,11 @@ import type {
   PlaceDetail,
   PlaceListItem,
   PlaceMapMarker,
-  Post
+  Post,
+  User
 } from "../types/entities";
 import type { ApiResult, PageResult } from "../types/common";
+import type { FavoriteItemType } from "./data";
 
 import { createMockService } from "./service";
 
@@ -94,6 +96,44 @@ export interface CommunityMapApiClient {
   notifications: {
     list(): Promise<ApiResult<Notification[]>>;
     markRead(id: string): Promise<ApiResult<Notification>>;
+  };
+  profile: {
+    users(): Promise<ApiResult<User[]>>;
+    summary(userId: string): Promise<
+      ApiResult<{
+        user: User;
+        is_self: boolean;
+        is_following: boolean;
+        follower_count: number;
+        following_count: number;
+      }>
+    >;
+    toggleFollow(userId: string): Promise<
+      ApiResult<{
+        user: User;
+        is_self: boolean;
+        is_following: boolean;
+        follower_count: number;
+        following_count: number;
+      }>
+    >;
+    favoriteIds(): Promise<ApiResult<Record<FavoriteItemType, string[]>>>;
+    toggleFavorite(input: {
+      item_type: FavoriteItemType;
+      item_id: string;
+    }): Promise<
+      ApiResult<{ item_type: FavoriteItemType; item_id: string; is_favorited: boolean }>
+    >;
+    favorites(userId: string): Promise<
+      ApiResult<{
+        events: Event[];
+        posts: Post[];
+        places: PlaceListItem[];
+      }>
+    >;
+    comments(userId: string): Promise<
+      ApiResult<Array<{ comment: Comment; post: Post | null }>>
+    >;
   };
   files: {
     createUploadRequest(input: {
@@ -232,6 +272,29 @@ export const createMockClient = (
       },
       async markRead(id) {
         return ok(service.notifications.markRead(id, actorId) as Notification);
+      }
+    },
+    profile: {
+      async users() {
+        return ok(service.profile.users());
+      },
+      async summary(userId) {
+        return ok(service.profile.summary(userId, actorId));
+      },
+      async toggleFollow(userId) {
+        return ok(service.profile.toggleFollow(userId, actorId));
+      },
+      async favoriteIds() {
+        return ok(service.profile.favoriteIds(actorId));
+      },
+      async toggleFavorite(input) {
+        return ok(service.profile.toggleFavorite(input, actorId));
+      },
+      async favorites(userId) {
+        return ok(service.profile.favorites(userId));
+      },
+      async comments(userId) {
+        return ok(service.profile.comments(userId));
       }
     },
     files: {

@@ -40,8 +40,48 @@ describe("api routes", () => {
       const detailResponse = await fetch(`${baseUrl}/events/${eventId}`);
       expect(detailResponse.status).toBe(200);
 
+      const createFutureEventResponse = await fetch(`${baseUrl}/admin/events`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          title_zh: "开放报名活动",
+          title_en: "Open Registration Event",
+          summary_zh: "可报名活动",
+          summary_en: "Open for registration",
+          content_zh: "活动正文",
+          content_en: "Event body",
+          address_text: "桐梓林社区中心",
+          location: { latitude: 30.6, longitude: 104.0 },
+          start_time: "2020-04-02T10:00:00+08:00",
+          end_time: "2099-04-02T12:00:00+08:00",
+          signup_deadline: "2099-04-01T18:00:00+08:00",
+          capacity: 20
+        })
+      });
+      const futureEventData = await createFutureEventResponse.json();
+      expect(createFutureEventResponse.status).toBe(201);
+
+      const reviewFutureEventResponse = await fetch(
+        `${baseUrl}/admin/events/${futureEventData.data._id}/review`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-mock-user-id": "user_001"
+          },
+          body: JSON.stringify({
+            review_status: "approved",
+            publish_status: "published"
+          })
+        }
+      );
+      expect(reviewFutureEventResponse.status).toBe(200);
+
       const registerResponse = await fetch(
-        `${baseUrl}/events/${eventId}/registrations`,
+        `${baseUrl}/events/${futureEventData.data._id}/registrations`,
         {
           method: "POST",
           headers: {
@@ -49,7 +89,7 @@ describe("api routes", () => {
           },
           body: JSON.stringify({
             contact_name: "Jerry",
-            contact_phone: "13800000000",
+            contact_phone: "+86 1380 000000",
             attendee_count: 1,
             source_channel: "miniapp"
           })
@@ -58,6 +98,27 @@ describe("api routes", () => {
       const registerData = await registerResponse.json();
       expect(registerResponse.status).toBe(201);
       expect(registerData.data.ticket.ticket_code).toContain("TZL");
+
+      const duplicateRegistrationResponse = await fetch(
+        `${baseUrl}/events/${futureEventData.data._id}/registrations`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            contact_name: "Jerry",
+            contact_phone: "+86 1380 000000",
+            attendee_count: 1,
+            source_channel: "miniapp"
+          })
+        }
+      );
+      const duplicateRegistrationData = await duplicateRegistrationResponse.json();
+      expect(duplicateRegistrationResponse.status).toBe(409);
+      expect(duplicateRegistrationData.error.details.reason).toBe(
+        "already_registered"
+      );
 
       const invalidRegistration = await fetch(
         `${baseUrl}/events/${eventId}/registrations`,
@@ -74,6 +135,127 @@ describe("api routes", () => {
         }
       );
       expect(invalidRegistration.status).toBe(400);
+
+      const createExpiredEventResponse = await fetch(`${baseUrl}/admin/events`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          title_zh: "过期活动",
+          title_en: "Expired Event",
+          summary_zh: "不可报名活动",
+          summary_en: "Closed registration",
+          content_zh: "活动正文",
+          content_en: "Event body",
+          address_text: "桐梓林社区中心",
+          location: { latitude: 30.6, longitude: 104.0 },
+          start_time: "2000-04-02T10:00:00+08:00",
+          end_time: "2000-04-02T12:00:00+08:00",
+          signup_deadline: "2000-04-01T18:00:00+08:00",
+          capacity: 20
+        })
+      });
+      const expiredEventData = await createExpiredEventResponse.json();
+      expect(createExpiredEventResponse.status).toBe(201);
+
+      const reviewExpiredEventResponse = await fetch(
+        `${baseUrl}/admin/events/${expiredEventData.data._id}/review`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-mock-user-id": "user_001"
+          },
+          body: JSON.stringify({
+            review_status: "approved",
+            publish_status: "published"
+          })
+        }
+      );
+      expect(reviewExpiredEventResponse.status).toBe(200);
+
+      const expiredRegistrationResponse = await fetch(
+        `${baseUrl}/events/${expiredEventData.data._id}/registrations`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            contact_name: "Jerry",
+            contact_phone: "+86 1380 000000",
+            attendee_count: 1,
+            source_channel: "miniapp"
+          })
+        }
+      );
+      const expiredRegistrationData = await expiredRegistrationResponse.json();
+      expect(expiredRegistrationResponse.status).toBe(409);
+      expect(expiredRegistrationData.error.code).toBe("CONFLICT");
+
+      const fullRegistrationResponse = await fetch(
+        `${baseUrl}/events/event_003/registrations`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            contact_name: "Jerry",
+            contact_phone: "+86 1380 000000",
+            attendee_count: 1,
+            source_channel: "miniapp"
+          })
+        }
+      );
+      const fullRegistrationData = await fullRegistrationResponse.json();
+      expect(fullRegistrationResponse.status).toBe(409);
+      expect(fullRegistrationData.error.details.reason).toBe("capacity_exceeded");
+
+      const notStartedRegistrationResponse = await fetch(
+        `${baseUrl}/events/event_004/registrations`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            contact_name: "Jerry",
+            contact_phone: "+86 1380 000000",
+            attendee_count: 1,
+            source_channel: "miniapp"
+          })
+        }
+      );
+      const notStartedRegistrationData =
+        await notStartedRegistrationResponse.json();
+      expect(notStartedRegistrationResponse.status).toBe(409);
+      expect(notStartedRegistrationData.error.details.reason).toBe(
+        "event_not_started"
+      );
+
+      const registeredAgainResponse = await fetch(
+        `${baseUrl}/events/event_005/registrations`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            contact_name: "Jerry",
+            contact_phone: "+86 1380 000000",
+            attendee_count: 1,
+            source_channel: "miniapp"
+          })
+        }
+      );
+      const registeredAgainData = await registeredAgainResponse.json();
+      expect(registeredAgainResponse.status).toBe(409);
+      expect(registeredAgainData.error.details.reason).toBe(
+        "already_registered"
+      );
 
       const postsResponse = await fetch(`${baseUrl}/discover/posts`);
       expect(postsResponse.status).toBe(200);

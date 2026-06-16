@@ -3,7 +3,11 @@ import { z, type ZodTypeAny } from "zod";
 
 import { randomUUID } from "node:crypto";
 
-import { ApiFailureResultSchema } from "@community-map/shared";
+import {
+  API_ERROR_CODES,
+  ApiFailureResultSchema,
+  type ApiErrorCode
+} from "@community-map/shared";
 
 import { ApiAppError, apiError } from "./errors";
 
@@ -34,14 +38,38 @@ export const sendSuccess = <TData>(ctx: Context, data: TData, status = 200) => {
   };
 };
 
+const toKnownError = (error: unknown) => {
+  if (error instanceof ApiAppError) {
+    return error;
+  }
+
+  if (
+    error instanceof Error &&
+    "code" in error &&
+    "status" in error &&
+    typeof error.code === "string" &&
+    typeof error.status === "number" &&
+    isApiErrorCode(error.code)
+  ) {
+    return apiError(
+      error.code,
+      error.message,
+      error.status,
+      "details" in error ? error.details : undefined
+    );
+  }
+
+  return apiError("INTERNAL_ERROR", "Unexpected server error.", 500);
+};
+
+const isApiErrorCode = (value: string): value is ApiErrorCode =>
+  API_ERROR_CODES.includes(value as ApiErrorCode);
+
 export const errorMiddleware = async (ctx: Context, next: Next) => {
   try {
     await next();
   } catch (error) {
-    const knownError =
-      error instanceof ApiAppError
-        ? error
-        : apiError("INTERNAL_ERROR", "Unexpected server error.", 500);
+    const knownError = toKnownError(error);
     const payload = {
       success: false,
       error: {

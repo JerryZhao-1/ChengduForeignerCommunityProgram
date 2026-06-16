@@ -12,7 +12,8 @@ import type {
   Post,
   User
 } from "../types/entities";
-import type { MockDataset } from "./data";
+import type { ApiErrorCode } from "../enums/core";
+import type { FavoriteItemType, MockDataset } from "./data";
 import { FILE_PATH_RULES } from "../schemas/files";
 import { PLACE_TOP_LEVEL_CATEGORIES } from "../schemas/place-categories";
 
@@ -26,6 +27,17 @@ interface PageParams {
   category?: string;
   recommended?: boolean;
   sort?: "recommended" | "name";
+}
+
+export class MockServiceError extends Error {
+  constructor(
+    public readonly code: ApiErrorCode,
+    message: string,
+    public readonly status: number,
+    public readonly details?: unknown
+  ) {
+    super(message);
+  }
 }
 
 const DEFAULT_PAGE = 1;
@@ -57,6 +69,70 @@ const keywordMatch = (value: string | null | undefined, keyword?: string) => {
 
 const idFrom = (prefix: string) =>
   `${prefix}_${Math.random().toString(36).slice(2, 8)}`;
+
+const mockServiceError = (
+  code: ApiErrorCode,
+  message: string,
+  status: number,
+  details?: unknown
+) => new MockServiceError(code, message, status, details);
+
+const assertEventCanRegister = (
+  state: MockDataset,
+  event: Event,
+  attendeeCount: number,
+  actorId: string
+) => {
+  const now = new Date();
+
+  if (event.publish_status !== "published") {
+    throw mockServiceError("CONFLICT", "Event is not open for registration.", 409, {
+      reason: "not_published"
+    });
+  }
+
+  if (new Date(event.end_time) < now) {
+    throw mockServiceError("CONFLICT", "Event has ended.", 409, {
+      reason: "event_ended"
+    });
+  }
+
+  if (new Date(event.start_time) > now) {
+    throw mockServiceError("CONFLICT", "Event has not started.", 409, {
+      reason: "event_not_started"
+    });
+  }
+
+  if (new Date(event.signup_deadline) < now) {
+    throw mockServiceError("CONFLICT", "Event registration is closed.", 409, {
+      reason: "signup_deadline_passed"
+    });
+  }
+
+  const activeRegistrations = state.registrations.filter(
+    (registration) =>
+      registration.event_id === event._id &&
+      !["cancelled", "closed"].includes(registration.registration_status)
+  );
+
+  if (activeRegistrations.some((registration) => registration.user_id === actorId)) {
+    throw mockServiceError("CONFLICT", "User has already registered for this event.", 409, {
+      reason: "already_registered"
+    });
+  }
+
+  const reservedSeats = activeRegistrations.reduce(
+    (total, registration) => total + registration.attendee_count,
+    0
+  );
+
+  if (reservedSeats + attendeeCount > event.capacity) {
+    throw mockServiceError("CONFLICT", "Event capacity is full.", 409, {
+      reason: "capacity_exceeded",
+      remaining: Math.max(event.capacity - reservedSeats, 0)
+    });
+  }
+};
 
 const shortAddress = (value: string) => value.split("，")[0]?.split(",")[0] ?? value;
 
@@ -238,6 +314,41 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     token: `mock-token-${user._id}`
   });
 
+  const favoriteIdsFor = (userId: string) => ({
+    event: state.favorites
+      .filter((item) => item.user_id === userId && item.item_type === "event")
+      .map((item) => item.item_id),
+    post: state.favorites
+      .filter((item) => item.user_id === userId && item.item_type === "post")
+      .map((item) => item.item_id),
+    place: state.favorites
+      .filter((item) => item.user_id === userId && item.item_type === "place")
+      .map((item) => item.item_id)
+  });
+
+  const profileSummary = (targetUserId: string, actorId?: string) => {
+    const targetUser = findUser(targetUserId);
+    const actor = findUser(actorId);
+    const followerCount = state.follows.filter(
+      (item) => item.following_user_id === targetUser._id
+    ).length;
+    const followingCount = state.follows.filter(
+      (item) => item.follower_user_id === targetUser._id
+    ).length;
+
+    return {
+      user: targetUser,
+      is_self: targetUser._id === actor._id,
+      is_following: state.follows.some(
+        (item) =>
+          item.follower_user_id === actor._id &&
+          item.following_user_id === targetUser._id
+      ),
+      follower_count: followerCount,
+      following_count: followingCount
+    };
+  };
+
   return {
     auth: {
       login(input: {
@@ -253,6 +364,93 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
       },
       me(userId?: string) {
         return createSession(findUser(userId));
+      }
+    },
+    profile: {
+      users() {
+        return state.users;
+      },
+      summary(targetUserId: string, actorId?: string) {
+        return profileSummary(targetUserId, actorId);
+      },
+      toggleFollow(targetUserId: string, actorId?: string) {
+        const actor = findUser(actorId);
+        const targetUser = findUser(targetUserId);
+
+        if (actor._id === targetUser._id) {
+          throw mockServiceError("CONFLICT", "Cannot follow yourself.", 409, {
+            reason: "self_follow_not_allowed"
+          });
+        }
+
+        const existingIndex = state.follows.findIndex(
+          (item) =>
+            item.follower_user_id === actor._id &&
+            item.following_user_id === targetUser._id
+        );
+
+        if (existingIndex >= 0) {
+          state.follows.splice(existingIndex, 1);
+        } else {
+          state.follows.push({
+            follower_user_id: actor._id,
+            following_user_id: targetUser._id
+          });
+        }
+
+        return profileSummary(targetUser._id, actor._id);
+      },
+      favoriteIds(actorId?: string) {
+        return favoriteIdsFor(findUser(actorId)._id);
+      },
+      toggleFavorite(
+        input: { item_type: FavoriteItemType; item_id: string },
+        actorId?: string
+      ) {
+        const actor = findUser(actorId);
+        const existingIndex = state.favorites.findIndex(
+          (item) =>
+            item.user_id === actor._id &&
+            item.item_type === input.item_type &&
+            item.item_id === input.item_id
+        );
+
+        if (existingIndex >= 0) {
+          state.favorites.splice(existingIndex, 1);
+          return { ...input, is_favorited: false };
+        }
+
+        state.favorites.unshift({
+          user_id: actor._id,
+          item_type: input.item_type,
+          item_id: input.item_id,
+          created_at: new Date().toISOString()
+        });
+        return { ...input, is_favorited: true };
+      },
+      favorites(userId: string) {
+        const favoriteIds = favoriteIdsFor(findUser(userId)._id);
+
+        return {
+          events: state.events.filter((event) => favoriteIds.event.includes(event._id)),
+          posts: state.posts.filter((post) => favoriteIds.post.includes(post._id)),
+          places: state.places
+            .filter(
+              (place) =>
+                place.status === "published" && favoriteIds.place.includes(place._id)
+            )
+            .map(toPlaceListItem)
+        };
+      },
+      comments(userId: string) {
+        const targetUser = findUser(userId);
+
+        return state.comments
+          .filter((comment) => comment.author_user_id === targetUser._id)
+          .map((comment) => ({
+            comment,
+            post: state.posts.find((post) => post._id === comment.post_id) ?? null
+          }));
       }
     },
     events: {
@@ -280,10 +478,19 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         },
         actorId?: string
       ) {
+        const event = state.events.find((item) => item._id === eventId);
+
+        if (!event) {
+          throw mockServiceError("NOT_FOUND", "Event not found.", 404);
+        }
+
+        const actor = findUser(actorId);
+        assertEventCanRegister(state, event, input.attendee_count, actor._id);
+
         const registration: EventRegistration = {
           _id: idFrom("reg"),
           event_id: eventId,
-          user_id: findUser(actorId)._id,
+          user_id: actor._id,
           contact_name: input.contact_name,
           contact_phone: input.contact_phone,
           attendee_count: input.attendee_count,

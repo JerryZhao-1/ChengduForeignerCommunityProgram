@@ -11,8 +11,24 @@ import type {
   User
 } from "../types/entities";
 
+export type FavoriteItemType = "event" | "post" | "place";
+
+export interface FollowRelation {
+  follower_user_id: string;
+  following_user_id: string;
+}
+
+export interface FavoriteRelation {
+  user_id: string;
+  item_type: FavoriteItemType;
+  item_id: string;
+  created_at: string;
+}
+
 export interface MockDataset {
   users: User[];
+  follows: FollowRelation[];
+  favorites: FavoriteRelation[];
   events: Event[];
   registrations: EventRegistration[];
   tickets: EventTicket[];
@@ -32,7 +48,7 @@ export const createMockDataset = (): MockDataset => ({
       unionid: "unionid_001",
       nickname: "Jerry",
       avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-      phone: "13800000000",
+      phone: "+86 1380 000000",
       preferred_language: "zh",
       role_flags: ["user", "community_admin", "system_admin"],
       status: "active"
@@ -43,10 +59,36 @@ export const createMockDataset = (): MockDataset => ({
       unionid: "unionid_002",
       nickname: "Emma",
       avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-      phone: "13900000000",
+      phone: "+86 1390 000000",
       preferred_language: "en",
       role_flags: ["user", "organizer"],
       status: "active"
+    }
+  ],
+  follows: [
+    {
+      follower_user_id: "user_002",
+      following_user_id: "user_001"
+    }
+  ],
+  favorites: [
+    {
+      user_id: "user_001",
+      item_type: "post",
+      item_id: "post_002",
+      created_at: "2026-03-28T11:00:00+08:00"
+    },
+    {
+      user_id: "user_001",
+      item_type: "event",
+      item_id: "event_002",
+      created_at: "2026-03-28T11:10:00+08:00"
+    },
+    {
+      user_id: "user_001",
+      item_type: "place",
+      item_id: "place_001",
+      created_at: "2026-03-28T11:20:00+08:00"
     }
   ],
   events: [
@@ -75,6 +117,110 @@ export const createMockDataset = (): MockDataset => ({
       organizer_user_id: "user_002",
       review_status: "approved",
       publish_status: "published"
+    },
+    {
+      _id: "event_002",
+      community_id: "tongzilin",
+      title_zh: "社区咖啡聊天测试活动",
+      title_en: "Community Coffee Chat Test",
+      summary_zh: "已开始、有名额、当前用户未报名的可报名样例。",
+      summary_en: "Started, has seats, and current user has not registered.",
+      content_zh: "用于测试正常报名流程。",
+      content_en: "Used to test the normal registration flow.",
+      cover_file_id: "cloud://event-cover-002",
+      cover_cloud_path: "public/events/event_002/cover.jpg",
+      cover_url: "https://example.com/public/events/event_002/cover.jpg",
+      place_id: "place_001",
+      address_text: "桐梓林社区中心共享客厅",
+      location: {
+        latitude: 30.6152,
+        longitude: 104.0629
+      },
+      start_time: "2020-06-01T10:00:00+08:00",
+      end_time: "2099-06-01T12:00:00+08:00",
+      signup_deadline: "2099-05-31T18:00:00+08:00",
+      capacity: 20,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
+    },
+    {
+      _id: "event_003",
+      community_id: "tongzilin",
+      title_zh: "满员瑜伽体验测试活动",
+      title_en: "Full Yoga Trial Test",
+      summary_zh: "已开始但名额已满的边界样例。",
+      summary_en: "Started but full registration boundary sample.",
+      content_zh: "用于测试无剩余名额时不能报名。",
+      content_en: "Used to test full-capacity registration blocking.",
+      cover_file_id: "cloud://event-cover-003",
+      cover_cloud_path: "public/events/event_003/cover.jpg",
+      cover_url: "https://example.com/public/events/event_003/cover.jpg",
+      place_id: "place_001",
+      address_text: "桐梓林社区中心多功能室",
+      location: {
+        latitude: 30.6153,
+        longitude: 104.063
+      },
+      start_time: "2020-06-02T10:00:00+08:00",
+      end_time: "2099-06-02T12:00:00+08:00",
+      signup_deadline: "2099-06-01T18:00:00+08:00",
+      capacity: 2,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
+    },
+    {
+      _id: "event_004",
+      community_id: "tongzilin",
+      title_zh: "未开始手作课测试活动",
+      title_en: "Not Started Craft Class Test",
+      summary_zh: "活动未开始，暂不能报名的边界样例。",
+      summary_en: "Not started and not yet available for registration.",
+      content_zh: "用于测试未开始活动不能报名。",
+      content_en: "Used to test not-started registration blocking.",
+      cover_file_id: "cloud://event-cover-004",
+      cover_cloud_path: "public/events/event_004/cover.jpg",
+      cover_url: "https://example.com/public/events/event_004/cover.jpg",
+      place_id: "place_001",
+      address_text: "桐梓林社区中心手作教室",
+      location: {
+        latitude: 30.6154,
+        longitude: 104.0631
+      },
+      start_time: "2099-07-01T10:00:00+08:00",
+      end_time: "2099-07-01T12:00:00+08:00",
+      signup_deadline: "2099-06-30T18:00:00+08:00",
+      capacity: 20,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
+    },
+    {
+      _id: "event_005",
+      community_id: "tongzilin",
+      title_zh: "已报名读书会测试活动",
+      title_en: "Registered Book Club Test",
+      summary_zh: "当前用户已报名，不能重复报名的边界样例。",
+      summary_en: "Current user has registered and cannot register again.",
+      content_zh: "用于测试重复报名拦截。",
+      content_en: "Used to test duplicate registration blocking.",
+      cover_file_id: "cloud://event-cover-005",
+      cover_cloud_path: "public/events/event_005/cover.jpg",
+      cover_url: "https://example.com/public/events/event_005/cover.jpg",
+      place_id: "place_001",
+      address_text: "桐梓林社区中心阅读角",
+      location: {
+        latitude: 30.6155,
+        longitude: 104.0632
+      },
+      start_time: "2020-06-03T10:00:00+08:00",
+      end_time: "2099-06-03T12:00:00+08:00",
+      signup_deadline: "2099-06-02T18:00:00+08:00",
+      capacity: 20,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
     }
   ],
   registrations: [
@@ -83,10 +229,32 @@ export const createMockDataset = (): MockDataset => ({
       event_id: "event_001",
       user_id: "user_001",
       contact_name: "Jerry",
-      contact_phone: "13800000000",
+      contact_phone: "+86 1380 000000",
       attendee_count: 2,
       registration_status: "confirmed",
       ticket_id: "ticket_001",
+      source_channel: "miniapp"
+    },
+    {
+      _id: "reg_002",
+      event_id: "event_003",
+      user_id: "user_002",
+      contact_name: "Community Host",
+      contact_phone: "+86 1390 000000",
+      attendee_count: 2,
+      registration_status: "confirmed",
+      ticket_id: "ticket_002",
+      source_channel: "miniapp"
+    },
+    {
+      _id: "reg_003",
+      event_id: "event_005",
+      user_id: "user_001",
+      contact_name: "Jerry",
+      contact_phone: "+86 1380 000000",
+      attendee_count: 1,
+      registration_status: "confirmed",
+      ticket_id: "ticket_003",
       source_channel: "miniapp"
     }
   ],
@@ -100,6 +268,28 @@ export const createMockDataset = (): MockDataset => ({
       visibility: "private",
       status: "valid",
       issued_at: "2026-03-28T10:00:00+08:00",
+      used_at: null
+    },
+    {
+      _id: "ticket_002",
+      registration_id: "reg_002",
+      ticket_code: "TZL-FULL-001",
+      qr_file_id: "cloud://private-ticket-002",
+      qr_cloud_path: "private/tickets/event_003/ticket_002.png",
+      visibility: "private",
+      status: "valid",
+      issued_at: "2026-06-01T10:00:00+08:00",
+      used_at: null
+    },
+    {
+      _id: "ticket_003",
+      registration_id: "reg_003",
+      ticket_code: "TZL-REGISTERED-001",
+      qr_file_id: "cloud://private-ticket-003",
+      qr_cloud_path: "private/tickets/event_005/ticket_003.png",
+      visibility: "private",
+      status: "valid",
+      issued_at: "2026-06-02T10:00:00+08:00",
       used_at: null
     }
   ],

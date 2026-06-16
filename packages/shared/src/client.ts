@@ -115,6 +115,16 @@ export const createHttpClient = (
       list: () => request("GET", apiPaths.notifications.list),
       markRead: (id) => request("POST", apiPaths.notifications.markRead(id), {})
     },
+    profile: {
+      users: () => request("GET", "/profile/users"),
+      summary: (userId) => request("GET", `/profile/users/${userId}`),
+      toggleFollow: (userId) =>
+        request("POST", `/profile/users/${userId}/follow`, {}),
+      favoriteIds: () => request("GET", "/profile/favorites/ids"),
+      toggleFavorite: (input) => request("POST", "/profile/favorites/toggle", input),
+      favorites: (userId) => request("GET", `/profile/users/${userId}/favorites`),
+      comments: (userId) => request("GET", `/profile/users/${userId}/comments`)
+    },
     files: {
       createUploadRequest: (input) =>
         request("POST", apiPaths.files.createUploadRequest, input),
