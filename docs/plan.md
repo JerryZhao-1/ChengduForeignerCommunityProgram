@@ -1,626 +1,528 @@
-# 12-Week Delivery Plan: `places` Frontend + Global Backend in Parallel
+# 6.16-7.1 上线冲刺计划
 
-## Summary
+更新时间：2026-06-16  
+计划周期：2026-06-16 至 2026-07-01  
+上线口径：达到可发布、可提交审核、可对外试运行状态；微信审核通过时间不等同于 7.1 当日上线完成。
 
-This plan uses a "backend half-step ahead, frontend/backend layered in parallel" strategy instead of "finish backend first, then start frontend."
+## 1. 当前状态
 
-Why this is the right approach:
+### 已完成
 
-- The current `places` frontend is still placeholder-level. If frontend work starts only after backend completion, there is not enough time in 12 weeks to finish list, map, detail, filtering, recommendation, favorite/share-ready interactions, and navigation.
-- Fully parallel but unstructured work would cause repeated churn across `packages/shared`, BFF routes, and mobile pages.
-- The workable sequence is:
-  - Weeks 1-2: freeze shared contracts and backend foundations first, while frontend defines information architecture and page skeletons
-  - Weeks 3-8: `places` frontend becomes the main product track, while backend stays 0.5-1 week ahead
-  - Weeks 9-10: finish non-`places` backend and minimum admin management support
-  - Weeks 11-12: integration, regression, and acceptance
-
-End goal:
-
-- complete `places` frontend and global backend within 12 weeks
-- make `places` independently demoable instead of placeholder-only
-- give `events` / `discover` frontend owners a stable backend for integration
-- provide minimum usable admin support for content maintenance
-
-## Delivery Strategy
-
-- Work in three linked streams with a strict dependency order:
-  - `packages/shared`: the only source of truth for fields, schemas, and contracts
-  - `apps/api`: backend and CloudBase/BFF implementation, always slightly ahead of frontend
-  - `apps/mobile/src/pages/places`: frontend implementation, built only against frozen interfaces
-- Add a fourth deployment/bootstrap stream from Week 4 onward:
-  - WeChat Mini Program registration and real AppID configuration
-  - CloudBase `dev` / `prod` environment registration
-  - document database collection registration, security rules, and index planning
-  - cloud storage path and permission registration
-  - HTTP cloud function/BFF deployment entry
-  - admin static hosting and API domain configuration
-- `apps/admin` follows backend capability in batches instead of running as an independent stream:
-  - places management first
-  - then events / posts / announcements management closure
-- Do not allow either of these workflows:
-  - build pages first and patch APIs later
-  - build APIs first and decide page needs later
-- Required implementation order for every user-facing capability:
-  1. shared contract
-  2. backend route/provider
-  3. mobile/admin consumer
-  4. tests and manual verification
-
-## 12-Week Plan
-
-### Week 1: Freeze scope and redefine `places` frontend as a 0-to-1 build
-
-- Treat `places` frontend as effectively unbuilt; existing `index/detail/map` files count as placeholders, not completed product work.
-- Define the full `places` frontend scope:
+- Places shared contracts 已基本冻结：
+  - `PlaceListQuery`
+  - `PlaceMapMarker`
+  - `PlaceDetail`
+  - admin places create/update contracts
+- Places API / mock / CloudBase handler parity 已完成本地语义对齐：
+  - public list
+  - map markers
+  - detail
+  - admin create/update
+  - validation / permission / not-found / unpublished visibility
+- Mobile places 本地主链路已完成：
   - list
   - map
   - detail
-  - filtering
-  - recommendation entry
-  - navigation
-  - favorite/share-ready interactions in v1
-- Audit shared contracts and split `places` into three response surfaces:
-  - list card payload
-  - map marker payload
-  - detail payload
-- Audit backend gaps across:
-  - auth
-  - events
-  - discover
-  - places
-  - files
-  - notifications
-  - admin actions
-- Define `places` page structure and navigation graph without doing final UI work yet.
-
-### Week 2: Freeze `places` v1 contracts, build backend query baseline, start frontend skeletons
-
-- Freeze `places` v1 shared interfaces:
-  - list: pagination, keyword, category, tag, recommendation, sorting
-  - detail: gallery, tags, business hours, address, intro, navigation-ready fields
-  - markers: lightweight and separate from detail payload
-- Make `places` list/detail/map-marker routes genuinely usable in backend.
-- Build frontend page skeletons for:
-  - list
-  - map
-  - detail
-- Add shared state handling for:
-  - loading
-  - empty
-  - error
-  - locale-aware rendering
-
-### Week 3: `places` list page v1 + stronger list/query backend
-
-- Build `places` list page v1 with:
-  - place cards
-  - keyword search
-  - category entry
-  - recommendation entry
-- Finish backend list filtering, sorting, pagination, and published-visibility behavior.
-- Convert the homepage places entry from reserved teaser content into a real navigation entry.
-
-### Week 4: `places` map page v1 + stable marker behavior
-
-- Build `places` map page v1 with:
-  - marker loading
-  - marker selection
-  - selected place summary card
-  - map-to-detail navigation
-- Keep marker payloads minimal and stable.
-- Ensure backend only returns published/displayable places for markers.
-- Start admin support for place coordinates, POI references, categories, and recommendation fields.
-- Complete deployment catch-up work that should have been explicit in Weeks 1-3:
-  - confirm the WeChat Mini Program account, real AppID, developer roles, and tester roles
-  - create or confirm CloudBase `dev`, record env ID, region, HTTP function name, and admin hosting domain; keep `prod` pending until Week 11 environment separation work
-  - register v1 collections: `users`, `places`, `file_assets`, `configs`, and `operation_logs`
-  - list upcoming collections for later weeks: `events`, `posts`, `comments`, `announcements`, and `notifications`
-  - register minimum `places` indexes for Week 4 list/map reads: `community_id + status`, `category_level_1`, `category_level_2`, `is_recommended`, and `recommended_rank`
-  - freeze cloud storage paths: `public/places/{place_id}/`, `public/events/{event_id}/`, `public/posts/{post_id}/`, `private/tickets/{registration_id}/`, and `private/exports/{job_id}/`
-  - document that the production Mini Program should prefer `wx.cloud.callHTTPFunction` for the HTTP cloud function, while Web admin uses the CloudBase HTTP access HTTPS domain
-- Verify Week 4 against the real deployment baseline:
-  - Mini Program AppID, CloudBase `dev` env ID, HTTP function name, and admin hosting domain are recorded in this plan or a linked deployment registry; `prod` remains a Week 11 item
-  - CloudBase `dev` has the v1 required collections created with names aligned to shared/entity naming
-  - `places` public list/map/detail field boundaries match between mock and CloudBase handler contracts
-  - the map page is manually verified in WeChat Developer Tools or on a test device for marker loading, marker selection, detail jump, and detail navigation
-
-### Week 5: `places` detail page v1 + media-backed detail data
-
-- Build `places` detail page v1 with:
-  - gallery
-  - business hours
-  - address
-  - bilingual intro
-  - tags
-  - navigation button
-- Expand backend detail payload so frontend no longer depends on placeholder data.
-- Start attaching place gallery support through the files flow so detail pages can render real media.
-- Ensure detail media rendering uses the registered cloud storage/file flow rather than hard-coded or manually entered gallery URL text.
-- Verify that `places` detail renders real image URLs as images and no longer displays gallery URLs as plain text.
-- Align the existing Mini Program UI to the TDesign MiniProgram guidelines; Week 5 must at least cover `places` detail plus any touched lists, dialogs, buttons, feedback, loading, and empty states.
-
-### Week 6: `places` filtering/recommendation pages + admin places v1
-
-- Build category/filter and recommended-places entry flows under `apps/mobile/src/pages/places`.
-- Add backend support for:
-  - recommendation fields
   - category/tag filtering
-  - recommendation list queries
-- Complete places admin v1:
-  - create place
-  - edit place
-  - maintain bilingual intro
-  - maintain category/tag/recommendation state
-- Connect admin place gallery upload/attachment to `file_assets` so gallery ownership is tracked by the backend file flow.
-- Verify that after admin uploads or registers place gallery media, `GET /places/:id` returns displayable media for the mobile detail page.
-
-### Week 7: `places` favorite/share/navigation closure + visual unification
-
-- Add frontend support for:
-  - favorite button and visible state
-  - page sharing entry points
-  - unified navigation action handling
-- If a persistent favorite backend would delay the core release, keep favorite as a v1 frontend seam with a clean upgrade path.
-- Remove placeholder-quality copy and interaction patterns across the entire `places` module.
-- Unify module-level visual and interaction standards so `places` feels like a complete product surface.
-- Check Mini Program share behavior, privacy authorization requirements, and map location/navigation authorization prompts.
-
-### Week 8: `places` integration week + places backend/admin closure
-
-- Connect list, map, detail, filtering, recommendation, navigation, and favorite/share-ready behaviors into one complete flow.
-- Handle real-data edge cases:
+  - recommended entry
+  - navigation action
+  - favorite/share-ready v1 seam
+- Admin places 本地管理链路已完成：
+  - create/edit place
+  - coordinates / POI / bilingual intro
+  - category / tag / recommendation state
+  - gallery file attachment metadata
+  - imported/incomplete record review indicators
+- 志愿者点位导入已完成：
+  - `docs/志愿者点位采集表.xlsx` 可由 `scripts/places_volunteer_import.mjs` 解析
+  - 当前可解析 19 条 usable point records
+  - 导入记录默认 `status="draft"`，不会自动公开
+  - public list / marker / detail 不泄露 `import_review` 或原始志愿者证据
+- 真实数据边界已完成本地处理：
   - no gallery
   - no tags
-  - no recommendation state
-  - no markers
-  - missing address
-- Close remaining backend/admin issues that still block `places` frontend quality.
-- Run the complete `places` flow in CloudBase `dev`, not only in mock mode:
-  - list
+  - no recommendation
+  - missing/unusable coordinates
+  - missing address / optional text
+- 最近一次本地验证结果：
+  - `pnpm test` 通过
+  - `pnpm typecheck` 通过
+  - `pnpm lint` 通过
+
+### 部分完成
+
+- 微信小程序 AppID 已记录：`wx7518a3c1fcdd39a5`
+- CloudBase dev 环境按文档已记录：
+  - env id: `cloud1-d7gxdk8t43bd639c0`
+  - region: `ap-shanghai`
+  - env name: `cloud1`
+- CloudBase dev v1 集合按文档已记录为 created：
+  - `users`
+  - `places`
+  - `file_assets`
+  - `configs`
+  - `operation_logs`
+- Places 索引按文档已记录为 created：
+  - `community_id + status`
+  - `category_level_1`
+  - `category_level_2`
+  - `is_recommended`
+  - `recommended_rank`
+- Admin hosting dev domain 已记录：
+  - `https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com`
+- Mobile API client 已支持 `mock` / `http` / `cloudbase-function` 模式，并且 `cloudbase-function` 会优先使用 `wx.cloud.callHTTPFunction`。
+- API CloudBase provider live mode 已覆盖 places，但只在同时满足以下条件时连接真实 CloudBase：
+  - `API_PROVIDER=cloudbase`
+  - `CLOUDBASE_PROVIDER_MODE=live`
+  - `CLOUDBASE_ENV_ID` 或 `TCB_ENV` 已设置
+
+### 未完成 / 不得标记完成
+
+- 当前 CloudBase MCP 会话未登录，最近检查状态为：
+  - `auth_status=REQUIRED`
+  - `env_status=NONE`
+  - 未绑定当前 env
+- 因此目前不能把微信云数据库标记为“已实时验证可连接”。
+- `community-map-api` 仍需要部署并确认为正式 CloudBase dev HTTP function。
+- CloudBase HTTP access `/api` route 仍需要在函数验证成功后创建或确认。
+- CloudBase dev live acceptance 尚未完成：
+  - places list
   - map markers
   - detail
   - admin create/update
-  - gallery media read
-- Deploy `community-map-api` as the formal HTTP function for dev and create the CloudBase HTTP access `/api` route only after the function is no longer an Event placeholder.
-- By the end of this week, `places` frontend main features must be complete.
-
-### Week 9: Global backend completion pass 1
-
-- Shift primary attention from `places` UI to the broader backend foundation.
-- Bring `events` and `discover` backend behavior up to stable integration quality:
-  - events lifecycle
-  - discover create/comment/report/moderation
-- Expand admin support for:
-  - events management
-  - posts moderation
-  - minimum announcements management
-- Register and begin CloudBase provider integration for `events`, `posts`, `comments`, `announcements`, and `notifications` collections.
-- `places` frontend only receives compatibility fixes; no new feature scope.
-
-### Week 10: Global backend completion pass 2
-
-- Finish auth, role handling, files, notifications, and CloudBase/Koa parity work.
-- Finish dev CloudBase provider integration for events, discover, files, and notifications, including permission negative paths.
-- Add minimum useful backend support for admin files/logs surfaces.
-- Ensure `events` and `discover` frontend work is no longer backend-blocked.
-- By the end of this week, backend must be able to support three-module integration.
-
-### Week 11: Full-chain integration and negative-path hardening
-
-- Integrate:
-  - `places` frontend + places backend + places admin
-  - `events` / `discover` frontend + unified backend
-  - mock provider and CloudBase handler behavior
-  - CloudBase `dev` / `prod` environment separation, database security rules, HTTP cloud function logs, and admin static hosting
-- Create or confirm the CloudBase `prod` environment during this environment separation pass, keeping region aligned with dev and avoiding production data writes until release readiness.
-- Add or finish coverage for:
-  - invalid input
-  - insufficient permission
-  - not found
-  - unpublished places not visible
-  - file/media read failure
-  - map/navigation failure fallback
-- No new features this week; only defect burn-down and stability work.
-
-### Week 12: Acceptance, regression, and handoff
-
-- Run full manual acceptance for:
-  - places list / map / detail / filtering / recommendation / navigation
-  - places admin management
-  - events / discover backend integration
-  - file upload and media display
-  - login and permission behavior
-  - Mini Program trial version, review submission readiness, admin production domain access, and production release checklist
-- Run final checks:
-  - `typecheck`
-  - `test`
-  - `lint`
-  - OpenSpec strict validation
-- Fix only high-priority issues.
-- Produce handoff notes with:
-  - stable APIs
-  - field expectations
-  - known limitations
-  - integration notes
-
-## Public APIs / Interfaces / Types
-
-- `packages/shared` must freeze and own these interface groups:
-  - `PlaceListQuery`: pagination, keyword, category, tag, recommendation, sorting
-  - `PlaceMapMarker`: lightweight map response
-  - `PlaceDetail`: gallery, business hours, address, tags, intro, navigation-ready fields
-  - optional `favorite place` contract if persistence is included later; otherwise keep favorite as a deliberate v1 frontend seam
-- `apps/api` must provide stable interfaces for three consumer groups:
-  - `places` frontend
-  - `events` / `discover` frontends
-  - admin console
-- `apps/admin` must be able to call at least:
-  - create/edit place
-  - gallery upload/attachment
-  - category / tag / recommendation maintenance
-  - minimum management actions for the other modules
-- Deployment-facing interfaces must be explicitly registered before production release:
-  - Mini Program AppID and CloudBase env IDs
-  - HTTP cloud function name and access domain
-  - admin static hosting domain
-  - database collection names, minimum indexes, and security-rule ownership
-  - cloud storage path prefixes and public/private visibility expectations
-
-## Known Conflicts / Required Plan Adjustments
-
-- `apps/api/src/providers/cloudbase/index.ts` still defaults to mock fallback, but live mode now covers the places list/map/detail/admin paths with CloudBase document reads/writes and temporary file URL resolution. Non-places live providers and production CloudBase deployment remain pending.
-- `apps/mobile/src/manifest.json` now contains the real root AppID and `mp-weixin.appid`; Week 4 follow-up is limited to WeChat DevTools retest and manual map acceptance.
-- The mobile API client currently supports mock or `uni.request`/fetch-style HTTP calls. Production Mini Program deployment must add a CloudBase HTTP function call mode so release builds do not depend on local HTTP or mock actor headers.
-- The Week 6 places flow now uses `tag` as the public list tag filter, keeps recommended places as `/places?recommended=true&sort=recommended`, and keeps admin gallery attachment file-backed through `gallery_file_ids`; production CloudBase acceptance remains a later deployment task.
-- The original plan placed CloudBase/Koa parity in Week 10. The minimum deployment baseline now starts in Week 4 so Week 8 can verify `places` against CloudBase `dev`.
-- Week 8 repo-side places integration is complete for volunteer import, admin review indicators, edge-case hardening, and local validation. Live CloudBase dev deployment and `/api` route confirmation remain deferred because the 2026-06-14 CloudBase MCP session required authentication; see `docs/week8-places-cloudbase-integration.md`.
-
-## Test Plan
-
-- Prioritize automated coverage for:
-  - `packages/shared` schema/contract tests
-  - `apps/api` route success / validation / permission / not-found behavior
-  - mock vs HTTP/CloudBase parity
-- Manual acceptance milestones:
-  - Week 4: Mini Program AppID, CloudBase env IDs, HTTP function name, admin hosting domain, v1 collections, and required indexes are recorded; map behavior is manually verified in WeChat Developer Tools or on device
-  - Week 5: list + map + detail basically usable
-  - Week 8: complete `places` frontend chain usable
-  - Week 12: full-project regression
-- Required scenarios:
-  - open places list and browse real place cards
-  - open map page and inspect/select markers
-  - open detail page and see gallery, business hours, address, tags, and bilingual content
-  - launch navigation from detail
-  - category/recommendation entry points return consistent results
-  - admin place edits appear in mobile/API reads
-  - unpublished places never appear in public surfaces
-  - places detail renders real media from the registered file/storage flow
-  - CloudBase `dev` can run places list/map/detail/admin update without relying on mock-only data
-  - events/discover/files/notifications have dev CloudBase provider coverage and permission negative-path tests by Weeks 9-12
-  - admin static hosting can access the configured API domain and refresh without route failure
-  - Mini Program trial version passes login, places, events, discover, files, permissions, share, and navigation acceptance before submission
-
-## Assumptions
-
-- Current `places` frontend is treated as not yet developed; existing page files are placeholders only.
-- Both frontend and backend must finish within the same 12-week window, so a fully serial backend-first approach is not acceptable.
-- The recommended approach is backend half-step ahead with frontend progressing continuously from Week 2 onward.
-- `packages/shared` remains the only entry point for shared payload and contract changes.
-- `places` frontend main feature work must finish by the end of Week 8, or Weeks 11-12 will not be enough for integration and acceptance.
-- This plan updates planning only; it does not mean CloudBase provider, Mini Program API mode, manifest AppID, database scripts, or deployment scripts have already been implemented.
-- Week 4 is the current baseline. Deployment tasks that should have been explicit in Weeks 1-3 are added as Week 4 catch-up rather than backfilled as completed work.
-
----
-
-# 12 周完整开发计划：`places` 前端 + 全局后端同步完成
-
-## Summary
-
-推荐采用“后端先行半步、前后端分层并行”的推进方式，而不是“先全做后端再做前端”。
-
-原因：
-
-- 当前 `places` 前端仍然是占位级状态。如果等后端全部做完再开前端，12 周内很难完成列表、地图、详情、筛选、推荐、收藏/分享准备、导航这些完整能力。
-- 如果前后端完全同步但没有顺序约束，`packages/shared`、BFF 路由和移动端页面会不断返工。
-- 最合适的节奏是：
-  - 第 1-2 周：先冻结 shared contract 和后端基础，同时前端确定信息架构和页面骨架
-  - 第 3-8 周：`places` 前端成为主产品主线，后端始终领先 0.5-1 周
-  - 第 9-10 周：补齐非 `places` 的全局后端与最小后台管理能力
-  - 第 11-12 周：联调、回归、验收
-
-最终目标：
-
-- 12 周内同时完成 `places` 前端和全局后端
-- `places` 模块可以独立演示，不再只是占位页
-- `events` / `discover` 前端同学可以基于稳定后端联调
-- 后台具备最低可用的内容维护能力
-
-## 推进策略
-
-- 整体采用三条关联主线，但有严格先后顺序：
-  - `packages/shared`：所有字段、schema、contract 的唯一事实来源
-  - `apps/api`：后端与 CloudBase/BFF 实现，始终比前端早半步
-  - `apps/mobile/src/pages/places`：前端实现，只基于已冻结接口推进
-- 从第 4 周开始增加第四条“部署 / CloudBase Bootstrap”主线：
-  - 微信小程序注册与真实 AppID 配置
-  - CloudBase `dev` / `prod` 环境注册
-  - 文档型数据库集合注册、权限规则和索引计划
-  - 云存储路径与权限注册
-  - HTTP 云函数 / BFF 部署入口
-  - admin 静态托管与 API 域名配置
-- `apps/admin` 不作为独立大主线，而是跟随后端能力分批补齐：
-  - 先做 places 管理
-  - 再收口 events / posts / announcements 管理闭环
-- 禁止以下两种工作方式：
-  - 页面先写完，再补接口
-  - 接口先写完，再考虑页面需求
-- 每个用户能力都必须按以下顺序推进：
-  1. shared contract
-  2. backend route/provider
-  3. mobile/admin consumer
-  4. tests 和人工验证
-
-## 12 周周计划
-
-### 第 1 周：冻结范围，将 `places` 前端重新定义为从 0 到 1 建设
-
-- 明确将 `places` 前端视为“未开发完成”；现有 `index/detail/map` 文件只算占位，不算完成工作。
-- 定义完整的 `places` 前端能力范围：
-  - 列表
-  - 地图
-  - 详情
-  - 筛选
-  - 推荐入口
-  - 导航
-  - 收藏/分享准备能力（v1）
-- 审计 shared contract，将 `places` 拆成三类响应面：
-  - 列表卡片数据
-  - 地图 marker 数据
-  - 详情页数据
-- 审计后端缺口：
-  - auth
+  - gallery media temp URL
+  - imported draft visibility
+  - published update visibility
+- 非 places live providers 尚未完成：
   - events
-  - discover
-  - places
-  - files
+  - posts / discover
+  - comments
+  - announcements
   - notifications
-  - admin actions
-- 先确定 `places` 页面结构和跳转关系，不急着做最终 UI。
+  - files full live provider
+- CloudBase prod 环境、prod 配置、生产数据写入策略和上线验收尚未完成。
 
-### 第 2 周：冻结 `places` v1 contract，建立后端查询基线，开始前端骨架
+事实来源：
 
-- 在 shared 中冻结 `places` v1 接口：
-  - list：分页、关键词、分类、标签、推荐位、排序
-  - detail：图集、标签、营业时间、地址、简介、导航相关字段
-  - marker：轻量返回体，不复用详情结构
-- 把 `places` 的 list/detail/map-markers 后端接口补到真正可用。
-- 开始搭建前端三页骨架：
-  - list
-  - map
-  - detail
-- 建立统一状态处理：
-  - loading
-  - empty
-  - error
-  - locale 切换显示
+- `docs/cloudbase-week4-deployment-baseline.md`
+- `docs/week8-places-cloudbase-integration.md`
+- `openspec/changes/complete-week8-places-cloudbase-integration-and-volunteer-import/tasks.md`
+- `openspec/changes/complete-places-frontend-and-backend-foundation/tasks.md`
 
-### 第 3 周：`places` 列表页 v1 + 列表后端能力增强
+## 2. 剩余上线任务
 
-- 完成 `places` 列表页 v1：
-  - 地点卡片
-  - 关键词搜索
-  - 分类入口
-  - 推荐入口
-- 后端补齐列表筛选、排序、分页和 published 可见性规则。
-- 将首页中的 places 入口从预留展示改成真实跳转入口。
+### P0: CloudBase 与部署阻塞项
 
-### 第 4 周：`places` 地图页 v1 + marker 行为稳定
+- [ ] 重新完成 CloudBase MCP 登录和环境绑定。
+  - 验收：`auth_status=READY`，当前 env 绑定到 `cloud1-d7gxdk8t43bd639c0`。
+- [ ] 实时确认 CloudBase dev 环境、集合、索引、存储路径和 admin hosting 状态。
+  - 验收：查询结果与 `docs/cloudbase-week4-deployment-baseline.md` 一致；差异必须记录并修复。
+- [ ] 将 `community-map-api` 部署为正式 CloudBase dev HTTP function。
+  - 验收：函数入口对应 `apps/api/src/cloudbase.ts`，不再作为 Event placeholder 处理。
+- [ ] 创建或确认 CloudBase HTTP access `/api` route。
+  - 验收：只在函数验证成功后执行；dev access domain 可访问 `/api/health` 或等价 health route。
+- [ ] 配置并验证 CloudBase dev API 环境变量。
+  - 验收：`API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、env id 生效，places 读写不再回退 mock。
+- [ ] 跑通 CloudBase dev places live acceptance。
+  - 验收：public list / map / detail / admin create-update / gallery media / draft visibility / published update 全部通过。
+- [ ] 创建或确认 CloudBase prod 环境。
+  - 验收：region 与 dev 对齐；发布准备完成前不写入生产业务数据。
+- [ ] 制定并应用数据库安全规则。
+  - 验收：public read、admin write、private file access、operation logs 写入权限边界明确。
+- [ ] 验证云存储和真实媒体文件流。
+  - 验收：places detail 可通过登记的 file/storage flow 渲染真实图片，不依赖硬编码 URL。
 
-- 完成 `places` 地图页 v1：
-  - marker 加载
-  - marker 选中
-  - 选中地点摘要卡片
-  - 地图跳详情
-- 保持 marker 返回体最小且稳定。
-- 确保后端 marker 接口只返回可公开展示的地点。
-- 开始补后台中的坐标、POI、分类和推荐位字段支持。
-- 补齐第 1-3 周没有显式写入计划的部署前置工作：
-  - 确认微信小程序账号、真实 AppID、开发者权限和体验者权限
-  - 创建或确认 CloudBase `dev` 环境，并记录 env id、区域、HTTP 云函数名和 admin 托管域名；`prod` 保持 pending，移到第 11 周环境隔离工作中处理
-  - 注册 v1 必需集合：`users`、`places`、`file_assets`、`configs`、`operation_logs`
-  - 列出后续周需要接入的集合：`events`、`posts`、`comments`、`announcements`、`notifications`
-  - 为第 4 周 places list/map 查询登记最低索引：`community_id + status`、`category_level_1`、`category_level_2`、`is_recommended`、`recommended_rank`
-  - 固定云存储路径：`public/places/{place_id}/`、`public/events/{event_id}/`、`public/posts/{post_id}/`、`private/tickets/{registration_id}/`、`private/exports/{job_id}/`
-  - 明确生产小程序优先使用 `wx.cloud.callHTTPFunction` 调用 HTTP 云函数，Web admin 使用 CloudBase HTTP 访问服务 HTTPS 域名
-- 第 4 周验收必须覆盖真实部署基线：
-  - 小程序 AppID、CloudBase `dev` env id、HTTP 云函数名、admin 托管域名已记录在本计划或关联部署登记文档中；`prod` 作为第 11 周事项保留
-  - CloudBase `dev` 环境已创建 v1 必需集合，集合命名与 shared/entity 命名一致
-  - `places` public list/map/detail 在 mock 与 CloudBase handler contract 下字段边界一致
-  - 地图页已在微信开发者工具或测试真机中完成人工验证：marker 加载、marker 选中、跳详情、详情导航
+### P0: 三大模块最低上线闭环
 
-### 第 5 周：`places` 详情页 v1 + 媒体化详情数据
+- [ ] Places 上线闭环。
+  - 必须覆盖：list、map、detail、filter、recommended、navigation、share、admin update、gallery display。
+  - 验收：dev live 环境和小程序真机均通过。
+- [ ] Events 最低上线闭环。
+  - 必须覆盖：活动列表、活动详情、报名、票券、核销、admin 创建/编辑。
+  - 验收：成功路径、重复报名、无权限核销、活动不存在均有稳定响应。
+- [ ] Discover 最低上线闭环。
+  - 必须覆盖：内容流、发帖、评论、审核、举报或治理入口。
+  - 验收：公开内容可浏览；UGC 创建和审核路径不绕过 BFF。
+- [ ] Files 最低上线闭环。
+  - 必须覆盖：上传请求、完成登记、public file display、private file access denial。
+  - 验收：public gallery 可展示，private ticket/export 不可被 public 读取。
+- [ ] Notifications 最低上线闭环。
+  - 必须覆盖：触发、列表、已读或最低反馈状态。
+  - 验收：关键事件不静默失败；失败路径有日志。
+- [ ] Auth / role / permission 负路径。
+  - 必须覆盖：未登录、普通用户访问 admin、非法 mock actor、缺失角色。
+  - 验收：401 / 403 语义和 error envelope 稳定。
 
-- 完成 `places` 详情页 v1：
-  - 图集
-  - 营业时间
-  - 地址
-  - 双语简介
-  - 标签
-  - 导航按钮
-- 扩展后端详情 payload，让前端不再依赖占位数据。
-- 通过 files 流开始支持地点图集，让详情页可以渲染真实媒体。
-- 确保详情页媒体渲染使用已注册的云存储 / files flow，不再依赖硬编码或后台手填的 gallery URL 文本。
-- Week 5 详情 payload 以 `gallery_media` 作为主字段，`gallery_urls` 仅作为由媒体 URL 派生的兼容字段；完整 CloudBase live files provider 留到后续 backend foundation 工作。
-- 验证 `places` 详情页能将真实图片 URL 渲染为图片，不再把 gallery URL 当普通文本显示。
-- 将现有小程序 UI 统一到 TDesign MiniProgram 规范；Week 5 至少覆盖 `places` 详情页以及当周触达的列表、弹窗、按钮、反馈、加载和空状态。
+### P0: 小程序、Admin 与发布配置
 
-### 第 6 周：`places` 筛选/推荐页 + 后台 places 管理 v1
+- [ ] 小程序 CloudBase function 模式构建和真机验证。
+  - 验收：`VITE_API_MODE=cloudbase-function`，env id 和 function name 生效。
+- [ ] 小程序体验版配置。
+  - 验收：体验者权限、合法域名或 CloudBase 调用方式、定位/导航授权、分享行为均可用。
+- [ ] Admin 线上 API 配置。
+  - 验收：admin static hosting 能访问 dev/prod API domain；刷新页面不路由失败。
+- [ ] 腾讯地图 key 与域名/小程序配置。
+  - 验收：地图、定位、导航在微信开发者工具和至少一台真机可用；key 不写入源码。
+- [ ] 上线配置冻结。
+  - 验收：dev/prod env id、API domain、function name、admin hosting domain、storage path、数据库集合记录在文档中。
+- [ ] 日志和排查入口。
+  - 验收：CloudBase function logs、operation_logs、关键错误 requestId 可追踪。
 
-- 在 `apps/mobile/src/pages/places` 下完成分类筛选和推荐地点入口流。
-- 后端补齐：
-  - 推荐字段
-  - 分类/标签筛选
-  - 推荐地点查询
-- 完成后台 places 管理 v1：
-  - 新增地点
-  - 编辑地点
-  - 维护双语简介
-  - 维护分类/标签/推荐状态
-- 将后台 places 图集上传/挂接接入 `file_assets`，由后端文件流追踪图集归属。
-- 验证后台上传或登记地点图集后，`GET /places/:id` 能返回移动端详情页可展示的媒体。
+### P1: 上线质量与交接
 
-### 第 7 周：`places` 收藏/分享/导航收口 + 模块视觉统一
+- [ ] 非核心后台管理完善。
+  - 范围：announcements、posts moderation、events 辅助字段、files/logs 最低页面。
+- [ ] 数据清理和种子数据整理。
+  - 范围：测试草稿、重复导入点位、无效坐标、无效媒体引用。
+- [ ] 上线文档和交接说明。
+  - 必须包含：稳定 API、字段边界、环境变量、部署步骤、回滚方式、已知限制。
+- [ ] OpenSpec 状态整理。
+  - 范围：已完成 change 可准备 archive；未完成 CloudBase live acceptance 保持可追踪。
 
-- 完成前端以下能力：
-  - 收藏按钮与可见状态
-  - 页面分享入口
-  - 统一导航动作封装
-- 如果持久化 favorite 后端会拖慢主线，就将 favorite 保持为 v1 前端能力预留，并确保未来可无痛升级。
-- 去掉 `places` 模块中的占位文案和占位交互。
-- 统一模块级视觉和交互标准，让 `places` 看起来像完整产品，而不是样板页。
-- 检查小程序分享行为、隐私授权要求，以及地图定位/导航授权提示。
+## 3. 时间安排
 
-### 第 8 周：`places` 整合周 + places backend/admin 收尾
+### 2026-06-16 至 2026-06-23：上线前补齐期
 
-- 将列表、地图、详情、筛选、推荐、导航、收藏/分享准备能力串成完整链路。
-- 处理真实数据边界：
-  - 无图集
-  - 无标签
-  - 无推荐位
-  - 无 marker
-  - 地址缺失
-- 收尾所有仍阻塞 `places` 前端质量的 backend/admin 问题。
-- 在 CloudBase `dev` 环境跑通完整 places 链路，而不只是在 mock 模式下验证：
-  - list
-  - map markers
-  - detail
-  - admin create/update
-  - gallery media read
-- 将 `community-map-api` 部署为 dev 正式 HTTP 函数，并且只在它不再是 Event 占位函数后创建 CloudBase HTTP 访问服务 `/api` 路由。
-- 到本周结束，`places` 前端主功能必须全部完成。
+目标：在进入 7 天联调前，所有阻塞联调的功能、部署、数据和配置必须可用。
 
-### 第 9 周：全局后端补齐第 1 轮
+#### 6.16 Tue
 
-- 将主要注意力从 `places` UI 转向更广的后端基础。
-- 把 `events` 和 `discover` 后端能力补到稳定联调水平：
-  - events 生命周期
-  - discover 发帖 / 评论 / 举报 / 治理
-- 扩展后台支持：
-  - events 管理
-  - posts 治理
-  - announcements 最低可用管理
-- 注册并开始接入 `events`、`posts`、`comments`、`announcements`、`notifications` 的 CloudBase provider 集合。
-- `places` 前端只做兼容性修复，不再扩功能。
+- [ ] 完成新版 `docs/plan.md`。
+- [ ] 重新登录 CloudBase MCP，绑定 `cloud1-d7gxdk8t43bd639c0`。
+- [ ] 实时确认 dev env、collections、indexes、function、gateway、hosting 状态。
+- [ ] 将确认结果同步到部署登记文档。
 
-### 第 10 周：全局后端补齐第 2 轮
+退出标准：
 
-- 集中补 auth、role、files、notifications，以及 CloudBase/Koa 行为一致性。
-- 完成 events、discover、files、notifications 的 dev CloudBase provider 接入，并覆盖权限负路径。
-- 为后台 files/logs 页面补最低有用的后端支撑。
-- 确保 `events` 和 `discover` 前端不再被后端阻塞。
-- 到本周结束，后端必须能支撑三模块联调。
+- CloudBase 当前连接状态明确：要么验证通过，要么列出具体认证/权限 blocker。
 
-### 第 11 周：全链路联调与负路径加固
+#### 6.17 Wed
 
-- 联调范围：
-  - `places` 前端 + places backend + places admin
-  - `events` / `discover` 前端 + 统一 backend
-  - mock provider 与 CloudBase handler 行为一致性
-  - CloudBase `dev` / `prod` 环境隔离、数据库安全规则、HTTP 云函数日志和 admin 静态托管
-- 在本轮环境隔离工作中创建或确认 CloudBase `prod` 环境，区域与 dev 保持一致；发布准备完成前不写入生产业务数据。
-- 补齐或完成以下负路径覆盖：
-  - 参数非法
-  - 权限不足
-  - 资源不存在
-  - 未发布地点不可见
-  - 文件/媒体读取失败
-  - 地图/导航失败回退
-- 本周不扩新功能，只做缺陷收敛和稳定化。
+- [ ] 部署或修复 `community-map-api` dev HTTP function。
+- [ ] 确认函数入口、runtime、env vars、logs。
+- [ ] 创建或确认 `/api` route。
+- [ ] 完成 `/health` 和 places read smoke。
 
-### 第 12 周：验收、回归、交接
+退出标准：
 
-- 做完整人工验收：
-  - places 列表 / 地图 / 详情 / 筛选 / 推荐 / 导航
-  - places 后台管理
-  - events / discover 后端联调
-  - 文件上传与媒体展示
-  - 登录和权限行为
-  - 小程序体验版、提交审核准备、admin 生产域名访问和发布前检查
-- 跑最终检查：
-  - `typecheck`
-  - `test`
-  - `lint`
-  - OpenSpec strict validation
-- 只修高优问题。
-- 输出交接说明，包括：
-  - 稳定 API
-  - 字段预期
-  - 已知限制
-  - 联调注意事项
+- dev access domain 可调用 API；失败时必须有 CloudBase 日志和 requestId。
 
-## Public APIs / Interfaces / Types
+#### 6.18 Thu
 
-- `packages/shared` 必须冻结并拥有以下接口组：
-  - `PlaceListQuery`：分页、关键词、分类、标签、推荐位、排序
-  - `PlaceMapMarker`：轻量地图返回体
-  - `PlaceDetail`：图集、营业时间、地址、标签、简介、导航相关字段
-  - 如果未来加入持久化 favorite，再补 `favorite place` contract；如果当前不做，就明确它是刻意保留的 v1 前端接口边界
-- `apps/api` 需要为三类 consumer 提供稳定接口：
-  - `places` 前端
-  - `events` / `discover` 前端
-  - admin 后台
-- `apps/admin` 至少要能调用：
-  - 新增/编辑地点
-  - 图集上传/挂接
-  - 分类 / 标签 / 推荐位维护
-  - 其他模块的最低管理动作
-- 面向部署的接口与配置必须在正式发布前显式登记：
-  - 小程序 AppID 与 CloudBase env id
-  - HTTP 云函数名与访问域名
-  - admin 静态托管域名
-  - 数据库集合名、最低索引和安全规则归属
-  - 云存储路径前缀和公私权限预期
+- [ ] 跑通 places live provider。
+- [ ] 导入或创建最小 live places 数据。
+- [ ] 验证 public list / map markers / detail。
+- [ ] 验证 admin create/update 后 public read 可见性。
 
-## 已知冲突 / 必须调整的计划点
+退出标准：
 
-- `apps/api/src/providers/cloudbase/index.ts` 默认仍回退 mock，但 live mode 已覆盖 places list/map/detail/admin 路径，使用 CloudBase 文档读写和临时文件 URL 解析。非 places live providers 与生产 CloudBase 部署仍待完成。
-- `apps/mobile/src/manifest.json` 已包含真实根 AppID 和 `mp-weixin.appid`；第 4 周后续只需要微信开发者工具复测和地图人工验收。
-- 当前移动端 API client 支持 mock 或 `uni.request`/fetch 风格 HTTP 调用。生产小程序部署必须新增 CloudBase HTTP function 调用模式，避免发布版本依赖本地 HTTP 或 mock actor header。
-- 第 6 周 places 流程已使用 `tag` 作为 public list 标签筛选参数，推荐地点保持 `/places?recommended=true&sort=recommended` 过滤入口，后台图集继续通过 `gallery_file_ids` 走 files flow；生产 CloudBase 验收仍是后续部署任务。
-- 原计划把 CloudBase/Koa parity 放在第 10 周。现在最低部署基线必须从第 4 周开始建立，否则第 8 周无法用 CloudBase `dev` 验证 places。
-- 第 8 周仓库侧 places 整合已完成志愿者导入、后台审核提示、真实数据边界处理和本地验证。CloudBase dev 正式部署与 `/api` route 确认仍然延期，因为 2026-06-14 的 CloudBase MCP 会话需要重新认证；详见 `docs/week8-places-cloudbase-integration.md`。
+- places 在 CloudBase dev 中不依赖 mock-only data。
 
-## Test Plan
+#### 6.19 Fri
 
-- 自动化测试重点：
-  - `packages/shared` schema/contract 测试
-  - `apps/api` route success / validation / permission / not-found 行为
-  - mock 与 HTTP/CloudBase 行为一致性
-- 人工验收里程碑：
-  - 第 4 周：小程序 AppID、CloudBase env id、HTTP 云函数名、admin 托管域名、v1 集合和必要索引已记录；地图行为已在微信开发者工具或真机中验证
-  - 第 5 周：列表 + 地图 + 详情基本可用
-  - 第 8 周：`places` 前端完整链路可用
-  - 第 12 周：全项目回归
-- 必须覆盖的关键场景：
-  - 进入 places 列表可浏览真实地点卡片
-  - 进入地图页可看到并选中 marker
-  - 进入详情页可看到图集、营业时间、地址、标签和双语内容
-  - 从详情页发起导航
-  - 分类/推荐入口返回一致结果
-  - 后台编辑地点后前台/API 可读到最新数据
-  - 未发布地点不会出现在前台
-  - places 详情页能从已登记的 files/storage 流渲染真实媒体
-  - CloudBase `dev` 能在不依赖 mock-only 数据的情况下跑通 places list/map/detail/admin update
-  - 第 9-12 周 events/discover/files/notifications 具备 dev CloudBase provider 覆盖和权限负路径测试
-  - admin 静态托管可访问已配置 API 域名，刷新页面不出现路由失败
-  - 小程序体验版在提交审核前通过登录、places、events、discover、文件、权限、分享、导航验收
+- [ ] 补齐 events 最低上线链路。
+- [ ] 补齐 events admin 最低管理动作。
+- [ ] 覆盖报名、票券、核销、权限负路径。
 
-## Assumptions
+退出标准：
 
-- 当前 `places` 前端按“未开发完成”处理，现有页面文件只算占位。
-- 前后端都必须在同一个 12 周周期内完成，因此不能采用完全串行的“先后端后前端”策略。
-- 推荐策略是“后端先行半步，前端从第 2 周起持续推进”。
-- `packages/shared` 仍然是所有共享 payload 和 contract 变更的唯一入口。
-- `places` 前端主功能必须在第 8 周结束前完成，否则第 11-12 周将不足以完成全链路联调和验收。
-- 本计划只更新计划内容；这不代表 CloudBase provider、小程序 API mode、manifest AppID、数据库脚本或部署脚本已经实现。
-- 第 4 周是当前基准周。部署相关且本应在第 1-3 周明确的前置工作，统一作为第 4 周补课项加入，而不是回填成已完成。
+- events 不再阻塞联调；未完成项降级为明确非上线范围或 P1。
+
+#### 6.20 Sat
+
+- [ ] 补齐 discover 最低上线链路。
+- [ ] 补齐 posts/comments/review/report 或治理路径。
+- [ ] 确认 public feed 不泄露未审核内容。
+
+退出标准：
+
+- discover 可进行端到端联调。
+
+#### 6.21 Sun
+
+- [ ] 补齐 files、notifications、auth/role 负路径。
+- [ ] 验证 public/private storage 权限。
+- [ ] 验证关键通知或反馈状态。
+
+退出标准：
+
+- 文件、权限、通知不阻塞三模块联调。
+
+#### 6.22 Mon
+
+- [ ] 小程序 cloudbase-function 构建。
+- [ ] 微信开发者工具导入并跑主流程。
+- [ ] 真机验证 places map/navigation/share。
+- [ ] Admin hosting 与 API domain 联调。
+
+退出标准：
+
+- 小程序体验版前置配置齐备；真机 blocker 已记录并分级。
+
+#### 6.23 Tue
+
+- [ ] 联调前冻结接口和配置。
+- [ ] 清理测试数据和导入数据。
+- [ ] 跑一次 `pnpm typecheck`、`pnpm test`、`pnpm lint`。
+- [ ] 输出 6.24 联调入口、账号、环境、数据清单。
+
+退出标准：
+
+- 6.24 可以开始全模块联调；未完成 P0 必须有负责人和当天修复窗口。
+
+### 2026-06-24 至 2026-06-30：7 天全模块联调期
+
+规则：
+
+- 联调期不新增功能。
+- 只接受 P0/P1 缺陷修复、配置修复、数据修复和文档修复。
+- 每天结束必须更新 defect list、通过场景、阻塞场景和次日优先级。
+
+#### 6.24 Wed：CloudBase dev 全链路和 API smoke
+
+联调范围：
+
+- CloudBase dev env
+- HTTP function
+- `/api` route
+- API envelope
+- requestId / logs
+- mock vs live mode switch
+
+必须通过：
+
+- `/health`
+- places list/map/detail
+- events list/detail
+- discover feed
+- auth/me
+- files public URL 或 temp URL
+
+退出标准：
+
+- API smoke 全部通过；CloudBase 日志可查；live/mock fallback 行为清楚。
+
+#### 6.25 Thu：Places 全链路
+
+联调范围：
+
+- mobile places list
+- map markers
+- detail
+- filtering
+- recommended entry
+- navigation
+- share
+- admin create/update
+- gallery media
+- imported draft review
+
+必须通过：
+
+- published place 出现在 public list/map/detail。
+- draft place 不出现在 public list/map/detail。
+- admin 更新后 mobile 能读到最新数据。
+- missing coordinates 不生成 marker。
+- gallery media 可渲染真实图片。
+
+退出标准：
+
+- places 可作为独立演示模块上线。
+
+#### 6.26 Fri：Events 全链路
+
+联调范围：
+
+- events list/detail
+- registration
+- ticket
+- checkin
+- admin create/update/review
+- permission negative paths
+
+必须通过：
+
+- 用户可报名。
+- 重复报名或非法报名有稳定错误。
+- 票券可展示。
+- 无权限用户不能核销。
+- admin 修改活动后 public 可读状态正确。
+
+退出标准：
+
+- events 满足最低上线闭环。
+
+#### 6.27 Sat：Discover 全链路
+
+联调范围：
+
+- feed
+- post creation
+- comments
+- moderation
+- report/governance
+- admin review
+
+必须通过：
+
+- public feed 只展示允许公开的内容。
+- 用户发帖和评论成功或得到可解释错误。
+- admin 审核能影响 public visibility。
+- 举报或治理入口不会造成数据丢失。
+
+退出标准：
+
+- discover 满足最低上线闭环。
+
+#### 6.28 Sun：Files / Auth / Permissions / Notifications 负路径
+
+联调范围：
+
+- public file
+- private file
+- upload request
+- upload complete
+- role resolution
+- admin permission
+- notification trigger/list/read
+- invalid input and not-found
+
+必须通过：
+
+- public media 可读。
+- private tickets/exports 不可 public 读取。
+- 普通用户不能访问 admin actions。
+- validation error 返回 400 和 `VALIDATION_ERROR`。
+- not-found 返回稳定 envelope。
+
+退出标准：
+
+- 权限和文件边界可接受上线。
+
+#### 6.29 Mon：小程序真机与体验质量
+
+联调范围：
+
+- 微信开发者工具
+- 至少一台真机
+- cloudbase-function API mode
+- map/location/navigation authorization
+- sharing
+- weak network
+- loading/empty/error states
+
+必须通过：
+
+- 小程序真机可打开主页面。
+- places/events/discover 主入口可用。
+- 导航授权失败时有可接受回退。
+- 弱网下不出现白屏或无限 loading。
+
+退出标准：
+
+- 小程序体验版达到提交审核前质量。
+
+#### 6.30 Tue：全量回归与发布候选冻结
+
+联调范围：
+
+- full regression
+- data cleanup
+- config freeze
+- release candidate
+- rollback rehearsal
+- handoff notes
+
+必须通过：
+
+- `pnpm typecheck`
+- `pnpm test`
+- `pnpm lint`
+- OpenSpec strict validation for active release changes, or documented blockers
+- Admin hosting access
+- Mini Program trial package check
+
+退出标准：
+
+- 形成 release candidate；7.1 只允许修阻断问题。
+
+### 2026-07-01 Wed：上线日
+
+上线前检查：
+
+- [ ] prod env 已确认。
+- [ ] dev/prod 配置已冻结。
+- [ ] admin hosting 可访问。
+- [ ] CloudBase API domain 可访问。
+- [ ] 小程序体验版可用，并已准备提交审核材料。
+- [ ] CloudBase function logs 可查。
+- [ ] operation logs 或关键业务日志可查。
+- [ ] 回滚方案已记录。
+- [ ] 已知限制已写入交接说明。
+
+上线当天规则：
+
+- 只修 P0/P1 阻断问题。
+- 不合并新功能。
+- 不做 schema 破坏性变更。
+- 不写入未经确认的生产业务数据。
+- 每个发布动作必须记录时间、操作者、环境、版本和结果。
+
+上线完成定义：
+
+- Admin 可访问并连接正确 API。
+- 小程序体验版或提交审核包可用。
+- Places / events / discover 最低主链路通过。
+- 文件、权限、日志、回滚路径可验证。
+- 未完成项全部进入 post-launch backlog，并明确优先级。
+
+## 4. 测试与验收要求
+
+### 本地验证
+
+- 每次 P0 代码变更后至少运行相关包验证。
+- 6.23 和 6.30 必须运行：
+  - `pnpm typecheck`
+  - `pnpm test`
+  - `pnpm lint`
+- Shared contract / API / provider 变更必须重点覆盖：
+  - `packages/shared/test`
+  - `apps/api/test`
+  - CloudBase handler/provider parity tests
+
+### CloudBase live 验收
+
+本地测试通过不等于 live 验收通过。以下场景必须在 CloudBase dev 上验证：
+
+- places public list/map/detail
+- admin create/update
+- gallery media temp URL
+- draft/published visibility
+- events registration/checkin
+- discover post/comment/moderation
+- files public/private boundary
+- auth/role permission denial
+- function logs and requestId tracing
+
+### 小程序验收
+
+- 微信开发者工具：
+  - build/import
+  - cloudbase-function API mode
+  - route navigation
+  - map/navigation authorization
+- 真机：
+  - places list/map/detail
+  - events registration
+  - discover post/comment
+  - share
+  - weak network loading/error
+
+## 5. Assumptions
+
+- 本计划只更新 `docs/plan.md`，不自动修改 OpenSpec task 状态，不修改代码。
+- 当前日期按 2026-06-16 处理。
+- 7 天联调固定为 2026-06-24 至 2026-06-30。
+- CloudBase 未经重新登录和 live smoke test 前，不把“微信云数据库可连接”标为已完成。
+- 7.1 是可发布/可提交审核/可对外试运行的上线口径；微信审核通过可能发生在 7.1 之后。
+- 如果 CloudBase 认证、账号权限或微信审核资料阻塞，应立即升级为 P0 blocker，而不是继续按 mock 环境推进。

@@ -1,0 +1,1922 @@
+openapi: 3.1.0
+info:
+  title: Chengdu Tongzilin Community Map API
+  version: 0.1.0
+  description: |
+    Community Map API for mobile, Mini Program, Admin, and Postman debugging.
+
+    Current status:
+    - Local Koa HTTP routes and shared contracts are implemented for the listed endpoints.
+    - CloudBase dev URL is documented for deployment target only; `/api` route and live acceptance still require verification.
+    - `x-mock-user-id` is a local/dev actor header and is not a production authentication scheme.
+servers:
+  - url: http://127.0.0.1:8787
+    description: local Koa dev server
+  - url: https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api
+    description: CloudBase dev HTTP access service, pending `/api` route verification
+tags:
+  - name: System
+  - name: Auth
+  - name: Events
+  - name: Discover
+  - name: Places
+  - name: Announcements
+  - name: Notifications
+  - name: Files
+  - name: Admin
+components:
+  securitySchemes:
+    MockActorHeader:
+      type: apiKey
+      in: header
+      name: x-mock-user-id
+      description: Local/dev mock actor id, for example `user_001` for admin flows.
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+    CommunityId:
+      name: communityId
+      in: query
+      schema:
+        type: string
+        default: tongzilin
+    Keyword:
+      name: keyword
+      in: query
+      schema:
+        type: string
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          examples: [VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, INTERNAL_ERROR]
+        message:
+          type: string
+        details: {}
+    ApiFailure:
+      type: object
+      required: [success, error, requestId]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          $ref: '#/components/schemas/ApiError'
+        requestId:
+          type: string
+    SuccessEnvelope:
+      type: object
+      required: [success, data, requestId]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data: {}
+        requestId:
+          type: string
+    Coordinates:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          example: 30.615
+        longitude:
+          type: number
+          example: 104.062
+    User:
+      type: object
+      required: [_id, nickname, avatar_url, preferred_language, role_flags, status]
+      properties:
+        _id:
+          type: string
+        openid:
+          type: string
+        unionid:
+          type: string
+        nickname:
+          type: string
+        avatar_url:
+          type: string
+          format: uri
+        phone:
+          type: string
+        preferred_language:
+          type: string
+          enum: [zh, en]
+        role_flags:
+          type: array
+          items:
+            type: string
+            examples: [community_admin, system_admin]
+        status:
+          type: string
+    AuthSession:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+    Event:
+      type: object
+      required:
+        - _id
+        - community_id
+        - title_zh
+        - title_en
+        - summary_zh
+        - summary_en
+        - content_zh
+        - content_en
+        - cover_file_id
+        - cover_cloud_path
+        - cover_url
+        - address_text
+        - location
+        - start_time
+        - end_time
+        - signup_deadline
+        - capacity
+        - organizer_user_id
+        - review_status
+        - publish_status
+      properties:
+        _id:
+          type: string
+        community_id:
+          type: string
+        title_zh:
+          type: string
+        title_en:
+          type: string
+        summary_zh:
+          type: string
+        summary_en:
+          type: string
+        content_zh:
+          type: string
+        content_en:
+          type: string
+        cover_file_id:
+          type: string
+        cover_cloud_path:
+          type: string
+        cover_url:
+          type: string
+          format: uri
+        place_id:
+          type: string
+        address_text:
+          type: string
+        location:
+          $ref: '#/components/schemas/Coordinates'
+        start_time:
+          type: string
+        end_time:
+          type: string
+        signup_deadline:
+          type: string
+        capacity:
+          type: integer
+          minimum: 1
+        organizer_user_id:
+          type: string
+        review_status:
+          type: string
+          enum: [pending_review, approved, rejected]
+        publish_status:
+          type: string
+          enum: [draft, published, offline]
+    CreateEventInput:
+      type: object
+      required:
+        - title_zh
+        - title_en
+        - summary_zh
+        - summary_en
+        - content_zh
+        - content_en
+        - address_text
+        - location
+        - start_time
+        - end_time
+        - signup_deadline
+        - capacity
+      properties:
+        title_zh:
+          type: string
+        title_en:
+          type: string
+        summary_zh:
+          type: string
+        summary_en:
+          type: string
+        content_zh:
+          type: string
+        content_en:
+          type: string
+        address_text:
+          type: string
+        location:
+          $ref: '#/components/schemas/Coordinates'
+        start_time:
+          type: string
+        end_time:
+          type: string
+        signup_deadline:
+          type: string
+        capacity:
+          type: integer
+          minimum: 1
+        place_id:
+          type: string
+        cover_file_id:
+          type: string
+        cover_cloud_path:
+          type: string
+        cover_url:
+          type: string
+          format: uri
+    UpdateEventInput:
+      type: object
+      description: Partial create event input. All fields from `CreateEventInput` are optional.
+      properties:
+        title_zh:
+          type: string
+        title_en:
+          type: string
+        summary_zh:
+          type: string
+        summary_en:
+          type: string
+        content_zh:
+          type: string
+        content_en:
+          type: string
+        address_text:
+          type: string
+        location:
+          $ref: '#/components/schemas/Coordinates'
+        start_time:
+          type: string
+        end_time:
+          type: string
+        signup_deadline:
+          type: string
+        capacity:
+          type: integer
+          minimum: 1
+        place_id:
+          type: string
+        cover_file_id:
+          type: string
+        cover_cloud_path:
+          type: string
+        cover_url:
+          type: string
+          format: uri
+    ReviewEventInput:
+      type: object
+      required: [review_status]
+      properties:
+        review_status:
+          type: string
+          enum: [approved, rejected, pending_review]
+        publish_status:
+          type: string
+          enum: [draft, published, offline]
+        reason:
+          type: string
+    CreateEventRegistrationInput:
+      type: object
+      required: [contact_name, contact_phone, attendee_count]
+      properties:
+        contact_name:
+          type: string
+          minLength: 1
+        contact_phone:
+          type: string
+          minLength: 6
+        attendee_count:
+          type: integer
+          minimum: 1
+          maximum: 10
+        source_channel:
+          type: string
+          default: miniapp
+    EventRegistration:
+      type: object
+      required: [_id, event_id, user_id, contact_name, contact_phone, attendee_count, registration_status, ticket_id, source_channel]
+      properties:
+        _id:
+          type: string
+        event_id:
+          type: string
+        user_id:
+          type: string
+        contact_name:
+          type: string
+        contact_phone:
+          type: string
+        attendee_count:
+          type: integer
+        registration_status:
+          type: string
+        ticket_id:
+          type: string
+        source_channel:
+          type: string
+    EventTicket:
+      type: object
+      required: [_id, registration_id, ticket_code, qr_file_id, qr_cloud_path, visibility, status, issued_at, used_at]
+      properties:
+        _id:
+          type: string
+        registration_id:
+          type: string
+        ticket_code:
+          type: string
+        qr_file_id:
+          type: string
+        qr_cloud_path:
+          type: string
+        visibility:
+          type: string
+          enum: [public, private]
+        status:
+          type: string
+        issued_at:
+          type: string
+        used_at:
+          type:
+            - string
+            - 'null'
+    EventWithRegistration:
+      type: object
+      required: [registration, ticket]
+      properties:
+        registration:
+          $ref: '#/components/schemas/EventRegistration'
+        ticket:
+          $ref: '#/components/schemas/EventTicket'
+    CheckinInput:
+      type: object
+      required: [ticket_id]
+      properties:
+        ticket_id:
+          type: string
+        note:
+          type: string
+    Post:
+      type: object
+      required: [_id, author_user_id, community_id, title, content, language, tag_ids, location_text, image_file_ids, image_urls, status, review_status]
+      properties:
+        _id:
+          type: string
+        author_user_id:
+          type: string
+        community_id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        language:
+          type: string
+          enum: [zh, en]
+        tag_ids:
+          type: array
+          items:
+            type: string
+        location_text:
+          type:
+            - string
+            - 'null'
+        image_file_ids:
+          type: array
+          items:
+            type: string
+        image_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        status:
+          type: string
+        review_status:
+          type: string
+    CreatePostInput:
+      type: object
+      required: [title, content, language, tag_ids]
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        language:
+          type: string
+          enum: [zh, en]
+        tag_ids:
+          type: array
+          items:
+            type: string
+        location_text:
+          type:
+            - string
+            - 'null'
+          default: null
+        image_file_ids:
+          type: array
+          items:
+            type: string
+          default: []
+        image_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+          default: []
+    Comment:
+      type: object
+      required: [_id, post_id, author_user_id, content, language, created_at]
+      properties:
+        _id:
+          type: string
+        post_id:
+          type: string
+        author_user_id:
+          type: string
+        content:
+          type: string
+        language:
+          type: string
+          enum: [zh, en]
+        created_at:
+          type: string
+    CreateCommentInput:
+      type: object
+      required: [content, language]
+      properties:
+        content:
+          type: string
+        language:
+          type: string
+          enum: [zh, en]
+    ReportPostInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 1
+        description:
+          type: string
+    ModeratePostInput:
+      type: object
+      required: [review_status]
+      properties:
+        review_status:
+          type: string
+          enum: [visible, hidden, deleted]
+        reason:
+          type: string
+    PlaceListItem:
+      type: object
+      required: [_id, name_zh, name_en, cover_url, category_level_1, category_level_2, short_address_zh, short_address_en, summary_zh, summary_en, tag_ids, is_recommended, recommended_reason_zh, recommended_reason_en, supports_navigation]
+      properties:
+        _id:
+          type: string
+        name_zh:
+          type: string
+        name_en:
+          type: string
+        cover_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+        category_level_1:
+          type: string
+        category_level_2:
+          type: string
+        short_address_zh:
+          type: string
+        short_address_en:
+          type: string
+        summary_zh:
+          type: string
+        summary_en:
+          type: string
+        tag_ids:
+          type: array
+          items:
+            type: string
+        is_recommended:
+          type: boolean
+        recommended_reason_zh:
+          type:
+            - string
+            - 'null'
+        recommended_reason_en:
+          type:
+            - string
+            - 'null'
+        supports_navigation:
+          type: boolean
+    PlaceMapMarker:
+      type: object
+      required: [_id, name_zh, name_en, category_level_1, is_recommended, location]
+      properties:
+        _id:
+          type: string
+        name_zh:
+          type: string
+        name_en:
+          type: string
+        category_level_1:
+          type: string
+        is_recommended:
+          type: boolean
+        location:
+          $ref: '#/components/schemas/Coordinates'
+    PlaceGalleryMedia:
+      type: object
+      required: [file_id, cloud_path, url, alt_zh, alt_en]
+      properties:
+        file_id:
+          type: string
+        cloud_path:
+          type: string
+        url:
+          type: string
+          format: uri
+        alt_zh:
+          type: string
+        alt_en:
+          type: string
+    PlaceDetail:
+      type: object
+      required: [_id, community_id, name_zh, name_en, cover_url, category_level_1, category_level_2, tag_ids, address_zh, address_en, location, business_hours_zh, business_hours_en, intro_zh, intro_en, gallery_media, gallery_urls, is_recommended, recommended_reason_zh, recommended_reason_en, supports_navigation, supports_favorite, supports_share, navigation, share]
+      properties:
+        _id:
+          type: string
+        community_id:
+          type: string
+        name_zh:
+          type: string
+        name_en:
+          type: string
+        cover_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+        category_level_1:
+          type: string
+        category_level_2:
+          type: string
+        tag_ids:
+          type: array
+          items:
+            type: string
+        address_zh:
+          type: string
+        address_en:
+          type: string
+        location:
+          $ref: '#/components/schemas/Coordinates'
+        business_hours_zh:
+          type: string
+        business_hours_en:
+          type: string
+        intro_zh:
+          type: string
+        intro_en:
+          type: string
+        gallery_media:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaceGalleryMedia'
+        gallery_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        is_recommended:
+          type: boolean
+        recommended_reason_zh:
+          type:
+            - string
+            - 'null'
+        recommended_reason_en:
+          type:
+            - string
+            - 'null'
+        supports_navigation:
+          type: boolean
+        supports_favorite:
+          type: boolean
+        supports_share:
+          type: boolean
+        navigation:
+          type: object
+          required: [latitude, longitude, name_zh, name_en, address_zh, address_en]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+            name_zh:
+              type: string
+            name_en:
+              type: string
+            address_zh:
+              type: string
+            address_en:
+              type: string
+        share:
+          type: object
+          required: [title_zh, title_en, summary_zh, summary_en]
+          properties:
+            title_zh:
+              type: string
+            title_en:
+              type: string
+            summary_zh:
+              type: string
+            summary_en:
+              type: string
+    PlaceImportReviewMetadata:
+      type:
+        - object
+        - 'null'
+      properties:
+        source_type:
+          type: string
+          const: volunteer_spreadsheet
+        source_file:
+          type: string
+        source_sheet:
+          type: string
+        source_column:
+          type: string
+        source_import_id:
+          type: string
+        volunteer_category_raw:
+          type:
+            - string
+            - 'null'
+        category_code_candidate_raw:
+          type:
+            - string
+            - 'null'
+        raw_fields:
+          type: object
+          additionalProperties:
+            type: string
+        review_blockers:
+          type: array
+          items:
+            type: string
+        review_notes:
+          type: array
+          items:
+            type: string
+    Place:
+      allOf:
+        - $ref: '#/components/schemas/PlaceDetail'
+        - type: object
+          required: [cover_file_id, tencent_map_poi_id, recommended_rank, gallery_file_ids, status]
+          properties:
+            cover_file_id:
+              type:
+                - string
+                - 'null'
+            tencent_map_poi_id:
+              type:
+                - string
+                - 'null'
+            recommended_rank:
+              type: integer
+              minimum: 0
+            gallery_file_ids:
+              type: array
+              items:
+                type: string
+            status:
+              type: string
+              enum: [draft, published, offline]
+            import_review:
+              $ref: '#/components/schemas/PlaceImportReviewMetadata'
+    CreatePlaceInput:
+      type: object
+      required: [name_zh, name_en, category_level_1, category_level_2, address_zh, address_en, location, business_hours_zh, business_hours_en, intro_zh, intro_en]
+      properties:
+        name_zh:
+          type: string
+        name_en:
+          type: string
+        cover_file_id:
+          type:
+            - string
+            - 'null'
+          default: null
+        cover_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          default: null
+        category_level_1:
+          type: string
+        category_level_2:
+          type: string
+        tag_ids:
+          type: array
+          items:
+            type: string
+          default: []
+        address_zh:
+          type: string
+        address_en:
+          type: string
+        location:
+          $ref: '#/components/schemas/Coordinates'
+        business_hours_zh:
+          type: string
+        business_hours_en:
+          type: string
+        intro_zh:
+          type: string
+        intro_en:
+          type: string
+        recommended_reason_zh:
+          type:
+            - string
+            - 'null'
+          default: null
+        recommended_reason_en:
+          type:
+            - string
+            - 'null'
+          default: null
+        is_recommended:
+          type: boolean
+          default: false
+        recommended_rank:
+          type: integer
+          minimum: 0
+          default: 0
+        gallery_file_ids:
+          type: array
+          items:
+            type: string
+          default: []
+        gallery_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+          default: []
+        tencent_map_poi_id:
+          type:
+            - string
+            - 'null'
+          default: null
+        supports_navigation:
+          type: boolean
+          default: true
+        supports_favorite:
+          type: boolean
+          default: true
+        supports_share:
+          type: boolean
+          default: true
+        status:
+          type: string
+          enum: [draft, published, offline]
+          default: draft
+        import_review:
+          $ref: '#/components/schemas/PlaceImportReviewMetadata'
+    UpdatePlaceInput:
+      type: object
+      description: Partial create place input. All fields from `CreatePlaceInput` are optional.
+      properties:
+        name_zh:
+          type: string
+        name_en:
+          type: string
+        cover_file_id:
+          type:
+            - string
+            - 'null'
+        cover_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+        category_level_1:
+          type: string
+        category_level_2:
+          type: string
+        tag_ids:
+          type: array
+          items:
+            type: string
+        address_zh:
+          type: string
+        address_en:
+          type: string
+        location:
+          $ref: '#/components/schemas/Coordinates'
+        business_hours_zh:
+          type: string
+        business_hours_en:
+          type: string
+        intro_zh:
+          type: string
+        intro_en:
+          type: string
+        recommended_reason_zh:
+          type:
+            - string
+            - 'null'
+        recommended_reason_en:
+          type:
+            - string
+            - 'null'
+        is_recommended:
+          type: boolean
+        recommended_rank:
+          type: integer
+          minimum: 0
+        gallery_file_ids:
+          type: array
+          items:
+            type: string
+        gallery_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        tencent_map_poi_id:
+          type:
+            - string
+            - 'null'
+        supports_navigation:
+          type: boolean
+        supports_favorite:
+          type: boolean
+        supports_share:
+          type: boolean
+        status:
+          type: string
+          enum: [draft, published, offline]
+        import_review:
+          $ref: '#/components/schemas/PlaceImportReviewMetadata'
+    Announcement:
+      type: object
+      required: [_id, community_id, title_zh, title_en, summary_zh, summary_en, content_zh, content_en, cover_file_id, cover_url, status, published_at]
+      properties:
+        _id:
+          type: string
+        community_id:
+          type: string
+        title_zh:
+          type: string
+        title_en:
+          type: string
+        summary_zh:
+          type: string
+        summary_en:
+          type: string
+        content_zh:
+          type: string
+        content_en:
+          type: string
+        cover_file_id:
+          type: string
+        cover_url:
+          type: string
+          format: uri
+        status:
+          type: string
+        published_at:
+          type: string
+    Notification:
+      type: object
+      required: [_id, user_id, title, body, status, created_at]
+      properties:
+        _id:
+          type: string
+        user_id:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+    FileAsset:
+      type: object
+      required: [_id, file_id, cloud_path, visibility, biz_type, biz_id, uploaded_by, status]
+      properties:
+        _id:
+          type: string
+        file_id:
+          type: string
+        cloud_path:
+          type: string
+        visibility:
+          type: string
+          enum: [public, private]
+        biz_type:
+          type: string
+        biz_id:
+          type: string
+        uploaded_by:
+          type: string
+        status:
+          type: string
+    CreateUploadRequestInput:
+      type: object
+      required: [biz_type, biz_id, file_name, visibility, target_prefix]
+      properties:
+        biz_type:
+          type: string
+        biz_id:
+          type: string
+        file_name:
+          type: string
+        visibility:
+          type: string
+          enum: [public, private]
+        target_prefix:
+          type: string
+          enum:
+            - public/events/
+            - public/places/
+            - public/posts/
+            - public/announcements/
+            - private/tickets/
+            - private/exports/
+            - private/admin/
+    UploadRequestResponse:
+      type: object
+      required: [cloud_path, upload_url, expires_in]
+      properties:
+        cloud_path:
+          type: string
+        upload_url:
+          type: string
+          format: uri
+        expires_in:
+          type: integer
+          minimum: 1
+    CompleteUploadInput:
+      type: object
+      required: [biz_type, biz_id, file_id, cloud_path, visibility]
+      properties:
+        biz_type:
+          type: string
+        biz_id:
+          type: string
+        file_id:
+          type: string
+        cloud_path:
+          type: string
+        visibility:
+          type: string
+          enum: [public, private]
+    PrivateUrlRequestInput:
+      type: object
+      required: [file_id]
+      properties:
+        file_id:
+          type: string
+    PrivateUrlResponse:
+      type: object
+      required: [temp_url, expires_at]
+      properties:
+        temp_url:
+          type: string
+          format: uri
+        expires_at:
+          type: string
+    EmptyObject:
+      type: object
+      additionalProperties: false
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiFailure'
+    Unauthorized:
+      description: Actor cannot be resolved
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiFailure'
+    Forbidden:
+      description: Insufficient permission
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiFailure'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiFailure'
+paths:
+  /health:
+    get:
+      tags: [System]
+      operationId: getHealth
+      summary: Health check
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok:
+                    type: boolean
+                    const: true
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Mock login
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                mock_user_id:
+                  type: string
+                  example: user_001
+                preferred_language:
+                  type: string
+                  enum: [zh, en]
+      responses:
+        '200':
+          description: Login session
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /auth/me:
+    get:
+      tags: [Auth]
+      operationId: getMe
+      summary: Get current actor
+      security:
+        - MockActorHeader: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /events:
+    get:
+      tags: [Events]
+      operationId: listEvents
+      summary: List events
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/CommunityId'
+        - $ref: '#/components/parameters/Keyword'
+      responses:
+        '200':
+          description: Event page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, page, pageSize, total]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Event'
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /events/{id}:
+    get:
+      tags: [Events]
+      operationId: getEvent
+      summary: Get event detail
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Event
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /events/{id}/registrations:
+    post:
+      tags: [Events]
+      operationId: createEventRegistration
+      summary: Register for an event
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRegistrationInput'
+      responses:
+        '201':
+          description: Registration and ticket
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EventWithRegistration'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /events/me/registrations:
+    get:
+      tags: [Events]
+      operationId: listMyEventRegistrations
+      summary: List current actor's event registrations
+      security:
+        - MockActorHeader: []
+      responses:
+        '200':
+          description: Registrations
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EventRegistration'
+  /events/registrations/{id}/ticket:
+    get:
+      tags: [Events]
+      operationId: getEventRegistrationTicket
+      summary: Get event ticket by registration id
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Ticket
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EventTicket'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /admin/events:
+    post:
+      tags: [Admin, Events]
+      operationId: adminCreateEvent
+      summary: Create event
+      security:
+        - MockActorHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventInput'
+      responses:
+        '201':
+          description: Created event
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/events/{id}:
+    patch:
+      tags: [Admin, Events]
+      operationId: adminUpdateEvent
+      summary: Update event
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEventInput'
+      responses:
+        '200':
+          description: Updated event
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /admin/events/{id}/review:
+    post:
+      tags: [Admin, Events]
+      operationId: adminReviewEvent
+      summary: Review event
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewEventInput'
+      responses:
+        '200':
+          description: Reviewed event
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /admin/events/{id}/checkin:
+    post:
+      tags: [Admin, Events]
+      operationId: adminCheckinEvent
+      summary: Check in event ticket
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckinInput'
+      responses:
+        '200':
+          description: Checked-in ticket
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EventTicket'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /discover/posts:
+    get:
+      tags: [Discover]
+      operationId: listPosts
+      summary: List discover posts
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/CommunityId'
+        - $ref: '#/components/parameters/Keyword'
+      responses:
+        '200':
+          description: Post page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, page, pageSize, total]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Post'
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
+    post:
+      tags: [Discover]
+      operationId: createPost
+      summary: Create discover post
+      security:
+        - MockActorHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostInput'
+      responses:
+        '201':
+          description: Created post
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /discover/posts/{id}:
+    get:
+      tags: [Discover]
+      operationId: getPost
+      summary: Get post detail
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Post
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Post'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /discover/posts/{id}/comments:
+    post:
+      tags: [Discover]
+      operationId: createComment
+      summary: Create post comment
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentInput'
+      responses:
+        '201':
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Comment'
+  /discover/posts/{id}/report:
+    post:
+      tags: [Discover]
+      operationId: reportPost
+      summary: Report post
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportPostInput'
+      responses:
+        '200':
+          description: Reported post
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Post'
+  /admin/discover/posts/{id}/moderation:
+    post:
+      tags: [Admin, Discover]
+      operationId: adminModeratePost
+      summary: Moderate post
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModeratePostInput'
+      responses:
+        '200':
+          description: Moderated post
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Post'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /places:
+    get:
+      tags: [Places]
+      operationId: listPlaces
+      summary: List public places
+      description: Public list v1 returns card fields only and never returns detail-only fields such as gallery media or navigation.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/CommunityId'
+        - $ref: '#/components/parameters/Keyword'
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: recommended
+          in: query
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [recommended, name]
+            default: recommended
+      responses:
+        '200':
+          description: Place list page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, page, pageSize, total]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/PlaceListItem'
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /places/map-markers:
+    get:
+      tags: [Places]
+      operationId: listPlaceMapMarkers
+      summary: List map-safe place markers
+      responses:
+        '200':
+          description: Marker list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PlaceMapMarker'
+  /places/{id}:
+    get:
+      tags: [Places]
+      operationId: getPlace
+      summary: Get public place detail
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Place detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PlaceDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /admin/places:
+    get:
+      tags: [Admin, Places]
+      operationId: adminListPlaces
+      summary: List admin places
+      security:
+        - MockActorHeader: []
+      responses:
+        '200':
+          description: Admin place page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, page, pageSize, total]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Place'
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Admin, Places]
+      operationId: adminCreatePlace
+      summary: Create place
+      security:
+        - MockActorHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlaceInput'
+      responses:
+        '201':
+          description: Created place
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Place'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/places/{id}:
+    patch:
+      tags: [Admin, Places]
+      operationId: adminUpdatePlace
+      summary: Update place
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlaceInput'
+      responses:
+        '200':
+          description: Updated place
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Place'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /announcements:
+    get:
+      tags: [Announcements]
+      operationId: listAnnouncements
+      summary: List announcements
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/CommunityId'
+      responses:
+        '200':
+          description: Announcement page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, page, pageSize, total]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Announcement'
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
+  /announcements/{id}:
+    get:
+      tags: [Announcements]
+      operationId: getAnnouncement
+      summary: Get announcement detail
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Announcement
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Announcement'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /notifications:
+    get:
+      tags: [Notifications]
+      operationId: listNotifications
+      summary: List current actor notifications
+      security:
+        - MockActorHeader: []
+      responses:
+        '200':
+          description: Notification list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+  /notifications/{id}/read:
+    post:
+      tags: [Notifications]
+      operationId: markNotificationRead
+      summary: Mark notification read
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmptyObject'
+      responses:
+        '200':
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Notification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /files/upload-requests:
+    post:
+      tags: [Files]
+      operationId: createUploadRequest
+      summary: Create upload request
+      description: "`place_gallery` or `target_prefix=public/places/` requires admin role."
+      security:
+        - MockActorHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUploadRequestInput'
+      responses:
+        '201':
+          description: Upload request
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UploadRequestResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /files/complete:
+    post:
+      tags: [Files]
+      operationId: completeUpload
+      summary: Complete upload
+      description: "`place_gallery` or `cloud_path` starting with `public/places/` requires admin role."
+      security:
+        - MockActorHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteUploadInput'
+      responses:
+        '201':
+          description: File asset
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FileAsset'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /files/private-url:
+    post:
+      tags: [Files]
+      operationId: createPrivateFileUrl
+      summary: Create private file temporary URL
+      security:
+        - MockActorHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateUrlRequestInput'
+      responses:
+        '200':
+          description: Private temporary URL
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PrivateUrlResponse'
