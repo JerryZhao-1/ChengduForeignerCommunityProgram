@@ -1,12 +1,12 @@
 {
   "name": "ChengduForeignerCommunityProgram",
-  "appid": "wx7518a3c1fcdd39a5",
+  "appid": "wx9f0b258f487d9172",
   "description": "Tongzilin community app skeleton for events, discover, and places.",
   "versionName": "0.1.0",
   "versionCode": "100",
   "transformPx": false,
   "mp-weixin": {
-    "appid": "wx7518a3c1fcdd39a5",
+    "appid": "wx9f0b258f487d9172",
     "permission": {
       "scope.userLocation": {
         "desc": "用于打开地点位置和导航服务"

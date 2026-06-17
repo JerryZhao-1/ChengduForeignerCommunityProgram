@@ -91,7 +91,9 @@ export const createHttpClient = (
       detailPost: (id) => request("GET", apiPaths.discover.detailPost(id)),
       createPost: (input) => request("POST", apiPaths.discover.createPost, input),
       createComment: (id, input) =>
-        request("POST", apiPaths.discover.createComment(id), input)
+        request("POST", apiPaths.discover.createComment(id), input),
+      reportPost: (id, input) =>
+        request("POST", apiPaths.discover.reportPost(id), input)
     },
     places: {
       list: (query) => {
