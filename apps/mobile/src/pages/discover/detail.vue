@@ -5,9 +5,9 @@ import type { Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
-import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
+import { normalizePostMedia } from "./media";
 
 const { state } = useAppStore();
 const copy = computed(() => appCopy[state.locale].discover);
@@ -21,9 +21,38 @@ const showReportForm = ref(false);
 const reportReason = ref("");
 const reportDescription = ref("");
 const isSubmittingReport = ref(false);
+const statusBarHeight = ref(0);
+
+const authorProfiles: Record<string, { name: string; avatarUrl: string }> = {
+  user_001: {
+    name: "Jerry",
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+  },
+  user_002: {
+    name: "Emma",
+    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+  }
+};
 
 const getLanguageLabel = (language: Post["language"]) =>
   language === "zh" ? copy.value.languageZh : copy.value.languageEn;
+
+const postMedia = computed(() => (post.value ? normalizePostMedia(post.value) : []));
+const customNavStyle = computed(() => ({
+  paddingTop: `${statusBarHeight.value}px`
+}));
+const author = computed(() => {
+  if (!post.value) {
+    return null;
+  }
+
+  return (
+    authorProfiles[post.value.author_user_id] ?? {
+      name: post.value.author_user_id,
+      avatarUrl: ""
+    }
+  );
+});
 
 const loadPost = async (id: string) => {
   isLoading.value = true;
@@ -41,6 +70,7 @@ const loadPost = async (id: string) => {
 };
 
 onLoad((query) => {
+  statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight ?? 0;
   const id = String(query?.id ?? "");
   if (!id) {
     errorMessage.value = copy.value.detailMissing;
@@ -51,6 +81,21 @@ onLoad((query) => {
   postId.value = id;
   loadPost(id);
 });
+
+const goBack = () => {
+  const pages = getCurrentPages();
+
+  if (pages.length > 1) {
+    uni.navigateBack({
+      delta: 1
+    });
+    return;
+  }
+
+  uni.switchTab({
+    url: "/pages/discover/index"
+  });
+};
 
 const submitComment = async () => {
   if (!post.value) {
@@ -110,94 +155,244 @@ const submitReport = async () => {
 
 <template>
   <view class="page">
-    <AsyncStateCard v-if="isLoading" variant="loading" :text="copy.detailLoading" />
-    <AsyncStateCard v-else-if="errorMessage" variant="error" :text="errorMessage" />
-
-    <SectionPanel
-      v-else-if="post"
-      :title="post.title"
-      :subtitle="`${getLanguageLabel(post.language)} · ${post.location_text || copy.locationFallback}`"
-    >
-      <view v-if="post.image_urls.length" class="gallery">
-        <image
-          v-for="url in post.image_urls"
-          :key="url"
-          class="gallery-image"
-          :src="url"
-          mode="aspectFill"
-        />
+    <view class="custom-nav" :style="customNavStyle">
+      <view class="nav-content">
+        <view class="nav-back" @click.stop="goBack">‹</view>
+        <template v-if="author">
+          <image
+            v-if="author.avatarUrl"
+            class="nav-avatar"
+            :src="author.avatarUrl"
+            mode="aspectFill"
+          />
+          <view v-else class="nav-avatar fallback">
+            {{ author.name.slice(0, 1).toUpperCase() }}
+          </view>
+          <view class="nav-user">
+            <view class="nav-name">{{ author.name }}</view>
+            <view class="nav-id">{{ post?.author_user_id }}</view>
+          </view>
+        </template>
+        <view v-else class="nav-placeholder">{{ copy.feedTitle }}</view>
       </view>
+    </view>
 
-      <view class="content">{{ post.content }}</view>
+    <view class="detail-card">
+      <AsyncStateCard v-if="isLoading" variant="loading" :text="copy.detailLoading" />
+      <AsyncStateCard v-else-if="errorMessage" variant="error" :text="errorMessage" />
 
-      <view v-if="post.tag_ids.length" class="tags">
-        <text v-for="tag in post.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
-      </view>
+      <template v-else-if="post">
+        <view v-if="postMedia.length" class="gallery">
+          <view
+            v-for="media in postMedia"
+            :key="media.url"
+            class="media-item"
+            :class="media.kind"
+          >
+            <image
+              v-if="media.kind === 'image'"
+              class="gallery-image"
+              :src="media.url"
+              mode="widthFix"
+            />
+            <video
+              v-else
+              class="gallery-video"
+              :src="media.url"
+              controls
+              :autoplay="false"
+              :show-center-play-btn="true"
+              :enable-progress-gesture="true"
+            />
+          </view>
+        </view>
 
-      <view class="status-row">
-        <text class="status-pill">{{ post.review_status }}</text>
-        <button class="report-toggle" @click="showReportForm = !showReportForm">
-          {{ copy.reportTitle }}
-        </button>
-      </view>
+        <view class="article-header">
+          <view class="article-title">{{ post.title }}</view>
+          <view class="article-meta">
+            <text>{{ getLanguageLabel(post.language) }}</text>
+            <text>{{ post.location_text || copy.locationFallback }}</text>
+            <text>{{ post.review_status }}</text>
+          </view>
+        </view>
 
-      <view v-if="showReportForm" class="report-box">
-        <input
-          v-model="reportReason"
-          class="input"
-          :placeholder="copy.reportReasonPlaceholder"
-        />
-        <textarea
-          v-model="reportDescription"
-          class="textarea small"
-          :placeholder="copy.reportDescriptionPlaceholder"
-        />
-        <button class="warning" :disabled="isSubmittingReport" @click="submitReport">
-          {{ isSubmittingReport ? copy.submittingReport : copy.submitReport }}
-        </button>
-      </view>
+        <view class="content">{{ post.content }}</view>
 
-      <view class="comment-box">
-        <textarea
-          v-model="commentValue"
-          class="textarea"
-          :placeholder="copy.commentPlaceholder"
-        />
-        <button
-          class="primary"
-          :disabled="isSubmittingComment"
-          @click="submitComment"
-        >
-          {{ isSubmittingComment ? copy.submittingComment : copy.submitComment }}
-        </button>
-      </view>
-    </SectionPanel>
+        <view v-if="post.tag_ids.length" class="tags">
+          <text v-for="tag in post.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
+        </view>
+
+        <view class="post-actions">
+          <button class="report-toggle" @click="showReportForm = !showReportForm">
+            {{ copy.reportButton }}
+          </button>
+        </view>
+
+        <view v-if="showReportForm" class="report-box">
+          <input
+            v-model="reportReason"
+            class="input"
+            :placeholder="copy.reportReasonPlaceholder"
+          />
+          <textarea
+            v-model="reportDescription"
+            class="textarea small"
+            :placeholder="copy.reportDescriptionPlaceholder"
+          />
+          <button class="warning" :disabled="isSubmittingReport" @click="submitReport">
+            {{ isSubmittingReport ? copy.submittingReport : copy.submitReport }}
+          </button>
+        </view>
+
+        <view class="comment-box">
+          <view class="comment-heading">
+            <view class="comment-title">{{ copy.commentSectionTitle }}</view>
+            <view class="comment-hint">{{ copy.commentSectionHint }}</view>
+          </view>
+          <textarea
+            v-model="commentValue"
+            class="textarea"
+            :placeholder="copy.commentPlaceholder"
+          />
+          <button
+            class="primary"
+            :disabled="isSubmittingComment"
+            @click="submitComment"
+          >
+            {{ isSubmittingComment ? copy.submittingComment : copy.submitComment }}
+          </button>
+        </view>
+      </template>
+    </view>
   </view>
 </template>
 
 <style scoped>
 .page {
-  padding: 24rpx;
   min-height: 100vh;
   background: #f8fafc;
 }
 
-.gallery {
-  display: grid;
-  gap: 16rpx;
-  margin-bottom: 22rpx;
+.custom-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #ffffff;
+  border-bottom: 1rpx solid #eef2f7;
 }
 
-.gallery-image {
-  width: 100%;
-  height: 320rpx;
-  border-radius: 16rpx;
+.nav-content {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-height: 96rpx;
+  padding: 0 24rpx;
+}
+
+.nav-back {
+  width: 48rpx;
+  height: 72rpx;
+  line-height: 66rpx;
+  color: #111827;
+  font-size: 58rpx;
+  font-weight: 300;
+}
+
+.nav-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
   background: #e2e8f0;
 }
 
+.nav-avatar.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.nav-user {
+  min-width: 0;
+}
+
+.nav-name {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.nav-id,
+.nav-placeholder {
+  margin-top: 4rpx;
+  color: #64748b;
+  font-size: 22rpx;
+}
+
+.detail-card {
+  margin: 24rpx;
+  padding: 28rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 16rpx;
+  background: #ffffff;
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin-bottom: 22rpx;
+}
+
+.media-item {
+  overflow: hidden;
+  border-radius: 18rpx;
+  background: #e2e8f0;
+}
+
+.media-item.video {
+  background: #111827;
+}
+
+.gallery-image,
+.gallery-video {
+  width: 100%;
+}
+
+.gallery-video {
+  height: 420rpx;
+  background: #e2e8f0;
+}
+
+.article-header {
+  padding-bottom: 22rpx;
+  border-bottom: 1rpx solid #e5e7eb;
+}
+
+.article-title {
+  color: #111827;
+  font-size: 38rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 14rpx;
+  color: #64748b;
+  font-size: 24rpx;
+}
+
 .content {
+  margin-top: 24rpx;
   line-height: 1.7;
   color: #111827;
+  font-size: 30rpx;
   white-space: pre-wrap;
 }
 
@@ -222,12 +417,12 @@ const submitReport = async () => {
   color: #0052d9;
 }
 
-.status-row {
+.post-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16rpx;
-  margin-top: 24rpx;
+  margin-top: 20rpx;
 }
 
 .status-pill {
@@ -245,8 +440,13 @@ const submitReport = async () => {
 
 .report-toggle {
   margin: 0;
-  background: #fff7e6;
-  color: #ad5a00;
+  padding: 0 18rpx;
+  min-height: 46rpx;
+  line-height: 46rpx;
+  border: 1rpx solid #fca5a5;
+  background: #ffffff;
+  color: #dc2626;
+  font-size: 22rpx;
 }
 
 .report-box,
@@ -254,6 +454,23 @@ const submitReport = async () => {
   margin-top: 24rpx;
   padding-top: 24rpx;
   border-top: 1rpx solid #e5e7eb;
+}
+
+.comment-heading {
+  margin-bottom: 14rpx;
+}
+
+.comment-title {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.comment-hint {
+  margin-top: 6rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 
 .input {

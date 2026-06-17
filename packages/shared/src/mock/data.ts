@@ -407,7 +407,99 @@ export const createMockDataset = (): MockDataset => ({
       tag_ids: ["sports", "social"],
       location_text: null,
       image_file_ids: ["cloud://post-002-1"],
-      image_urls: ["https://example.com/public/posts/post_002/1.jpg"],
+      image_urls: [
+        "https://images.unsplash.com/photo-1542144582-1ba00456b5e3?w=1200&auto=format&fit=crop"
+      ],
+      status: "visible",
+      review_status: "visible"
+    },
+    {
+      _id: "post_003",
+      author_user_id: "user_001",
+      community_id: "tongzilin",
+      title: "桐梓林早晨散步路线分享",
+      content:
+        "今天从桐梓林北路一路走到社区中心，路上树荫比较多，早上 8 点前人不算多。适合遛狗、推婴儿车，也适合刚搬来的朋友熟悉周边。建议带水，靠近地铁站的位置早高峰会稍微拥挤。",
+      language: "zh",
+      tag_ids: ["daily-life", "walking", "family", "newcomer"],
+      location_text: "桐梓林北路",
+      image_file_ids: ["cloud://post-003-1"],
+      image_urls: [
+        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&auto=format&fit=crop"
+      ],
+      status: "visible",
+      review_status: "visible"
+    },
+    {
+      _id: "post_004",
+      author_user_id: "user_002",
+      community_id: "tongzilin",
+      title: "Coffee spots that are easy for English speakers",
+      content:
+        "I tried a few cafes around Tongzilin this week. Global Corner Cafe was the easiest for ordering in English, and the tables are comfortable enough for reading or a quick work session. If you know other English-friendly spots, please add them in the comments.",
+      language: "en",
+      tag_ids: ["coffee", "english-friendly", "work", "recommendation"],
+      location_text: "Tongzilin South Road",
+      image_file_ids: ["cloud://post-004-1", "cloud://post-004-2"],
+      image_urls: [
+        "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200&auto=format&fit=crop"
+      ],
+      status: "visible",
+      review_status: "visible"
+    },
+    {
+      _id: "post_005",
+      author_user_id: "user_001",
+      community_id: "tongzilin",
+      title: "社区中心活动厅短视频预览",
+      content:
+        "这是活动厅空间的一个短视频预览，后续如果有语言交换、亲子活动或者小型讲座，可以考虑安排在这里。视频主要用来测试 Discover 的视频帖展示效果。",
+      language: "zh",
+      tag_ids: ["video", "community-center", "events"],
+      location_text: "桐梓林社区中心",
+      image_file_ids: ["cloud://post-005-video"],
+      image_urls: [
+        "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+      ],
+      status: "visible",
+      review_status: "visible"
+    },
+    {
+      _id: "post_006",
+      author_user_id: "user_002",
+      community_id: "tongzilin",
+      title: "Weekend language exchange recap with photos and video",
+      content:
+        "We had a small language exchange near Tongzilin last weekend. The first photo shows the sign-in table, the second one is the group discussion corner, and the video clip gives a quick sense of the room. The format worked well: short introductions first, then topic cards in small groups.",
+      language: "en",
+      tag_ids: ["language", "social", "video", "photos", "recap"],
+      location_text: "Tongzilin Community Center",
+      image_file_ids: [
+        "cloud://post-006-1",
+        "cloud://post-006-video",
+        "cloud://post-006-2"
+      ],
+      image_urls: [
+        "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&auto=format&fit=crop",
+        "https://www.w3schools.com/html/mov_bbb.mp4",
+        "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1200&auto=format&fit=crop"
+      ],
+      status: "visible",
+      review_status: "visible"
+    },
+    {
+      _id: "post_007",
+      author_user_id: "user_001",
+      community_id: "tongzilin",
+      title: "提醒：最近雨天较多，地铁口到社区中心有一段路比较滑",
+      content:
+        "这两天傍晚雨比较大，桐梓林地铁站出来往社区中心走时，靠近路口的一小段地砖会比较滑。带小朋友或推车的居民可以从旁边更宽的路绕一下。没有配图，主要是提醒大家注意安全。",
+      language: "zh",
+      tag_ids: ["notice", "weather", "safety"],
+      location_text: "桐梓林地铁站附近",
+      image_file_ids: [],
+      image_urls: [],
       status: "visible",
       review_status: "visible"
     },

@@ -5,6 +5,7 @@ import { mobileApi } from "@/api/client";
 import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
+import { getMediaKind } from "./media";
 
 const { state } = useAppStore();
 const copy = computed(() => appCopy[state.locale].discover);
@@ -41,6 +42,13 @@ const hasInvalidImageUrl = (urls: string[]) =>
       return true;
     }
   });
+
+const mediaPreviewItems = computed(() =>
+  parseImageUrls().map((url) => ({
+    url,
+    kind: getMediaKind(url)
+  }))
+);
 
 const showValidation = (title: string) => {
   uni.showToast({
@@ -173,6 +181,30 @@ const submit = async () => {
         />
       </view>
 
+      <view class="preview-section">
+        <view class="label">{{ copy.mediaPreviewLabel }}</view>
+        <view v-if="mediaPreviewItems.length" class="preview-list">
+          <view
+            v-for="item in mediaPreviewItems"
+            :key="item.url"
+            class="preview-item"
+            :class="item.kind"
+          >
+            <image
+              v-if="item.kind === 'image'"
+              class="preview-image"
+              :src="item.url"
+              mode="aspectFill"
+            />
+            <view v-else class="preview-video">
+              <text class="preview-play">▶</text>
+              <text>{{ copy.videoBadge }}</text>
+            </view>
+          </view>
+        </view>
+        <view v-else class="no-preview">{{ copy.noMediaPreview }}</view>
+      </view>
+
       <button class="primary" :disabled="isSubmitting" @click="submit">
         {{ isSubmitting ? copy.submittingPost : copy.submitPost }}
       </button>
@@ -220,6 +252,50 @@ const submit = async () => {
 
 .textarea.small {
   min-height: 160rpx;
+}
+
+.preview-section {
+  margin-bottom: 24rpx;
+}
+
+.preview-list {
+  display: grid;
+  gap: 14rpx;
+}
+
+.preview-item {
+  overflow: hidden;
+  border-radius: 14rpx;
+  background: #e2e8f0;
+}
+
+.preview-image,
+.preview-video {
+  width: 100%;
+  height: 220rpx;
+}
+
+.preview-video {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  background: #111827;
+  color: #ffffff;
+  font-size: 26rpx;
+}
+
+.preview-play {
+  font-size: 24rpx;
+}
+
+.no-preview {
+  padding: 22rpx;
+  border-radius: 12rpx;
+  background: #f9fafb;
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 
 .segmented {

@@ -33,7 +33,8 @@
     {
       "path": "pages/discover/detail",
       "style": {
-        "navigationBarTitleText": "帖子详情"
+        "navigationBarTitleText": "帖子详情",
+        "navigationStyle": "custom"
       }
     },
     {
