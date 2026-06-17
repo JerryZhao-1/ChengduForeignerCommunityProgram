@@ -8,6 +8,12 @@ import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
+import {
+  getFirstMedia,
+  getHiddenTagCount,
+  getMediaSummary,
+  getVisibleTags
+} from "./media";
 
 const { state } = useAppStore();
 const posts = ref<Post[]>([]);
@@ -28,6 +34,21 @@ const getLanguageLabel = (language: Post["language"]) =>
 
 const summarize = (content: string) =>
   content.length > 96 ? `${content.slice(0, 96)}...` : content;
+
+const getMediaMeta = (post: Post) => {
+  const summary = getMediaSummary(post);
+  const parts = [];
+
+  if (summary.imageCount) {
+    parts.push(`${summary.imageCount} ${copy.value.imageCount}`);
+  }
+
+  if (summary.videoCount) {
+    parts.push(`${summary.videoCount} ${copy.value.videoCount}`);
+  }
+
+  return parts.join(" · ");
+};
 
 const loadPosts = async (nextPage = 1, append = false) => {
   if (isLoading.value || isLoadingMore.value) {
@@ -150,12 +171,37 @@ onReachBottom(loadMore);
           class="card"
           @click="openDetail(post._id)"
         >
-          <image
-            v-if="post.image_urls[0]"
-            class="cover"
-            :src="post.image_urls[0]"
-            mode="aspectFill"
-          />
+          <view v-if="getFirstMedia(post)" class="media-frame">
+            <image
+              v-if="getFirstMedia(post)?.kind === 'image'"
+              class="cover"
+              :src="getFirstMedia(post)?.url"
+              mode="aspectFill"
+            />
+            <view v-else class="video-preview">
+              <video
+                class="video-cover"
+                :src="getFirstMedia(post)?.url"
+                :controls="false"
+                :show-center-play-btn="false"
+                :show-play-btn="false"
+                :show-fullscreen-btn="false"
+                :enable-progress-gesture="false"
+              />
+              <view class="video-overlay">
+                <text class="play-mark">▶</text>
+                <text>{{ copy.videoBadge }}</text>
+              </view>
+            </view>
+            <view class="media-badge">
+              <text v-if="getFirstMedia(post)?.kind === 'video'">{{ copy.videoBadge }}</text>
+              <text v-else-if="post.image_urls.length > 1">
+                {{ copy.multiImageBadge }} {{ post.image_urls.length }}
+              </text>
+              <text v-else>1 {{ copy.imageCount }}</text>
+            </view>
+          </view>
+          <view v-else class="text-only-badge">{{ copy.textOnlyBadge }}</view>
           <view class="card-body">
             <view class="card-top">
               <view class="card-title">{{ post.title }}</view>
@@ -164,12 +210,15 @@ onReachBottom(loadMore);
             <view class="card-text">{{ summarize(post.content) }}</view>
             <view class="meta-row">
               <text class="meta">{{ post.location_text || copy.locationFallback }}</text>
-              <text v-if="post.image_urls.length" class="meta">
-                {{ post.image_urls.length }} {{ copy.imageCount }}
+              <text v-if="getMediaMeta(post)" class="meta">
+                {{ getMediaMeta(post) }}
               </text>
             </view>
             <view v-if="post.tag_ids.length" class="tags">
-              <text v-for="tag in post.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
+              <text v-for="tag in getVisibleTags(post)" :key="tag" class="tag">#{{ tag }}</text>
+              <text v-if="getHiddenTagCount(post)" class="tag more">
+                +{{ getHiddenTagCount(post) }} {{ copy.moreTags }}
+              </text>
             </view>
           </view>
         </view>
@@ -269,10 +318,70 @@ onReachBottom(loadMore);
   background: #ffffff;
 }
 
-.cover {
+.media-frame {
+  position: relative;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.cover,
+.video-cover,
+.video-preview {
   width: 100%;
   height: 260rpx;
   background: #e2e8f0;
+}
+
+.video-preview {
+  position: relative;
+  overflow: hidden;
+  background: #111827;
+}
+
+.video-cover {
+  opacity: 0.72;
+}
+
+.video-overlay {
+  position: absolute;
+  left: 24rpx;
+  bottom: 22rpx;
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(17, 24, 39, 0.72);
+  color: #ffffff;
+  font-size: 24rpx;
+}
+
+.play-mark {
+  font-size: 22rpx;
+}
+
+.media-badge,
+.text-only-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+}
+
+.media-badge {
+  position: absolute;
+  top: 18rpx;
+  right: 18rpx;
+  padding: 8rpx 16rpx;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+}
+
+.text-only-badge {
+  margin: 22rpx 24rpx 0;
+  padding: 6rpx 14rpx;
+  background: #f3f4f6;
+  color: #64748b;
 }
 
 .card-body {
@@ -292,6 +401,10 @@ onReachBottom(loadMore);
   font-weight: 600;
   line-height: 1.35;
   color: #111827;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .language,
@@ -312,6 +425,10 @@ onReachBottom(loadMore);
   margin-top: 14rpx;
   color: #6b7280;
   line-height: 1.6;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .meta-row {
@@ -337,6 +454,11 @@ onReachBottom(loadMore);
   padding: 6rpx 14rpx;
   background: #e6f4ff;
   color: #0052d9;
+}
+
+.tag.more {
+  background: #f3f4f6;
+  color: #64748b;
 }
 
 .load-more {
