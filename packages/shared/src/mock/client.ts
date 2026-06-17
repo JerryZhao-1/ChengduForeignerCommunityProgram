@@ -80,6 +80,10 @@ export interface CommunityMapApiClient {
       postId: string,
       input: { content: string; language: "zh" | "en" }
     ): Promise<ApiResult<Comment>>;
+    reportPost(
+      postId: string,
+      input: { reason: string; description?: string }
+    ): Promise<ApiResult<Post>>;
   };
   places: {
     list(query?: {
@@ -248,6 +252,10 @@ export const createMockClient = (
       },
       async createComment(postId, input) {
         return ok(service.posts.createComment(postId, input, actorId));
+      },
+      async reportPost(postId, input) {
+        void input;
+        return ok(service.posts.report(postId) as Post);
       }
     },
     places: {

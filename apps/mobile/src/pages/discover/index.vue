@@ -1,14 +1,93 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, ref } from "vue";
+import { onLoad, onPullDownRefresh, onReachBottom } from "@dcloudio/uni-app";
+import type { Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
+import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import SectionPanel from "@/components/SectionPanel.vue";
+import { appCopy } from "@/i18n/copy";
+import { useAppStore } from "@/stores/app-store";
 
-const posts = ref<Array<any>>([]);
+const { state } = useAppStore();
+const posts = ref<Post[]>([]);
+const keyword = ref("");
+const page = ref(1);
+const pageSize = 10;
+const total = ref(0);
+const isLoading = ref(false);
+const isRefreshing = ref(false);
+const isLoadingMore = ref(false);
+const errorMessage = ref("");
 
-const load = async () => {
-  const result = await mobileApi.discover.listPosts();
-  posts.value = result.data.items;
+const copy = computed(() => appCopy[state.locale].discover);
+const hasMore = computed(() => posts.value.length < total.value);
+
+const getLanguageLabel = (language: Post["language"]) =>
+  language === "zh" ? copy.value.languageZh : copy.value.languageEn;
+
+const summarize = (content: string) =>
+  content.length > 96 ? `${content.slice(0, 96)}...` : content;
+
+const loadPosts = async (nextPage = 1, append = false) => {
+  if (isLoading.value || isLoadingMore.value) {
+    return;
+  }
+
+  errorMessage.value = "";
+  if (append) {
+    isLoadingMore.value = true;
+  } else {
+    isLoading.value = true;
+  }
+
+  try {
+    const result = await mobileApi.discover.listPosts({
+      communityId: state.communityId,
+      keyword: keyword.value.trim() || undefined,
+      page: nextPage,
+      pageSize
+    });
+    const items = result.data.items;
+
+    posts.value = append ? [...posts.value, ...items] : items;
+    page.value = result.data.page;
+    total.value = result.data.total;
+  } catch (error) {
+    errorMessage.value = copy.value.error;
+    if (!append) {
+      posts.value = [];
+      total.value = 0;
+    }
+  } finally {
+    isLoading.value = false;
+    isLoadingMore.value = false;
+    isRefreshing.value = false;
+    uni.stopPullDownRefresh();
+  }
+};
+
+const search = () => {
+  page.value = 1;
+  loadPosts(1);
+};
+
+const clearSearch = () => {
+  keyword.value = "";
+  search();
+};
+
+const refresh = () => {
+  isRefreshing.value = true;
+  page.value = 1;
+  loadPosts(1);
+};
+
+const loadMore = () => {
+  if (!hasMore.value) {
+    return;
+  }
+  loadPosts(page.value + 1, true);
 };
 
 const openDetail = (id: string) => {
@@ -23,16 +102,87 @@ const openCreate = () => {
   });
 };
 
-onMounted(load);
+onLoad(() => {
+  loadPosts();
+});
+
+onPullDownRefresh(refresh);
+onReachBottom(loadMore);
 </script>
 
 <template>
   <view class="page">
-    <SectionPanel title="Discover" subtitle="内容流、发帖和详情壳已就位">
-      <button class="primary" @click="openCreate">发布帖子</button>
-      <view v-for="post in posts" :key="post._id" class="card" @click="openDetail(post._id)">
-        <view class="card-title">{{ post.title }}</view>
-        <view class="card-text">{{ post.content }}</view>
+    <SectionPanel :title="copy.feedTitle" :subtitle="copy.feedSubtitle">
+      <view class="actions">
+        <button class="primary" @click="openCreate">{{ copy.createPost }}</button>
+      </view>
+
+      <view class="search-box">
+        <input
+          v-model="keyword"
+          class="field"
+          :placeholder="copy.searchPlaceholder"
+          confirm-type="search"
+          @confirm="search"
+        />
+        <view class="search-actions">
+          <button class="secondary" @click="search">{{ copy.search }}</button>
+          <button v-if="keyword" class="ghost" @click="clearSearch">
+            {{ copy.clearSearch }}
+          </button>
+        </view>
+      </view>
+
+      <AsyncStateCard v-if="isLoading && !posts.length" variant="loading" :text="copy.loading" />
+      <view v-else-if="errorMessage" class="status-block">
+        <AsyncStateCard variant="error" :text="errorMessage" />
+        <button class="retry" @click="search">{{ copy.retry }}</button>
+      </view>
+      <AsyncStateCard
+        v-else-if="posts.length === 0"
+        variant="empty"
+        :text="copy.empty"
+      />
+      <view v-else class="feed">
+        <view
+          v-for="post in posts"
+          :key="post._id"
+          class="card"
+          @click="openDetail(post._id)"
+        >
+          <image
+            v-if="post.image_urls[0]"
+            class="cover"
+            :src="post.image_urls[0]"
+            mode="aspectFill"
+          />
+          <view class="card-body">
+            <view class="card-top">
+              <view class="card-title">{{ post.title }}</view>
+              <text class="language">{{ getLanguageLabel(post.language) }}</text>
+            </view>
+            <view class="card-text">{{ summarize(post.content) }}</view>
+            <view class="meta-row">
+              <text class="meta">{{ post.location_text || copy.locationFallback }}</text>
+              <text v-if="post.image_urls.length" class="meta">
+                {{ post.image_urls.length }} {{ copy.imageCount }}
+              </text>
+            </view>
+            <view v-if="post.tag_ids.length" class="tags">
+              <text v-for="tag in post.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
+            </view>
+          </view>
+        </view>
+
+        <button
+          v-if="hasMore"
+          class="load-more"
+          :disabled="isLoadingMore"
+          @click="loadMore"
+        >
+          {{ isLoadingMore ? copy.loadingMore : copy.loadMore }}
+        </button>
+        <view v-else class="no-more">{{ copy.noMore }}</view>
       </view>
     </SectionPanel>
   </view>
@@ -41,26 +191,164 @@ onMounted(load);
 <style scoped>
 .page {
   padding: 24rpx;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.actions {
+  margin-bottom: 20rpx;
+}
+
+.primary,
+.secondary,
+.ghost,
+.retry,
+.load-more {
+  border-radius: 10rpx;
+  font-size: 26rpx;
 }
 
 .primary {
-  margin-bottom: 20rpx;
   background: #1d4ed8;
   color: white;
 }
 
+.search-box {
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  border-radius: 16rpx;
+  background: #f9fafb;
+}
+
+.field {
+  min-height: 76rpx;
+  padding: 0 22rpx;
+  border: 1rpx solid #d1d5db;
+  border-radius: 10rpx;
+  background: #ffffff;
+  font-size: 26rpx;
+}
+
+.search-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.secondary {
+  flex: 1;
+  background: #e6f4ff;
+  color: #0052d9;
+}
+
+.ghost {
+  flex: 1;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.status-block {
+  display: grid;
+  gap: 16rpx;
+}
+
+.retry {
+  background: #fff1f0;
+  color: #c41d7f;
+}
+
+.feed {
+  display: grid;
+  gap: 18rpx;
+}
+
 .card {
-  padding: 24rpx 0;
-  border-bottom: 1rpx solid #e5e7eb;
+  overflow: hidden;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 18rpx;
+  background: #ffffff;
+}
+
+.cover {
+  width: 100%;
+  height: 260rpx;
+  background: #e2e8f0;
+}
+
+.card-body {
+  padding: 24rpx;
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
 }
 
 .card-title {
+  flex: 1;
   font-size: 32rpx;
   font-weight: 600;
+  line-height: 1.35;
+  color: #111827;
+}
+
+.language,
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+}
+
+.language {
+  padding: 6rpx 12rpx;
+  background: #fff7e6;
+  color: #ad5a00;
 }
 
 .card-text {
-  margin-top: 10rpx;
+  margin-top: 14rpx;
   color: #6b7280;
+  line-height: 1.6;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 14rpx;
+}
+
+.meta {
+  color: #64748b;
+  font-size: 24rpx;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 16rpx;
+}
+
+.tag {
+  padding: 6rpx 14rpx;
+  background: #e6f4ff;
+  color: #0052d9;
+}
+
+.load-more {
+  margin-top: 6rpx;
+  background: #e6f4ff;
+  color: #0052d9;
+}
+
+.no-more {
+  padding: 20rpx 0 4rpx;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 24rpx;
 }
 </style>

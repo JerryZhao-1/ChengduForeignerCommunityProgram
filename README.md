@@ -156,7 +156,9 @@ VITE_API_BASE_URL=http://127.0.0.1:8787 \
 pnpm --filter @community-map/mobile dev:mp-weixin
 ```
 
-构建完成后，用微信开发者工具导入：
+该命令会生成 `apps/mobile/dist/dev/mp-weixin/app.json` 等微信小程序运行文件。微信开发者工具打开仓库根目录即可，根目录 `project.config.json` 已将小程序根目录指向该生成目录。
+
+也可以直接用微信开发者工具导入：
 
 ```text
 apps/mobile/dist/dev/mp-weixin
