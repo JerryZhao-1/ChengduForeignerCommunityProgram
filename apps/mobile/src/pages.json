@@ -27,7 +27,8 @@
     {
       "path": "pages/discover/index",
       "style": {
-        "navigationBarTitleText": "Discover"
+        "navigationBarTitleText": "Discover",
+        "navigationStyle": "custom"
       }
     },
     {
@@ -41,6 +42,13 @@
       "path": "pages/discover/create",
       "style": {
         "navigationBarTitleText": "发布帖子"
+      }
+    },
+    {
+      "path": "pages/discover/search",
+      "style": {
+        "navigationBarTitleText": "搜索",
+        "navigationStyle": "custom"
       }
     },
     {

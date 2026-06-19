@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { onLoad, onPullDownRefresh, onReachBottom } from "@dcloudio/uni-app";
+import { onLoad } from "@dcloudio/uni-app";
 import type { Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
-import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
 import {
@@ -15,20 +14,19 @@ import {
   getVisibleTags
 } from "./media";
 
+const SEARCH_HISTORY_KEY = "discover-search-history-v1";
+
 const { state } = useAppStore();
-const posts = ref<Post[]>([]);
-const page = ref(1);
-const pageSize = 10;
-const total = ref(0);
-const isLoading = ref(false);
-const isRefreshing = ref(false);
-const isLoadingMore = ref(false);
+const copy = computed(() => appCopy[state.locale].discover);
+const keyword = ref("");
+const history = ref<string[]>([]);
+const results = ref<Post[]>([]);
+const isSearching = ref(false);
+const hasSearched = ref(false);
 const errorMessage = ref("");
 const statusBarHeight = ref(0);
 
-const copy = computed(() => appCopy[state.locale].discover);
-const hasMore = computed(() => posts.value.length < total.value);
-const customTopStyle = computed(() => ({
+const customNavStyle = computed(() => ({
   paddingTop: `${statusBarHeight.value}px`
 }));
 
@@ -53,54 +51,66 @@ const getMediaMeta = (post: Post) => {
   return parts.join(" · ");
 };
 
-const loadPosts = async (nextPage = 1, append = false) => {
-  if (isLoading.value || isLoadingMore.value) {
+const readHistory = () => {
+  const stored = uni.getStorageSync(SEARCH_HISTORY_KEY);
+  history.value = Array.isArray(stored)
+    ? stored.filter((item): item is string => typeof item === "string")
+    : [];
+};
+
+const writeHistory = (items: string[]) => {
+  history.value = items.slice(0, 10);
+  uni.setStorageSync(SEARCH_HISTORY_KEY, history.value);
+};
+
+const rememberKeyword = (value: string) => {
+  const next = [value, ...history.value.filter((item) => item !== value)];
+  writeHistory(next);
+};
+
+const goBack = () => {
+  uni.navigateBack({ delta: 1 });
+};
+
+const search = async (value = keyword.value) => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    uni.showToast({ title: copy.value.searchRequired, icon: "none" });
     return;
   }
 
+  keyword.value = trimmed;
+  rememberKeyword(trimmed);
+  hasSearched.value = true;
+  isSearching.value = true;
   errorMessage.value = "";
-  if (append) {
-    isLoadingMore.value = true;
-  } else {
-    isLoading.value = true;
-  }
 
   try {
     const result = await mobileApi.discover.listPosts({
       communityId: state.communityId,
-      page: nextPage,
-      pageSize
+      keyword: trimmed,
+      page: 1,
+      pageSize: 20
     });
-    const items = result.data.items;
-
-    posts.value = append ? [...posts.value, ...items] : items;
-    page.value = result.data.page;
-    total.value = result.data.total;
-  } catch (error) {
-    errorMessage.value = copy.value.error;
-    if (!append) {
-      posts.value = [];
-      total.value = 0;
-    }
+    results.value = result.data.items;
+  } catch {
+    results.value = [];
+    errorMessage.value = copy.value.searchError;
   } finally {
-    isLoading.value = false;
-    isLoadingMore.value = false;
-    isRefreshing.value = false;
-    uni.stopPullDownRefresh();
+    isSearching.value = false;
   }
 };
 
-const refresh = () => {
-  isRefreshing.value = true;
-  page.value = 1;
-  loadPosts(1);
+const selectHistory = (item: string) => {
+  search(item);
 };
 
-const loadMore = () => {
-  if (!hasMore.value) {
-    return;
-  }
-  loadPosts(page.value + 1, true);
+const removeHistory = (item: string) => {
+  writeHistory(history.value.filter((historyItem) => historyItem !== item));
+};
+
+const clearHistory = () => {
+  writeHistory([]);
 };
 
 const openDetail = (id: string) => {
@@ -109,53 +119,66 @@ const openDetail = (id: string) => {
   });
 };
 
-const openCreate = () => {
-  uni.navigateTo({
-    url: "/pages/discover/create"
-  });
-};
-
-const openSearch = () => {
-  uni.navigateTo({
-    url: "/pages/discover/search"
-  });
-};
-
 onLoad(() => {
   statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight ?? 0;
-  loadPosts();
+  readHistory();
 });
-
-onPullDownRefresh(refresh);
-onReachBottom(loadMore);
 </script>
 
 <template>
   <view class="page">
-    <view class="top-actions" :style="customTopStyle">
-      <button class="search-icon-button" :aria-label="copy.searchIconLabel" @click="openSearch">
-        ⌕
-      </button>
+    <view class="custom-nav" :style="customNavStyle">
+      <view class="nav-content">
+        <view class="nav-back" @click.stop="goBack">‹</view>
+        <view class="search-field">
+          <text class="search-mark">⌕</text>
+          <input
+            v-model="keyword"
+            class="input"
+            :placeholder="copy.searchPlaceholder"
+            confirm-type="search"
+            focus
+            @confirm="search()"
+          />
+        </view>
+        <button class="search-submit" :disabled="isSearching" @click="search()">
+          {{ copy.search }}
+        </button>
+      </view>
     </view>
 
-    <SectionPanel :title="copy.feedTitle" :subtitle="copy.feedSubtitle">
-      <view class="actions">
-        <button class="primary" @click="openCreate">{{ copy.createPost }}</button>
+    <view class="body">
+      <view v-if="!hasSearched" class="history-panel">
+        <view class="section-heading">
+          <view class="section-title">{{ copy.searchHistoryTitle }}</view>
+          <button v-if="history.length" class="clear-history" @click="clearHistory">
+            {{ copy.searchHistoryClear }}
+          </button>
+        </view>
+
+        <view v-if="history.length" class="history-list">
+          <view v-for="item in history" :key="item" class="history-item">
+            <view class="history-text" @click="selectHistory(item)">{{ item }}</view>
+            <button class="history-remove" @click="removeHistory(item)">×</button>
+          </view>
+        </view>
+        <view v-else class="empty-history">{{ copy.searchHistoryEmpty }}</view>
       </view>
 
-      <AsyncStateCard v-if="isLoading && !posts.length" variant="loading" :text="copy.loading" />
+      <AsyncStateCard v-if="isSearching" variant="loading" :text="copy.searching" />
       <view v-else-if="errorMessage" class="status-block">
         <AsyncStateCard variant="error" :text="errorMessage" />
-        <button class="retry" @click="loadPosts(1)">{{ copy.retry }}</button>
+        <button class="retry" @click="search()">{{ copy.retry }}</button>
       </view>
       <AsyncStateCard
-        v-else-if="posts.length === 0"
+        v-else-if="hasSearched && results.length === 0"
         variant="empty"
-        :text="copy.empty"
+        :text="copy.searchEmpty"
       />
-      <view v-else class="feed">
+
+      <view v-else-if="hasSearched" class="feed">
         <view
-          v-for="post in posts"
+          v-for="post in results"
           :key="post._id"
           class="card"
           @click="openDetail(post._id)"
@@ -199,9 +222,7 @@ onReachBottom(loadMore);
             <view class="card-text">{{ summarize(post.content) }}</view>
             <view class="meta-row">
               <text class="meta">{{ post.location_text || copy.locationFallback }}</text>
-              <text v-if="getMediaMeta(post)" class="meta">
-                {{ getMediaMeta(post) }}
-              </text>
+              <text v-if="getMediaMeta(post)" class="meta">{{ getMediaMeta(post) }}</text>
             </view>
             <view v-if="post.tag_ids.length" class="tags">
               <text v-for="tag in getVisibleTags(post)" :key="tag" class="tag">#{{ tag }}</text>
@@ -211,64 +232,165 @@ onReachBottom(loadMore);
             </view>
           </view>
         </view>
-
-        <button
-          v-if="hasMore"
-          class="load-more"
-          :disabled="isLoadingMore"
-          @click="loadMore"
-        >
-          {{ isLoadingMore ? copy.loadingMore : copy.loadMore }}
-        </button>
-        <view v-else class="no-more">{{ copy.noMore }}</view>
       </view>
-    </SectionPanel>
+    </view>
   </view>
 </template>
 
 <style scoped>
 .page {
-  padding: 24rpx;
   min-height: 100vh;
   background: #f8fafc;
 }
 
-.top-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin: -12rpx 0 12rpx;
+.custom-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #ffffff;
+  border-bottom: 1rpx solid #eef2f7;
 }
 
-.search-icon-button {
+.nav-content {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
-  width: 72rpx;
+  gap: 14rpx;
+  min-height: 96rpx;
+  padding: 0 24rpx;
+}
+
+.nav-back {
+  width: 48rpx;
   height: 72rpx;
-  border-radius: 50%;
-  background: #ffffff;
+  line-height: 66rpx;
   color: #111827;
-  font-size: 42rpx;
-  line-height: 72rpx;
-  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.08);
+  font-size: 58rpx;
+  font-weight: 300;
 }
 
-.actions {
-  margin-bottom: 20rpx;
+.search-field {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 10rpx;
+  min-height: 72rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: #f3f4f6;
 }
 
-.primary,
-.retry,
-.load-more {
-  border-radius: 10rpx;
+.search-mark {
+  color: #64748b;
+  font-size: 30rpx;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 72rpx;
+  color: #111827;
   font-size: 26rpx;
 }
 
-.primary {
+.search-submit {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 18rpx;
+  min-height: 60rpx;
+  line-height: 60rpx;
+  border-radius: 999rpx;
   background: #1d4ed8;
-  color: white;
+  color: #ffffff;
+  font-size: 24rpx;
+}
+
+.search-submit[disabled] {
+  opacity: 0.7;
+}
+
+.body {
+  padding: 24rpx;
+}
+
+.history-panel {
+  padding: 28rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 18rpx;
+  background: #ffffff;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 18rpx;
+}
+
+.section-title {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.clear-history,
+.history-remove,
+.retry {
+  border-radius: 10rpx;
+  font-size: 24rpx;
+}
+
+.clear-history {
+  margin: 0;
+  padding: 0 16rpx;
+  min-height: 48rpx;
+  line-height: 48rpx;
+  background: #f3f4f6;
+  color: #64748b;
+}
+
+.history-list {
+  display: grid;
+  gap: 14rpx;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 14rpx;
+  background: #f9fafb;
+}
+
+.history-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #111827;
+  font-size: 26rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-remove {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 40rpx;
+  background: #eef2f7;
+  color: #64748b;
+}
+
+.empty-history {
+  padding: 22rpx;
+  border-radius: 12rpx;
+  background: #f9fafb;
+  color: #64748b;
+  font-size: 24rpx;
 }
 
 .status-block {
@@ -372,12 +494,12 @@ onReachBottom(loadMore);
 
 .card-title {
   flex: 1;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #111827;
   font-size: 32rpx;
   font-weight: 600;
   line-height: 1.35;
-  color: #111827;
-  display: -webkit-box;
-  overflow: hidden;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
@@ -397,11 +519,11 @@ onReachBottom(loadMore);
 }
 
 .card-text {
+  display: -webkit-box;
+  overflow: hidden;
   margin-top: 14rpx;
   color: #6b7280;
   line-height: 1.6;
-  display: -webkit-box;
-  overflow: hidden;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
 }
@@ -434,18 +556,5 @@ onReachBottom(loadMore);
 .tag.more {
   background: #f3f4f6;
   color: #64748b;
-}
-
-.load-more {
-  margin-top: 6rpx;
-  background: #e6f4ff;
-  color: #0052d9;
-}
-
-.no-more {
-  padding: 20rpx 0 4rpx;
-  text-align: center;
-  color: #94a3b8;
-  font-size: 24rpx;
 }
 </style>
