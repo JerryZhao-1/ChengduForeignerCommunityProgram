@@ -44,6 +44,13 @@
       }
     },
     {
+      "path": "pages/discover/report",
+      "style": {
+        "navigationBarTitleText": "举报内容",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/places/index",
       "style": {
         "navigationBarTitleText": "地点列表"

@@ -17,10 +17,6 @@ const isLoading = ref(true);
 const errorMessage = ref("");
 const commentValue = ref("");
 const isSubmittingComment = ref(false);
-const showReportForm = ref(false);
-const reportReason = ref("");
-const reportDescription = ref("");
-const isSubmittingReport = ref(false);
 const statusBarHeight = ref(0);
 
 const authorProfiles: Record<string, { name: string; avatarUrl: string }> = {
@@ -123,33 +119,14 @@ const submitComment = async () => {
   }
 };
 
-const submitReport = async () => {
+const openReport = () => {
   if (!post.value) {
     return;
   }
 
-  const reason = reportReason.value.trim();
-  if (!reason) {
-    uni.showToast({ title: copy.value.reportReasonRequired, icon: "none" });
-    return;
-  }
-
-  isSubmittingReport.value = true;
-  try {
-    const result = await mobileApi.discover.reportPost(post.value._id, {
-      reason,
-      description: reportDescription.value.trim() || undefined
-    });
-    post.value = result.data;
-    showReportForm.value = false;
-    reportReason.value = "";
-    reportDescription.value = "";
-    uni.showToast({ title: copy.value.reportSuccess, icon: "success" });
-  } catch {
-    uni.showToast({ title: copy.value.reportError, icon: "none" });
-  } finally {
-    isSubmittingReport.value = false;
-  }
+  uni.navigateTo({
+    url: `/pages/discover/report?id=${post.value._id}`
+  });
 };
 </script>
 
@@ -172,6 +149,9 @@ const submitReport = async () => {
             <view class="nav-name">{{ author.name }}</view>
             <view class="nav-id">{{ post?.author_user_id }}</view>
           </view>
+          <button v-if="post" class="nav-report" @click.stop="openReport">
+            {{ copy.reportButton }}
+          </button>
         </template>
         <view v-else class="nav-placeholder">{{ copy.feedTitle }}</view>
       </view>
@@ -220,28 +200,6 @@ const submitReport = async () => {
 
         <view v-if="post.tag_ids.length" class="tags">
           <text v-for="tag in post.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
-        </view>
-
-        <view class="post-actions">
-          <button class="report-toggle" @click="showReportForm = !showReportForm">
-            {{ copy.reportButton }}
-          </button>
-        </view>
-
-        <view v-if="showReportForm" class="report-box">
-          <input
-            v-model="reportReason"
-            class="input"
-            :placeholder="copy.reportReasonPlaceholder"
-          />
-          <textarea
-            v-model="reportDescription"
-            class="textarea small"
-            :placeholder="copy.reportDescriptionPlaceholder"
-          />
-          <button class="warning" :disabled="isSubmittingReport" @click="submitReport">
-            {{ isSubmittingReport ? copy.submittingReport : copy.submitReport }}
-          </button>
         </view>
 
         <view class="comment-box">
@@ -315,14 +273,18 @@ const submitReport = async () => {
 }
 
 .nav-user {
+  flex: 1;
   min-width: 0;
 }
 
 .nav-name {
+  overflow: hidden;
   color: #111827;
   font-size: 30rpx;
   font-weight: 700;
   line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nav-id,
@@ -417,28 +379,20 @@ const submitReport = async () => {
   color: #0052d9;
 }
 
-.post-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 16rpx;
-  margin-top: 20rpx;
-}
-
 .status-pill {
   padding: 6rpx 14rpx;
   background: #f3f4f6;
   color: #374151;
 }
 
-.report-toggle,
-.warning,
+.nav-report,
 .primary {
   border-radius: 10rpx;
   font-size: 26rpx;
 }
 
-.report-toggle {
+.nav-report {
+  flex-shrink: 0;
   margin: 0;
   padding: 0 18rpx;
   min-height: 46rpx;
@@ -449,7 +403,6 @@ const submitReport = async () => {
   font-size: 22rpx;
 }
 
-.report-box,
 .comment-box {
   margin-top: 24rpx;
   padding-top: 24rpx;
@@ -496,24 +449,13 @@ const submitReport = async () => {
   line-height: 1.6;
 }
 
-.textarea.small {
-  min-height: 140rpx;
-}
-
 .primary {
   margin-top: 20rpx;
   background: #1d4ed8;
   color: white;
 }
 
-.warning {
-  margin-top: 20rpx;
-  background: #fff1f0;
-  color: #c41d7f;
-}
-
-.primary[disabled],
-.warning[disabled] {
+.primary[disabled] {
   opacity: 0.7;
 }
 </style>
