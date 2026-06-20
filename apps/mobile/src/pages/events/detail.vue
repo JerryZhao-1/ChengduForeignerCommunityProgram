@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Event, EventRegistration } from "@community-map/shared";
 import { computed, ref } from "vue";
-import { onLoad } from "@dcloudio/uni-app";
+import { onLoad, onShow } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
@@ -9,7 +9,9 @@ import { getEventSignupState } from "./event-signup-state";
 
 const { state } = useAppStore();
 const event = ref<Event | null>(null);
+const eventId = ref("");
 const registrations = ref<EventRegistration[]>([]);
+const ticketCode = ref("");
 const loading = ref(false);
 const error = ref("");
 
@@ -25,10 +27,34 @@ const signupState = computed(() =>
     : { canSignup: false, label: "暂不可报名", reason: "" }
 );
 
+const currentRegistration = computed(() =>
+  event.value
+    ? registrations.value.find((item) => item.event_id === event.value?._id) ?? null
+    : null
+);
+
 onLoad((query) => {
-  const id = typeof query?.id === "string" ? query.id : "";
-  void loadEvent(id);
+  eventId.value = typeof query?.id === "string" ? query.id : "";
 });
+
+onShow(() => {
+  void loadEvent(eventId.value);
+});
+
+const loadRegistrationTicket = async (registration: EventRegistration | null) => {
+  if (!registration) {
+    ticketCode.value = "";
+    return;
+  }
+
+  try {
+    const result = await mobileApi.events.registrationTicket(registration._id);
+    ticketCode.value = result.data.ticket_code;
+  } catch (err) {
+    console.error(err);
+    ticketCode.value = "";
+  }
+};
 
 const loadEvent = async (id: string) => {
   if (!id) {
@@ -48,6 +74,7 @@ const loadEvent = async (id: string) => {
     registrations.value = Array.isArray(registrationResult.data)
       ? registrationResult.data
       : [];
+    await loadRegistrationTicket(currentRegistration.value);
   } catch (err) {
     console.error(err);
     error.value = "活动加载失败，请稍后重试";
@@ -120,6 +147,11 @@ const statusLabel = (item: Event) => {
         <text class="details">{{ pickLocalized(state.locale, event.content_zh, event.content_en) }}</text>
       </view>
 
+      <view v-if="ticketCode" class="ticket-card">
+        <text class="section-title">入场凭证</text>
+        <text class="ticket-code">{{ ticketCode }}</text>
+      </view>
+
       <button
         class="primary"
         :class="{ disabled: !signupState.canSignup }"
@@ -156,7 +188,8 @@ const statusLabel = (item: Event) => {
   background: #e5e7eb;
 }
 
-.card {
+.card,
+.ticket-card {
   margin-top: 20rpx;
   background: #ffffff;
   border-radius: 20rpx;
@@ -202,6 +235,19 @@ const statusLabel = (item: Event) => {
 .details {
   color: #374151;
   line-height: 1.7;
+}
+
+.ticket-card {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.ticket-code {
+  display: block;
+  margin-top: 8rpx;
+  color: #065f46;
+  font-size: 30rpx;
+  font-weight: 700;
 }
 
 .primary {

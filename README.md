@@ -54,6 +54,12 @@ pnpm dev:admin
 
 - `http://localhost:5173`
 
+使用 mock 管理员测试号时：
+
+```bash
+VITE_MOCK_ACTOR_ID=admin pnpm dev:admin
+```
+
 如果你要让后台走真实 HTTP API，而不是 mock：
 
 ```bash

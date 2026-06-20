@@ -13,7 +13,13 @@ import type {
   User
 } from "../types/entities";
 import type { ApiErrorCode } from "../enums/core";
-import type { FavoriteItemType, MockDataset } from "./data";
+import type {
+  FavoriteItemType,
+  MockDataset,
+  PlaceSubmission,
+  PointLedgerEntry,
+  UserPrivacySettings
+} from "./data";
 import { FILE_PATH_RULES } from "../schemas/files";
 import { PLACE_TOP_LEVEL_CATEGORIES } from "../schemas/place-categories";
 
@@ -326,6 +332,64 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
       .map((item) => item.item_id)
   });
 
+  const privacyFor = (userId: string): UserPrivacySettings => {
+    let settings = state.privacySettings.find((item) => item.user_id === userId);
+
+    if (!settings) {
+      settings = {
+        user_id: userId,
+        show_favorites: true,
+        show_comments: true
+      };
+      state.privacySettings.push(settings);
+    }
+
+    return settings;
+  };
+
+  const blockedUserIdsFor = (userId: string) =>
+    state.blockedUsers
+      .filter((item) => item.blocker_user_id === userId)
+      .map((item) => item.blocked_user_id);
+
+  const awardPoints = (
+    userId: string,
+    input: Pick<PointLedgerEntry, "points" | "reason" | "source_type" | "source_id">
+  ) => {
+    const existing = state.pointLedger.find(
+      (item) =>
+        item.user_id === userId &&
+        item.source_type === input.source_type &&
+        item.source_id === input.source_id
+    );
+
+    if (existing) {
+      return existing;
+    }
+
+    const entry: PointLedgerEntry = {
+      _id: idFrom("points"),
+      user_id: userId,
+      points: input.points,
+      reason: input.reason,
+      source_type: input.source_type,
+      source_id: input.source_id,
+      created_at: new Date().toISOString()
+    };
+
+    state.pointLedger.unshift(entry);
+    return entry;
+  };
+
+  const pointsSummaryFor = (userId: string) => {
+    const entries = state.pointLedger.filter((item) => item.user_id === userId);
+
+    return {
+      balance: entries.reduce((total, item) => total + item.points, 0),
+      entries
+    };
+  };
+
   const profileSummary = (targetUserId: string, actorId?: string) => {
     const targetUser = findUser(targetUserId);
     const actor = findUser(actorId);
@@ -399,6 +463,63 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         }
 
         return profileSummary(targetUser._id, actor._id);
+      },
+      blockedUsers(actorId?: string) {
+        const actor = findUser(actorId);
+        const blockedIds = blockedUserIdsFor(actor._id);
+
+        return state.users.filter((user) => blockedIds.includes(user._id));
+      },
+      blockedUserIds(actorId?: string) {
+        return blockedUserIdsFor(findUser(actorId)._id);
+      },
+      toggleBlock(targetUserId: string, actorId?: string) {
+        const actor = findUser(actorId);
+        const targetUser = findUser(targetUserId);
+
+        if (actor._id === targetUser._id) {
+          throw mockServiceError("CONFLICT", "Cannot block yourself.", 409, {
+            reason: "self_block_not_allowed"
+          });
+        }
+
+        const existingIndex = state.blockedUsers.findIndex(
+          (item) =>
+            item.blocker_user_id === actor._id &&
+            item.blocked_user_id === targetUser._id
+        );
+
+        if (existingIndex >= 0) {
+          state.blockedUsers.splice(existingIndex, 1);
+          return { user: targetUser, is_blocked: false };
+        }
+
+        state.blockedUsers.unshift({
+          blocker_user_id: actor._id,
+          blocked_user_id: targetUser._id,
+          created_at: new Date().toISOString()
+        });
+
+        return { user: targetUser, is_blocked: true };
+      },
+      privacy(userId?: string) {
+        return privacyFor(findUser(userId)._id);
+      },
+      updatePrivacy(
+        input: Partial<Pick<UserPrivacySettings, "show_favorites" | "show_comments">>,
+        actorId?: string
+      ) {
+        const settings = privacyFor(findUser(actorId)._id);
+
+        if (typeof input.show_favorites === "boolean") {
+          settings.show_favorites = input.show_favorites;
+        }
+
+        if (typeof input.show_comments === "boolean") {
+          settings.show_comments = input.show_comments;
+        }
+
+        return settings;
       },
       favoriteIds(actorId?: string) {
         return favoriteIdsFor(findUser(actorId)._id);
@@ -512,6 +633,13 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
 
         state.registrations.unshift(registration);
         state.tickets.unshift(ticket);
+        actor.phone = input.contact_phone;
+        awardPoints(actor._id, {
+          points: 20,
+          reason: "参加活动",
+          source_type: "event_registration",
+          source_id: registration._id
+        });
 
         return { registration, ticket };
       },
@@ -776,6 +904,111 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         }
         Object.assign(existing, input);
         return existing;
+      }
+    },
+    placeSubmissions: {
+      listForAdmin() {
+        return [...state.placeSubmissions];
+      },
+      listMine(actorId?: string) {
+        const actor = findUser(actorId);
+
+        return state.placeSubmissions.filter(
+          (submission) => submission.user_id === actor._id
+        );
+      },
+      create(
+        input: Pick<PlaceSubmission, "name" | "address" | "photo_urls" | "note">,
+        actorId?: string
+      ) {
+        const actor = findUser(actorId);
+        const submission: PlaceSubmission = {
+          _id: idFrom("place_submission"),
+          user_id: actor._id,
+          name: input.name,
+          address: input.address,
+          photo_urls: input.photo_urls,
+          note: input.note,
+          status: "pending_review",
+          submitted_at: new Date().toISOString(),
+          reviewed_at: null
+        };
+
+        state.placeSubmissions.unshift(submission);
+        awardPoints(actor._id, {
+          points: 20,
+          reason: "提交地点信息",
+          source_type: "place_submission",
+          source_id: submission._id
+        });
+
+        return submission;
+      },
+      approve(id: string) {
+        const submission = state.placeSubmissions.find((item) => item._id === id);
+
+        if (!submission) {
+          return null;
+        }
+
+        const shouldAward =
+          submission.status !== "approved" &&
+          !state.pointLedger.some(
+            (entry) =>
+              entry.source_type === "place_submission_approved" &&
+              entry.source_id === submission._id
+          );
+
+        submission.status = "approved";
+        submission.reviewed_at = new Date().toISOString();
+
+        if (shouldAward) {
+          awardPoints(submission.user_id, {
+            points: 30,
+            reason: "地点信息通过审核",
+            source_type: "place_submission_approved",
+            source_id: submission._id
+          });
+        }
+
+        return submission;
+      },
+      reject(id: string) {
+        const submission = state.placeSubmissions.find((item) => item._id === id);
+
+        if (!submission) {
+          return null;
+        }
+
+        submission.status = "rejected";
+        submission.reviewed_at = new Date().toISOString();
+
+        return submission;
+      }
+    },
+    feedback: {
+      listMine(actorId?: string) {
+        const actor = findUser(actorId);
+
+        return state.feedback.filter((item) => item.user_id === actor._id);
+      },
+      create(input: { content: string }, actorId?: string) {
+        const actor = findUser(actorId);
+        const feedback = {
+          _id: idFrom("feedback"),
+          user_id: actor._id,
+          content: input.content,
+          status: "submitted" as const,
+          created_at: new Date().toISOString()
+        };
+
+        state.feedback.unshift(feedback);
+        return feedback;
+      }
+    },
+    points: {
+      summary(actorId?: string) {
+        return pointsSummaryFor(findUser(actorId)._id);
       }
     },
     announcements: {

@@ -123,6 +123,10 @@ const openList = (recommended = false) => {
   });
 };
 
+const openSubmit = () => {
+  uni.navigateTo({ url: placesPagePaths.submit() });
+};
+
 onMounted(loadMarkers);
 
 onLoad((query) => {
@@ -132,8 +136,13 @@ onLoad((query) => {
 
 <template>
   <view class="page">
-    <view class="title">{{ mapCopy.title }}</view>
-    <view class="subtitle">{{ mapCopy.subtitle }}</view>
+    <view class="page-header">
+      <view class="heading">
+        <view class="title">{{ mapCopy.title }}</view>
+        <view class="subtitle">{{ mapCopy.subtitle }}</view>
+      </view>
+      <button class="add-button" @click="openSubmit">+</button>
+    </view>
     <view class="action-row">
       <button class="secondary" @click="openList(false)">{{ mapCopy.openList }}</button>
       <button class="secondary" @click="openList(true)">{{ mapCopy.openRecommended }}</button>
@@ -178,6 +187,18 @@ onLoad((query) => {
   min-height: 100vh;
 }
 
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.heading {
+  flex: 1;
+  min-width: 0;
+}
+
 .title {
   font-size: 36rpx;
   font-weight: 700;
@@ -188,6 +209,23 @@ onLoad((query) => {
   margin-top: 12rpx;
   margin-bottom: 24rpx;
   line-height: 1.6;
+}
+
+.add-button {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 999rpx;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 44rpx;
+  line-height: 68rpx;
+}
+
+.add-button::after {
+  border: 0;
 }
 
 .map-card {

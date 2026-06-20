@@ -25,10 +25,57 @@ export interface FavoriteRelation {
   created_at: string;
 }
 
+export interface BlockRelation {
+  blocker_user_id: string;
+  blocked_user_id: string;
+  created_at: string;
+}
+
+export interface UserPrivacySettings {
+  user_id: string;
+  show_favorites: boolean;
+  show_comments: boolean;
+}
+
+export interface FeedbackItem {
+  _id: string;
+  user_id: string;
+  content: string;
+  status: "submitted" | "reviewed";
+  created_at: string;
+}
+
+export interface PlaceSubmission {
+  _id: string;
+  user_id: string;
+  name: string;
+  address: string;
+  photo_urls: string[];
+  note: string;
+  status: "pending_review" | "approved" | "rejected";
+  submitted_at: string;
+  reviewed_at: string | null;
+}
+
+export interface PointLedgerEntry {
+  _id: string;
+  user_id: string;
+  points: number;
+  reason: string;
+  source_type: "event_registration" | "place_submission" | "place_submission_approved";
+  source_id: string;
+  created_at: string;
+}
+
 export interface MockDataset {
   users: User[];
   follows: FollowRelation[];
+  blockedUsers: BlockRelation[];
+  privacySettings: UserPrivacySettings[];
   favorites: FavoriteRelation[];
+  feedback: FeedbackItem[];
+  placeSubmissions: PlaceSubmission[];
+  pointLedger: PointLedgerEntry[];
   events: Event[];
   registrations: EventRegistration[];
   tickets: EventTicket[];
@@ -63,12 +110,41 @@ export const createMockDataset = (): MockDataset => ({
       preferred_language: "en",
       role_flags: ["user", "organizer"],
       status: "active"
+    },
+    {
+      _id: "admin",
+      openid: "openid_admin",
+      unionid: "unionid_admin",
+      nickname: "admin",
+      avatar_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7",
+      phone: "+86 1370 000000",
+      preferred_language: "zh",
+      role_flags: ["user", "community_admin", "system_admin"],
+      status: "active"
     }
   ],
   follows: [
     {
       follower_user_id: "user_002",
       following_user_id: "user_001"
+    }
+  ],
+  blockedUsers: [],
+  privacySettings: [
+    {
+      user_id: "user_001",
+      show_favorites: true,
+      show_comments: true
+    },
+    {
+      user_id: "user_002",
+      show_favorites: true,
+      show_comments: true
+    },
+    {
+      user_id: "admin",
+      show_favorites: false,
+      show_comments: false
     }
   ],
   favorites: [
@@ -91,6 +167,35 @@ export const createMockDataset = (): MockDataset => ({
       created_at: "2026-03-28T11:20:00+08:00"
     }
   ],
+  feedback: [],
+  placeSubmissions: [
+    {
+      _id: "place_submission_001",
+      user_id: "user_002",
+      name: "社区花园入口",
+      address: "桐梓林北路社区花园东门",
+      photo_urls: [
+        "https://images.unsplash.com/photo-1518005020951-eccb494ad742",
+        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
+      ],
+      note: "居民常去散步，入口标识清楚，适合补充到地图。",
+      status: "pending_review",
+      submitted_at: "2026-06-15T09:30:00+08:00",
+      reviewed_at: null
+    },
+    {
+      _id: "place_submission_002",
+      user_id: "user_001",
+      name: "双语药店",
+      address: "桐梓林南路 30 号附近",
+      photo_urls: ["https://images.unsplash.com/photo-1587854692152-cbe660dbde88"],
+      note: "店员可简单英文沟通，建议管理员核对营业时间后发布。",
+      status: "pending_review",
+      submitted_at: "2026-06-16T14:20:00+08:00",
+      reviewed_at: null
+    }
+  ],
+  pointLedger: [],
   events: [
     {
       _id: "event_001",

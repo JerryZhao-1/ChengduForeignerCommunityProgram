@@ -9,6 +9,7 @@ const menuItems = [
   { index: "/events", label: "活动管理" },
   { index: "/posts", label: "帖子治理" },
   { index: "/places", label: "地点管理" },
+  { index: "/place-submissions", label: "用户提交审核" },
   { index: "/announcements", label: "公告管理" },
   { index: "/files", label: "文件回溯" },
   { index: "/logs", label: "操作日志" }

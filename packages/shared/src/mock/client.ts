@@ -15,7 +15,13 @@ import type {
   User
 } from "../types/entities";
 import type { ApiResult, PageResult } from "../types/common";
-import type { FavoriteItemType } from "./data";
+import type {
+  FavoriteItemType,
+  FeedbackItem,
+  PlaceSubmission,
+  PointLedgerEntry,
+  UserPrivacySettings
+} from "./data";
 
 import { createMockService } from "./service";
 
@@ -117,6 +123,18 @@ export interface CommunityMapApiClient {
         following_count: number;
       }>
     >;
+    blockedUsers(): Promise<ApiResult<User[]>>;
+    blockedUserIds(): Promise<ApiResult<string[]>>;
+    toggleBlock(userId: string): Promise<
+      ApiResult<{
+        user: User;
+        is_blocked: boolean;
+      }>
+    >;
+    privacy(userId?: string): Promise<ApiResult<UserPrivacySettings>>;
+    updatePrivacy(
+      input: Partial<Pick<UserPrivacySettings, "show_favorites" | "show_comments">>
+    ): Promise<ApiResult<UserPrivacySettings>>;
     favoriteIds(): Promise<ApiResult<Record<FavoriteItemType, string[]>>>;
     toggleFavorite(input: {
       item_type: FavoriteItemType;
@@ -133,6 +151,24 @@ export interface CommunityMapApiClient {
     >;
     comments(userId: string): Promise<
       ApiResult<Array<{ comment: Comment; post: Post | null }>>
+    >;
+  };
+  placeSubmissions: {
+    listMine(): Promise<ApiResult<PlaceSubmission[]>>;
+    create(
+      input: Pick<PlaceSubmission, "name" | "address" | "photo_urls" | "note">
+    ): Promise<ApiResult<PlaceSubmission>>;
+  };
+  feedback: {
+    listMine(): Promise<ApiResult<FeedbackItem[]>>;
+    create(input: { content: string }): Promise<ApiResult<FeedbackItem>>;
+  };
+  points: {
+    summary(): Promise<
+      ApiResult<{
+        balance: number;
+        entries: PointLedgerEntry[];
+      }>
     >;
   };
   files: {
@@ -175,6 +211,9 @@ export interface CommunityMapApiClient {
       id: string,
       input: { review_status: Post["review_status"] }
     ): Promise<ApiResult<Post>>;
+    listPlaceSubmissions(): Promise<ApiResult<PlaceSubmission[]>>;
+    approvePlaceSubmission(id: string): Promise<ApiResult<PlaceSubmission>>;
+    rejectPlaceSubmission(id: string): Promise<ApiResult<PlaceSubmission>>;
     createPlace(input: Partial<Place>): Promise<ApiResult<Place>>;
     updatePlace(id: string, input: Partial<Place>): Promise<ApiResult<Place>>;
   };
@@ -284,6 +323,21 @@ export const createMockClient = (
       async toggleFollow(userId) {
         return ok(service.profile.toggleFollow(userId, actorId));
       },
+      async blockedUsers() {
+        return ok(service.profile.blockedUsers(actorId));
+      },
+      async blockedUserIds() {
+        return ok(service.profile.blockedUserIds(actorId));
+      },
+      async toggleBlock(userId) {
+        return ok(service.profile.toggleBlock(userId, actorId));
+      },
+      async privacy(userId) {
+        return ok(service.profile.privacy(userId ?? actorId));
+      },
+      async updatePrivacy(input) {
+        return ok(service.profile.updatePrivacy(input, actorId));
+      },
       async favoriteIds() {
         return ok(service.profile.favoriteIds(actorId));
       },
@@ -295,6 +349,27 @@ export const createMockClient = (
       },
       async comments(userId) {
         return ok(service.profile.comments(userId));
+      }
+    },
+    placeSubmissions: {
+      async listMine() {
+        return ok(service.placeSubmissions.listMine(actorId));
+      },
+      async create(input) {
+        return ok(service.placeSubmissions.create(input, actorId));
+      }
+    },
+    feedback: {
+      async listMine() {
+        return ok(service.feedback.listMine(actorId));
+      },
+      async create(input) {
+        return ok(service.feedback.create(input, actorId));
+      }
+    },
+    points: {
+      async summary() {
+        return ok(service.points.summary(actorId));
       }
     },
     files: {
@@ -326,6 +401,15 @@ export const createMockClient = (
       },
       async moderatePost(id, input) {
         return ok(service.posts.moderate(id, input) as Post);
+      },
+      async listPlaceSubmissions() {
+        return ok(service.placeSubmissions.listForAdmin());
+      },
+      async approvePlaceSubmission(id) {
+        return ok(service.placeSubmissions.approve(id) as PlaceSubmission);
+      },
+      async rejectPlaceSubmission(id) {
+        return ok(service.placeSubmissions.reject(id) as PlaceSubmission);
       },
       async createPlace(input) {
         return ok(service.places.create(input));

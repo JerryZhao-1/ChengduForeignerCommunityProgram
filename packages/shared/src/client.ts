@@ -120,10 +120,28 @@ export const createHttpClient = (
       summary: (userId) => request("GET", `/profile/users/${userId}`),
       toggleFollow: (userId) =>
         request("POST", `/profile/users/${userId}/follow`, {}),
+      blockedUsers: () => request("GET", "/profile/blocked-users"),
+      blockedUserIds: () => request("GET", "/profile/blocked-users/ids"),
+      toggleBlock: (userId) =>
+        request("POST", `/profile/users/${userId}/block`, {}),
+      privacy: (userId) =>
+        request("GET", userId ? `/profile/privacy?userId=${userId}` : "/profile/privacy"),
+      updatePrivacy: (input) => request("POST", "/profile/privacy", input),
       favoriteIds: () => request("GET", "/profile/favorites/ids"),
       toggleFavorite: (input) => request("POST", "/profile/favorites/toggle", input),
       favorites: (userId) => request("GET", `/profile/users/${userId}/favorites`),
       comments: (userId) => request("GET", `/profile/users/${userId}/comments`)
+    },
+    placeSubmissions: {
+      listMine: () => request("GET", "/place-submissions/mine"),
+      create: (input) => request("POST", "/place-submissions", input)
+    },
+    feedback: {
+      listMine: () => request("GET", "/feedback/mine"),
+      create: (input) => request("POST", "/feedback", input)
+    },
+    points: {
+      summary: () => request("GET", "/points/summary")
     },
     files: {
       createUploadRequest: (input) =>
@@ -142,6 +160,11 @@ export const createHttpClient = (
         request("POST", apiPaths.admin.checkinEvent(id), input),
       moderatePost: (id, input) =>
         request("POST", apiPaths.admin.moderatePost(id), input),
+      listPlaceSubmissions: () => request("GET", apiPaths.admin.listPlaceSubmissions),
+      approvePlaceSubmission: (id) =>
+        request("POST", apiPaths.admin.approvePlaceSubmission(id), {}),
+      rejectPlaceSubmission: (id) =>
+        request("POST", apiPaths.admin.rejectPlaceSubmission(id), {}),
       createPlace: (input) => request("POST", apiPaths.admin.createPlace, input),
       updatePlace: (id, input) =>
         request("PATCH", apiPaths.admin.updatePlace(id), input)

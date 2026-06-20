@@ -41,6 +41,9 @@ export const apiPaths = {
     reviewEvent: (id: string) => `/admin/events/${id}/review`,
     checkinEvent: (id: string) => `/admin/events/${id}/checkin`,
     moderatePost: (id: string) => `/admin/discover/posts/${id}/moderation`,
+    listPlaceSubmissions: "/admin/place-submissions",
+    approvePlaceSubmission: (id: string) => `/admin/place-submissions/${id}/approve`,
+    rejectPlaceSubmission: (id: string) => `/admin/place-submissions/${id}/reject`,
     listPlaces: "/admin/places",
     createPlace: "/admin/places",
     updatePlace: (id: string) => `/admin/places/${id}`

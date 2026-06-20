@@ -22,6 +22,7 @@ export const placesPagePaths = {
   }) => withQuery("/pages/places/index", query),
   detail: (id: string) => withQuery("/pages/places/detail", { id }),
   map: (id?: string) => withQuery("/pages/places/map", { id }),
+  submit: () => "/pages/places/submit",
   recommended: () =>
     withQuery("/pages/places/index", {
       recommended: true,

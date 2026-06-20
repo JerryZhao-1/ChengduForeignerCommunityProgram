@@ -6,6 +6,7 @@ import EventsPage from "@/pages/EventsPage.vue";
 import FilesPage from "@/pages/FilesPage.vue";
 import LoginPage from "@/pages/LoginPage.vue";
 import LogsPage from "@/pages/LogsPage.vue";
+import PlaceSubmissionsPage from "@/pages/PlaceSubmissionsPage.vue";
 import PlacesPage from "@/pages/PlacesPage.vue";
 import PostsPage from "@/pages/PostsPage.vue";
 
@@ -39,6 +40,12 @@ const router = createRouter({
           name: "places",
           component: PlacesPage,
           meta: { title: "地点管理" }
+        },
+        {
+          path: "place-submissions",
+          name: "place-submissions",
+          component: PlaceSubmissionsPage,
+          meta: { title: "用户提交审核" }
         },
         {
           path: "announcements",

@@ -6,7 +6,7 @@ import {
   type EventRegistration
 } from "@community-map/shared";
 import { computed, ref } from "vue";
-import { onLoad } from "@dcloudio/uni-app";
+import { onLoad, onShow } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
@@ -17,6 +17,7 @@ const loading = ref(false);
 const submitting = ref(false);
 const error = ref("");
 const event = ref<Event | null>(null);
+const eventId = ref("");
 const registrations = ref<EventRegistration[]>([]);
 const ticketCode = ref("");
 const form = ref({
@@ -37,10 +38,34 @@ const signupState = computed(() =>
     : { canSignup: false, label: "暂不可报名", reason: "" }
 );
 
+const currentRegistration = computed(() =>
+  event.value
+    ? registrations.value.find((item) => item.event_id === event.value?._id) ?? null
+    : null
+);
+
 onLoad((query) => {
-  const id = typeof query?.id === "string" ? query.id : "";
-  void loadEvent(id);
+  eventId.value = typeof query?.id === "string" ? query.id : "";
 });
+
+onShow(() => {
+  void loadEvent(eventId.value);
+});
+
+const loadRegistrationTicket = async (registration: EventRegistration | null) => {
+  if (!registration) {
+    ticketCode.value = "";
+    return;
+  }
+
+  try {
+    const result = await mobileApi.events.registrationTicket(registration._id);
+    ticketCode.value = result.data.ticket_code;
+  } catch (err) {
+    console.error(err);
+    ticketCode.value = "";
+  }
+};
 
 const loadEvent = async (id: string) => {
   if (!id) {
@@ -52,14 +77,22 @@ const loadEvent = async (id: string) => {
   error.value = "";
 
   try {
-    const [eventResult, registrationResult] = await Promise.all([
+    const [eventResult, registrationResult, meResult] = await Promise.all([
       mobileApi.events.detail(id),
-      mobileApi.events.myRegistrations()
+      mobileApi.events.myRegistrations(),
+      mobileApi.auth.me()
     ]);
     event.value = eventResult.data;
     registrations.value = Array.isArray(registrationResult.data)
       ? registrationResult.data
       : [];
+    const currentPhone = meResult.data.user.phone ?? "";
+
+    if (!form.value.phone && EVENT_CONTACT_PHONE_PATTERN.test(currentPhone)) {
+      form.value.phone = currentPhone;
+    }
+
+    await loadRegistrationTicket(currentRegistration.value);
   } catch (err) {
     console.error(err);
     error.value = "活动加载失败，请稍后重试";
@@ -108,6 +141,10 @@ const submit = async () => {
       source_channel: "miniapp"
     });
 
+    registrations.value = mergeRegistration(
+      registrations.value,
+      result.data.registration
+    );
     ticketCode.value = result.data.ticket.ticket_code;
     uni.showToast({ title: "报名成功", icon: "success" });
   } catch (err) {
@@ -116,6 +153,21 @@ const submit = async () => {
   } finally {
     submitting.value = false;
   }
+};
+
+const mergeRegistration = (
+  items: EventRegistration[],
+  registration: EventRegistration
+) => {
+  const existingIndex = items.findIndex((item) => item._id === registration._id);
+
+  if (existingIndex >= 0) {
+    return items.map((item, index) =>
+      index === existingIndex ? registration : item
+    );
+  }
+
+  return [...items, registration];
 };
 
 const formatTime = (input: string) => {

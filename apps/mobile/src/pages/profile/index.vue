@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import type { Comment, Event, PlaceListItem, Post, User } from "@community-map/shared";
+import type {
+  Comment,
+  Event,
+  PlaceListItem,
+  PointLedgerEntry,
+  Post,
+  User,
+  UserPrivacySettings
+} from "@community-map/shared";
 import { computed, ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 
@@ -21,6 +29,10 @@ const users = ref<User[]>([]);
 const currentUser = ref<User | null>(null);
 const selectedUserId = ref("");
 const summary = ref<ProfileSummary | null>(null);
+const selectedPrivacy = ref<UserPrivacySettings | null>(null);
+const blockedUserIds = ref<string[]>([]);
+const pointsBalance = ref(0);
+const pointEntries = ref<PointLedgerEntry[]>([]);
 const favoriteEvents = ref<Event[]>([]);
 const favoritePosts = ref<Post[]>([]);
 const favoritePlaces = ref<PlaceListItem[]>([]);
@@ -37,6 +49,18 @@ const avatarInitial = computed(
   () => (selectedUser.value?.nickname ?? "U").trim().slice(0, 1).toUpperCase() || "U"
 );
 
+const isSelectedBlocked = computed(() =>
+  selectedUserId.value ? blockedUserIds.value.includes(selectedUserId.value) : false
+);
+
+const canViewFavorites = computed(
+  () => !isSelectedBlocked.value && (summary.value?.is_self || selectedPrivacy.value?.show_favorites !== false)
+);
+
+const canViewComments = computed(
+  () => !isSelectedBlocked.value && (summary.value?.is_self || selectedPrivacy.value?.show_comments !== false)
+);
+
 const loadProfile = async (targetUserId = selectedUserId.value) => {
   if (!targetUserId) {
     return;
@@ -45,13 +69,15 @@ const loadProfile = async (targetUserId = selectedUserId.value) => {
   loading.value = true;
 
   try {
-    const [summaryResult, favoritesResult, commentsResult] = await Promise.all([
+    const [summaryResult, favoritesResult, commentsResult, privacyResult] = await Promise.all([
       mobileApi.profile.summary(targetUserId),
       mobileApi.profile.favorites(targetUserId),
-      mobileApi.profile.comments(targetUserId)
+      mobileApi.profile.comments(targetUserId),
+      mobileApi.profile.privacy(targetUserId)
     ]);
 
     summary.value = summaryResult.data;
+    selectedPrivacy.value = privacyResult.data;
     favoriteEvents.value = favoritesResult.data.events;
     favoritePosts.value = favoritesResult.data.posts;
     favoritePlaces.value = favoritesResult.data.places;
@@ -62,13 +88,18 @@ const loadProfile = async (targetUserId = selectedUserId.value) => {
 };
 
 const load = async () => {
-  const [meResult, usersResult] = await Promise.all([
+  const [meResult, usersResult, blockedResult, pointsResult] = await Promise.all([
     mobileApi.auth.me(),
-    mobileApi.profile.users()
+    mobileApi.profile.users(),
+    mobileApi.profile.blockedUserIds(),
+    mobileApi.points.summary()
   ]);
 
   currentUser.value = meResult.data.user;
   users.value = usersResult.data;
+  blockedUserIds.value = blockedResult.data;
+  pointsBalance.value = pointsResult.data.balance;
+  pointEntries.value = pointsResult.data.entries.slice(0, 3);
 
   if (!selectedUserId.value) {
     selectedUserId.value = meResult.data.user._id;
@@ -92,6 +123,23 @@ const toggleFollow = async () => {
   summary.value = result.data;
 };
 
+const toggleBlock = async (user: User) => {
+  if (user._id === currentUser.value?._id) {
+    uni.showToast({ title: "不能屏蔽自己", icon: "none" });
+    return;
+  }
+
+  const result = await mobileApi.profile.toggleBlock(user._id);
+
+  if (result.data.is_blocked) {
+    blockedUserIds.value = [...new Set([...blockedUserIds.value, user._id])];
+    uni.showToast({ title: `已屏蔽 ${user.nickname}`, icon: "none" });
+  } else {
+    blockedUserIds.value = blockedUserIds.value.filter((id) => id !== user._id);
+    uni.showToast({ title: `已解除屏蔽 ${user.nickname}`, icon: "none" });
+  }
+};
+
 const switchTab = (tab: ProfileTab) => {
   if (activeTab.value === tab) {
     return;
@@ -113,6 +161,24 @@ const openPlace = (id: string) => {
   uni.navigateTo({ url: `/pages/places/detail?id=${id}` });
 };
 
+const openTickets = () => {
+  uni.navigateTo({ url: "/pages/more/my-registrations" });
+};
+
+const openSettings = () => {
+  uni.navigateTo({ url: "/pages/more/settings" });
+};
+
+const formatPointTime = (input: string) => {
+  const date = new Date(input);
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const hh = String(date.getHours()).padStart(2, "0");
+  const min = String(date.getMinutes()).padStart(2, "0");
+
+  return `${mm}-${dd} ${hh}:${min}`;
+};
+
 onShow(load);
 </script>
 
@@ -121,6 +187,11 @@ onShow(load);
     <view class="page">
       <view class="profile-hero">
         <view class="cover" />
+        <view class="settings-button" @click.stop="openSettings">
+          <view class="settings-dot" />
+          <view class="settings-dot" />
+          <view class="settings-dot" />
+        </view>
         <view class="identity-row">
           <view class="avatar">{{ avatarInitial }}</view>
           <view class="identity-main">
@@ -151,15 +222,41 @@ onShow(load);
       </view>
 
       <view class="user-switcher">
-        <text
-          v-for="user in users"
-          :key="user._id"
-          class="user-chip"
-          :class="{ active: user._id === selectedUserId }"
-          @click="selectUser(user._id)"
-        >
-          {{ user.nickname }}{{ user._id === currentUser?._id ? "（我）" : "" }}
-        </text>
+        <view class="user-chip-row">
+          <view
+            v-for="user in users"
+            :key="user._id"
+            class="user-chip"
+            :class="{
+              active: user._id === selectedUserId,
+              blocked: blockedUserIds.includes(user._id)
+            }"
+            @click="selectUser(user._id)"
+          >
+            <text>{{ user.nickname }}{{ user._id === currentUser?._id ? "（我）" : "" }}</text>
+            <text
+              v-if="user._id !== currentUser?._id"
+              class="block-toggle"
+              @click.stop="toggleBlock(user)"
+            >
+              🚫
+            </text>
+          </view>
+        </view>
+        <button class="ticket-button" @click="openTickets">入场券</button>
+      </view>
+
+      <view class="points-card">
+        <view>
+          <text class="points-label">我的积分</text>
+          <text class="points-value">{{ pointsBalance }}</text>
+        </view>
+        <view class="points-list">
+          <text v-if="!pointEntries.length" class="point-empty">暂无积分记录</text>
+          <text v-for="entry in pointEntries" :key="entry._id" class="point-entry">
+            +{{ entry.points }} {{ entry.reason }} · {{ formatPointTime(entry.created_at) }}
+          </text>
+        </view>
       </view>
 
       <view class="tabs">
@@ -183,38 +280,55 @@ onShow(load);
 
       <view v-else class="content-panel" :class="slideClass">
         <template v-if="activeTab === 'favorites'">
-          <view v-if="!favoriteEvents.length && !favoritePosts.length && !favoritePlaces.length" class="state-text">
-            暂无收藏
+          <view v-if="isSelectedBlocked" class="state-text">
+            你已屏蔽此用户，无法查看他的动态
+          </view>
+          <view v-else-if="!canViewFavorites" class="state-text">
+            该用户已关闭公开展示收藏列表
           </view>
 
-          <view v-for="event in favoriteEvents" :key="event._id" class="content-card" @click="openEvent(event._id)">
-            <text class="content-type">Event</text>
-            <text class="content-title">{{ pickLocalized(state.locale, event.title_zh, event.title_en) }}</text>
-            <text class="content-desc">{{ pickLocalized(state.locale, event.summary_zh, event.summary_en) }}</text>
-          </view>
+          <template v-if="canViewFavorites">
+            <view v-if="!favoriteEvents.length && !favoritePosts.length && !favoritePlaces.length" class="state-text">
+              暂无收藏
+            </view>
 
-          <view v-for="post in favoritePosts" :key="post._id" class="content-card" @click="openPost(post._id)">
-            <text class="content-type">Post</text>
-            <text class="content-title">{{ post.title }}</text>
-            <text class="content-desc">{{ post.content }}</text>
-          </view>
+            <view v-for="event in favoriteEvents" :key="event._id" class="content-card" @click="openEvent(event._id)">
+              <text class="content-type">Event</text>
+              <text class="content-title">{{ pickLocalized(state.locale, event.title_zh, event.title_en) }}</text>
+              <text class="content-desc">{{ pickLocalized(state.locale, event.summary_zh, event.summary_en) }}</text>
+            </view>
 
-          <view v-for="place in favoritePlaces" :key="place._id" class="content-card" @click="openPlace(place._id)">
-            <text class="content-type">Place</text>
-            <text class="content-title">{{ pickLocalized(state.locale, place.name_zh, place.name_en) }}</text>
-            <text class="content-desc">
-              {{ pickLocalized(state.locale, place.short_address_zh, place.short_address_en) }}
-            </text>
-          </view>
+            <view v-for="post in favoritePosts" :key="post._id" class="content-card" @click="openPost(post._id)">
+              <text class="content-type">Post</text>
+              <text class="content-title">{{ post.title }}</text>
+              <text class="content-desc">{{ post.content }}</text>
+            </view>
+
+            <view v-for="place in favoritePlaces" :key="place._id" class="content-card" @click="openPlace(place._id)">
+              <text class="content-type">Place</text>
+              <text class="content-title">{{ pickLocalized(state.locale, place.name_zh, place.name_en) }}</text>
+              <text class="content-desc">
+                {{ pickLocalized(state.locale, place.short_address_zh, place.short_address_en) }}
+              </text>
+            </view>
+          </template>
         </template>
 
         <template v-else>
-          <view v-if="!comments.length" class="state-text">暂无评价</view>
-          <view v-for="item in comments" :key="item.comment._id" class="content-card" @click="item.post && openPost(item.post._id)">
-            <text class="content-type">评论于 {{ item.post?.title ?? "帖子" }}</text>
-            <text class="content-title">{{ item.comment.content }}</text>
-            <text class="content-desc">{{ item.comment.created_at }}</text>
+          <view v-if="isSelectedBlocked" class="state-text">
+            你已屏蔽此用户，无法查看他的动态
           </view>
+          <view v-else-if="!canViewComments" class="state-text">
+            该用户已关闭公开展示评论列表
+          </view>
+          <template v-if="canViewComments">
+            <view v-if="!comments.length" class="state-text">暂无评价</view>
+            <view v-for="item in comments" :key="item.comment._id" class="content-card" @click="item.post && openPost(item.post._id)">
+              <text class="content-type">评论于 {{ item.post?.title ?? "帖子" }}</text>
+              <text class="content-title">{{ item.comment.content }}</text>
+              <text class="content-desc">{{ item.comment.created_at }}</text>
+            </view>
+          </template>
         </template>
       </view>
     </view>
@@ -232,10 +346,40 @@ onShow(load);
 }
 
 .profile-hero {
+  position: relative;
   overflow: hidden;
   border-radius: 28rpx;
   background: #111827;
   color: #ffffff;
+}
+
+.settings-button {
+  position: absolute;
+  top: 22rpx;
+  right: 22rpx;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  width: 76rpx;
+  height: 56rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.94);
+  color: #0f766e;
+  line-height: 56rpx;
+  box-shadow: 0 10rpx 26rpx rgba(15, 118, 110, 0.18);
+}
+
+.settings-button:active {
+  background: rgba(236, 253, 245, 0.96);
+}
+
+.settings-dot {
+  width: 9rpx;
+  height: 9rpx;
+  border-radius: 999rpx;
+  background: #0f766e;
 }
 
 .cover {
@@ -327,13 +471,23 @@ onShow(load);
 
 .user-switcher {
   display: flex;
+  align-items: center;
   gap: 12rpx;
   margin: 20rpx 0;
+}
+
+.user-chip-row {
+  flex: 1;
+  display: flex;
+  gap: 12rpx;
   overflow-x: auto;
   white-space: nowrap;
 }
 
 .user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
   padding: 10rpx 18rpx;
   border-radius: 999rpx;
   background: #e5e7eb;
@@ -345,6 +499,69 @@ onShow(load);
   background: #ccfbf1;
   color: #0f766e;
   font-weight: 700;
+}
+
+.user-chip.blocked {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.block-toggle {
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.ticket-button {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 20rpx;
+  height: 56rpx;
+  border-radius: 999rpx;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 24rpx;
+  line-height: 56rpx;
+}
+
+.points-card {
+  display: flex;
+  gap: 24rpx;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 24rpx;
+  background: #ffffff;
+}
+
+.points-label,
+.points-value,
+.point-empty,
+.point-entry {
+  display: block;
+}
+
+.points-label {
+  color: #6b7280;
+  font-size: 22rpx;
+}
+
+.points-value {
+  margin-top: 4rpx;
+  color: #0f766e;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+
+.points-list {
+  flex: 1;
+  min-width: 0;
+}
+
+.point-empty,
+.point-entry {
+  color: #6b7280;
+  font-size: 22rpx;
+  line-height: 1.6;
 }
 
 .tabs {

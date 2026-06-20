@@ -75,6 +75,10 @@ const openRecommended = () => {
   load();
 };
 
+const openSubmit = () => {
+  uni.navigateTo({ url: placesPagePaths.submit() });
+};
+
 const handleCategoryChange = (event: { detail: { value: number | string } }) => {
   filters.value.category =
     categoryOptions.value[Number(event.detail.value)]?.value ?? "";
@@ -103,6 +107,14 @@ onLoad((query) => {
 
 <template>
   <view class="page">
+    <view class="page-header">
+      <view>
+        <view class="page-title">{{ listCopy.title }}</view>
+        <view class="page-subtitle">{{ listCopy.subtitle }}</view>
+      </view>
+      <button class="add-button" @click="openSubmit">+</button>
+    </view>
+
     <SectionPanel :title="listCopy.title" :subtitle="listCopy.subtitle">
       <view class="toolbar">
         <button class="secondary" @click="openRecommended">
@@ -199,6 +211,43 @@ onLoad((query) => {
   padding: 24rpx;
   background: #f8fafc;
   min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.page-title {
+  color: #111827;
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.page-subtitle {
+  margin-top: 6rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+}
+
+.add-button {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 999rpx;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 44rpx;
+  line-height: 68rpx;
+}
+
+.add-button::after {
+  border: 0;
 }
 
 .toolbar,

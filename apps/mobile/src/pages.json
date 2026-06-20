@@ -67,6 +67,12 @@
       }
     },
     {
+      "path": "pages/places/submit",
+      "style": {
+        "navigationBarTitleText": "提交地点信息"
+      }
+    },
+    {
       "path": "pages/profile/index",
       "style": {
         "navigationBarTitleText": "Profile"
@@ -76,6 +82,48 @@
       "path": "pages/more/login",
       "style": {
         "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/more/settings",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
+    },
+    {
+      "path": "pages/more/account-security",
+      "style": {
+        "navigationBarTitleText": "账号与安全"
+      }
+    },
+    {
+      "path": "pages/more/block-list",
+      "style": {
+        "navigationBarTitleText": "屏蔽列表"
+      }
+    },
+    {
+      "path": "pages/more/privacy-settings",
+      "style": {
+        "navigationBarTitleText": "隐私设置"
+      }
+    },
+    {
+      "path": "pages/more/push-settings",
+      "style": {
+        "navigationBarTitleText": "推送设置"
+      }
+    },
+    {
+      "path": "pages/more/feedback",
+      "style": {
+        "navigationBarTitleText": "问题反馈"
+      }
+    },
+    {
+      "path": "pages/more/information-collection",
+      "style": {
+        "navigationBarTitleText": "信息收集清单"
       }
     },
     {
