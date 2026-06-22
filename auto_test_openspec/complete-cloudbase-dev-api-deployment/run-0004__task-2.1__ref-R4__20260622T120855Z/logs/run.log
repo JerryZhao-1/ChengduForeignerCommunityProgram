@@ -1,0 +1,17 @@
+change-id: complete-cloudbase-dev-api-deployment
+task: 2.1 ref: R4
+started: 2026-06-22T12:09:13Z
++ pnpm --filter @community-map/api build:cloudbase-http
+
+> @community-map/api@0.1.0 build:cloudbase-http /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/api
+> node ../../scripts/prepare_cloudbase_api_function.mjs
+
+
+  apps/api/.cloudbase/community-map-api/index.js  196.2kb
+
+⚡ Done in 18ms
+Prepared community-map-api at apps/api/.cloudbase/community-map-api
++ test -f apps/api/.cloudbase/community-map-api/index.js
++ test -x apps/api/.cloudbase/community-map-api/scf_bootstrap
++ grep -q '/var/lang/node18/bin/node index.js' apps/api/.cloudbase/community-map-api/scf_bootstrap
++ grep -q 'type="HTTP"' apps/api/.cloudbase/community-map-api/README.md

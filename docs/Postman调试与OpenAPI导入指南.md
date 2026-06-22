@@ -1,6 +1,6 @@
 # Postman 调试与 OpenAPI 导入指南
 
-更新时间：2026-06-16  
+更新时间：2026-06-22
 OpenAPI 文件：`docs/openapi/community-map-api.openapi.yaml`
 
 ## 1. 后端会部署在哪里
@@ -11,8 +11,8 @@ OpenAPI 文件：`docs/openapi/community-map-api.openapi.yaml`
 
 | 层级 | 目标资源 | 用途 | 当前状态 |
 | --- | --- | --- | --- |
-| 数据库 | CloudBase 文档型数据库 | 存储 users、places、file_assets、configs、operation_logs，以及后续 events/posts/comments/announcements/notifications | dev 环境和 v1 集合按文档已记录；当前会话仍需重新登录后实时验证 |
-| API / BFF | CloudBase HTTP 云函数 `community-map-api` | 统一承接 Mobile、小程序、Admin、Postman 请求；执行校验、权限、响应 envelope、provider 选择和文件临时 URL | 代码入口已存在：`apps/api/src/cloudbase.ts`；正式 HTTP function 和 `/api` route 待验证 |
+| 数据库 | CloudBase 文档型数据库 | 存储 users、places、file_assets、configs、operation_logs，以及后续 events/posts/comments/announcements/notifications | dev 环境和 v1 集合已实时验证；当前 live `places` collection 为空 |
+| API / BFF | CloudBase HTTP 云函数 `community-map-api` | 统一承接 Mobile、小程序、Admin、Postman 请求；执行校验、权限、响应 envelope、provider 选择和文件临时 URL | dev HTTP function 和 `/api` route 已验证，证据见 `docs/cloudbase-dev-api-deployment.md` |
 | 文件 | CloudBase 云存储 | 存放地点图集、活动封面、帖子图片、票券二维码、导出文件 | 路径规则已记录；真实媒体 live flow 待验收 |
 | Admin 托管 | CloudBase 静态网站托管 | 部署 Web 管理后台 | dev hosting domain 已记录；正式联调待验收 |
 
@@ -55,18 +55,16 @@ curl http://127.0.0.1:8787/health
 
 ### CloudBase dev 环境
 
-CloudBase dev API Base URL 规划为：
+CloudBase dev API Base URL：
 
 ```text
 https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api
 ```
 
-当前状态：
-
-- 该 URL 是目标调试地址，不是当前已验证可用地址。
-- 必须先确认 `community-map-api` 已部署为正式 HTTP function。
-- 必须先确认 CloudBase HTTP access service 已创建 `/api` route。
-- 必须先通过 `GET {{baseUrl}}/health`。
+- `community-map-api` 已部署为正式 CloudBase HTTP function。
+- CloudBase HTTP access service 已创建 `/api` route。
+- `GET {{baseUrl}}/health`、`GET {{baseUrl}}/places`、`GET {{baseUrl}}/places/map-markers` 已通过 dev smoke。
+- 当前 live `places` collection 为空，因此 list/map 返回空数据是预期 live 状态，不是 Postman 配置问题。
 
 如果 `GET /api/health` 不通，优先检查 CloudBase function 和 HTTP route，不要先怀疑数据库或 Postman 配置。
 
@@ -113,7 +111,7 @@ Chengdu Tongzilin Community Map API
 | `baseUrl` | `https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api` | `https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api` |
 | `mockActorId` | `user_001` | `user_001` |
 
-注意：CloudBase dev 当前仍需先完成 function 和 `/api` route 验证。
+注意：CloudBase dev 当前已完成 function 和 `/api` route smoke；完整 places live acceptance 仍需先导入或创建 published live places 数据。
 
 ## 5. 配置 Postman Headers
 
@@ -363,8 +361,8 @@ GET /openapi.json
 
 1. CloudBase MCP 是否已登录。
 2. 是否绑定 env：`cloud1-d7gxdk8t43bd639c0`。
-3. `community-map-api` 是否是正式 HTTP function。
-4. HTTP access service 是否存在 `/api` route。
+3. `community-map-api` 是否仍是正式 HTTP function。
+4. HTTP access service 是否仍存在 `/api` route。
 5. `GET https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/health` 是否通过。
 6. 如果 health 不通，先修 function/route，不要先查数据库。
 
@@ -388,7 +386,7 @@ GET /openapi.json
 
 ## 10. 上线前必须确认
 
-- CloudBase dev live acceptance 通过。
+- CloudBase dev API smoke 通过；places full live acceptance 需在导入 live 数据后通过。
 - CloudBase prod env 已确认。
 - `community-map-api` 正式部署。
 - `/api` route 可访问。

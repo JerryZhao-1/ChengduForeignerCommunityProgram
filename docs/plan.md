@@ -1,6 +1,6 @@
 # 6.16-7.1 上线冲刺计划
 
-更新时间：2026-06-16  
+更新时间：2026-06-22
 计划周期：2026-06-16 至 2026-07-01  
 上线口径：达到可发布、可提交审核、可对外试运行状态；微信审核通过时间不等同于 7.1 当日上线完成。
 
@@ -48,6 +48,13 @@
   - `pnpm test` 通过
   - `pnpm typecheck` 通过
   - `pnpm lint` 通过
+- CloudBase dev API 部署闭环已完成到 public read smoke：
+  - MCP auth 已恢复并绑定 `cloud1-d7gxdk8t43bd639c0`
+  - dev env、collections、places indexes、function、gateway、hosting 已实时查询
+  - `community-map-api` 已替换为 CloudBase HTTP function
+  - `/api` access route 已创建
+  - `GET /api/health`、`GET /api/places`、`GET /api/places/map-markers` 通过 dev access domain
+  - 证据见 `docs/cloudbase-dev-api-deployment.md`
 
 ### 部分完成
 
@@ -78,21 +85,13 @@
 
 ### 未完成 / 不得标记完成
 
-- 当前 CloudBase MCP 会话未登录，最近检查状态为：
-  - `auth_status=REQUIRED`
-  - `env_status=NONE`
-  - 未绑定当前 env
-- 因此目前不能把微信云数据库标记为“已实时验证可连接”。
-- `community-map-api` 仍需要部署并确认为正式 CloudBase dev HTTP function。
-- CloudBase HTTP access `/api` route 仍需要在函数验证成功后创建或确认。
-- CloudBase dev live acceptance 尚未完成：
-  - places list
-  - map markers
+- CloudBase dev places full live acceptance 尚未完成：
   - detail
   - admin create/update
   - gallery media temp URL
   - imported draft visibility
   - published update visibility
+- 当前 live `places` collection 为空；public list 和 map markers 已证明连到 live provider，但 detail smoke 需等至少一个 published live place 后执行。
 - 非 places live providers 尚未完成：
   - events
   - posts / discover
@@ -106,6 +105,7 @@
 
 - `docs/cloudbase-week4-deployment-baseline.md`
 - `docs/week8-places-cloudbase-integration.md`
+- `docs/cloudbase-dev-api-deployment.md`
 - `openspec/changes/complete-week8-places-cloudbase-integration-and-volunteer-import/tasks.md`
 - `openspec/changes/complete-places-frontend-and-backend-foundation/tasks.md`
 
@@ -113,15 +113,15 @@
 
 ### P0: CloudBase 与部署阻塞项
 
-- [ ] 重新完成 CloudBase MCP 登录和环境绑定。
+- [x] 重新完成 CloudBase MCP 登录和环境绑定。
   - 验收：`auth_status=READY`，当前 env 绑定到 `cloud1-d7gxdk8t43bd639c0`。
-- [ ] 实时确认 CloudBase dev 环境、集合、索引、存储路径和 admin hosting 状态。
+- [x] 实时确认 CloudBase dev 环境、集合、索引、存储路径和 admin hosting 状态。
   - 验收：查询结果与 `docs/cloudbase-week4-deployment-baseline.md` 一致；差异必须记录并修复。
-- [ ] 将 `community-map-api` 部署为正式 CloudBase dev HTTP function。
-  - 验收：函数入口对应 `apps/api/src/cloudbase.ts`，不再作为 Event placeholder 处理。
-- [ ] 创建或确认 CloudBase HTTP access `/api` route。
+- [x] 将 `community-map-api` 部署为正式 CloudBase dev HTTP function。
+  - 验收：函数入口复用 `apps/api/src/app.ts#createApp()`，不再作为 Event placeholder 处理。
+- [x] 创建或确认 CloudBase HTTP access `/api` route。
   - 验收：只在函数验证成功后执行；dev access domain 可访问 `/api/health` 或等价 health route。
-- [ ] 配置并验证 CloudBase dev API 环境变量。
+- [x] 配置并验证 CloudBase dev API 环境变量。
   - 验收：`API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、env id 生效，places 读写不再回退 mock。
 - [ ] 跑通 CloudBase dev places live acceptance。
   - 验收：public list / map / detail / admin create-update / gallery media / draft visibility / published update 全部通过。
@@ -187,10 +187,10 @@
 
 #### 6.16 Tue
 
-- [ ] 完成新版 `docs/plan.md`。
-- [ ] 重新登录 CloudBase MCP，绑定 `cloud1-d7gxdk8t43bd639c0`。
-- [ ] 实时确认 dev env、collections、indexes、function、gateway、hosting 状态。
-- [ ] 将确认结果同步到部署登记文档。
+- [x] 完成新版 `docs/plan.md`。
+- [x] 重新登录 CloudBase MCP，绑定 `cloud1-d7gxdk8t43bd639c0`。
+- [x] 实时确认 dev env、collections、indexes、function、gateway、hosting 状态。
+- [x] 将确认结果同步到部署登记文档。
 
 退出标准：
 
@@ -198,10 +198,10 @@
 
 #### 6.17 Wed
 
-- [ ] 部署或修复 `community-map-api` dev HTTP function。
-- [ ] 确认函数入口、runtime、env vars、logs。
-- [ ] 创建或确认 `/api` route。
-- [ ] 完成 `/health` 和 places read smoke。
+- [x] 部署或修复 `community-map-api` dev HTTP function。
+- [x] 确认函数入口、runtime、env vars、logs。
+- [x] 创建或确认 `/api` route。
+- [x] 完成 `/health` 和 places read smoke。
 
 退出标准：
 
@@ -209,7 +209,7 @@
 
 #### 6.18 Thu
 
-- [ ] 跑通 places live provider。
+- [x] 跑通 places live provider public read smoke。
 - [ ] 导入或创建最小 live places 数据。
 - [ ] 验证 public list / map markers / detail。
 - [ ] 验证 admin create/update 后 public read 可见性。

@@ -1,0 +1,8 @@
+change-id: complete-cloudbase-dev-api-deployment
+task: 2.2 ref: R5
+started: 2026-06-22T12:09:14Z
++ grep -q 'Type: `HTTP`' docs/cloudbase-dev-api-deployment.md
++ grep -q 'Runtime: `Nodejs18.15`' docs/cloudbase-dev-api-deployment.md
++ grep -q 'Latest code update RequestId: `70783676-7336-48f1-a9cd-926b68e396cf`' docs/cloudbase-dev-api-deployment.md
++ grep -q 'Function ID: `lam-igyxxjph`' docs/cloudbase-dev-api-deployment.md
+completed: 2026-06-22T12:09:14Z

@@ -87,7 +87,7 @@ pnpm --filter @community-map/api dev:cloudbase
 说明：
 
 - `API_PROVIDER=mock` 是默认模式。
-- `API_PROVIDER=cloudbase` 会尝试使用 CloudBase provider；当前 Places live 基础能力已有代码，完整 CloudBase dev 部署、HTTP route 和线上验收仍需单独完成。
+- `API_PROVIDER=cloudbase` 会尝试使用 CloudBase provider；CloudBase dev `community-map-api` HTTP function 和 `/api` route 已完成基础 smoke，完整 places live acceptance 仍需导入或创建 live 数据后继续验收。
 - 本地演示新增地点时，确保 `status=published`，否则前台 public list 不展示。
 
 ### 2. 运行后台管理端

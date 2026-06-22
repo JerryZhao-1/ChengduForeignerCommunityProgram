@@ -13,6 +13,18 @@ import { registerFileRoutes } from "./routes/files";
 import { registerNotificationRoutes } from "./routes/notifications";
 import { registerPlaceRoutes } from "./routes/places";
 
+const stripApiPrefix = (path: string) => {
+  if (path === "/api") {
+    return "/";
+  }
+
+  if (path.startsWith("/api/")) {
+    return path.slice(4);
+  }
+
+  return path;
+};
+
 export const createApp = (mode?: string) => {
   const app = new Koa();
   const router = new Router();
@@ -26,6 +38,10 @@ export const createApp = (mode?: string) => {
   app.use(errorMiddleware);
   app.use(requestIdMiddleware);
   app.use(bodyParser());
+  app.use(async (ctx, next) => {
+    ctx.path = stripApiPrefix(ctx.path);
+    await next();
+  });
   app.use(async (ctx, next) => {
     ctx.state.provider = provider;
     await next();

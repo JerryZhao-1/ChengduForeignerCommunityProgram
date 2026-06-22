@@ -1,6 +1,6 @@
 # Week 8 Places CloudBase Integration And Volunteer Import
 
-Last updated: 2026-06-14
+Last updated: 2026-06-22
 
 ## Summary
 
@@ -56,20 +56,22 @@ Implemented behavior:
 
 ## CloudBase Dev Status
 
-CloudBase MCP status during this run:
+CloudBase MCP and dev API status after the 2026-06-22 deployment run:
 
-- Authentication: `AUTH_REQUIRED`.
-- Current bound environment: none.
-- `envQuery` and `queryFunctions` could not verify `cloud1-d7gxdk8t43bd639c0` or `community-map-api`.
+- Authentication: `READY`.
+- Current bound environment: `cloud1-d7gxdk8t43bd639c0`.
+- `community-map-api`: deployed as CloudBase HTTP function, runtime `Nodejs18.15`, status `Active`.
+- Function env vars: `API_PROVIDER=cloudbase`, `CLOUDBASE_PROVIDER_MODE=live`, `CLOUDBASE_ENV_ID=cloud1-d7gxdk8t43bd639c0`.
+- `/api` access route: created at `https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api`.
+- Public read smoke: `/api/health`, `/api/places`, and `/api/places/map-markers` returned `200`.
 
-Because CloudBase authentication was not available in this thread, these live actions remain deferred:
+Live places acceptance remains partial:
 
-- Deploy `community-map-api` as the formal CloudBase dev HTTP function.
-- Confirm that it is no longer an Event placeholder.
-- Create or confirm the HTTP access service `/api` route.
-- Run live CloudBase dev acceptance against the actual access domain.
+- The live `places` collection exists but currently has `0` documents.
+- Public list and map marker smoke prove live provider configuration, because mock has non-empty places while CloudBase returned empty live data.
+- Detail smoke, admin create/update, gallery temp URL, imported draft visibility, and published update visibility still require seeded or imported live places data.
 
-The `/api` route must remain deferred until function verification succeeds.
+Detailed deployment evidence is recorded in `docs/cloudbase-dev-api-deployment.md`.
 
 ## Validation
 

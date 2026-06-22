@@ -1,6 +1,6 @@
 # CloudBase Week 4 Deployment Baseline
 
-Last updated: 2026-06-14
+Last updated: 2026-06-22
 
 ```text
 Mini Program AppID: wx7518a3c1fcdd39a5
@@ -13,11 +13,11 @@ CloudBase prod env id: pending
 CloudBase prod region: pending
 
 HTTP cloud function name: community-map-api
-HTTP cloud function status: existing / Active / Event / Nodejs18.15
+HTTP cloud function status: Active / HTTP / Nodejs18.15 / function id lam-igyxxjph
 HTTP access dev domain: https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com
 HTTP access prod domain: pending
-planned API route prefix: /api
-API route creation: deferred until HTTP function is deployed
+API route prefix: /api
+API route status: created / APIId 083b66e0-c43a-4af4-864f-f3a297353828
 
 Admin hosting dev domain: https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com
 Admin hosting prod domain: pending
@@ -91,3 +91,17 @@ Current CloudBase live status from the 2026-06-14 run:
 - Route creation remains gated on verifying `community-map-api` as the formal HTTP function entry for `apps/api/src/cloudbase.ts`.
 
 No production CloudBase environment or production data was modified.
+
+## 2026-06-22 Dev API Update
+
+CloudBase MCP auth was restored and bound to `cloud1-d7gxdk8t43bd639c0`.
+
+Live differences from the original Week 4 record:
+
+- `community-map-api` is no longer an Event placeholder. It is now an HTTP function using `Nodejs18.15`, status `Active`, function id `lam-igyxxjph`.
+- The function env vars are `API_PROVIDER=cloudbase`, `CLOUDBASE_PROVIDER_MODE=live`, and `CLOUDBASE_ENV_ID=cloud1-d7gxdk8t43bd639c0`.
+- The `/api` access route exists at `https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api`.
+- Dev smoke passed for `/api/health`, `/api/places`, and `/api/places/map-markers`.
+- The live `places` collection exists but currently has `0` documents, so detail smoke remains blocked until a published live place exists.
+
+Full evidence is recorded in `docs/cloudbase-dev-api-deployment.md`.

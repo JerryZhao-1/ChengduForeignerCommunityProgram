@@ -1,0 +1,7 @@
+change-id: complete-cloudbase-dev-api-deployment
+task: 1.1 ref: R1
+started: 2026-06-22T12:09:10Z
++ grep -q 'Auth: `READY`' docs/cloudbase-dev-api-deployment.md
++ grep -q 'Bound env: `cloud1-d7gxdk8t43bd639c0`' docs/cloudbase-dev-api-deployment.md
++ grep -q 'Region: `ap-shanghai`' docs/cloudbase-dev-api-deployment.md
+completed: 2026-06-22T12:09:10Z

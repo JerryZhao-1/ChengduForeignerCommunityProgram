@@ -1,0 +1,7 @@
+change-id: complete-cloudbase-dev-api-deployment
+task: 4.1 ref: R10
+started: 2026-06-22T12:09:21Z
++ grep -q 'Remaining Work' docs/cloudbase-dev-api-deployment.md
++ grep -q '导入或创建最小 live places 数据' docs/plan.md
++ grep -q '完整 places live acceptance' docs/Postman调试与OpenAPI导入指南.md
+completed: 2026-06-22T12:09:21Z

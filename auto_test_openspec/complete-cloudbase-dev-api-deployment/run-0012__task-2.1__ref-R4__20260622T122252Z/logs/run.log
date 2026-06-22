@@ -1,0 +1,23 @@
+change-id: complete-cloudbase-dev-api-deployment
+task: 2.1 ref: R4
+started: 2026-06-22T12:27:58Z
++ pnpm --filter @community-map/api build:cloudbase-http
+
+> @community-map/api@0.1.0 build:cloudbase-http /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/api
+> node ../../scripts/prepare_cloudbase_api_function.mjs
+
+
+  apps/api/.cloudbase/community-map-api/index.cjs  3.1mb ⚠️
+
+⚡ Done in 73ms
+Prepared community-map-api at apps/api/.cloudbase/community-map-api
++ test -f apps/api/.cloudbase/community-map-api/index.cjs
++ test -x apps/api/.cloudbase/community-map-api/scf_bootstrap
++ grep -q '/var/lang/node18/bin/node index.cjs' apps/api/.cloudbase/community-map-api/scf_bootstrap
++ cp generated function folder to isolated temp dir
++ test ! -d isolated node_modules
++ PORT=9021 node index.cjs
++ curl -sS -f http://127.0.0.1:9021/api/health
+{"ok":true}+ isolated server log
+[api] CloudBase HTTP function listening on port 9021
+completed: 2026-06-22T12:27:59Z

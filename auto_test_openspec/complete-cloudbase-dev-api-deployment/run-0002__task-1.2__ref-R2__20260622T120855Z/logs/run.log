@@ -1,0 +1,9 @@
+change-id: complete-cloudbase-dev-api-deployment
+task: 1.2 ref: R2
+started: 2026-06-22T12:09:11Z
++ grep -q '| `places` | 0 | 7 |' docs/cloudbase-dev-api-deployment.md
++ grep -q 'idx_places_community_status' docs/cloudbase-dev-api-deployment.md
++ grep -q 'Static hosting:' docs/cloudbase-dev-api-deployment.md
++ grep -q 'Function ID: `lam-igyxxjph`' docs/cloudbase-dev-api-deployment.md
++ grep -q 'APIId: `083b66e0-c43a-4af4-864f-f3a297353828`' docs/cloudbase-dev-api-deployment.md
+completed: 2026-06-22T12:09:11Z

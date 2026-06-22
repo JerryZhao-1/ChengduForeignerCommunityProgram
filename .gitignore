@@ -3,6 +3,8 @@ dist
 .turbo
 coverage
 .pnpm-store
+.cloudbase
+apps/api/.cloudbase
 .DS_Store
 .env.local
 .env.*.local

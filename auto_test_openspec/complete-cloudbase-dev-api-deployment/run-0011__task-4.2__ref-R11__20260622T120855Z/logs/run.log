@@ -1,0 +1,24 @@
+change-id: complete-cloudbase-dev-api-deployment
+task: 4.2 ref: R11
+started: 2026-06-22T12:09:22Z
++ openspec validate complete-cloudbase-dev-api-deployment --strict --no-interactive
+Change 'complete-cloudbase-dev-api-deployment' is valid
++ pnpm --filter @community-map/api typecheck
+
+> @community-map/api@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/api
+> tsc --noEmit -p tsconfig.json
+
++ pnpm exec vitest run apps/api/test/app.spec.ts apps/api/test/cloudbase.spec.ts
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ apps/api/test/cloudbase.spec.ts (9 tests) 19ms
+ ✓ apps/api/test/app.spec.ts (5 tests) 60ms
+
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+   Start at  20:09:24
+   Duration  558ms (transform 148ms, setup 0ms, collect 651ms, tests 78ms, environment 0ms, prepare 79ms)
+
++ test -d auto_test_openspec/complete-cloudbase-dev-api-deployment
+completed: 2026-06-22T12:09:24Z

@@ -222,6 +222,42 @@ describe("cloudbase event handler", () => {
     }
   });
 
+  it("normalizes the /api prefix in the cloudbase compatibility handler", async () => {
+    const health = await main(
+      {},
+      {
+        eventID: "req_api_health",
+        httpContext: {
+          url: "http://localhost/api/health",
+          httpMethod: "GET"
+        }
+      } as any
+    );
+    const healthBody = health.body as any;
+
+    expect(health.statusCode).toBe(200);
+    expect(healthBody.success).toBe(true);
+    expect(healthBody.data).toEqual({ ok: true });
+    expect(healthBody.requestId).toBe("req_api_health");
+
+    const places = await main(
+      {},
+      {
+        eventID: "req_api_places",
+        httpContext: {
+          url: "http://localhost/api/places?page=1&pageSize=1",
+          httpMethod: "GET"
+        }
+      } as any
+    );
+    const placesBody = places.body as any;
+
+    expect(places.statusCode).toBe(200);
+    expect(placesBody.success).toBe(true);
+    expect(placesBody.requestId).toBe("req_api_places");
+    expect(placesBody.data.items).toHaveLength(1);
+  });
+
   it("keeps places query semantics aligned between mock and cloudbase providers", async () => {
     const mockProvider = createMockProvider();
     const cloudbaseProvider = createCloudbaseProvider();

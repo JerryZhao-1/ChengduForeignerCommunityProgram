@@ -1,0 +1,8 @@
+change-id: complete-cloudbase-dev-api-deployment
+task: 3.2 ref: R8
+started: 2026-06-22T12:09:18Z
++ curl -sS -f --max-time 20 https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/health | grep -q '"ok":true'
++ curl -sS -f --max-time 20 'https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/places?page=1&pageSize=5' | grep -q '"success":true'
++ curl -sS -f --max-time 20 https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/places/map-markers | grep -q '"success":true'
++ grep -q 'Detail smoke was not run because there is no published live place' docs/cloudbase-dev-api-deployment.md
+completed: 2026-06-22T12:09:18Z

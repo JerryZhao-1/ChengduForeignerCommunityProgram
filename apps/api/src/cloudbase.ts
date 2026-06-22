@@ -87,6 +87,18 @@ const matchRoute = (pattern: string, pathname: string): RouteMatch => {
   return { matched: true, params };
 };
 
+const stripApiPrefix = (path: string) => {
+  if (path === "/api") {
+    return "/";
+  }
+
+  if (path.startsWith("/api/")) {
+    return path.slice(4);
+  }
+
+  return path;
+};
+
 const getActorId = (context: CloudbaseContextLike) => {
   const headerValue = context.httpContext.headers?.["x-mock-user-id"];
 
@@ -175,7 +187,7 @@ const normalizeRequest = (
 export const main: CloudbaseEventHandler = async (event, context) => {
   const { requestId, httpContext, body } = normalizeRequest(event, context);
   const url = new URL(httpContext.url, "http://localhost");
-  const pathname = url.pathname;
+  const pathname = stripApiPrefix(url.pathname);
   const method = httpContext.httpMethod.toUpperCase() as HttpMethod;
   const actorId = getActorId({
     eventID: requestId,

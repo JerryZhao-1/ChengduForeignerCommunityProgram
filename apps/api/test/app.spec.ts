@@ -223,6 +223,31 @@ describe("api routes", () => {
     }
   });
 
+  it("serves health and places routes with the CloudBase /api prefix", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const healthResponse = await fetch(`${baseUrl}/api/health`);
+      const healthData = await healthResponse.json();
+      expect(healthResponse.status).toBe(200);
+      expect(healthData).toEqual({ ok: true });
+
+      const placesResponse = await fetch(`${baseUrl}/api/places?page=1&pageSize=1`);
+      const placesData = await placesResponse.json();
+      expect(placesResponse.status).toBe(200);
+      expect(placesData.success).toBe(true);
+      expect(placesData.data.items).toHaveLength(1);
+
+      const markersResponse = await fetch(`${baseUrl}/api/places/map-markers`);
+      const markersData = await markersResponse.json();
+      expect(markersResponse.status).toBe(200);
+      expect(markersData.success).toBe(true);
+      expect(markersData.data.length).toBeGreaterThan(0);
+    } finally {
+      await close();
+    }
+  });
+
   it("blocks admin routes for non-admin actors", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 

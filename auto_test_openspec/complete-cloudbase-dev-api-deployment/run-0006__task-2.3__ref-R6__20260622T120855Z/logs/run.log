@@ -1,0 +1,7 @@
+change-id: complete-cloudbase-dev-api-deployment
+task: 2.3 ref: R6
+started: 2026-06-22T12:09:15Z
++ grep -q '| `GET /health` | 200 |' docs/cloudbase-dev-api-deployment.md
++ grep -q 'bc257000-fcda-4822-a4e4-8f1c323ce523' docs/cloudbase-dev-api-deployment.md
++ curl -sS -f --max-time 20 https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/health | grep -q '"ok":true'
+completed: 2026-06-22T12:09:16Z
