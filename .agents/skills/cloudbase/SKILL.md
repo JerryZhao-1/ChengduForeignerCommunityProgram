@@ -1,9 +1,9 @@
 ---
 name: cloudbase
-description: "Use this skill when you develop, design, build, deploy, debug, migrate, or troubleshoot CloudBase (腾讯云开发, 云开发, TCB, 微信云开发) projects. Covers Web apps (React, Vue, Vite, Next, Nuxt, 网站, dashboards, 管理后台), 微信小程序, 小程序, uni-app, native/mobile (iOS, Android, Flutter, React Native) via HTTP API. Includes UI (页面, 界面, 登录页, 表单, form, dashboard, 仪表盘, prototype, 原型), auth (登录, 注册, OAuth, 微信登录, publishable key), databases (NoSQL 文档数据库, MySQL 关系型数据库, CRUD, security rules), 云函数 (serverless, scf_bootstrap, HTTP Functions), CloudRun (云托管, Dockerfile), 云存储 (file upload, hosting, 静态托管). Built-in AI (内置大模型, streaming, 流式输出, image generation, 图片生成, 图像生成, generateText, streamText, createModel, generateImage, TokenHub, Hunyuan, hunyuan-exp, DeepSeek, deepseek, GLM, Kimi, MiniMax, Token Credits 资源包, 小程序成长计划), 第三方大模型, 大模型接入, 大模型调用, LLM API, chatbot, AI 助手, AI agent, 智能体, AG-UI, LangGraph, LangChain. Ops (巡检, 诊断, health check, 日志, troubleshooting, 排查). Spec workflow (需求文档, 技术方案, 架构设计, requirements, tasks.md)."
+description: "Use this skill when you develop, design, build, deploy, debug, migrate, or troubleshoot CloudBase (腾讯云开发, 云开发, TCB, 微信云开发) projects. Covers Web apps (React, Vue, Vite, Next, Nuxt, dashboards, 管理后台), 微信小程序, 小程序, uni-app, native/mobile (iOS, Android, Flutter, React Native) via HTTP API. Includes UI (页面, 界面, 登录页, 表单, form, dashboard, prototype, 原型), auth (登录, 注册, OAuth, 微信登录, publishable key), databases (NoSQL 文档数据库, MySQL, PostgreSQL/CloudBase PG, app.rdb(), queryPgDatabase/managePgDatabase, CRUD, security rules), 云函数 (serverless, scf_bootstrap, HTTP Functions), CloudRun (云托管, Dockerfile), 云存储 (file upload, hosting, 静态托管). Built-in AI (内置大模型, streaming, 流式输出, image generation, 图片生成, generateText, streamText, createModel, generateImage, TokenHub, Hunyuan, hunyuan-exp, DeepSeek, GLM, Token Credits 资源包, 小程序成长计划), 第三方大模型, 大模型接入, 大模型调用, LLM API, chatbot, AI 助手, AI agent, 智能体, AG-UI, LangGraph, LangChain. Ops (巡检, 诊断, health check, 日志, troubleshooting). Spec workflow (需求文档, 技术方案, requirements, tasks.md)."
 description_zh: 为你的小程序和 Web/H5 提供一体化运行与部署环境，包括数据库、云函数、云存储、身份权限和静态托管
 description_en: An all-in-one runtime and deployment environment for WeChat Mini Programs and Web/H5 apps, including database, cloud functions, cloud storage, identity and access control, and static hosting.
-version: 2.21.1
+version: 2.23.0
 ---
 
 # CloudBase Development Guidelines
@@ -17,17 +17,37 @@ All reference documentation files are located in the `references/` directory rel
 cloudbase/
 ├── SKILL.md              # This file (main entry)
 └── references/           # All reference documentation
-    ├── auth-web/         # Web authentication guide
-    ├── auth-wechat/      # WeChat authentication guide
-    ├── no-sql-web-sdk/   # NoSQL database for Web
+    ├── auth-web/SKILL.md       # Web authentication guide
+    ├── auth-wechat/SKILL.md    # WeChat authentication guide
+    ├── no-sql-web-sdk/SKILL.md # NoSQL database for Web
     ├── ui-design/        # UI design guidelines
     └── ...               # Other reference docs
 ```
 
-**How to use:** When this document mentions reading a reference file like `references/auth-web/README.md`, simply read that file from the `references/` subdirectory.
+**How to use:** When this document mentions reading a reference file like `references/auth-web/SKILL.md`, simply read that file from the `references/` subdirectory.
 
 ---
 
+
+## Workflow
+
+Every CloudBase task follows this three-stage process:
+
+```
+1. Exploration  →  Read the matching skill completely before writing any code.
+                   Search for it with searchKnowledgeBase(mode="skill"), then
+                   Read the full SKILL.md content. Do not rely on search summaries.
+2. Implementation
+   ├── 2a. Resource preparation → Use MCP tools to prepare backend resources
+   │     (enable auth providers, create database tables, configure storage,
+   │      set up security rules — before writing any frontend code)
+   └── 2b. Frontend implementation → Write code, install deps, start server, test
+3. Close-out  →  Run cloudbase-code-review, fix errors, declare done
+```
+
+**Key constraints:**
+- Stage 2a (resource preparation) must precede frontend code. Always use MCP tools.
+- Stage 3 is mandatory. The close-out includes automated lint checks and manual LLM review. Do not skip it.
 
 ## Activation Contract
 
@@ -60,15 +80,18 @@ If a skill points to its own `references/...` files, keep following those relati
 - When saving MCP or tool results to a local file with a generic file-writing tool, pass text, not raw objects. For JSON output files, serialize first with `JSON.stringify(result, null, 2)` and write that string as the file content.
 - If the file-writing tool reports that a field such as `content` expected a string but received an object, do not retry with the same raw object. Serialize the object first, then retry once with the serialized text, and make sure the retried call actually passes the serialized string rather than the original object.
 - Keep scenario-specific pitfall lists in the matching child skills instead of expanding this entry file.
+- **For new frontend projects, the first deployment must use `manageApps(action="createApp", ...)` to deploy to an independent subdomain. `manageHosting` is prohibited for first-time deployments — it is only allowed for incremental updates to existing projects that were originally deployed via `manageHosting`.**
 
 ### Engineering constitution (applies to every scenario)
 
 These rules override convenience. They are a gate before saying "done". Full rationale + replacements live in `web-development` (Engineering constitution section).
 
+- **Prepare backend resources via MCP before writing frontend code.** Auth providers, database tables, storage domains, and security rules must be set up through MCP tools before writing any frontend code that depends on them. Writing frontend code against non-existent resources will cause grader failures. This applies to every scenario — auth, database, storage, functions, CloudRun.
 - **Do NOT use `any` to bypass type errors.** Not `: any`, not `as any`, not `@ts-ignore`, not `@ts-nocheck`. Use `unknown` + a type guard, a precise `interface`, or `declare module` augmentation instead. `any` propagates silently and defeats the compile-time safety net.
 - **Self-verify before claiming done.** Static layer (`tsc --noEmit` / lint / project build / unit tests) **and** runtime layer (use `agent-browser` to exercise user-visible flows when the change touches routing, rendering, forms, auth, or async UI). "It should work" without evidence is not acceptable. If a layer cannot be run locally, name the gap explicitly.
 - **Do not paper over failures.** No empty `try/catch` to silence bugs, no skipping / deleting failing tests to make CI green, "it compiles" is not "it works".
 - **`ai.createModel(...)` / `wx.cloud.extend.AI.createModel(provider)` argument is a GroupName, not a vendor / model id.** Only three legal shapes: `"cloudbase"` (default, TokenHub-backed managed pool), `"hunyuan-exp"` (only if `DescribeAIModels` returns it, mainly Mini Program Growth Plan), or `"custom-<your-name>"` (user-defined via `CreateAIModel`, must start with `custom-`). The concrete model id (`deepseek-v4-flash`, `hunyuan-2.0-instruct-20251111`, `kimi-k2.6`, …) goes into the **`model` field** of `generateText` / `streamText`, never into `createModel(...)`. See `ai-model-web` / `ai-model-nodejs` / `ai-model-wechat` for the full STOP card.
+- **Low-capability-model STOP card:** Do not paste legacy CloudBase NoSQL or old-auth snippets from memory. If the task says `PostgreSQL`, `CloudBase PG`, `PG mode`, `app.rdb()`, `queryPgDatabase`, `managePgDatabase`, `PostgREST`, or `RLS`, route to `postgresql-development` and write `app.rdb().from(...)` / `queryPgDatabase` / `managePgDatabase`; do **not** write `app.database()`, `db.collection(...)`, `.where()`, `.orderBy()`, `app.uploadFile()`, `querySqlDatabase`, or `manageSqlDatabase` for that PG data path. For Web auth guards, use `auth.getSession()` and require `data.session`; do **not** use deprecated `getLoginState()` or `auth.getUser()` as proof of login.
 
 ### High-priority routing
 
@@ -80,6 +103,7 @@ These rules override convenience. They are a gate before saying "done". Full rat
 | WeChat mini program + CloudBase | `miniprogram-development` | `auth-wechat`, `no-sql-wx-mp-sdk` | `auth-web`, `web-development` | Whether the project really uses CloudBase / `wx.cloud` |
 | Native App / Flutter / React Native | `http-api` | `auth-tool`, `relational-database-tool` | `auth-web`, `no-sql-web-sdk`, `web-development` | SDK boundary, OpenAPI, auth method |
 | Web projects + NoSQL Database | `web-development` | `no-sql-web-sdk`, `auth-web` | `relational-database-tool`, `http-api` | Login state and database access permission model |
+| CloudBase PostgreSQL / PG | `postgresql-development` | `auth-tool`, `auth-web`, `web-development`, `miniprogram-development`, `cloud-storage-web`, `http-api` | `relational-database-tool`, `no-sql-web-sdk` | PG schema, usernamePassword login, backend/RLS permission model |
 | MySQL Database (relational) | `relational-database-tool` | `relational-database-web`, `http-api` | `no-sql-web-sdk`, `web-development` | Distinguish MCP management vs app code access |
 | Cloud Functions | `cloud-functions` | `auth-tool`, `ai-model-nodejs` | `cloudrun-development`, `auth-web` | Event vs HTTP function, runtime, `scf_bootstrap` |
 | CloudRun backend | `cloudrun-development` | `auth-tool`, `relational-database-tool` | `cloud-functions` | Container boundary, Dockerfile, CORS |
@@ -96,6 +120,7 @@ These rules override convenience. They are a gate before saying "done". Full rat
 - **WeChat mini program + CloudBase** — 小程序 云开发, wx.cloud, mini program cloudbase, OPENID, 小程序数据库
 - **Native App / Flutter / React Native** — Android CloudBase, iOS CloudBase, Flutter CloudBase, React Native CloudBase, 原生 App 接入
 - **Web projects + NoSQL Database** — Web 文档数据库, CloudBase collection, 前端查库, NoSQL Web SDK
+- **CloudBase PostgreSQL / PG** — CloudBase PG, PostgreSQL, Postgres, PG 模式, JS SDK v3 PostgreSQL, app.rdb(), queryPgDatabase, managePgDatabase, mysqldb OpenAPI, PostgREST, RLS, service_role, auth schema, storage schema, pgvector
 - **MySQL Database (relational)** — MySQL 建表, executeWriteSQL, security rule, CloudBase 关系型数据库管理
 - **Cloud Functions** — 创建云函数, HTTP 云函数, getFunctionLogs, scf_bootstrap, runtime
 - **CloudRun backend** — CloudRun 部署, 云托管, container backend, Dockerfile
@@ -112,6 +137,7 @@ These rules override convenience. They are a gate before saying "done". Full rat
 - Web auth failures are usually caused by skipping provider configuration, not by missing frontend code snippets.
 - Native App failures are usually caused by reading Web SDK paths, not by missing HTTP API knowledge.
 - Mini program failures are usually caused by treating `wx.cloud` like Web auth or Web SDK.
+- CloudBase PG failures are usually caused by falling back to MySQL/NoSQL routing, skipping username-password auth readiness, guessing raw HTTP paths instead of using JS SDK v3 `app.rdb()` / documented `mysqldb` OpenAPI, or leaving backend/RLS permissions as frontend-only checks.
 - AI 大模型调用失败通常是资源包未开通或小程序成长计划未报名，不是 SDK 用错；先跑 `DescribeEnvPostpayPackage` / `DescribeActivityInfo` 资格检查，再去改代码。小程序端优先判成长计划，Web / Node.js 端优先判 Token Credits 资源包。
 
 ### Web SDK quick reminder
@@ -229,7 +255,11 @@ When users request deployment to CloudBase:
 2. **Frontend Deployment (if applicable)**:
    - After backend deployment completes, update frontend API endpoints using the returned API addresses
    - Build the frontend application
-   - Deploy to CloudBase static hosting using hosting tools
+   - **Determine whether this is a new or existing project**:
+     - **New project (first-time deployment)**: Use `manageApps(action="createApp", ...)` to deploy to an independent subdomain. Each app gets its own `*.webapps.tcloudbase.com` subdomain — no path collisions between projects.
+     - **Existing project (re-deployment)**: Use `manageApps(action="updateApp", ...)` to update the existing app. If the original project was deployed via `manageHosting` (shared domain path), continue using `manageHosting` for consistency.
+   - After uploading, call `setWebsiteDocument` to configure SPA routing — set both `indexDocument` and `errorDocument` to `"index.html"`.
+   - If `manageApps` fails persistently, fall back to `manageHosting`. Remind the user the URL will share the env domain path and CDN has a few minutes of cache.
 
 3. **Display Deployment URLs**:
    - Show backend deployment URL (if applicable)

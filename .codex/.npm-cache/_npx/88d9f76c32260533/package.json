@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@cloudbase/cloudbase-mcp": "^2.23.0"
+  },
+  "_npx": {
+    "packages": [
+      "@cloudbase/cloudbase-mcp@latest"
+    ]
+  }
+}

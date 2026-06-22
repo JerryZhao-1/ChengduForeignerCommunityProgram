@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "mcporter": "^0.12.0"
+  },
+  "_npx": {
+    "packages": [
+      "mcporter"
+    ]
+  }
+}

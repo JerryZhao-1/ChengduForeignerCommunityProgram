@@ -1,7 +1,7 @@
 ---
 name: auth-web-cloudbase
 description: CloudBase Web Authentication Quick Guide for frontend integration after auth-tool has already been checked. Provides concise and practical Web authentication solutions with multiple login methods and complete user management.
-version: 2.21.1
+version: 2.23.0
 alwaysApply: false
 ---
 
@@ -48,6 +48,7 @@ Keep local `references/...` paths for files that ship with the current skill dir
 - Keeping the login or register account input as `type="email"` when the task explicitly says the account identifier is a plain username string.
 - Starting implementation before calling `queryAppAuth(action="getLoginConfig")` and enabling `usernamePassword` when it is still off.
 - **Treating `auth.getUser()` or deprecated `auth.getLoginState()` as proof of real login.** When the SDK is initialized with `accessKey`, the deprecated `getLoginState()` returns an object with a valid `uid` even without any login — causing route guards that check `!!loginState` or `!!uid` to incorrectly pass. The fix is to use `auth.getSession()` instead: it returns `data.session === undefined` when no real login has occurred. Only `!!data.session` from `getSession()` is a reliable authentication check.
+- **Copying old CloudBase auth snippets from training data.** Do not use `auth.getLoginState()`, `auth.hasLoginState()`, `auth.getCurrentUser()`, or `auth.toDefaultLoginPage()` as the default Web flow. Use the Supabase-like Web SDK v2 auth methods in this file and provider readiness from `auth-tool`.
   
   Note: anonymous login is now **disabled by default** for new environments and inactive existing environments. Always use `auth.getSession()` for auth guards.
 
@@ -89,7 +90,8 @@ Use npm installation for modern Web projects. In React, Vue, Vite, and other bun
 - When `queryAppAuth` / `manageAppAuth` returns `sdkStyle: "supabase-like"` and `sdkHints`, follow those method and parameter hints first
 - `auth.signInWithOtp({ phone })` and `auth.signUp({ phone })` use the phone number in a `phone` field, not `phone_number`
 - `auth.signInWithOtp({ email })` and `auth.signUp({ email })` use `email`
-- `auth.signUp({ username, password })` and `auth.signInWithPassword({ username, password })` are the canonical username/password Web auth path
+- `auth.signInWithPassword({ username, password })` is the canonical Web login path for username/password accounts
+- Treat direct Web `auth.signUp({ username, password })` as conditional. Verify `sdkHints` and the installed SDK first; some versions only support `signUp` for OTP/provider-token flows and will not create username/password users.
 - If the task gives accounts like `admin`, `editor`, or another plain string without `@`, treat it as a username-style identifier rather than an email address
 - `verifyOtp({ token })` expects the SMS or email code in `token`
 - `accessKey` is the publishable key from `queryAppAuth` / `manageAppAuth` via `auth-tool-cloudbase`, not a secret key
@@ -183,30 +185,28 @@ if (data.session.user?.is_anonymous) {
 // data.session.user contains the authenticated user info
 const currentUser = data.session.user
 
-// Optional: further verify identity type if needed
-const { data: userData } = await auth.getUser()
-const hasVerifiedIdentity = userData?.user && (
-  userData.user.phone_confirmed_at ||
-  userData.user.email_confirmed_at ||
-  userData.user.user_metadata?.username
+// Optional: further verify identity type from the session user if needed
+const hasVerifiedIdentity = Boolean(
+  currentUser.phone_confirmed_at ||
+  currentUser.email_confirmed_at ||
+  currentUser.user_metadata?.username
 )
 
 // ❌ Do NOT use auth.getLoginState() — it's deprecated and returns
 //    misleading data (uid/loginState) even without real login
-// ❌ Do NOT use !!loginState or !!loginState.uid as auth checks
+// ❌ Do NOT use auth.getUser(), !!loginState, or !!loginState.uid as auth checks
 ```
 
 **4. Registration**
-- For username-style account systems, use username/password registration directly
-- Username must be 5-24 characters (letters, digits, underscores)
+- For username-style account systems, verify whether direct username/password signup is supported before wiring the form
+- Username/password login can use plain identifiers such as `admin` or `editor`, but raw signup APIs may enforce stricter username patterns or be disabled
 - Do not switch to email OTP or phone OTP unless the task explicitly says the account identifier is an email address or phone number
-- When the task uses plain usernames such as `admin`, `editor`, or `user01`, the canonical form code is `auth.signUp({ username, password })`
+- If direct username signup is unsupported, create users through a backend or management API boundary; never put secret keys in browser code
 ```js
-// Username + Password
-const usernameSignUp = await auth.signUp({
-  username: 'newuser',
-  password: 'pass123',
-  nickname: 'User',
+// Username + Password login
+const login = await auth.signInWithPassword({
+  username: 'editor',
+  password: 'editor123',
 })
 
 // Email Otp
@@ -328,7 +328,9 @@ await upgradeResult.data.verifyOtp({ token: '123456' })
 // Sign out
 const signOutResult = await auth.signOut()
 
-// Get user
+// Get user profile only after auth.getSession() has returned a real session
+const sessionResult = await auth.getSession()
+if (!sessionResult.data?.session) throw new Error('Not signed in')
 const userResult = await auth.getUser()
 console.log(
   userResult.data.user.email,
