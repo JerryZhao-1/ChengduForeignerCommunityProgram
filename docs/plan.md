@@ -44,10 +44,9 @@
   - no recommendation
   - missing/unusable coordinates
   - missing address / optional text
-- 最近一次本地验证结果：
-  - `pnpm test` 通过
-  - `pnpm typecheck` 通过
-  - `pnpm lint` 通过
+- 最近一次本地核心验证结果：
+  - 2026-06-23 `pnpm typecheck` 通过
+  - 2026-06-23 `pnpm test` 通过，9 个测试文件 / 42 个测试通过
 - CloudBase dev API 部署闭环已完成到 public read smoke：
   - MCP auth 已恢复并绑定 `cloud1-d7gxdk8t43bd639c0`
   - dev env、collections、places indexes、function、gateway、hosting 已实时查询
@@ -94,6 +93,9 @@
 - CloudBase dev places gallery media live acceptance 尚未完成：
   - 需要真实 CloudBase storage file id 挂接到 `public/places/{place_id}/`
   - 需要 detail 返回由 `gallery_file_ids` 解析出的 `gallery_media` 和派生 `gallery_urls`
+- `pnpm lint` 当前未通过：
+  - 失败集中在生成/部署包 `apps/api/.cloudbase/community-map-api/index.cjs`
+  - 需决定将该生成目录加入 ESLint ignore，或调整 CloudBase bundle 生成/校验流程后再标记 6.23 全量验证完成
 - 当前 live `places` collection 包含 20 条验收数据：19 条 imported draft + 1 条 published acceptance place。不得把这些 dev 数据视为生产数据。
 - 非 places live providers 尚未完成：
   - events
@@ -213,9 +215,9 @@
 #### 6.18 Thu
 
 - [x] 跑通 places live provider public read smoke。
-- [ ] 导入或创建最小 live places 数据。
-- [ ] 验证 public list / map markers / detail。
-- [ ] 验证 admin create/update 后 public read 可见性。
+- [x] 导入或创建最小 live places 数据。
+- [x] 验证 public list / map markers / detail。
+- [x] 验证 admin create/update 后 public read 可见性。
 
 退出标准：
 
@@ -267,6 +269,7 @@
 - [ ] 联调前冻结接口和配置。
 - [ ] 清理测试数据和导入数据。
 - [ ] 跑一次 `pnpm typecheck`、`pnpm test`、`pnpm lint`。
+  - 当前状态：2026-06-23 `typecheck` / `test` 已通过；`lint` 因 `apps/api/.cloudbase/community-map-api/index.cjs` 生成文件报错，尚未通过。
 - [ ] 输出 6.24 联调入口、账号、环境、数据清单。
 
 退出标准：
@@ -524,7 +527,7 @@
 ## 5. Assumptions
 
 - 本计划只更新 `docs/plan.md`，不自动修改 OpenSpec task 状态，不修改代码。
-- 当前日期按 2026-06-16 处理。
+- 当前项目评估日期按 2026-06-23 处理。
 - 7 天联调固定为 2026-06-24 至 2026-06-30。
 - CloudBase 未经重新登录和 live smoke test 前，不把“微信云数据库可连接”标为已完成。
 - 7.1 是可发布/可提交审核/可对外试运行的上线口径；微信审核通过可能发生在 7.1 之后。
