@@ -1,0 +1,10 @@
+{
+  "pass": true,
+  "draft_id": "place_d6af35be-acea-41b8-92ed-cfd0fa909072",
+  "checks": [
+    "draft visible in admin",
+    "draft absent from public list",
+    "draft absent from markers",
+    "draft detail returns not found envelope"
+  ]
+}

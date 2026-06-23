@@ -1,6 +1,6 @@
 # Week 8 Places CloudBase Integration And Volunteer Import
 
-Last updated: 2026-06-22
+Last updated: 2026-06-23
 
 ## Summary
 
@@ -56,7 +56,7 @@ Implemented behavior:
 
 ## CloudBase Dev Status
 
-CloudBase MCP and dev API status after the 2026-06-22 deployment run:
+CloudBase MCP and dev API status after the 2026-06-23 live acceptance run:
 
 - Authentication: `READY`.
 - Current bound environment: `cloud1-d7gxdk8t43bd639c0`.
@@ -65,11 +65,16 @@ CloudBase MCP and dev API status after the 2026-06-22 deployment run:
 - `/api` access route: created at `https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api`.
 - Public read smoke: `/api/health`, `/api/places`, and `/api/places/map-markers` returned `200`.
 
-Live places acceptance remains partial:
+Live places acceptance status:
 
-- The live `places` collection exists but currently has `0` documents.
-- Public list and map marker smoke prove live provider configuration, because mock has non-empty places while CloudBase returned empty live data.
-- Detail smoke, admin create/update, gallery temp URL, imported draft visibility, and published update visibility still require seeded or imported live places data.
+- Baseline before mutation was empty: public list `total=0`, markers `0`, admin list `total=0`.
+- `scripts/places_volunteer_import.mjs` imported 19 volunteer records through the CloudBase dev admin API; all remain `status="draft"`.
+- Published acceptance place: `CloudBase Live Acceptance Place`, id `place_0dc2aece-6aa6-46c5-8971-57646636a22a`.
+- Public list, map marker, and detail all return the published live place without exposing `import_review`.
+- Draft visibility denial passed with draft `place_d6af35be-acea-41b8-92ed-cfd0fa909072`: absent from public list/markers and public detail returns 404.
+- Admin update visibility passed; public fields reflected update timestamp `2026-06-23T15:29:05Z`.
+- CloudBase gallery media remains blocked, not accepted: no real `cloud://` gallery file id is attached, and current file upload/complete behavior is not yet a live CloudBase files provider.
+- Current dev `places` count after cleanup is 20: 19 imported drafts + 1 published acceptance place.
 
 Detailed deployment evidence is recorded in `docs/cloudbase-dev-api-deployment.md`.
 

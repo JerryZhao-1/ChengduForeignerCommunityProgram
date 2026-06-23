@@ -504,7 +504,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         return paginate(places.map(toPlaceListItem), params);
       },
       listAdmin() {
-        return paginate(state.places, {});
+        return paginate(state.places, { pageSize: state.places.length || 20 });
       },
       detail(id: string) {
         const place = state.places.find((item) => item._id === id);

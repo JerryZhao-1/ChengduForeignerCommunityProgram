@@ -1,0 +1,60 @@
+{
+  "id": "place_0dc2aece-6aa6-46c5-8971-57646636a22a",
+  "list_item_keys": [
+    "_id",
+    "name_zh",
+    "name_en",
+    "cover_url",
+    "category_level_1",
+    "category_level_2",
+    "short_address_zh",
+    "short_address_en",
+    "summary_zh",
+    "summary_en",
+    "tag_ids",
+    "is_recommended",
+    "recommended_reason_zh",
+    "recommended_reason_en",
+    "supports_navigation"
+  ],
+  "marker_keys": [
+    "_id",
+    "name_zh",
+    "name_en",
+    "category_level_1",
+    "is_recommended",
+    "location"
+  ],
+  "detail_keys": [
+    "_id",
+    "community_id",
+    "name_zh",
+    "name_en",
+    "cover_url",
+    "category_level_1",
+    "category_level_2",
+    "tag_ids",
+    "address_zh",
+    "address_en",
+    "location",
+    "business_hours_zh",
+    "business_hours_en",
+    "intro_zh",
+    "intro_en",
+    "gallery_media",
+    "gallery_urls",
+    "is_recommended",
+    "recommended_reason_zh",
+    "recommended_reason_en",
+    "supports_navigation",
+    "supports_favorite",
+    "supports_share",
+    "navigation",
+    "share"
+  ],
+  "request_ids": {
+    "list": "9595afbb-ff83-4ce5-b92a-107586700d12",
+    "markers": "a82366cf-6840-430b-bc39-02113609fda8",
+    "detail": "4c03feb0-bcc7-4d5a-b456-1c4664caff10"
+  }
+}

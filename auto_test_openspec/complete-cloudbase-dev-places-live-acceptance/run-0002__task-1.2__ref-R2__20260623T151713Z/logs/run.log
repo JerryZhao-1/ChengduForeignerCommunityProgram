@@ -1,0 +1,5 @@
+Error: all import API writes must succeed
+    at assert (file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/tools/live_places_acceptance.mjs:61:11)
+    at runImport (file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/tools/live_places_acceptance.mjs:314:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async main (file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/tools/live_places_acceptance.mjs:675:5)

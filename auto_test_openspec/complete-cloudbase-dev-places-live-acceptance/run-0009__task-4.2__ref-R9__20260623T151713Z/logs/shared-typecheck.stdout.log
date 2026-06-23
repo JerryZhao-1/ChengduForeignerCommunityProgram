@@ -1,0 +1,4 @@
+
+> @community-map/shared@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/packages/shared
+> tsc --noEmit -p tsconfig.json
+

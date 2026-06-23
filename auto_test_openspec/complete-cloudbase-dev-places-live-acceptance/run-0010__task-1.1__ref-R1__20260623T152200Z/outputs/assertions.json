@@ -1,0 +1,10 @@
+{
+  "pass": true,
+  "assertions": [
+    "CloudBase dev API health returned 200",
+    "Public list returned a success envelope",
+    "Map markers returned a success envelope",
+    "Admin list returned a success envelope",
+    "Baseline data state was explicitly recorded"
+  ]
+}

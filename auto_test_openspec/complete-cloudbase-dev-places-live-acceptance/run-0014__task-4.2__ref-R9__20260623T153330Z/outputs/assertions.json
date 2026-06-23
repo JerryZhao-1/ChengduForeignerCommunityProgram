@@ -1,0 +1,50 @@
+{
+  "pass": true,
+  "commands": [
+    {
+      "label": "openspec-validate",
+      "command": "openspec validate complete-cloudbase-dev-places-live-acceptance --strict --no-interactive",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "started_at": "2026-06-23T15:33:05.293Z",
+      "ended_at": "2026-06-23T15:33:06.427Z"
+    },
+    {
+      "label": "shared-volunteer-import-test",
+      "command": "pnpm exec vitest run packages/shared/test/volunteer-import.spec.ts",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "started_at": "2026-06-23T15:33:06.427Z",
+      "ended_at": "2026-06-23T15:33:07.254Z"
+    },
+    {
+      "label": "api-cloudbase-test",
+      "command": "pnpm exec vitest run apps/api/test/cloudbase.spec.ts",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "started_at": "2026-06-23T15:33:07.254Z",
+      "ended_at": "2026-06-23T15:33:07.940Z"
+    },
+    {
+      "label": "shared-typecheck",
+      "command": "pnpm --filter @community-map/shared typecheck",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "started_at": "2026-06-23T15:33:07.941Z",
+      "ended_at": "2026-06-23T15:33:08.428Z"
+    },
+    {
+      "label": "api-typecheck",
+      "command": "pnpm --filter @community-map/api typecheck",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "started_at": "2026-06-23T15:33:08.429Z",
+      "ended_at": "2026-06-23T15:33:09.177Z"
+    }
+  ]
+}

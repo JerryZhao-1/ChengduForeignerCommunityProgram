@@ -1,0 +1,32 @@
+[
+  {
+    "doc": "docs/plan.md",
+    "required": {
+      "2026-06-23": true,
+      "cloud1-d7gxdk8t43bd639c0": true,
+      "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api": true,
+      "CloudBase Live Acceptance Place": true,
+      "gallery": true
+    }
+  },
+  {
+    "doc": "docs/cloudbase-dev-api-deployment.md",
+    "required": {
+      "2026-06-23": true,
+      "cloud1-d7gxdk8t43bd639c0": true,
+      "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api": true,
+      "CloudBase Live Acceptance Place": true,
+      "gallery": true
+    }
+  },
+  {
+    "doc": "docs/week8-places-cloudbase-integration.md",
+    "required": {
+      "2026-06-23": true,
+      "cloud1-d7gxdk8t43bd639c0": true,
+      "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api": true,
+      "CloudBase Live Acceptance Place": true,
+      "gallery": true
+    }
+  }
+]

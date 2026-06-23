@@ -1,0 +1,5 @@
+{
+  "pass": true,
+  "gallery_acceptance": "blocked",
+  "blocker": "missing_cloudbase_gallery_file_id"
+}

@@ -1,0 +1,15 @@
+{
+  "pass": true,
+  "docs": [
+    "docs/plan.md",
+    "docs/cloudbase-dev-api-deployment.md",
+    "docs/week8-places-cloudbase-integration.md"
+  ],
+  "required": [
+    "2026-06-23",
+    "cloud1-d7gxdk8t43bd639c0",
+    "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+    "CloudBase Live Acceptance Place",
+    "gallery"
+  ]
+}

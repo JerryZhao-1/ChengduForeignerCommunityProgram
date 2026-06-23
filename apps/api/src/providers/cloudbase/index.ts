@@ -33,6 +33,12 @@ const cleanUpdate = <TInput extends Record<string, unknown>>(input: TInput) =>
     Object.entries(input).filter(([, value]) => value !== undefined)
   ) as Partial<Place>;
 
+const toCloudbaseSetDocument = (place: Place) => {
+  const document: Partial<Place> = { ...place };
+  delete document._id;
+  return document;
+};
+
 const paginate = <TItem>(
   items: TItem[],
   params: { page?: number; pageSize?: number }
@@ -312,7 +318,8 @@ const createLivePlacesProvider = (context: LiveCloudbaseContext): ApiProvider["p
     return paginate(places.map(toPlaceListItem), input);
   },
   async listAdmin() {
-    return paginate(await readPlaces(context), {});
+    const places = await readPlaces(context);
+    return paginate(places, { pageSize: places.length || 20 });
   },
   async detail(id) {
     const place = (await readPlaces(context)).find((item) => item._id === id);
@@ -342,7 +349,7 @@ const createLivePlacesProvider = (context: LiveCloudbaseContext): ApiProvider["p
   },
   async create(input) {
     const place = createPlaceFromInput(input);
-    await context.places.doc(place._id).set(place);
+    await context.places.doc(place._id).set(toCloudbaseSetDocument(place));
     return place;
   },
   async update(id, input) {

@@ -1,6 +1,6 @@
 # CloudBase Dev API Deployment Evidence
 
-Last updated: 2026-06-22
+Last updated: 2026-06-23
 
 ## Scope
 
@@ -132,11 +132,49 @@ The places smoke used live CloudBase configuration, not mock fallback:
 - The mock provider currently returns two places locally, so the empty CloudBase response is consistent with live NoSQL data rather than mock fallback.
 - Detail smoke was not run because there is no published live place in the `places` collection.
 
+## Places Live Acceptance Evidence
+
+CloudBase dev live places acceptance was advanced on 2026-06-23 against:
+
+```text
+https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api
+```
+
+Code changes deployed to `community-map-api` during acceptance:
+
+- Fixed live places create so CloudBase `doc(id).set(...)` does not include `_id` in the document body.
+- Fixed admin places list v1 so `/admin/places` returns the full current maintenance set instead of silently truncating at 20 items.
+- Code update RequestIds: `953443fe-8714-4640-80bc-34572fc2c0aa`, `b95a0ec0-8120-49a1-9399-de24beee230d`, `7c7fe37b-815d-490a-a45f-2e901f790d0f`.
+- Post-deploy function detail RequestId: `62469a19-4631-4b47-a34d-409833d60b29`.
+
+Live data and API acceptance:
+
+| Check | Result |
+| --- | --- |
+| Baseline before mutation | `GET /health` 200; public list `total=0`; map markers `0`; admin list `total=0` |
+| Volunteer import | 19 records created as `status="draft"` through `/admin/places` |
+| Published place | `CloudBase Live Acceptance Place`, id `place_0dc2aece-6aa6-46c5-8971-57646636a22a`, valid coordinates |
+| Public visibility | Published place appears in `/places`, `/places/map-markers`, and `/places/:id` |
+| Payload boundaries | Public list/marker/detail do not expose `import_review`; list/marker stay within public field boundaries |
+| Draft denial | Draft `place_d6af35be-acea-41b8-92ed-cfd0fa909072` is visible in admin, absent from public list/markers, and public detail returns 404 |
+| Admin update | PATCH on the published place is reflected through public list/detail; update timestamp `2026-06-23T15:29:05Z` |
+| Final live count | 20 dev places: 19 imported drafts + 1 published acceptance place |
+
+Gallery media result:
+
+- Blocked, not accepted.
+- The published acceptance place has `gallery_file_ids: []`.
+- No real CloudBase storage file id is available under `public/places/{place_id}/`.
+- Current non-places/files provider behavior still falls back to mock for file upload/complete, so hardcoded URLs or mock file flow must not be counted as CloudBase gallery acceptance.
+
+Validation evidence is append-only under:
+
+```text
+auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/
+```
+
 ## Remaining Work
 
-- Seed or import minimum live places data before full places live acceptance.
-- Verify one published detail endpoint after live data exists.
-- Verify admin create/update against CloudBase live data.
 - Verify gallery media temporary URL behavior with real CloudBase file IDs.
 - Complete non-places live providers for events, discover, comments, announcements, notifications, and files.
 - Decide final production auth/security rules before any production exposure.

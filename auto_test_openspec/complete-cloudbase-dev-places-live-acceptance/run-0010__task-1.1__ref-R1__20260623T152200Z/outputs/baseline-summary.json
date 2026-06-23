@@ -1,0 +1,32 @@
+{
+  "api_base_url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+  "actor_id": "user_001",
+  "health": {
+    "status": 200,
+    "ok": true
+  },
+  "public_list": {
+    "status": 200,
+    "success": true,
+    "requestId": "fce2bed3-0883-4386-a883-4c602012d61c",
+    "total": 0,
+    "item_count": 0,
+    "ids": []
+  },
+  "public_markers": {
+    "status": 200,
+    "success": true,
+    "requestId": "332a2d64-ee74-4e21-8296-92af2caeddfb",
+    "item_count": 0,
+    "ids": []
+  },
+  "admin_places": {
+    "status": 200,
+    "success": true,
+    "requestId": "e2dd4c99-8fa3-458d-85ec-19aa718d811b",
+    "total": 0,
+    "item_count": 0,
+    "ids": []
+  },
+  "baseline_state": "empty"
+}

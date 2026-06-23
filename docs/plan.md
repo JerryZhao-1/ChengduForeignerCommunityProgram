@@ -1,6 +1,6 @@
 # 6.16-7.1 上线冲刺计划
 
-更新时间：2026-06-22
+更新时间：2026-06-23
 计划周期：2026-06-16 至 2026-07-01  
 上线口径：达到可发布、可提交审核、可对外试运行状态；微信审核通过时间不等同于 7.1 当日上线完成。
 
@@ -55,6 +55,12 @@
   - `/api` access route 已创建
   - `GET /api/health`、`GET /api/places`、`GET /api/places/map-markers` 通过 dev access domain
   - 证据见 `docs/cloudbase-dev-api-deployment.md`
+- CloudBase dev places live data acceptance 已完成非图集闭环：
+  - API base: `https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api`
+  - 2026-06-23 baseline：live `places` 为空，随后导入 19 条志愿者草稿记录
+  - published acceptance place：`CloudBase Live Acceptance Place` / `place_0dc2aece-6aa6-46c5-8971-57646636a22a`
+  - 已验证 public list / map marker / detail、admin update 后 public 可见、imported draft public denial
+  - CloudBase gallery media 仍是 blocker：当前 published acceptance place 没有真实 `cloud://` gallery file id，files provider live flow 尚未完成
 
 ### 部分完成
 
@@ -85,13 +91,10 @@
 
 ### 未完成 / 不得标记完成
 
-- CloudBase dev places full live acceptance 尚未完成：
-  - detail
-  - admin create/update
-  - gallery media temp URL
-  - imported draft visibility
-  - published update visibility
-- 当前 live `places` collection 为空；public list 和 map markers 已证明连到 live provider，但 detail smoke 需等至少一个 published live place 后执行。
+- CloudBase dev places gallery media live acceptance 尚未完成：
+  - 需要真实 CloudBase storage file id 挂接到 `public/places/{place_id}/`
+  - 需要 detail 返回由 `gallery_file_ids` 解析出的 `gallery_media` 和派生 `gallery_urls`
+- 当前 live `places` collection 包含 20 条验收数据：19 条 imported draft + 1 条 published acceptance place。不得把这些 dev 数据视为生产数据。
 - 非 places live providers 尚未完成：
   - events
   - posts / discover
@@ -124,7 +127,7 @@
 - [x] 配置并验证 CloudBase dev API 环境变量。
   - 验收：`API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、env id 生效，places 读写不再回退 mock。
 - [ ] 跑通 CloudBase dev places live acceptance。
-  - 验收：public list / map / detail / admin create-update / gallery media / draft visibility / published update 全部通过。
+  - 当前状态：public list / map / detail / admin create-update / draft visibility / published update 已通过；gallery media temp URL 因缺少真实 CloudBase file id 仍 blocked。
 - [ ] 创建或确认 CloudBase prod 环境。
   - 验收：region 与 dev 对齐；发布准备完成前不写入生产业务数据。
 - [ ] 制定并应用数据库安全规则。

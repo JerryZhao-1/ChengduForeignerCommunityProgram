@@ -1,0 +1,5 @@
+Error: acceptance place must be present in admin list
+    at assert (file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/tools/live_places_acceptance.mjs:61:11)
+    at runPublishedPlace (file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/tools/live_places_acceptance.mjs:355:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async main (file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/tools/live_places_acceptance.mjs:677:5)

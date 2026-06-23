@@ -1,0 +1,73 @@
+{
+  "label": "public-detail",
+  "method": "GET",
+  "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/places/place_0dc2aece-6aa6-46c5-8971-57646636a22a",
+  "status": 200,
+  "ok": true,
+  "headers": {
+    "access-control-allow-headers": "content-type,x-mock-user-id,x-requested-with",
+    "access-control-allow-methods": "GET,POST,PATCH,OPTIONS",
+    "access-control-allow-origin": "*",
+    "content-length": "1823",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 23 Jun 2026 15:29:15 GMT",
+    "last-modified": "Tue, 23 Jun 2026 15:29:15 GMT",
+    "server": "tcbgw",
+    "vary": "Accept-Encoding,Origin,Accept-Encoding",
+    "x-cloudbase-request-id": "21eb7041-5afd-42ba-a8a2-3fe7950de1a4",
+    "x-cloudbase-session-id": "21eb7041-5afd-42ba-a8a2-3fe7950de1a4",
+    "x-cloudbase-upstream-status-code": "200",
+    "x-cloudbase-upstream-timecost": "108",
+    "x-cloudbase-upstream-type": "Tencent-SCF_HTTP",
+    "x-request-id": "21eb7041-5afd-42ba-a8a2-3fe7950de1a4"
+  },
+  "body": {
+    "success": true,
+    "data": {
+      "_id": "place_0dc2aece-6aa6-46c5-8971-57646636a22a",
+      "community_id": "tongzilin",
+      "name_zh": "CloudBase Dev 验收点位",
+      "name_en": "CloudBase Live Acceptance Place",
+      "cover_url": null,
+      "category_level_1": "community",
+      "category_level_2": "live-acceptance",
+      "tag_ids": [
+        "acceptance",
+        "cloudbase-dev"
+      ],
+      "address_zh": "成都市武侯区桐梓林片区 CloudBase dev 验收点位",
+      "address_en": "CloudBase dev acceptance place, Tongzilin, Chengdu",
+      "location": {
+        "latitude": 30.615902,
+        "longitude": 104.06594
+      },
+      "business_hours_zh": "周一至周日 09:00-18:00",
+      "business_hours_en": "Mon-Sun 09:00-18:00",
+      "intro_zh": "用于 CloudBase dev Places 真实数据验收的受控公开点位。更新验收时间 2026-06-23T15:29:05Z",
+      "intro_en": "Controlled published place for CloudBase dev Places live-data acceptance. Update verification 2026-06-23T15:29:05Z",
+      "gallery_media": [],
+      "gallery_urls": [],
+      "is_recommended": true,
+      "recommended_reason_zh": "CloudBase dev 验收样例 2026-06-23T15:29:05Z",
+      "recommended_reason_en": "CloudBase dev acceptance sample 2026-06-23T15:29:05Z",
+      "supports_navigation": true,
+      "supports_favorite": true,
+      "supports_share": true,
+      "navigation": {
+        "latitude": 30.615902,
+        "longitude": 104.06594,
+        "name_zh": "CloudBase Dev 验收点位",
+        "name_en": "CloudBase Live Acceptance Place",
+        "address_zh": "成都市武侯区桐梓林片区 CloudBase dev 验收点位",
+        "address_en": "CloudBase dev acceptance place, Tongzilin, Chengdu"
+      },
+      "share": {
+        "title_zh": "CloudBase Dev 验收点位",
+        "title_en": "CloudBase Live Acceptance Place",
+        "summary_zh": "用于 CloudBase dev Places 真实数据验收的受控公开点位。更新验收时间 2026-06-23T15:29:05Z",
+        "summary_en": "Controlled published place for CloudBase dev Places live-data acceptance. Update verification 2026-06-23T15:29:05Z"
+      }
+    },
+    "requestId": "eb2e1c56-dbd7-4273-8fcd-8f29cbe31540"
+  }
+}

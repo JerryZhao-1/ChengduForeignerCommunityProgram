@@ -1,0 +1,64 @@
+{
+  "label": "acceptance-place-write",
+  "method": "POST",
+  "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/places",
+  "status": 201,
+  "ok": true,
+  "headers": {
+    "access-control-allow-headers": "content-type,x-mock-user-id,x-requested-with",
+    "access-control-allow-methods": "GET,POST,PATCH,OPTIONS",
+    "access-control-allow-origin": "*",
+    "content-length": "1182",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 23 Jun 2026 15:26:29 GMT",
+    "last-modified": "Tue, 23 Jun 2026 15:26:29 GMT",
+    "server": "tcbgw",
+    "vary": "Origin,Accept-Encoding",
+    "x-cloudbase-request-id": "a8e56464-155e-46d1-a561-120d5178c82a",
+    "x-cloudbase-session-id": "a8e56464-155e-46d1-a561-120d5178c82a",
+    "x-cloudbase-upstream-status-code": "201",
+    "x-cloudbase-upstream-timecost": "89",
+    "x-cloudbase-upstream-type": "Tencent-SCF_HTTP",
+    "x-request-id": "a8e56464-155e-46d1-a561-120d5178c82a"
+  },
+  "body": {
+    "success": true,
+    "data": {
+      "_id": "place_0dc2aece-6aa6-46c5-8971-57646636a22a",
+      "community_id": "tongzilin",
+      "name_zh": "CloudBase Dev 验收点位",
+      "name_en": "CloudBase Live Acceptance Place",
+      "cover_file_id": null,
+      "cover_url": null,
+      "category_level_1": "community",
+      "category_level_2": "live-acceptance",
+      "tag_ids": [
+        "acceptance",
+        "cloudbase-dev"
+      ],
+      "address_zh": "成都市武侯区桐梓林片区 CloudBase dev 验收点位",
+      "address_en": "CloudBase dev acceptance place, Tongzilin, Chengdu",
+      "location": {
+        "latitude": 30.615902,
+        "longitude": 104.06594
+      },
+      "tencent_map_poi_id": null,
+      "business_hours_zh": "周一至周日 09:00-18:00",
+      "business_hours_en": "Mon-Sun 09:00-18:00",
+      "intro_zh": "用于 CloudBase dev Places 真实数据验收的受控公开点位。",
+      "intro_en": "Controlled published place for CloudBase dev Places live-data acceptance.",
+      "recommended_reason_zh": "CloudBase dev 验收样例",
+      "recommended_reason_en": "CloudBase dev acceptance sample",
+      "is_recommended": true,
+      "recommended_rank": 10,
+      "gallery_file_ids": [],
+      "gallery_urls": [],
+      "supports_navigation": true,
+      "supports_favorite": true,
+      "supports_share": true,
+      "status": "published",
+      "import_review": null
+    },
+    "requestId": "ce95ef8a-fafd-45db-be2b-a5464ae819a8"
+  }
+}

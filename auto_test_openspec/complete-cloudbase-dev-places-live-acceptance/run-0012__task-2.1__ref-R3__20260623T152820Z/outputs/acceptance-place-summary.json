@@ -1,0 +1,13 @@
+{
+  "action": "updated",
+  "id": "place_0dc2aece-6aa6-46c5-8971-57646636a22a",
+  "name_en": "CloudBase Live Acceptance Place",
+  "name_zh": "CloudBase Dev 验收点位",
+  "status": "published",
+  "location": {
+    "latitude": 30.615902,
+    "longitude": 104.06594
+  },
+  "category_level_1": "community",
+  "category_level_2": "live-acceptance"
+}

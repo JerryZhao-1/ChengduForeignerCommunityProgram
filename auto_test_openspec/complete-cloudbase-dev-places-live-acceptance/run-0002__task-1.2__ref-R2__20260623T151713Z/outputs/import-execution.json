@@ -1,0 +1,1650 @@
+{
+  "source": {
+    "workbook": "/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/docs/志愿者点位采集表.xlsx",
+    "sheet_name": "工作表1"
+  },
+  "parsed": {
+    "point_count": 19,
+    "duplicate_labels": [
+      {
+        "label": "点位类型",
+        "count": 2
+      }
+    ]
+  },
+  "draft_places": [
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位1",
+      "place": {
+        "_id": "place_import_40f5ae825e",
+        "community_id": "tongzilin",
+        "name_zh": "欧焙联",
+        "name_en": "Obelian",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "food-drink",
+        "category_level_2": "餐饮",
+        "tag_ids": [],
+        "address_zh": "武侯区人民南路四段46号上善国际F1层(桐梓林地铁站B口旁)",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "10:00am-10:00pm",
+        "business_hours_en": "",
+        "intro_zh": "餐饮",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位1",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位1",
+          "volunteer_category_raw": "餐饮",
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "餐饮",
+            "name_zh": "欧焙联",
+            "name_en": "Obelian",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区人民南路四段46号上善国际F1层(桐梓林地铁站B口旁)",
+            "position_evidence": "",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "餐饮",
+            "business_hours_zh": "10:00am-10:00pm",
+            "contact": "",
+            "audience": "",
+            "cost_note": "",
+            "language_support": "",
+            "accessibility": "",
+            "tags": "",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_position_evidence",
+            "missing_media",
+            "needs_tag_review",
+            "needs_coordinate_review"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位2",
+      "place": {
+        "_id": "place_import_2a9086424e",
+        "community_id": "tongzilin",
+        "name_zh": "火山",
+        "name_en": "Vintage",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "shopping",
+        "category_level_2": "服饰",
+        "tag_ids": [],
+        "address_zh": "武侯区人民南路四段48号附13-14-1层(中国银行和Lawson罗森超市中间巷子尽头火山花园)",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "12:00-21:30",
+        "business_hours_en": "",
+        "intro_zh": "古着服饰",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位2",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位2",
+          "volunteer_category_raw": "服饰",
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "服饰",
+            "name_zh": "火山",
+            "name_en": "Vintage",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区人民南路四段48号附13-14-1层(中国银行和Lawson罗森超市中间巷子尽头火山花园)",
+            "position_evidence": "",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "古着服饰",
+            "business_hours_zh": "12:00-21:30",
+            "contact": "",
+            "audience": "",
+            "cost_note": "",
+            "language_support": "",
+            "accessibility": "",
+            "tags": "",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_position_evidence",
+            "missing_media",
+            "needs_tag_review",
+            "needs_coordinate_review"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位3",
+      "place": {
+        "_id": "place_import_336b26fca5",
+        "community_id": "tongzilin",
+        "name_zh": "GLI Azzurri",
+        "name_en": "Pending English name",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "food-drink",
+        "category_level_2": "酒类",
+        "tag_ids": [],
+        "address_zh": "武侯区人民南路四段48-附40号曼哈顿国际首座F1层",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "",
+        "business_hours_en": "",
+        "intro_zh": "品酒饮酒",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位3",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位3",
+          "volunteer_category_raw": "酒类",
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "酒类",
+            "name_zh": "GLI Azzurri",
+            "name_en": "",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区人民南路四段48-附40号曼哈顿国际首座F1层",
+            "position_evidence": "",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "品酒饮酒",
+            "business_hours_zh": "",
+            "contact": "",
+            "audience": "",
+            "cost_note": "",
+            "language_support": "",
+            "accessibility": "",
+            "tags": "",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "needs_english_name_review",
+            "missing_position_evidence",
+            "missing_media",
+            "needs_tag_review",
+            "needs_coordinate_review"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位4",
+      "place": {
+        "_id": "place_import_5513f49481",
+        "community_id": "tongzilin",
+        "name_zh": "古巴热浪",
+        "name_en": "Pending English name",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "food-drink",
+        "category_level_2": "酒类",
+        "tag_ids": [],
+        "address_zh": "武侯区桐梓林南路",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "周一到周五11:00-00：00\n周六-周日14:30-00:00",
+        "business_hours_en": "",
+        "intro_zh": "饮酒",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位4",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位4",
+          "volunteer_category_raw": "酒类",
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "酒类",
+            "name_zh": "古巴热浪",
+            "name_en": "",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林南路",
+            "position_evidence": "",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "饮酒",
+            "business_hours_zh": "周一到周五11:00-00：00\n周六-周日14:30-00:00",
+            "contact": "13880071937",
+            "audience": "",
+            "cost_note": "",
+            "language_support": "",
+            "accessibility": "",
+            "tags": "",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "needs_english_name_review",
+            "missing_position_evidence",
+            "missing_media",
+            "needs_tag_review",
+            "needs_coordinate_review"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位5",
+      "place": {
+        "_id": "place_import_cd52c544a9",
+        "community_id": "tongzilin",
+        "name_zh": "面包谷",
+        "name_en": "Pending English name",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "food-drink",
+        "category_level_2": "餐饮",
+        "tag_ids": [],
+        "address_zh": "武侯区桐梓林南路8号1楼南门精酿酒对面",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "7:30-21:30",
+        "business_hours_en": "",
+        "intro_zh": "面包",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位5",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位5",
+          "volunteer_category_raw": "餐饮",
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "餐饮",
+            "name_zh": "面包谷",
+            "name_en": "",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林南路8号1楼南门精酿酒对面",
+            "position_evidence": "",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "面包",
+            "business_hours_zh": "7:30-21:30",
+            "contact": "",
+            "audience": "",
+            "cost_note": "",
+            "language_support": "",
+            "accessibility": "",
+            "tags": "",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "needs_english_name_review",
+            "missing_position_evidence",
+            "missing_media",
+            "needs_tag_review",
+            "needs_coordinate_review"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位6",
+      "place": {
+        "_id": "place_import_0de83ee0b3",
+        "community_id": "tongzilin",
+        "name_zh": "贵州酸汤 汤之加里",
+        "name_en": "Guizhou sour soup",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "food-drink",
+        "category_level_2": "餐饮",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐凤路53号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "11:30——22:00",
+        "business_hours_en": "",
+        "intro_zh": "贵州菜，装修风格暗色木质风",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位6",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位6",
+          "volunteer_category_raw": "餐饮",
+          "category_code_candidate_raw": "food-drink",
+          "raw_fields": {
+            "volunteer_category_raw": "餐饮",
+            "name_zh": "贵州酸汤 汤之加里",
+            "name_en": "Guizhou sour soup",
+            "category_code_candidate_raw": "food-drink",
+            "alias": "",
+            "address_zh": "武侯区桐凤路53号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "桐梓林站b口步行767米",
+            "main_service_zh": "贵州菜，装修风格暗色木质风",
+            "business_hours_zh": "11:30——22:00",
+            "contact": "17882921682",
+            "audience": "上班族",
+            "cost_note": "无",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review"
+          ],
+          "review_notes": []
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位7",
+      "place": {
+        "_id": "place_import_48d6c098a3",
+        "community_id": "tongzilin",
+        "name_zh": "老爹兔头",
+        "name_en": "Spicy Rabbit Head",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "food-drink",
+        "category_level_2": "餐饮",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐凤路65号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "9:00——20:30",
+        "business_hours_en": "",
+        "intro_zh": "特色面店，有面和炒菜",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位7",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位7",
+          "volunteer_category_raw": "餐饮",
+          "category_code_candidate_raw": "food-drink",
+          "raw_fields": {
+            "volunteer_category_raw": "餐饮",
+            "name_zh": "老爹兔头",
+            "name_en": "Spicy Rabbit Head",
+            "category_code_candidate_raw": "food-drink",
+            "alias": "",
+            "address_zh": "武侯区桐凤路65号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "特色面店，有面和炒菜",
+            "business_hours_zh": "9:00——20:30",
+            "contact": "15828407372",
+            "audience": "本地居民",
+            "cost_note": "无",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review"
+          ],
+          "review_notes": []
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位8",
+      "place": {
+        "_id": "place_import_7ccf155c9b",
+        "community_id": "tongzilin",
+        "name_zh": "氟西汀",
+        "name_en": "FLOUXETINE Whisky&cocktail.Bar",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "food-drink",
+        "category_level_2": "氟西汀餐饮",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路22号附6号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "19:00——02:00",
+        "business_hours_en": "",
+        "intro_zh": "",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位8",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位8",
+          "volunteer_category_raw": "氟西汀餐饮",
+          "category_code_candidate_raw": "food-drink",
+          "raw_fields": {
+            "volunteer_category_raw": "氟西汀餐饮",
+            "name_zh": "氟西汀",
+            "name_en": "FLOUXETINE Whisky&cocktail.Bar",
+            "category_code_candidate_raw": "food-drink",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路22号附6号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "",
+            "business_hours_zh": "19:00——02:00",
+            "contact": "18428923935",
+            "audience": "外籍居民，上班族",
+            "cost_note": "人均96",
+            "language_support": "双语菜单",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review"
+          ],
+          "review_notes": []
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位9",
+      "place": {
+        "_id": "place_import_d96f69102e",
+        "community_id": "tongzilin",
+        "name_zh": "温度 拿破仑",
+        "name_en": "Pending English name",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "food-drink",
+        "category_level_2": "餐饮",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路22号附5号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "7:30——21:30",
+        "business_hours_en": "",
+        "intro_zh": "小而精的面包店，特色为拿破仑",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位9",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位9",
+          "volunteer_category_raw": "餐饮",
+          "category_code_candidate_raw": "food-drink",
+          "raw_fields": {
+            "volunteer_category_raw": "餐饮",
+            "name_zh": "温度 拿破仑",
+            "name_en": "",
+            "category_code_candidate_raw": "food-drink",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路22号附5号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "小而精的面包店，特色为拿破仑",
+            "business_hours_zh": "7:30——21:30",
+            "contact": "19136253905",
+            "audience": "上班族，外籍居民",
+            "cost_note": "无",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "needs_english_name_review",
+            "missing_media",
+            "needs_coordinate_review"
+          ],
+          "review_notes": []
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位10",
+      "place": {
+        "_id": "place_import_c1d2e46a5e",
+        "community_id": "tongzilin",
+        "name_zh": "派特空间 宠物冻干店",
+        "name_en": "pet space",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "community",
+        "category_level_2": "pending-review",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路22号附5号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "10:00——21:00",
+        "business_hours_en": "",
+        "intro_zh": "宠物零食制作与售卖",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位10",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位10",
+          "volunteer_category_raw": null,
+          "category_code_candidate_raw": "pet space",
+          "raw_fields": {
+            "volunteer_category_raw": "",
+            "name_zh": "派特空间 宠物冻干店",
+            "name_en": "pet space",
+            "category_code_candidate_raw": "pet space",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路22号附5号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "宠物零食制作与售卖",
+            "business_hours_zh": "10:00——21:00",
+            "contact": "18584812046",
+            "audience": "居民",
+            "cost_note": "人均46",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review",
+            "unsupported_category:pet space"
+          ],
+          "review_notes": []
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位11",
+      "place": {
+        "_id": "place_import_95439389eb",
+        "community_id": "tongzilin",
+        "name_zh": "快乐咖啡商店",
+        "name_en": "Coffee  Barkery",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "food-drink",
+        "category_level_2": "餐饮",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路22号1幢1层附4号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "7:30——20:30",
+        "business_hours_en": "",
+        "intro_zh": "各类型咖啡，特色为乳酪拿铁",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位11",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位11",
+          "volunteer_category_raw": "餐饮",
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "餐饮",
+            "name_zh": "快乐咖啡商店",
+            "name_en": "Coffee  Barkery",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路22号1幢1层附4号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "各类型咖啡，特色为乳酪拿铁",
+            "business_hours_zh": "7:30——20:30",
+            "contact": "13247524432",
+            "audience": "上班族",
+            "cost_note": "无",
+            "language_support": "双语菜单",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位12",
+      "place": {
+        "_id": "place_import_b5a6272bed",
+        "community_id": "tongzilin",
+        "name_zh": "京怀石 华",
+        "name_en": "Pending English name",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "community",
+        "category_level_2": "pending-review",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路22号附3号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "周一至周日 11:30-14:00 17:30-24:00",
+        "business_hours_en": "",
+        "intro_zh": "",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位12",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位12",
+          "volunteer_category_raw": null,
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "",
+            "name_zh": "京怀石 华",
+            "name_en": "",
+            "category_code_candidate_raw": "",
+            "alias": "炎鸟 桐梓林店",
+            "address_zh": "武侯区桐梓林东路22号附3号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "",
+            "business_hours_zh": "周一至周日 11:30-14:00 17:30-24:00",
+            "contact": "18582462434",
+            "audience": "外籍居民，上班族",
+            "cost_note": "人均680",
+            "language_support": "双语菜单",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "needs_english_name_review",
+            "missing_media",
+            "needs_coordinate_review",
+            "unsupported_category:missing"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位13",
+      "place": {
+        "_id": "place_import_0f08afcfd6",
+        "community_id": "tongzilin",
+        "name_zh": "布兰奇",
+        "name_en": "Bonnych Laundry",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "community",
+        "category_level_2": "pending-review",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路22号附2号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "9:00——21:00",
+        "business_hours_en": "",
+        "intro_zh": "",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位13",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位13",
+          "volunteer_category_raw": null,
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "",
+            "name_zh": "布兰奇",
+            "name_en": "Bonnych Laundry",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路22号附2号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "",
+            "business_hours_zh": "9:00——21:00",
+            "contact": "15528410974",
+            "audience": "新居民，外籍居民，老年人，上班族",
+            "cost_note": "无",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review",
+            "unsupported_category:missing"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位14",
+      "place": {
+        "_id": "place_import_879e9b0f8c",
+        "community_id": "tongzilin",
+        "name_zh": "舞东风",
+        "name_en": "WUDONGFENG",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "community",
+        "category_level_2": "pending-review",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路20号附34号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "8:00——22:30",
+        "business_hours_en": "",
+        "intro_zh": "",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位14",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位14",
+          "volunteer_category_raw": null,
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "",
+            "name_zh": "舞东风",
+            "name_en": "WUDONGFENG",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路20号附34号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "",
+            "business_hours_zh": "8:00——22:30",
+            "contact": "15528410684",
+            "audience": "新居民，外籍居民，老年人，上班族",
+            "cost_note": "无",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review",
+            "unsupported_category:missing"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位15",
+      "place": {
+        "_id": "place_import_dac9ce1c91",
+        "community_id": "tongzilin",
+        "name_zh": "新澳星音像",
+        "name_en": "AUDIO-VISUAL CHAIN",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "community",
+        "category_level_2": "pending-review",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路20号附30号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "9::00——22:30",
+        "business_hours_en": "",
+        "intro_zh": "",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位15",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位15",
+          "volunteer_category_raw": null,
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "",
+            "name_zh": "新澳星音像",
+            "name_en": "AUDIO-VISUAL CHAIN",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路20号附30号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "",
+            "business_hours_zh": "9::00——22:30",
+            "contact": "18428921724",
+            "audience": "上班族",
+            "cost_note": "无",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review",
+            "unsupported_category:missing"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位16",
+      "place": {
+        "_id": "place_import_47e39643bc",
+        "community_id": "tongzilin",
+        "name_zh": "红旗连锁 桐梓林东路便利店",
+        "name_en": "Hong Qi Chain",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "community",
+        "category_level_2": "pending-review",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路20号附31号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "9:00——21:00",
+        "business_hours_en": "",
+        "intro_zh": "",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位16",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位16",
+          "volunteer_category_raw": null,
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "",
+            "name_zh": "红旗连锁 桐梓林东路便利店",
+            "name_en": "Hong Qi Chain",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路20号附31号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "",
+            "business_hours_zh": "9:00——21:00",
+            "contact": "18584877594",
+            "audience": "新居民，外籍居民，老年人，上班族",
+            "cost_note": "无",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review",
+            "unsupported_category:missing"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位17",
+      "place": {
+        "_id": "place_import_c43f8a821d",
+        "community_id": "tongzilin",
+        "name_zh": "闽东 天妇罗",
+        "name_en": "Tempura & Tapas East Fujian",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "community",
+        "category_level_2": "pending-review",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路20号附29号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "11:00——00:00",
+        "business_hours_en": "",
+        "intro_zh": "",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位17",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位17",
+          "volunteer_category_raw": null,
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "",
+            "name_zh": "闽东 天妇罗",
+            "name_en": "Tempura & Tapas East Fujian",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路20号附29号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "",
+            "business_hours_zh": "11:00——00:00",
+            "contact": "18681251771",
+            "audience": "上班族，外籍居民",
+            "cost_note": "无",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review",
+            "unsupported_category:missing"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位18",
+      "place": {
+        "_id": "place_import_9ac7eab950",
+        "community_id": "tongzilin",
+        "name_zh": "御东云",
+        "name_en": "Pending English name",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "community",
+        "category_level_2": "pending-review",
+        "tag_ids": [
+          "无"
+        ],
+        "address_zh": "武侯区桐梓林东路20号附28号2层",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "周一至周日 11:00-14:00 17:00-22:00",
+        "business_hours_en": "",
+        "intro_zh": "",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位18",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位18",
+          "volunteer_category_raw": null,
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "",
+            "name_zh": "御东云",
+            "name_en": "",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路20号附28号2层",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "",
+            "business_hours_zh": "周一至周日 11:00-14:00 17:00-22:00",
+            "contact": "17882921710",
+            "audience": "上班族，外籍居民",
+            "cost_note": "无",
+            "language_support": "无",
+            "accessibility": "无",
+            "tags": "无",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "needs_english_name_review",
+            "missing_media",
+            "needs_coordinate_review",
+            "unsupported_category:missing"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    },
+    {
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位19",
+      "place": {
+        "_id": "place_import_6f3ecdde9d",
+        "community_id": "tongzilin",
+        "name_zh": "贰酣葡萄酒",
+        "name_en": "AHEM",
+        "cover_file_id": null,
+        "cover_url": null,
+        "category_level_1": "community",
+        "category_level_2": "pending-review",
+        "tag_ids": [
+          "禁止宠物进入"
+        ],
+        "address_zh": "武侯区桐梓林东路20号附 6 号",
+        "address_en": "",
+        "location": {
+          "latitude": 999,
+          "longitude": 999
+        },
+        "tencent_map_poi_id": null,
+        "business_hours_zh": "16:00——00:00",
+        "business_hours_en": "",
+        "intro_zh": "",
+        "intro_en": "",
+        "recommended_reason_zh": null,
+        "recommended_reason_en": null,
+        "is_recommended": false,
+        "recommended_rank": 0,
+        "gallery_file_ids": [],
+        "gallery_urls": [],
+        "supports_navigation": false,
+        "supports_favorite": true,
+        "supports_share": true,
+        "status": "draft",
+        "import_review": {
+          "source_type": "volunteer_spreadsheet",
+          "source_file": "志愿者点位采集表.xlsx",
+          "source_sheet": "工作表1",
+          "source_column": "点位19",
+          "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位19",
+          "volunteer_category_raw": null,
+          "category_code_candidate_raw": null,
+          "raw_fields": {
+            "volunteer_category_raw": "",
+            "name_zh": "贰酣葡萄酒",
+            "name_en": "AHEM",
+            "category_code_candidate_raw": "",
+            "alias": "",
+            "address_zh": "武侯区桐梓林东路20号附 6 号",
+            "position_evidence": "高德地图",
+            "entrance_note": "",
+            "route_note": "",
+            "main_service_zh": "",
+            "business_hours_zh": "16:00——00:00",
+            "contact": "18065128119",
+            "audience": "外籍居民",
+            "cost_note": "无",
+            "language_support": "双语菜单",
+            "accessibility": "无",
+            "tags": "禁止宠物进入",
+            "entrance_photo": "",
+            "environment_photo": "",
+            "extra_note": ""
+          },
+          "review_blockers": [
+            "missing_media",
+            "needs_coordinate_review",
+            "unsupported_category:missing"
+          ],
+          "review_notes": [
+            "no_internal_category_candidate"
+          ]
+        }
+      }
+    }
+  ],
+  "summary": {
+    "draft_count": 19,
+    "public_count": 0,
+    "records_with_category_blockers": 9,
+    "records_needing_coordinate_review": 19
+  },
+  "execution": {
+    "mode": "admin_api",
+    "api_base_url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+    "actor_id": "user_001",
+    "results": [
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位1",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位2",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位3",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位4",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位5",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位6",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位7",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位8",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位9",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位10",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位11",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位12",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位13",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位14",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位15",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位16",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位17",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位18",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      },
+      {
+        "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位19",
+        "action": "created",
+        "status": 500,
+        "success": false,
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "Unexpected server error."
+        }
+      }
+    ]
+  }
+}

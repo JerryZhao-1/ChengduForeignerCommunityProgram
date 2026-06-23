@@ -1,0 +1,9 @@
+{
+  "blocker_type": "missing_cloudbase_gallery_file_id",
+  "status": "blocked",
+  "place_id": "place_0dc2aece-6aa6-46c5-8971-57646636a22a",
+  "place_gallery_file_ids": [],
+  "detail_gallery_media_count": 0,
+  "reason": "No real CloudBase gallery file id is attached to the published acceptance place. The current CloudBase provider resolves places live data, but file upload/complete routes still use the fallback mock files provider, so this run cannot honestly claim CloudBase storage media acceptance.",
+  "required_follow_up": "Upload or provide a real CloudBase storage file id under public/places/{place_id}/ and attach it through admin place update, then rerun this task."
+}

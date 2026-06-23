@@ -1,0 +1,4 @@
+{
+  "message": "public list must succeed",
+  "stack": "Error: public list must succeed\n    at assert (file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/tools/live_places_acceptance.mjs:61:11)\n    at runBaseline (file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/tools/live_places_acceptance.mjs:247:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async main (file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/tools/live_places_acceptance.mjs:673:5)"
+}

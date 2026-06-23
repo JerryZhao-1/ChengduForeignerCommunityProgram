@@ -1,0 +1,41 @@
+{
+  "label": "public-markers",
+  "method": "GET",
+  "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/places/map-markers",
+  "status": 200,
+  "ok": true,
+  "headers": {
+    "access-control-allow-headers": "content-type,x-mock-user-id,x-requested-with",
+    "access-control-allow-methods": "GET,POST,PATCH,OPTIONS",
+    "access-control-allow-origin": "*",
+    "content-length": "321",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 23 Jun 2026 15:28:55 GMT",
+    "last-modified": "Tue, 23 Jun 2026 15:28:55 GMT",
+    "server": "tcbgw",
+    "vary": "Origin,Accept-Encoding",
+    "x-cloudbase-request-id": "46caceaf-d52c-4b18-a41c-b2cdd1392056",
+    "x-cloudbase-session-id": "46caceaf-d52c-4b18-a41c-b2cdd1392056",
+    "x-cloudbase-upstream-status-code": "200",
+    "x-cloudbase-upstream-timecost": "133",
+    "x-cloudbase-upstream-type": "Tencent-SCF_HTTP",
+    "x-request-id": "46caceaf-d52c-4b18-a41c-b2cdd1392056"
+  },
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "_id": "place_0dc2aece-6aa6-46c5-8971-57646636a22a",
+        "name_zh": "CloudBase Dev 验收点位",
+        "name_en": "CloudBase Live Acceptance Place",
+        "category_level_1": "community",
+        "is_recommended": true,
+        "location": {
+          "latitude": 30.615902,
+          "longitude": 104.06594
+        }
+      }
+    ],
+    "requestId": "e2fc7d7c-0b55-41e9-b1aa-cecb1d57c730"
+  }
+}

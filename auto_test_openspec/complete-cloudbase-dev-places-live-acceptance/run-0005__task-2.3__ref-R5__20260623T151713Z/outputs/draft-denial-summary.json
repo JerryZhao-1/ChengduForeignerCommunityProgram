@@ -1,0 +1,10 @@
+{
+  "draft_id": "place_d6af35be-acea-41b8-92ed-cfd0fa909072",
+  "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位1",
+  "admin_status": "draft",
+  "public_detail_status": 404,
+  "public_detail_error": {
+    "code": "NOT_FOUND",
+    "message": "Place not found."
+  }
+}

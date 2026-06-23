@@ -1,0 +1,10 @@
+{
+  "pass": true,
+  "id": "place_0dc2aece-6aa6-46c5-8971-57646636a22a",
+  "checks": [
+    "published place appears in public list",
+    "published place appears in map markers",
+    "published place detail is readable",
+    "public field boundaries are preserved"
+  ]
+}

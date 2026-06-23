@@ -504,6 +504,97 @@ describe("cloudbase event handler", () => {
     }
   });
 
+  it("omits _id from live CloudBase create set payload", async () => {
+    const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+    const previousEnvId = process.env.CLOUDBASE_ENV_ID;
+    const set = vi.fn(async (payload: Record<string, unknown>) => {
+      void payload;
+      return {
+        updated: 0,
+        upsertedId: "place_created",
+        requestId: "req_live_set"
+      };
+    });
+    const doc = vi.fn(() => ({ set }));
+    const placesCollection = {
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({
+          data: []
+        }))
+      })),
+      doc
+    };
+    const initCloudbase = vi.fn(() => ({
+      database: () => ({
+        collection: () => placesCollection
+      }),
+      getTempFileURL: vi.fn()
+    }));
+
+    try {
+      vi.resetModules();
+      vi.doMock("@cloudbase/node-sdk", () => ({
+        default: {
+          init: initCloudbase
+        }
+      }));
+      process.env.CLOUDBASE_PROVIDER_MODE = "live";
+      process.env.CLOUDBASE_ENV_ID = "test-env";
+
+      const { createCloudbaseProvider: createLiveProvider } = await import(
+        "../src/providers/cloudbase"
+      );
+      const provider = createLiveProvider();
+      const created = await provider.places.create({
+        name_zh: "实时创建地点",
+        name_en: "Live Create Place",
+        category_level_1: "community",
+        category_level_2: "acceptance",
+        tag_ids: ["acceptance"],
+        address_zh: "成都",
+        address_en: "Chengdu",
+        location: { latitude: 30.615, longitude: 104.066 },
+        business_hours_zh: "周一至周日",
+        business_hours_en: "Every day",
+        intro_zh: "写入测试",
+        intro_en: "Create test",
+        recommended_reason_zh: null,
+        recommended_reason_en: null,
+        is_recommended: false,
+        recommended_rank: 0,
+        gallery_file_ids: [],
+        gallery_urls: [],
+        tencent_map_poi_id: null,
+        supports_navigation: true,
+        supports_favorite: true,
+        supports_share: true,
+        status: "draft"
+      });
+      const setPayload = set.mock.calls[0]?.[0] as Record<string, unknown>;
+
+      expect(doc).toHaveBeenCalledWith(created._id);
+      expect(set).toHaveBeenCalledTimes(1);
+      expect(setPayload).not.toHaveProperty("_id");
+      expect(setPayload.name_en).toBe("Live Create Place");
+      expect(created._id).toMatch(/^place_/);
+    } finally {
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+
+      if (previousEnvId === undefined) {
+        delete process.env.CLOUDBASE_ENV_ID;
+      } else {
+        process.env.CLOUDBASE_ENV_ID = previousEnvId;
+      }
+
+      vi.doUnmock("@cloudbase/node-sdk");
+      vi.resetModules();
+    }
+  });
+
   it("resolves live CloudBase gallery file ids into detail media", async () => {
     const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
     const previousEnvId = process.env.CLOUDBASE_ENV_ID;

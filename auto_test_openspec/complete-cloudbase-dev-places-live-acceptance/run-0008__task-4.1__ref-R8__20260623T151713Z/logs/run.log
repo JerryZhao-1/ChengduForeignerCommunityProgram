@@ -1,0 +1,8 @@
+{
+  "pass": true,
+  "docs": [
+    "docs/plan.md",
+    "docs/cloudbase-dev-api-deployment.md",
+    "docs/week8-places-cloudbase-integration.md"
+  ]
+}

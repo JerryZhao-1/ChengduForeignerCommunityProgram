@@ -1,0 +1,34 @@
+{
+  "label": "admin-places",
+  "method": "GET",
+  "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/places",
+  "status": 200,
+  "ok": true,
+  "headers": {
+    "access-control-allow-headers": "content-type,x-mock-user-id,x-requested-with",
+    "access-control-allow-methods": "GET,POST,PATCH,OPTIONS",
+    "access-control-allow-origin": "*",
+    "content-length": "120",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 23 Jun 2026 15:20:31 GMT",
+    "last-modified": "Tue, 23 Jun 2026 15:20:31 GMT",
+    "server": "tcbgw",
+    "vary": "Origin,Accept-Encoding",
+    "x-cloudbase-request-id": "aa4f7f32-a576-4cf7-a460-c0c0cf52bcd7",
+    "x-cloudbase-session-id": "aa4f7f32-a576-4cf7-a460-c0c0cf52bcd7",
+    "x-cloudbase-upstream-status-code": "200",
+    "x-cloudbase-upstream-timecost": "127",
+    "x-cloudbase-upstream-type": "Tencent-SCF_HTTP",
+    "x-request-id": "aa4f7f32-a576-4cf7-a460-c0c0cf52bcd7"
+  },
+  "body": {
+    "success": true,
+    "data": {
+      "items": [],
+      "page": 1,
+      "pageSize": 20,
+      "total": 0
+    },
+    "requestId": "53d97249-eef0-4069-bc31-3c2a7f8cd7fc"
+  }
+}

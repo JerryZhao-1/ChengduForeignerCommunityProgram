@@ -1,0 +1,29 @@
+{
+  "label": "public-markers",
+  "method": "GET",
+  "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/places/map-markers",
+  "status": 200,
+  "ok": true,
+  "headers": {
+    "access-control-allow-headers": "content-type,x-mock-user-id,x-requested-with",
+    "access-control-allow-methods": "GET,POST,PATCH,OPTIONS",
+    "access-control-allow-origin": "*",
+    "content-length": "77",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 23 Jun 2026 15:20:31 GMT",
+    "last-modified": "Tue, 23 Jun 2026 15:20:31 GMT",
+    "server": "tcbgw",
+    "vary": "Origin,Accept-Encoding",
+    "x-cloudbase-request-id": "76db228e-49ee-4bb8-b9a8-8be7b59418d8",
+    "x-cloudbase-session-id": "76db228e-49ee-4bb8-b9a8-8be7b59418d8",
+    "x-cloudbase-upstream-status-code": "200",
+    "x-cloudbase-upstream-timecost": "244",
+    "x-cloudbase-upstream-type": "Tencent-SCF_HTTP",
+    "x-request-id": "76db228e-49ee-4bb8-b9a8-8be7b59418d8"
+  },
+  "body": {
+    "success": true,
+    "data": [],
+    "requestId": "6b816191-6fc5-4505-884f-ceace572cbdb"
+  }
+}

@@ -1,0 +1,10 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/volunteer-import.spec.ts (4 tests) 133ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  23:33:06
+   Duration  403ms (transform 70ms, setup 0ms, collect 94ms, tests 133ms, environment 0ms, prepare 38ms)
+

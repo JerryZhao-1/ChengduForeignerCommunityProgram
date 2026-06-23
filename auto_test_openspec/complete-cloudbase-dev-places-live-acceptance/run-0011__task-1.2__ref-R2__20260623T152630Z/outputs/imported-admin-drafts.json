@@ -1,0 +1,201 @@
+{
+  "count": 19,
+  "items": [
+    {
+      "_id": "place_d6af35be-acea-41b8-92ed-cfd0fa909072",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位1",
+      "review_blockers": [
+        "missing_position_evidence",
+        "missing_media",
+        "needs_tag_review",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_f8ea0c85-90c9-44b5-85fe-249891d87784",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位2",
+      "review_blockers": [
+        "missing_position_evidence",
+        "missing_media",
+        "needs_tag_review",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_72013172-bbdb-4fc0-9670-0ac0b1dec2c8",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位3",
+      "review_blockers": [
+        "needs_english_name_review",
+        "missing_position_evidence",
+        "missing_media",
+        "needs_tag_review",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_0d8d6682-77c5-4194-a54a-4c57726ee5f6",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位4",
+      "review_blockers": [
+        "needs_english_name_review",
+        "missing_position_evidence",
+        "missing_media",
+        "needs_tag_review",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_8a9dfcd9-b5da-48e9-956d-9b644f09366b",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位5",
+      "review_blockers": [
+        "needs_english_name_review",
+        "missing_position_evidence",
+        "missing_media",
+        "needs_tag_review",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_f04664cf-26b4-4c04-9b35-c8fdd958aaa3",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位6",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_9660a140-9934-4310-b688-b1b2a7694f27",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位7",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_ee3dd91f-9e67-4ecb-996a-8c9c91e5c18b",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位8",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_0e0fdf02-f51f-49c3-acec-373a7d358fe3",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位9",
+      "review_blockers": [
+        "needs_english_name_review",
+        "missing_media",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_94386f11-6089-4f07-8e34-eb31687bacb9",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位10",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review",
+        "unsupported_category:pet space"
+      ]
+    },
+    {
+      "_id": "place_f6f05255-07b3-4138-bde4-ea2362116b3c",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位11",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review"
+      ]
+    },
+    {
+      "_id": "place_27dcda26-1912-434a-a2d1-a9c2ca77db16",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位12",
+      "review_blockers": [
+        "needs_english_name_review",
+        "missing_media",
+        "needs_coordinate_review",
+        "unsupported_category:missing"
+      ]
+    },
+    {
+      "_id": "place_2d2bf4a7-5e9e-49a6-ad6c-13a12b18bae7",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位13",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review",
+        "unsupported_category:missing"
+      ]
+    },
+    {
+      "_id": "place_f7ca09ac-73b8-4ef5-898f-41ba78958297",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位14",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review",
+        "unsupported_category:missing"
+      ]
+    },
+    {
+      "_id": "place_48dffff1-3cdf-4e15-9f52-7ee2adb87cba",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位15",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review",
+        "unsupported_category:missing"
+      ]
+    },
+    {
+      "_id": "place_402319eb-3264-447a-918b-cbf927f783f1",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位16",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review",
+        "unsupported_category:missing"
+      ]
+    },
+    {
+      "_id": "place_1d69e750-b50a-41e2-bdf2-e8fa1051f02b",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位17",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review",
+        "unsupported_category:missing"
+      ]
+    },
+    {
+      "_id": "place_c3e6b86f-2c61-44ac-8a14-b05b378eadd1",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位18",
+      "review_blockers": [
+        "needs_english_name_review",
+        "missing_media",
+        "needs_coordinate_review",
+        "unsupported_category:missing"
+      ]
+    },
+    {
+      "_id": "place_16a37aa6-198f-4fee-971b-275a8f7da15e",
+      "status": "draft",
+      "source_import_id": "志愿者点位采集表.xlsx:工作表1:点位19",
+      "review_blockers": [
+        "missing_media",
+        "needs_coordinate_review",
+        "unsupported_category:missing"
+      ]
+    }
+  ]
+}

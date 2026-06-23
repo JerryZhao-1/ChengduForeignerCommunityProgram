@@ -1,0 +1,15 @@
+{
+  "id": "place_0dc2aece-6aa6-46c5-8971-57646636a22a",
+  "before_detail_intro_en": "Controlled published place for CloudBase dev Places live-data acceptance.",
+  "after_detail_intro_en": "Controlled published place for CloudBase dev Places live-data acceptance. Update verification 2026-06-23T15:29:05Z",
+  "after_list_recommended_reason_en": "CloudBase dev acceptance sample 2026-06-23T15:29:05Z",
+  "patch": {
+    "intro_zh": "用于 CloudBase dev Places 真实数据验收的受控公开点位。更新验收时间 2026-06-23T15:29:05Z",
+    "intro_en": "Controlled published place for CloudBase dev Places live-data acceptance. Update verification 2026-06-23T15:29:05Z",
+    "recommended_reason_zh": "CloudBase dev 验收样例 2026-06-23T15:29:05Z",
+    "recommended_reason_en": "CloudBase dev acceptance sample 2026-06-23T15:29:05Z",
+    "recommended_rank": 9,
+    "is_recommended": true,
+    "status": "published"
+  }
+}
