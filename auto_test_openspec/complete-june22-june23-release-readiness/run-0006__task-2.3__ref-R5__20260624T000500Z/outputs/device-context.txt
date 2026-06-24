@@ -1,0 +1,7 @@
+import_path=/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/dist/build/mp-weixin
+appid=wx7518a3c1fcdd39a5
+api_mode=cloudbase-function
+cloudbase_env_id=cloud1-d7gxdk8t43bd639c0
+cloudbase_function_name=community-map-api
+result=blocked
+blocker=No physical WeChat-capable device evidence channel available in this execution environment.

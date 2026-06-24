@@ -1,0 +1,29 @@
+Command: pnpm test
+
+> chengdu-foreigner-community-program@0.1.0 test /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> vitest run
+
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ apps/mobile/src/pages/places/navigation.spec.ts (4 tests) 2ms
+ ✓ apps/mobile/src/pages/places/favorite-state.spec.ts (2 tests) 2ms
+ ✓ packages/shared/test/integration-readiness.spec.ts (2 tests) 3ms
+ ✓ packages/shared/test/client.spec.ts (4 tests) 4ms
+ ✓ packages/shared/test/contracts.spec.ts (8 tests) 5ms
+ ✓ apps/mobile/src/pages/places/list-categories.spec.ts (1 test) 2ms
+ ✓ packages/shared/test/places-marker-contract.spec.ts (4 tests) 9ms
+Parsed 19 records; mapped 19 draft places.
+Parsed 19 records; mapped 19 draft places.
+Parsed 19 records; mapped 19 draft places.
+Parsed 19 records; mapped 19 draft places.
+ ✓ packages/shared/test/volunteer-import.spec.ts (4 tests) 166ms
+ ✓ apps/api/test/cloudbase.spec.ts (10 tests) 27ms
+ ✓ apps/api/test/integration-readiness.spec.ts (7 tests) 58ms
+ ✓ apps/api/test/app.spec.ts (5 tests) 59ms
+
+ Test Files  11 passed (11)
+      Tests  51 passed (51)
+   Start at  12:02:51
+   Duration  540ms (transform 507ms, setup 0ms, collect 2.06s, tests 335ms, environment 1ms, prepare 451ms)
+

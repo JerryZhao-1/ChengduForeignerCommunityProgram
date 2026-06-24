@@ -1,0 +1,3 @@
+Task 2.3 remains pending map-position retest.
+Share limitation recorded as accepted platform limitation: Mini Program is not certified.
+New preview QR recorded under outputs/preview-mapbutton.png.

@@ -1,0 +1,4 @@
+Task 2.3 remains pending retest.
+Initial real-device evidence recorded: app launch, places list, and places map reachable.
+Observed blocker: Can't find variable: URL.
+Fix build and preview QR recorded under outputs/preview-urlfix.png.

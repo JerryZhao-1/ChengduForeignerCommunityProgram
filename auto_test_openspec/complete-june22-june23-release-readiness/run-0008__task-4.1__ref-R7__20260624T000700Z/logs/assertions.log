@@ -1,0 +1,24 @@
+Checking frozen integration configuration...
+| CloudBase dev env id | `cloud1-d7gxdk8t43bd639c0` | verified dev target |
+| Dev API base | `https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api` | `/health` returned 200 |
+| Admin hosted URL | `https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com/` | blocked: hosting returns 404 |
+| API function | `community-map-api` | CloudBase HTTP function |
+| Mini Program CloudBase function | `community-map-api` | build env embedded |
+| Dev API base | `https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api` | `/health` returned 200 |
+| Admin hosted URL | `https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com/` | blocked: hosting returns 404 |
+| Mini Program app id | `wx7518a3c1fcdd39a5` | configured |
+| Storage prefix for place gallery | `public/places/{place_id}/` | recorded, real file id still blocked |
+| P0 | Real CloudBase gallery media/temp URL not accepted | CloudBase/files owner | Attach real `cloud://` file id under `public/places/{place_id}/` and verify `gallery_media`/`gallery_urls` | Places without gallery can proceed; gallery release gate cannot |
+
+Checking data classification...
+| Imported volunteer places | 19 dev records, all `status="draft"` | Preserve as review fixtures; do not treat as production data |
+| Published acceptance place | `CloudBase Live Acceptance Place`, id `place_0dc2aece-6aa6-46c5-8971-57646636a22a` | Preserve as dev smoke fixture |
+| Draft visibility fixture | `place_d6af35be-acea-41b8-92ed-cfd0fa909072` | Preserve as draft public-denial evidence |
+| Incomplete gallery/media references | Published acceptance place has `gallery_file_ids: []`; no real `cloud://` gallery file id is attached | P0 blocker for gallery media live acceptance |
+| Invalid/missing coordinate imports | Imported draft records may include placeholder out-of-range coordinates for schema validity | Preserve in draft; map marker filtering must continue excluding them |
+| Duplicate/test records | No deletion performed in this run | Review before production seed creation |
+
+Checking production exclusions...
+This handoff freezes the dev integration entry state for the 2026-06-24 all-module smoke window. It does not claim production readiness, Mini Program trial readiness, or non-places live persistence.
+No production data was mutated by this handoff.
+| P0 | Production env/security rules not configured | release owner | Create/confirm prod env and apply DB/storage rules before production release | Dev integration can proceed; production release cannot |

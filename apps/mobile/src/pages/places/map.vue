@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import type { PlaceMapMarker } from "@community-map/shared";
-import { onLoad } from "@dcloudio/uni-app";
+import { onLoad, onShow } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
@@ -10,6 +10,7 @@ import { getPlacesCopy } from "./copy";
 import {
   buildPlaceMarkerNavigationTarget,
   openPlaceNativeNavigation,
+  PLACE_MAP_FOCUS_STORAGE_KEY,
   placesPagePaths
 } from "./navigation";
 import { usePlaceAsyncState } from "./usePlaceAsyncState";
@@ -99,6 +100,27 @@ const loadMarkers = async () => {
     null;
 };
 
+const focusPresetPlace = (placeId: string | null) => {
+  if (!placeId) {
+    return;
+  }
+
+  presetPlaceId.value = placeId;
+  selectedPlaceId.value =
+    places.value.find((place) => place._id === placeId)?._id ?? null;
+};
+
+const consumePendingFocusPlace = () => {
+  const pendingPlaceId = uni.getStorageSync?.(PLACE_MAP_FOCUS_STORAGE_KEY);
+
+  if (typeof pendingPlaceId !== "string" || pendingPlaceId.length === 0) {
+    return;
+  }
+
+  uni.removeStorageSync?.(PLACE_MAP_FOCUS_STORAGE_KEY);
+  focusPresetPlace(pendingPlaceId);
+};
+
 const handleMarkerTap = (event: { detail?: { markerId?: number } }) => {
   const markerId = event.detail?.markerId;
   if (markerId === undefined) {
@@ -143,8 +165,10 @@ const openList = (recommended = false) => {
 
 onMounted(loadMarkers);
 
+onShow(consumePendingFocusPlace);
+
 onLoad((query) => {
-  presetPlaceId.value = query?.id ? String(query.id) : null;
+  focusPresetPlace(query?.id ? String(query.id) : null);
 });
 </script>
 

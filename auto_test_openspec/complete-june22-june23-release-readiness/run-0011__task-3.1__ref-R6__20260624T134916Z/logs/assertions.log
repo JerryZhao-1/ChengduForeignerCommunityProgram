@@ -1,0 +1,14 @@
+Checking hosted Admin root...
+HTTP/2 200 
+    <title>Community Map Admin</title>
+
+Checking hosted Admin /places route fallback...
+HTTP/2 200 
+    <title>Community Map Admin</title>
+
+Checking dev API health...
+HTTP/1.1 200 OK
+{"ok":true}
+
+Checking built Admin API target...
+apps/admin/dist/assets/index-CGKtl0pb.js

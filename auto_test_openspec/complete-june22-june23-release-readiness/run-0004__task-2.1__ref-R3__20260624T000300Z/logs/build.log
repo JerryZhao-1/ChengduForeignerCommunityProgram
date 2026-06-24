@@ -1,0 +1,8 @@
+Command: VITE_API_MODE=cloudbase-function VITE_CLOUDBASE_ENV_ID=cloud1-d7gxdk8t43bd639c0 VITE_CLOUDBASE_FUNCTION_NAME=community-map-api pnpm --filter @community-map/mobile build:mp-weixin
+
+> @community-map/mobile@0.1.0 build:mp-weixin /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile
+> uni build -p mp-weixin
+
+Compiling...
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import dist/build/mp-weixin run.

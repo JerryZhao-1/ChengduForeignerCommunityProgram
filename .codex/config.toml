@@ -132,6 +132,12 @@ args = ["-y", "@cloudbase/cloudbase-mcp@latest"]
 [mcp_servers.cloudbase.env]
 INTEGRATION_IDE = "CodeX"
 
+[mcp_servers.cloudbase.tools.auth]
+approval_mode = "approve"
+
+[mcp_servers.cloudbase.tools.manageHosting]
+approval_mode = "approve"
+
 [plugins."build-ios-apps@openai-curated"]
 enabled = true
 

@@ -1,0 +1,3 @@
+OpenSpec strict validation passed.
+Completed tasks with evidence: 1.1, 1.2, 2.1, 4.1, 4.2, 5.1.
+Blocked tasks left unchecked with evidence: 2.2, 2.3, 3.1.

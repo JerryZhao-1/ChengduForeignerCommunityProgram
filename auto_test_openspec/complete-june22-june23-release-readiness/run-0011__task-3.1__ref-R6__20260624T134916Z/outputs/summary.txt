@@ -1,0 +1,4 @@
+Admin hosting verification passed.
+Hosted URL: https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com/
+Direct route URL: https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com/places
+API base: https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api

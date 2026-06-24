@@ -12,6 +12,7 @@ import { usePlaceFavoriteState } from "./favorite-state";
 import {
   buildPlaceDetailNavigationTarget,
   openPlaceNativeNavigation,
+  PLACE_MAP_FOCUS_STORAGE_KEY,
   placesPagePaths
 } from "./navigation";
 import { usePlaceAsyncState } from "./usePlaceAsyncState";
@@ -158,8 +159,9 @@ const openMapPosition = () => {
     return;
   }
 
-  uni.navigateTo({
-    url: placesPagePaths.map(place.value._id)
+  uni.setStorageSync?.(PLACE_MAP_FOCUS_STORAGE_KEY, place.value._id);
+  uni.switchTab({
+    url: placesPagePaths.map()
   });
 };
 
@@ -298,7 +300,6 @@ const shareButtonLabel = computed(() =>
         </button>
         <button
           class="place-action secondary"
-          :disabled="!hasUsableCoordinates"
           @click="openMapPosition"
         >
           {{ detailCopy.openMapPosition }}

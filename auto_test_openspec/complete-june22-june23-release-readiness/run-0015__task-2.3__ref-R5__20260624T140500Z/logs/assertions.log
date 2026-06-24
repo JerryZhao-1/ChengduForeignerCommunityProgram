@@ -1,0 +1,6 @@
+Checking physical-device evidence files...
+
+Checking URL runtime fix in source and generated Mini Program package...
+import { resolveCloudbaseFunctionPath } from "./cloudbase-path";
+    const path = resolveCloudbaseFunctionPath(url);
+"use strict";const e=require("../common/vendor.js"),t=require("../config/env.js"),o=require("./cloudbase-path.js"),n=e.createHttpClient({actorId:t.mobileEnv.actorId,baseUrl:t.mobileEnv.apiBaseUrl,requester:(()=>{var n,a;const i=void 0===e.wx$1||null==(n=e.wx$1.cloud)?void 0:n.callHTTPFunction,r=void 0===e.wx$1||null==(a=e.wx$1.cloud)?void 0:a.callFunction;return"function"!=typeof i&&"function"!=typeof r?void 0===e.index||"function"!=typeof e.index.request?e.createFetchRequester():(t,o,n,a={})=>new Promise((i,r)=>{const u="PATCH"===t?"POST":t;e.index.request({url:o,method:u,data:n,header:a,success:e=>i(e.data),fail:r})}):async(e,n,a,u={})=>{const c=o.resolveCloudbaseFunctionPath(n);if("function"==typeof i){return(await i({name:t.mobileEnv.cloudFunctionName,path:c,method:e,data:a,header:u})).data}if("function"!=typeof r)throw new Error("CloudBase function API is unavailable.");return(await r({name:t.mobileEnv.cloudFunctionName,data:{...a??{},$url:c,$method:e,$headers:u}})).result}})()});exports.mobileApi=n;

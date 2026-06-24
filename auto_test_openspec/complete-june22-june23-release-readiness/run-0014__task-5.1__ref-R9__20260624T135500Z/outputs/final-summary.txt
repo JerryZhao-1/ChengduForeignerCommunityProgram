@@ -1,0 +1,3 @@
+Final OpenSpec validation recheck passed.
+Completed tasks: 8/9
+Remaining unchecked task: 2.3 real-device places map/navigation/share verification.

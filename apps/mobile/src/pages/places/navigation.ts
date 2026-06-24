@@ -32,6 +32,9 @@ export const placesPagePaths = {
     })
 };
 
+export const PLACE_MAP_FOCUS_STORAGE_KEY =
+  "community-map:places:focusPlaceId";
+
 type PlacesLocale = "zh" | "en";
 
 export interface PlaceNavigationFeedback {

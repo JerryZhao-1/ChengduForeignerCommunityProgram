@@ -1,0 +1,13 @@
+Checking completed-task evidence...
+
+Checking blocker evidence...
+
+Checking task status...
+- [x] 1.1 Scope generated CloudBase deployment output out of source lint [#R1]
+- [x] 1.2 Run release validation commands after lint blocker closure [#R2]
+- [x] 2.1 Build the Mini Program in `cloudbase-function` mode [#R3]
+- [ ] 2.2 Verify WeChat DevTools import and main flow or record a blocker [#R4]
+- [ ] 2.3 Verify real-device places map navigation and share or record a blocker [#R5]
+- [ ] 3.1 Verify Admin hosting reaches the intended CloudBase dev API domain [#R6]
+- [x] 4.1 Clean or classify dev data and freeze release configuration [#R7]
+- [x] 4.2 Publish the 6.24 integration handoff and update `docs/plan.md` [#R8]

@@ -1,0 +1,14 @@
+Command: pnpm typecheck
+
+> chengdu-foreigner-community-program@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> corepack pnpm -r --if-present typecheck
+
+Scope: 4 of 5 workspace projects
+packages/shared typecheck$ tsc --noEmit -p tsconfig.json
+packages/shared typecheck: Done
+apps/admin typecheck$ vue-tsc --noEmit -p tsconfig.json
+apps/mobile typecheck$ vue-tsc --noEmit -p tsconfig.json
+apps/api typecheck$ tsc --noEmit -p tsconfig.json
+apps/api typecheck: Done
+apps/mobile typecheck: Done
+apps/admin typecheck: Done

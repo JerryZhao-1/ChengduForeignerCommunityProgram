@@ -1,0 +1,23 @@
+HTTP/2 200 
+accept-ranges: bytes
+content-disposition: attachment
+content-type: text/html
+date: Wed, 24 Jun 2026 13:54:24 GMT
+etag: "8d155a33fa3cce3cceb1c65d6748bcd4"
+expires: 0
+pragma: no-cache
+server: tcbgw
+x-cloudbase-request-id: af4f2c50-15d1-40a8-b14f-e3cbfc6aebcb
+x-cloudbase-upstream-status-code: 200
+x-cloudbase-upstream-timecost: 329
+x-cloudbase-upstream-type: Tencent-COS
+x-cos-request-id: NmEzYmUxOTBfMV8xNGQzN2QwOV8xN2YwXzI1OWVhMDg=
+x-request-id: af4f2c50-15d1-40a8-b14f-e3cbfc6aebcb
+x-cache-lookup: Cache Miss
+last-modified: Wed, 24 Jun 2026 13:44:00 GMT
+age: 0
+content-length: 403
+x-nws-log-uuid: 17320507989835175190
+x-cache-lookup: Cache Miss
+cache-control: max-age=120
+

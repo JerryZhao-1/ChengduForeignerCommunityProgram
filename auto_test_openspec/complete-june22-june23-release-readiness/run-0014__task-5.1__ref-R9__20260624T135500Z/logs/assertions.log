@@ -1,0 +1,7 @@
+Checking updated task status...
+- [x] 2.2 Verify WeChat DevTools import and main flow or record a blocker [#R4]
+- [ ] 2.3 Verify real-device places map navigation and share or record a blocker [#R5]
+- [x] 3.1 Verify Admin hosting reaches the intended CloudBase dev API domain [#R6]
+
+Checking evidence bundle folders...
+Change 'complete-june22-june23-release-readiness' is valid

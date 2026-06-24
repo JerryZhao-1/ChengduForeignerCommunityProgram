@@ -1,0 +1,8 @@
+hosted_admin_url=https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com/
+hosted_admin_places_url=https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com/places
+intended_api_base=https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api
+api_health_status=200
+hosted_root_status=404
+hosted_places_status=404
+result=blocked
+blocker=CloudBase static hosting returns NoSuchKey for Admin root and direct /places route.

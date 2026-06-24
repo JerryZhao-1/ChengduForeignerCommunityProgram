@@ -1,0 +1,5 @@
+Command: pnpm lint
+
+> chengdu-foreigner-community-program@0.1.0 lint /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> eslint .
+

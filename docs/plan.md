@@ -1,6 +1,7 @@
 # 6.16-7.1 上线冲刺计划
 
 更新时间：2026-06-24
+本次调查时间：2026-06-24 11:42（Asia/Shanghai）
 计划周期：2026-06-16 至 2026-07-01  
 上线口径：达到可发布、可提交审核、可对外试运行状态；微信审核通过时间不等同于 7.1 当日上线完成。
 
@@ -45,8 +46,9 @@
   - missing/unusable coordinates
   - missing address / optional text
 - 最近一次本地核心验证结果：
-  - 2026-06-23 `pnpm typecheck` 通过
-  - 2026-06-23 `pnpm test` 通过，9 个测试文件 / 42 个测试通过
+  - 2026-06-24 `pnpm typecheck` 通过
+  - 2026-06-24 `pnpm test` 通过，11 个测试文件 / 51 个测试通过
+  - 2026-06-24 `pnpm lint` 通过；生成/部署包 `apps/api/.cloudbase/` 已按 generated output 加入 ESLint ignore，部署包仍由 CloudBase build/smoke evidence 覆盖
 - CloudBase dev API 部署闭环已完成到 public read smoke：
   - MCP auth 已恢复并绑定 `cloud1-d7gxdk8t43bd639c0`
   - dev env、collections、places indexes、function、gateway、hosting 已实时查询
@@ -88,20 +90,29 @@
   - `recommended_rank`
 - Admin hosting dev domain 已记录：
   - `https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com`
+- 2026-06-24 Admin hosting 复核：Admin bundle 已使用 `VITE_API_MODE=http` 和 CloudBase dev API base 重新构建并部署；hosted root 和 `/places` 均返回 200，SPA fallback 已配置。
 - Mobile API client 已支持 `mock` / `http` / `cloudbase-function` 模式，并且 `cloudbase-function` 会优先使用 `wx.cloud.callHTTPFunction`。
+- 2026-06-24 小程序 `cloudbase-function` build 已通过，导入路径：
+  - `/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/dist/build/mp-weixin`
 - API CloudBase provider live mode 已覆盖 places，但只在同时满足以下条件时连接真实 CloudBase：
   - `API_PROVIDER=cloudbase`
   - `CLOUDBASE_PROVIDER_MODE=live`
   - `CLOUDBASE_ENV_ID` 或 `TCB_ENV` 已设置
 
-### 未完成 / 不得标记完成
+### 状态边界 / 不得过度标记
 
 - CloudBase dev places gallery media live acceptance 尚未完成：
   - 需要真实 CloudBase storage file id 挂接到 `public/places/{place_id}/`
   - 需要 detail 返回由 `gallery_file_ids` 解析出的 `gallery_media` 和派生 `gallery_urls`
-- `pnpm lint` 当前未通过：
-  - 失败集中在生成/部署包 `apps/api/.cloudbase/community-map-api/index.cjs`
-  - 需决定将该生成目录加入 ESLint ignore，或调整 CloudBase bundle 生成/校验流程后再标记 6.23 全量验证完成
+- 微信开发者工具导入和主流程已验证：
+  - DevTools service port `50375` 已开启；CLI 成功打开小程序构建目录并生成预览码；home、events、discover、places 主入口在模拟器可达。
+- 真机 places map/navigation/share 尚未验证：
+  - 2026-06-24 iPhone 14 Pro / iOS 26.5 / WeChat 8.0.75 已验证小程序打开无白屏、Places list 可达、Places map 可达。
+  - map 页出现 `Can't find variable: URL`；已修复 mobile CloudBase requester 的 URL 解析。
+  - 分享提示“小程序未认证，暂时无法使用”，当前按小程序认证状态的平台限制记录。
+  - `查看地图位置` 按钮仍无法点击；根因是 map 是 tabBar 页面，不能用 `navigateTo` 打开。已改为 `switchTab` 并用本地临时 storage 传递待聚焦 place id，map-position/native-navigation 仍需复测。
+- Admin hosting dev domain 已通过：
+  - hosted root 和 `/places` 返回 200；bundle 内 API base 指向 CloudBase dev API domain。
 - 当前 live `places` collection 包含 20 条验收数据：19 条 imported draft + 1 条 published acceptance place。不得把这些 dev 数据视为生产数据。
 - 非 places live providers 尚未完成：
   - events
@@ -118,10 +129,34 @@
 - `docs/cloudbase-week4-deployment-baseline.md`
 - `docs/week8-places-cloudbase-integration.md`
 - `docs/cloudbase-dev-api-deployment.md`
+- `docs/release-readiness-handoff-2026-06-24.md`
 - `openspec/changes/complete-week8-places-cloudbase-integration-and-volunteer-import/tasks.md`
 - `openspec/changes/complete-places-frontend-and-backend-foundation/tasks.md`
+- `openspec/changes/archive/2026-06-22-complete-cloudbase-dev-api-deployment/tasks.md`
+- `openspec/changes/archive/2026-06-23-complete-cloudbase-dev-places-live-acceptance/tasks.md`
+- `openspec/changes/archive/2026-06-24-complete-events-discover-files-integration-readiness/tasks.md`
+
+### 本次调查结论（2026-06-24）
+
+- 项目当前处于 `2026-06-24 至 2026-06-30` 的全模块联调入口期，不是 release candidate。
+- 按日期计划判断：
+  - 6.16-6.21 已完成到本地/API readiness 和 CloudBase dev API/places 基础验收层级。
+  - 6.22 小程序 `cloudbase-function` 构建、微信开发者工具导入和 Admin hosting/API 联调已补证据；真机验证仍有 blocker，保持未完成。
+  - 6.23 接口/配置冻结、数据清理分类、6.24 联调入口输出已记录在 `docs/release-readiness-handoff-2026-06-24.md`；`typecheck` / `test` / `lint` 均已通过。
+  - 6.24 已完成 CloudBase dev HTTP smoke 的一部分：`/health`、places list/map/detail、events list/detail、discover feed/detail、`auth/me` 均返回 200；events/discover/auth 仍按非 places fallback 边界处理，不等同于 live persistence；files public/temp URL 尚未完成。
+- 已完成的主要阶段：Places 本地前后台链路、CloudBase dev API HTTP function、`/api` route、places public read/admin update/draft visibility、events/discover/files/notifications/auth 本地/API 负路径。
+- 仍阻塞上线闭环的 P0：真实 CloudBase gallery media/file id、files public/temp URL live 验收、真机 places switchTab map-position/native-navigation 复测、prod env、数据库/存储安全规则、非 places live provider persistence。
+- 进度评估：功能开发主体约完成到“可进入全模块联调”，上线准备约完成到“dev API 与本地业务基线可用”；距离 7.1 口径还剩联调、真机、真实媒体、生产配置、安全规则和发布交接。
 
 ## 2. 剩余上线任务
+
+### 下一步执行顺序
+
+1. 使用 switchTab 修复后的新预览码复测真机 places map-position/native-navigation，记录设备、place id、授权提示和结果。
+2. 跑通真实 CloudBase storage/files live flow：上传或确认 `public/places/{place_id}/` 下真实 `cloud://` file id，完成 places detail `gallery_media` / `gallery_urls` temp URL 验收。
+3. 补齐 6.24 API smoke 剩余项：files public/temp URL、operation_logs/生产级日志入口，并继续记录 requestId / logs / live-vs-fallback 边界。
+4. 按 6.25-6.28 顺序完成 Places、Events、Discover、Files/Auth/Notifications 全链路联调；只修 P0/P1 缺陷。
+5. 补齐发布项：腾讯地图 key 配置、prod env、安全规则、回滚方案和已知限制。
 
 ### P0: CloudBase 与部署阻塞项
 
@@ -173,14 +208,17 @@
 ### P0: 小程序、Admin 与发布配置
 
 - [ ] 小程序 CloudBase function 模式构建和真机验证。
-  - 验收：`VITE_API_MODE=cloudbase-function`，env id 和 function name 生效。
+  - 当前状态：`cloudbase-function` build 已通过；微信开发者工具导入和主入口验证已通过；真机已验证打开、places list、places map 可达；map `URL` runtime blocker 已修复；分享受小程序未认证限制；`查看地图位置` 已改用 `switchTab` 打开 tabBar map 并待复测 map-position/native-navigation。
+  - 验收：`VITE_API_MODE=cloudbase-function`，env id 和 function name 生效；微信开发者工具和至少一台真机通过。
 - [ ] 小程序体验版配置。
   - 验收：体验者权限、合法域名或 CloudBase 调用方式、定位/导航授权、分享行为均可用。
-- [ ] Admin 线上 API 配置。
+- [x] Admin 线上 API 配置。
+  - 当前状态：2026-06-24 dev API health 返回 200；Admin hosted root 和 `/places` 返回 200；bundle API base 指向 CloudBase dev API domain。
   - 验收：admin static hosting 能访问 dev/prod API domain；刷新页面不路由失败。
 - [ ] 腾讯地图 key 与域名/小程序配置。
   - 验收：地图、定位、导航在微信开发者工具和至少一台真机可用；key 不写入源码。
 - [ ] 上线配置冻结。
+  - 当前状态：6.24 dev integration 配置已冻结在 `docs/release-readiness-handoff-2026-06-24.md`；prod env 仍 pending。
   - 验收：dev/prod env id、API domain、function name、admin hosting domain、storage path、数据库集合记录在文档中。
 - [ ] 日志和排查入口。
   - 验收：CloudBase function logs、operation_logs、关键错误 requestId 可追踪。
@@ -267,10 +305,10 @@
 
 #### 6.22 Mon
 
-- [ ] 小程序 cloudbase-function 构建。
-- [ ] 微信开发者工具导入并跑主流程。
+- [x] 小程序 cloudbase-function 构建。
+- [x] 微信开发者工具导入并跑主流程。
 - [ ] 真机验证 places map/navigation/share。
-- [ ] Admin hosting 与 API domain 联调。
+- [x] Admin hosting 与 API domain 联调。
 
 退出标准：
 
@@ -278,11 +316,14 @@
 
 #### 6.23 Tue
 
-- [ ] 联调前冻结接口和配置。
-- [ ] 清理测试数据和导入数据。
-- [ ] 跑一次 `pnpm typecheck`、`pnpm test`、`pnpm lint`。
-  - 当前状态：2026-06-23 `typecheck` / `test` 已通过；`lint` 因 `apps/api/.cloudbase/community-map-api/index.cjs` 生成文件报错，尚未通过。
-- [ ] 输出 6.24 联调入口、账号、环境、数据清单。
+- [x] 联调前冻结接口和配置。
+- [x] 清理测试数据和导入数据。
+  - 当前状态：未删除生产数据；dev 数据已分类为 19 条 imported draft、1 条 published acceptance place、gallery/file live blocker 和 pending duplicate/test review。
+- [x] 跑一次 `pnpm typecheck`、`pnpm test`、`pnpm lint`。
+  - [x] 2026-06-24 复跑 `pnpm typecheck` 通过。
+  - [x] 2026-06-24 复跑 `pnpm test` 通过，11 个测试文件 / 51 个测试通过。
+  - [x] 2026-06-24 复跑 `pnpm lint` 通过；`apps/api/.cloudbase/` 作为 generated output 排除 source lint。
+- [x] 输出 6.24 联调入口、账号、环境、数据清单。
 
 退出标准：
 
@@ -315,6 +356,18 @@
 - discover feed
 - auth/me
 - files public URL 或 temp URL
+
+当前状态（2026-06-24 调查）：
+
+- [x] 本地 `pnpm typecheck` 通过。
+- [x] 本地 `pnpm test` 通过，11 个测试文件 / 51 个测试通过。
+- [x] CloudBase dev `/api/health` 现场 HTTP smoke 返回 200。
+- [x] CloudBase dev places list/map/detail 现场 HTTP smoke 返回 200；detail `gallery_media=0`、`gallery_urls=0`。
+- [x] CloudBase dev events list/detail 现场 HTTP smoke 返回 200；仍视为 CloudBase handler fallback，不视为 live persistence。
+- [x] CloudBase dev discover feed/detail 现场 HTTP smoke 返回 200；仍视为 CloudBase handler fallback，不视为 live persistence。
+- [x] CloudBase dev `auth/me` 现场 HTTP smoke 返回 200；仍视为 mock actor/fallback 认证边界，不视为生产认证。
+- [ ] CloudBase dev files public URL 或 temp URL 未完成；真实 gallery media temp URL 仍 blocked。
+- [ ] CloudBase 日志可查有函数日志证据，但 `operation_logs` 写入和生产级日志排查入口尚未完成。
 
 退出标准：
 

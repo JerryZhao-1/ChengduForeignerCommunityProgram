@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+access-control-allow-headers: content-type,x-mock-user-id,x-requested-with
+access-control-allow-methods: GET,POST,PATCH,OPTIONS
+access-control-allow-origin: *
+content-length: 11
+content-type: application/json; charset=utf-8
+date: Wed, 24 Jun 2026 13:54:26 GMT
+last-modified: Wed, 24 Jun 2026 13:54:25 GMT
+server: tcbgw
+vary: Origin,Accept-Encoding
+x-cloudbase-request-id: eb6431f6-5650-45c3-a0da-5142d8d17562
+x-cloudbase-session-id: eb6431f6-5650-45c3-a0da-5142d8d17562
+x-cloudbase-upstream-status-code: 200
+x-cloudbase-upstream-timecost: 849
+x-cloudbase-upstream-type: Tencent-SCF_HTTP
+x-request-id: eb6431f6-5650-45c3-a0da-5142d8d17562
+

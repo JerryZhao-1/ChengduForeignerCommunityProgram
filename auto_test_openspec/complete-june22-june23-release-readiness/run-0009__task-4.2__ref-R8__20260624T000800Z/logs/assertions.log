@@ -1,0 +1,26 @@
+Checking handoff sections...
+## Entry Points
+## Validation Results
+## Data Classification
+## Blockers
+## 6.24 Go/No-Go
+
+Checking evidence links and blockers...
+| `auto_test_openspec/complete-june22-june23-release-readiness/run-0003__task-1.2__ref-R2__20260624T000200Z/` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all exited 0 |
+| `auto_test_openspec/complete-june22-june23-release-readiness/run-0004__task-2.1__ref-R3__20260624T000300Z/` | Mini Program `cloudbase-function` build passed |
+| `auto_test_openspec/complete-june22-june23-release-readiness/run-0005__task-2.2__ref-R4__20260624T000400Z/` | WeChat DevTools import blocked; CLI service port disabled and GUI import not verified |
+| `auto_test_openspec/complete-june22-june23-release-readiness/run-0006__task-2.3__ref-R5__20260624T000500Z/` | Real-device places map/navigation/share blocked; no physical device evidence channel |
+| `auto_test_openspec/complete-june22-june23-release-readiness/run-0007__task-3.1__ref-R6__20260624T000600Z/` | Admin hosting blocked; hosted root and `/places` returned 404, API health returned 200 |
+| P0 | WeChat DevTools import/main flow not verified | release integrator with DevTools login/app access | Enable DevTools service port or run manual import, then execute `tests/gui_runbook_wechat_devtools_import.md` from run `0005` | Partial API/local integration can proceed; Mini Program release gate cannot |
+| P0 | Real-device places map/navigation/share not verified | release integrator with physical WeChat-capable device | Execute `tests/gui_runbook_real_device_places.md` from run `0006` before trial/release signoff | Partial API/local integration can proceed; Mini Program release gate cannot |
+| P0 | Admin hosted domain returns `404 NoSuchKey` | CloudBase hosting deploy owner | Deploy Admin build with `VITE_API_MODE=http` and the dev API base, then configure SPA fallback routing | API integration can proceed; hosted Admin gate cannot |
+
+Checking plan references and checkbox state...
+- `docs/release-readiness-handoff-2026-06-24.md`
+  - 6.23 接口/配置冻结、数据清理分类、6.24 联调入口输出已记录在 `docs/release-readiness-handoff-2026-06-24.md`；`typecheck` / `test` / `lint` 均已通过。
+  - 当前状态：6.24 dev integration 配置已冻结在 `docs/release-readiness-handoff-2026-06-24.md`；prod env 仍 pending。
+- [x] 小程序 cloudbase-function 构建。
+- [ ] 微信开发者工具导入并跑主流程。
+- [ ] 真机验证 places map/navigation/share。
+- [ ] Admin hosting 与 API domain 联调。
+- [x] 输出 6.24 联调入口、账号、环境、数据清单。

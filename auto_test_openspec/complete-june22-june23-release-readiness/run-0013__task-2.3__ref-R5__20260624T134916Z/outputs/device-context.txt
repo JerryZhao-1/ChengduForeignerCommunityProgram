@@ -1,0 +1,9 @@
+import_path=/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/dist/build/mp-weixin
+appid=wx7518a3c1fcdd39a5
+api_mode=cloudbase-function
+cloudbase_env_id=cloud1-d7gxdk8t43bd639c0
+cloudbase_function_name=community-map-api
+devtools_version=Stable 2.01.2510280
+preview_status=generated
+result=pending-real-device
+required_device_evidence=places list/map/detail, marker selection, navigation/fallback, share behavior

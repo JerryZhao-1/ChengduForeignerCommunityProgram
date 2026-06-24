@@ -1,0 +1,3 @@
+Task 2.3 remains pending switchTab retest.
+Root cause recorded: map is a tabBar page and cannot be opened via navigateTo.
+New preview QR recorded under outputs/preview-switchtab.png.
