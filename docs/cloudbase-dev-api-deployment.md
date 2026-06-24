@@ -1,6 +1,6 @@
 # CloudBase Dev API Deployment Evidence
 
-Last updated: 2026-06-23
+Last updated: 2026-06-24
 
 ## Scope
 
@@ -132,6 +132,31 @@ The places smoke used live CloudBase configuration, not mock fallback:
 - The mock provider currently returns two places locally, so the empty CloudBase response is consistent with live NoSQL data rather than mock fallback.
 - Detail smoke was not run because there is no published live place in the `places` collection.
 
+## Non-Places Handler Readiness
+
+Events, discover, comments, files, notifications, auth, and role behavior have been hardened for local/API readiness and CloudBase handler parity through fallback-backed provider behavior.
+
+Evidence from 2026-06-24 targeted tests:
+
+- `packages/shared/test/integration-readiness.spec.ts`
+- `apps/api/test/integration-readiness.spec.ts`
+- `apps/api/test/app.spec.ts`
+- `apps/api/test/cloudbase.spec.ts`
+
+Verified scope:
+
+- Events public visibility, registration conflicts, private ticket ownership, and admin check-in negative paths.
+- Discover visible-only public feed/detail, post creation state, comment availability, report hiding, and admin moderation role checks.
+- Files public upload request/complete, protected ticket/export/admin/place-gallery path denial, private URL missing/forbidden/owner behavior.
+- Auth invalid actor denial, admin role denial, and notification list/read ownership.
+- CloudBase handler routing for representative non-places success and negative paths.
+
+Important boundary:
+
+- These checks use local mock provider semantics and CloudBase handler fallback behavior.
+- They do not prove CloudBase live collection persistence for events, discover posts, comments, file assets, notifications, or production auth.
+- Non-places modules must not be marked live-accepted until their real CloudBase collections, data state, request evidence, and remaining blockers are documented.
+
 ## Places Live Acceptance Evidence
 
 CloudBase dev live places acceptance was advanced on 2026-06-23 against:
@@ -176,5 +201,5 @@ auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/
 ## Remaining Work
 
 - Verify gallery media temporary URL behavior with real CloudBase file IDs.
-- Complete non-places live providers for events, discover, comments, announcements, notifications, and files.
+- Complete non-places live providers for events, discover, comments, announcements, notifications, auth, and files.
 - Decide final production auth/security rules before any production exposure.

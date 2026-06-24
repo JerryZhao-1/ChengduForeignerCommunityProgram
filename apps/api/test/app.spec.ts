@@ -45,7 +45,8 @@ describe("api routes", () => {
         {
           method: "POST",
           headers: {
-            "content-type": "application/json"
+            "content-type": "application/json",
+            "x-mock-user-id": "user_002"
           },
           body: JSON.stringify({
             contact_name: "Jerry",

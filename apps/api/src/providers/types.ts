@@ -45,7 +45,8 @@ export interface ApiProvider {
     ): Promise<{ registration: EventRegistration; ticket: EventTicket }>;
     listMyRegistrations(actorId?: string): Promise<EventRegistration[]>;
     getTicketByRegistration(
-      registrationId: string
+      registrationId: string,
+      actorId?: string
     ): Promise<EventTicket | null>;
     create(input: Partial<Event>, actorId?: string): Promise<Event>;
     update(id: string, input: Partial<Event>): Promise<Event | null>;
@@ -123,7 +124,10 @@ export interface ApiProvider {
       },
       actorId?: string
     ): Promise<FileAsset>;
-    privateUrl(input: { file_id: string }): Promise<{
+    privateUrl(
+      input: { file_id: string },
+      actorId?: string
+    ): Promise<{
       temp_url: string;
       expires_at: string;
     }>;

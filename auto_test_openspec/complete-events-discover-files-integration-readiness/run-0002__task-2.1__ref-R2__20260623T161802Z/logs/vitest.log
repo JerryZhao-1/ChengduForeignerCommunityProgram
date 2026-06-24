@@ -1,0 +1,11 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ↓ apps/api/test/cloudbase.spec.ts (10 tests | 10 skipped)
+ ✓ apps/api/test/integration-readiness.spec.ts (7 tests | 5 skipped) 29ms
+
+ Test Files  1 passed | 1 skipped (2)
+      Tests  2 passed | 15 skipped (17)
+   Start at  00:20:06
+   Duration  746ms (transform 367ms, setup 0ms, collect 822ms, tests 29ms, environment 1ms, prepare 179ms)
+

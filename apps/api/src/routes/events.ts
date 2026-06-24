@@ -43,7 +43,10 @@ export const registerEventRoutes = (router: Router) => {
   });
 
   router.get("/events/registrations/:id/ticket", async (ctx) => {
-    const ticket = await ctx.state.provider.events.getTicketByRegistration(ctx.params.id);
+    const ticket = await ctx.state.provider.events.getTicketByRegistration(
+      ctx.params.id,
+      ctx.state.actor._id
+    );
     if (!ticket) {
       throw apiError("NOT_FOUND", "Ticket not found.", 404);
     }

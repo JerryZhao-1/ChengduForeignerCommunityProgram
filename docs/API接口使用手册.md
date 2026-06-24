@@ -1,6 +1,6 @@
 # API 接口使用手册
 
-更新时间：2026-06-16  
+更新时间：2026-06-24  
 适用对象：Mobile、小程序、Admin、events、discover、places、files、notifications 等模块开发者  
 事实来源：`packages/shared/src/contracts/*`、`packages/shared/src/schemas/*`、`apps/api/src/routes/*`、`docs/已实现API接口清单.md`
 
@@ -16,9 +16,10 @@
   - Discover 基础闭环已覆盖 feed、detail、create、comment、report、admin moderation。
   - Files 基础流已覆盖 upload request、complete、private url。
   - Auth、announcements、notifications 有最低可用接口。
+  - 6.19-6.21 local/API readiness 已覆盖 events、discover、files、notifications、auth/role 的关键负路径和 CloudBase handler fallback parity。
 - 未完善 / 不应宣称线上完成：
   - 非 places CloudBase live providers 尚未完成。
-  - CloudBase dev live acceptance 尚未完成。
+  - CloudBase dev places live acceptance 已完成非图集闭环；gallery media 和非 places live providers 尚未完成。
   - 线上 `/api` route、prod env、生产数据库权限规则尚未完成验收。
   - CloudBase MCP 未重新登录和 live smoke test 前，不能把微信云数据库标记为“已验证可连接”。
 
@@ -56,6 +57,7 @@ content-type: application/json
 
 - `user_001`：通常用于 admin / 默认测试用户。
 - `user_002`：通常用于普通用户或权限负路径测试。
+- `user_inactive`：inactive actor，和未知 actor 一样应返回 `401`。
 
 具体角色以 `packages/shared/src/mock/data.ts` 为准。
 
@@ -93,6 +95,7 @@ content-type: application/json
 | `401` | `UNAUTHORIZED` | 未登录或 actor 无法解析 |
 | `403` | `FORBIDDEN` | 权限不足 |
 | `404` | `NOT_FOUND` | 资源不存在或不可见 |
+| `409` | `CONFLICT` | 重复报名、容量满、报名关闭、票据状态冲突等业务冲突 |
 
 ### 2.4 管理端权限
 
@@ -105,8 +108,15 @@ content-type: application/json
 - `/admin/discover/posts/:id/moderation`
 - `/admin/places`
 - `/admin/places/:id`
-- `place_gallery` 的 `/files/upload-requests`
-- `place_gallery` 的 `/files/complete`
+- protected file paths 的 `/files/upload-requests`
+- protected file paths 的 `/files/complete`
+
+Protected file paths / business types:
+
+- `public/places/` / `place_gallery`
+- `private/tickets/` / `event_ticket` 或 `ticket`
+- `private/exports/` / `export`
+- `private/admin/` / `admin_file`
 
 ### 2.5 运行模式
 
@@ -116,6 +126,8 @@ content-type: application/json
 | `http` | 前端通过 HTTP 访问本地 Koa API。 |
 | `cloudbase-function` | 小程序通过 `wx.cloud.callHTTPFunction` 或 fallback cloud function 调用 API。 |
 | CloudBase live provider | 当前只覆盖 places live 路径；需要 `API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、`CLOUDBASE_ENV_ID` 或 `TCB_ENV`。 |
+
+注意：events、discover、comments、files、notifications、auth/role 当前只完成 local/API readiness 和 CloudBase handler fallback parity；非 places live provider persistence 尚未验收。
 
 ## 3. 快速启动
 

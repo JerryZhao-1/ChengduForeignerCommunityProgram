@@ -1,0 +1,10 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ apps/api/test/integration-readiness.spec.ts (7 tests | 6 skipped) 25ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 6 skipped (7)
+   Start at  00:20:14
+   Duration  490ms (transform 132ms, setup 0ms, collect 332ms, tests 25ms, environment 0ms, prepare 28ms)
+

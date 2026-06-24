@@ -1,6 +1,6 @@
 # 6.16-7.1 上线冲刺计划
 
-更新时间：2026-06-23
+更新时间：2026-06-24
 计划周期：2026-06-16 至 2026-07-01  
 上线口径：达到可发布、可提交审核、可对外试运行状态；微信审核通过时间不等同于 7.1 当日上线完成。
 
@@ -60,6 +60,12 @@
   - published acceptance place：`CloudBase Live Acceptance Place` / `place_0dc2aece-6aa6-46c5-8971-57646636a22a`
   - 已验证 public list / map marker / detail、admin update 后 public 可见、imported draft public denial
   - CloudBase gallery media 仍是 blocker：当前 published acceptance place 没有真实 `cloud://` gallery file id，files provider live flow 尚未完成
+- 6.19-6.21 本地/API readiness 已按证据补齐：
+  - events public list/detail 仅返回 approved + published；registration 覆盖 duplicate、full、closed、hidden event、ticket owner、non-admin check-in、wrong-event ticket、already-used ticket。
+  - discover public feed/detail 仅返回 visible；post create 初始状态稳定；comment/report/admin moderation 覆盖 unavailable post、reported/hidden public denial、non-admin forbidden。
+  - files 覆盖 public upload request/complete、protected ticket/export/admin/place-gallery path denial、private URL owner/missing/forbidden。
+  - auth/role/notifications 覆盖 invalid actor `401`、non-admin protected mutation `403`、notification ownership list/read/cross-user denial。
+  - 证据：`packages/shared/test/integration-readiness.spec.ts`、`apps/api/test/integration-readiness.spec.ts`、`apps/api/test/app.spec.ts`、`apps/api/test/cloudbase.spec.ts`；2026-06-24 targeted Vitest 24 tests passed。
 
 ### 部分完成
 
@@ -104,6 +110,7 @@
   - announcements
   - notifications
   - files full live provider
+- 6.19-6.21 readiness 当前只代表本地 mock provider、Koa HTTP route、CloudBase handler fallback parity；不得标记为 CloudBase live provider persistence 或生产数据 readiness。
 - CloudBase prod 环境、prod 配置、生产数据写入策略和上线验收尚未完成。
 
 事实来源：
@@ -144,18 +151,23 @@
   - 验收：dev live 环境和小程序真机均通过。
 - [ ] Events 最低上线闭环。
   - 必须覆盖：活动列表、活动详情、报名、票券、核销、admin 创建/编辑。
+  - 当前状态：本地/API business guards 已通过 targeted tests；CloudBase live persistence、小程序真机和生产数据仍未验收。
   - 验收：成功路径、重复报名、无权限核销、活动不存在均有稳定响应。
 - [ ] Discover 最低上线闭环。
   - 必须覆盖：内容流、发帖、评论、审核、举报或治理入口。
+  - 当前状态：本地/API visibility、comment/report/moderation guards 已通过 targeted tests；CloudBase live persistence 和端侧全流程仍未验收。
   - 验收：公开内容可浏览；UGC 创建和审核路径不绕过 BFF。
 - [ ] Files 最低上线闭环。
   - 必须覆盖：上传请求、完成登记、public file display、private file access denial。
+  - 当前状态：本地/API public upload、protected path denial、private URL ownership 已通过 targeted tests；真实 CloudBase storage file id、gallery temp URL 和 files live provider 仍未验收。
   - 验收：public gallery 可展示，private ticket/export 不可被 public 读取。
 - [ ] Notifications 最低上线闭环。
   - 必须覆盖：触发、列表、已读或最低反馈状态。
+  - 当前状态：本地/API list/read ownership 已通过 targeted tests；provider-triggered outbound/push notification 不在本次证据范围。
   - 验收：关键事件不静默失败；失败路径有日志。
 - [ ] Auth / role / permission 负路径。
   - 必须覆盖：未登录、普通用户访问 admin、非法 mock actor、缺失角色。
+  - 当前状态：本地/API invalid actor 与 protected route denial 已通过 targeted tests；生产认证和 CloudBase security rules 仍未验收。
   - 验收：401 / 403 语义和 error envelope 稳定。
 
 ### P0: 小程序、Admin 与发布配置
@@ -225,33 +237,33 @@
 
 #### 6.19 Fri
 
-- [ ] 补齐 events 最低上线链路。
-- [ ] 补齐 events admin 最低管理动作。
-- [ ] 覆盖报名、票券、核销、权限负路径。
+- [x] 补齐 events 本地/API 最低上线链路。
+- [x] 补齐 events admin 本地/API 最低管理动作。
+- [x] 覆盖报名、票券、核销、权限负路径。
 
 退出标准：
 
-- events 不再阻塞联调；未完成项降级为明确非上线范围或 P1。
+- events 不再阻塞本地/Koa/CloudBase handler fallback 联调；CloudBase live provider persistence、小程序真机和生产数据仍是后续上线验收范围。
 
 #### 6.20 Sat
 
-- [ ] 补齐 discover 最低上线链路。
-- [ ] 补齐 posts/comments/review/report 或治理路径。
-- [ ] 确认 public feed 不泄露未审核内容。
+- [x] 补齐 discover 本地/API 最低上线链路。
+- [x] 补齐 posts/comments/review/report 或治理路径。
+- [x] 确认 public feed 不泄露未审核内容。
 
 退出标准：
 
-- discover 可进行端到端联调。
+- discover 可进行本地/Koa/CloudBase handler fallback 联调；CloudBase live provider persistence 和端侧全流程仍需后续验证。
 
 #### 6.21 Sun
 
-- [ ] 补齐 files、notifications、auth/role 负路径。
-- [ ] 验证 public/private storage 权限。
-- [ ] 验证关键通知或反馈状态。
+- [x] 补齐 files、notifications、auth/role 本地/API 负路径。
+- [x] 验证 public/private file access mock/API 权限。
+- [x] 验证 notification list/read ownership 反馈状态。
 
 退出标准：
 
-- 文件、权限、通知不阻塞三模块联调。
+- 文件、权限、通知不阻塞本地/Koa/CloudBase handler fallback 联调；真实 CloudBase storage rules、files live provider、notification trigger/outbound delivery 仍未验收。
 
 #### 6.22 Mon
 

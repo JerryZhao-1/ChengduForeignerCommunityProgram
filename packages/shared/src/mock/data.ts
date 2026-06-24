@@ -47,6 +47,15 @@ export const createMockDataset = (): MockDataset => ({
       preferred_language: "en",
       role_flags: ["user", "organizer"],
       status: "active"
+    },
+    {
+      _id: "user_inactive",
+      openid: "openid_inactive",
+      nickname: "Inactive User",
+      avatar_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9",
+      preferred_language: "en",
+      role_flags: ["user"],
+      status: "inactive"
     }
   ],
   events: [
@@ -68,10 +77,76 @@ export const createMockDataset = (): MockDataset => ({
         latitude: 30.6151,
         longitude: 104.0628
       },
-      start_time: "2026-04-02T10:00:00+08:00",
-      end_time: "2026-04-02T12:00:00+08:00",
-      signup_deadline: "2026-04-01T18:00:00+08:00",
+      start_time: "2027-04-02T10:00:00+08:00",
+      end_time: "2027-04-02T12:00:00+08:00",
+      signup_deadline: "2027-04-01T18:00:00+08:00",
       capacity: 60,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
+    },
+    {
+      _id: "event_draft",
+      community_id: "tongzilin",
+      title_zh: "草稿活动",
+      title_en: "Draft Event",
+      summary_zh: "不应出现在公开列表。",
+      summary_en: "Should not appear in public lists.",
+      content_zh: "草稿内容",
+      content_en: "Draft content",
+      cover_file_id: "cloud://event-cover-draft",
+      cover_cloud_path: "public/events/event_draft/cover.jpg",
+      cover_url: "https://example.com/public/events/event_draft/cover.jpg",
+      address_text: "桐梓林",
+      location: { latitude: 30.6152, longitude: 104.0629 },
+      start_time: "2027-05-02T10:00:00+08:00",
+      end_time: "2027-05-02T12:00:00+08:00",
+      signup_deadline: "2027-05-01T18:00:00+08:00",
+      capacity: 20,
+      organizer_user_id: "user_002",
+      review_status: "draft",
+      publish_status: "draft"
+    },
+    {
+      _id: "event_full",
+      community_id: "tongzilin",
+      title_zh: "满员活动",
+      title_en: "Full Event",
+      summary_zh: "用于容量边界测试。",
+      summary_en: "Used for capacity boundary tests.",
+      content_zh: "满员内容",
+      content_en: "Full content",
+      cover_file_id: "cloud://event-cover-full",
+      cover_cloud_path: "public/events/event_full/cover.jpg",
+      cover_url: "https://example.com/public/events/event_full/cover.jpg",
+      address_text: "桐梓林",
+      location: { latitude: 30.6153, longitude: 104.063 },
+      start_time: "2027-06-02T10:00:00+08:00",
+      end_time: "2027-06-02T12:00:00+08:00",
+      signup_deadline: "2027-06-01T18:00:00+08:00",
+      capacity: 2,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
+    },
+    {
+      _id: "event_closed",
+      community_id: "tongzilin",
+      title_zh: "报名关闭活动",
+      title_en: "Closed Signup Event",
+      summary_zh: "用于截止时间边界测试。",
+      summary_en: "Used for signup deadline tests.",
+      content_zh: "关闭内容",
+      content_en: "Closed content",
+      cover_file_id: "cloud://event-cover-closed",
+      cover_cloud_path: "public/events/event_closed/cover.jpg",
+      cover_url: "https://example.com/public/events/event_closed/cover.jpg",
+      address_text: "桐梓林",
+      location: { latitude: 30.6154, longitude: 104.0631 },
+      start_time: "2026-01-02T10:00:00+08:00",
+      end_time: "2026-01-02T12:00:00+08:00",
+      signup_deadline: "2026-01-01T18:00:00+08:00",
+      capacity: 20,
       organizer_user_id: "user_002",
       review_status: "approved",
       publish_status: "published"
@@ -88,6 +163,17 @@ export const createMockDataset = (): MockDataset => ({
       registration_status: "confirmed",
       ticket_id: "ticket_001",
       source_channel: "miniapp"
+    },
+    {
+      _id: "reg_full_001",
+      event_id: "event_full",
+      user_id: "user_001",
+      contact_name: "Jerry",
+      contact_phone: "13800000000",
+      attendee_count: 2,
+      registration_status: "confirmed",
+      ticket_id: "ticket_full_001",
+      source_channel: "miniapp"
     }
   ],
   tickets: [
@@ -97,6 +183,17 @@ export const createMockDataset = (): MockDataset => ({
       ticket_code: "TZL-20260402-001",
       qr_file_id: "cloud://private-ticket-001",
       qr_cloud_path: "private/tickets/event_001/ticket_001.png",
+      visibility: "private",
+      status: "valid",
+      issued_at: "2026-03-28T10:00:00+08:00",
+      used_at: null
+    },
+    {
+      _id: "ticket_full_001",
+      registration_id: "reg_full_001",
+      ticket_code: "TZL-FULL-001",
+      qr_file_id: "cloud://private-ticket-full-001",
+      qr_cloud_path: "private/tickets/event_full/ticket_full_001.png",
       visibility: "private",
       status: "valid",
       issued_at: "2026-03-28T10:00:00+08:00",
@@ -229,6 +326,34 @@ export const createMockDataset = (): MockDataset => ({
       image_urls: ["https://example.com/public/posts/post_002/1.jpg"],
       status: "visible",
       review_status: "visible"
+    },
+    {
+      _id: "post_hidden",
+      author_user_id: "user_001",
+      community_id: "tongzilin",
+      title: "Hidden moderation post",
+      content: "This post must not appear publicly.",
+      language: "en",
+      tag_ids: ["moderation"],
+      location_text: null,
+      image_file_ids: [],
+      image_urls: [],
+      status: "hidden",
+      review_status: "hidden"
+    },
+    {
+      _id: "post_deleted",
+      author_user_id: "user_002",
+      community_id: "tongzilin",
+      title: "Deleted moderation post",
+      content: "This post must not appear publicly.",
+      language: "en",
+      tag_ids: ["moderation"],
+      location_text: null,
+      image_file_ids: [],
+      image_urls: [],
+      status: "deleted",
+      review_status: "deleted"
     }
   ],
   comments: [
@@ -265,6 +390,14 @@ export const createMockDataset = (): MockDataset => ({
       body: "你已成功报名周末国际邻里早午餐。",
       status: "unread",
       created_at: "2026-03-28T10:05:00+08:00"
+    },
+    {
+      _id: "notification_002",
+      user_id: "user_002",
+      title: "Comment reply",
+      body: "Someone replied to your post.",
+      status: "unread",
+      created_at: "2026-03-28T10:10:00+08:00"
     }
   ],
   fileAssets: [
@@ -295,6 +428,16 @@ export const createMockDataset = (): MockDataset => ({
       visibility: "public",
       biz_type: "place_gallery",
       biz_id: "place_002",
+      uploaded_by: "user_001",
+      status: "active"
+    },
+    {
+      _id: "file_ticket_001",
+      file_id: "cloud://private-ticket-001",
+      cloud_path: "private/tickets/event_001/ticket_001.png",
+      visibility: "private",
+      biz_type: "event_ticket",
+      biz_id: "ticket_001",
       uploaded_by: "user_001",
       status: "active"
     }

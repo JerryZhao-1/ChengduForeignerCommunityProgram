@@ -26,7 +26,7 @@
 | Provider 接口 | `apps/api/src/providers/types.ts` | 后端能力总接口定义 |
 | 默认实现 | `apps/api/src/providers/mock/index.ts` | 默认 provider，对接 mock service |
 | 业务实现 | `packages/shared/src/mock/service.ts` | 当前大部分接口的实际业务实现 |
-| CloudBase Provider | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；`CLOUDBASE_PROVIDER_MODE=live` 时 places list/map/detail/admin 路径使用 CloudBase 文档数据库与临时文件 URL |
+| CloudBase Provider | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；`CLOUDBASE_PROVIDER_MODE=live` 时 places list/map/detail/admin 路径使用 CloudBase 文档数据库与临时文件 URL；events/discover/files/notifications/auth 当前只完成 fallback parity，不代表 live persistence |
 | 移动端调用入口 | `apps/mobile/src/api/client.ts` | 小程序端 API 客户端入口 |
 | 管理端调用入口 | `apps/admin/src/api/client.ts` | 管理后台 API 客户端入口 |
 | 通用 HTTP Client | `packages/shared/src/client.ts` | 统一封装请求逻辑和路径调用 |
@@ -36,7 +36,7 @@
 | 运行模式 | 文件 | 说明 |
 | --- | --- | --- |
 | `mock` | `apps/api/src/providers/mock/index.ts` | 当前默认模式，大多数接口都可用 |
-| `cloudbase` | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；live mode 已覆盖 places public list、map markers、detail、admin places create/list/update，非 places live providers 和生产部署仍未完成 |
+| `cloudbase` | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；live mode 已覆盖 places public list、map markers、detail、admin places create/list/update，events/discover/files/notifications/auth 只完成 handler fallback parity，非 places live providers 和生产部署仍未完成 |
 
 ## 4. 接口清单
 
@@ -61,6 +61,8 @@
 | `POST` | `/admin/events/:id/review` | 管理端审核活动 | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.review` |
 | `POST` | `/admin/events/:id/checkin` | 管理端核销活动票据 | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.checkin` |
 
+Events public reads 只返回 `review_status="approved"` 且 `publish_status="published"` 的目标社区活动；报名会拒绝重复报名、不可见活动、容量满、报名截止；票据读取校验 owner/admin；核销校验活动-票据归属和票据状态。
+
 ### 4.3 社区发现 Discover
 
 | 方法 | 路径 | 用途 | 路由文件 | 契约文件 | 业务实现 |
@@ -71,6 +73,8 @@
 | `POST` | `/discover/posts/:id/comments` | 对帖子发表评论 | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.createComment` |
 | `POST` | `/discover/posts/:id/report` | 举报帖子 | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.report` |
 | `POST` | `/admin/discover/posts/:id/moderation` | 管理端审核帖子 | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.moderate` |
+
+Discover public reads 只返回 `status="visible"` 且 `review_status="visible"` 的目标社区帖子；hidden、deleted、reported 内容不会通过 public list/detail 暴露；评论只允许写入 visible post；report 会进入治理状态并使 public reads 不再暴露该 post；admin moderation 需要管理员角色。
 
 ### 4.4 地点 Places
 
@@ -113,6 +117,8 @@
 | `GET` | `/notifications` | 获取当前用户通知列表 | `apps/api/src/routes/notifications.ts` | `packages/shared/src/contracts/notifications.ts` | `packages/shared/src/mock/service.ts` 中 `notifications.list` |
 | `POST` | `/notifications/:id/read` | 将通知标记为已读 | `apps/api/src/routes/notifications.ts` | `packages/shared/src/contracts/notifications.ts` | `packages/shared/src/mock/service.ts` 中 `notifications.markRead` |
 
+Notifications list/read 只作用于当前 actor 自己的通知；跨用户 mark-read 返回 not-found envelope，不修改对方通知状态。
+
 ### 4.7 文件 Files
 
 | 方法 | 路径 | 用途 | 路由文件 | 契约文件 | 业务实现 |
@@ -120,6 +126,8 @@
 | `POST` | `/files/upload-requests` | 创建上传请求，返回上传地址和云端路径 | `apps/api/src/routes/files.ts` | `packages/shared/src/contracts/files.ts` | `packages/shared/src/mock/service.ts` 中 `files.createUploadRequest` |
 | `POST` | `/files/complete` | 提交上传完成后的文件记录 | `apps/api/src/routes/files.ts` | `packages/shared/src/contracts/files.ts` | `packages/shared/src/mock/service.ts` 中 `files.complete` |
 | `POST` | `/files/private-url` | 获取私有文件临时访问地址 | `apps/api/src/routes/files.ts` | `packages/shared/src/contracts/files.ts` | `packages/shared/src/mock/service.ts` 中 `files.privateUrl` |
+
+Files 当前允许 public upload request/complete；`public/places/`、`private/tickets/`、`private/exports/`、`private/admin/` 及对应 protected biz type 需要 admin；private URL 会校验文件存在和 owner/admin 权限。
 
 ### 4.8 系统 System
 
@@ -152,11 +160,17 @@
 
 - `apps/api/test/app.spec.ts`
 - `apps/api/test/cloudbase.spec.ts`
+- `apps/api/test/integration-readiness.spec.ts`
+- `packages/shared/test/integration-readiness.spec.ts`
 
 当前测试已覆盖的重点包括：
 
 - `events` 列表、详情、报名
-- `discover` 列表、发帖
+- `events` public visibility、admin publish、registration duplicate/full/closed/hidden、ticket owner、check-in conflict/forbidden
+- `discover` 列表、发帖、visible-only public reads、comment unavailable post、report hiding、admin moderation forbidden/success
+- `files` public upload/complete、protected path denial、private URL owner/missing/forbidden
+- `auth/role/notifications` invalid actor、non-admin protected mutation、notification ownership list/read/cross-user denial
+- CloudBase handler fallback parity for representative non-places hardened paths
 - `places` 列表、详情、地图标记、查询参数、tag/category/recommended 组合过滤、public published 可见性、管理端新增/更新、文件流图集挂接
 - `announcements` 列表
 - 管理端权限校验

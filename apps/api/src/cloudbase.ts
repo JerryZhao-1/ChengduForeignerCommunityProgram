@@ -10,9 +10,11 @@ import {
   CreateUploadRequestInputSchema,
   EventListQuerySchema,
   LoginRequestSchema,
+  ModeratePostInputSchema,
   PlaceListQuerySchema,
   PostListQuerySchema,
   PrivateUrlRequestInputSchema,
+  ReportPostInputSchema,
   ReviewEventInputSchema,
   UpdateEventInputSchema,
   UpdatePlaceInputSchema
@@ -252,7 +254,10 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       const match = matchRoute("/events/registrations/:id/ticket", pathname);
 
       if (method === "GET" && match.matched) {
-        const ticket = await provider.events.getTicketByRegistration(match.params.id);
+        const ticket = await provider.events.getTicketByRegistration(
+          match.params.id,
+          actorId
+        );
 
         if (!ticket) {
           throw apiError("NOT_FOUND", "Ticket not found.", 404);
@@ -299,6 +304,21 @@ export const main: CloudbaseEventHandler = async (event, context) => {
           requestId,
           201
         );
+      }
+    }
+
+    {
+      const match = matchRoute("/discover/posts/:id/report", pathname);
+
+      if (method === "POST" && match.matched) {
+        parseOrThrow(ReportPostInputSchema, body);
+        const post = await provider.posts.report(match.params.id);
+
+        if (!post) {
+          throw apiError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        return ok(post, requestId);
       }
     }
 
@@ -399,7 +419,7 @@ export const main: CloudbaseEventHandler = async (event, context) => {
 
     if (method === "POST" && pathname === "/files/private-url") {
       const input = parseOrThrow(PrivateUrlRequestInputSchema, body);
-      return ok(await provider.files.privateUrl(input), requestId);
+      return ok(await provider.files.privateUrl(input, actorId), requestId);
     }
 
     if (method === "POST" && pathname === "/admin/events") {
@@ -468,6 +488,25 @@ export const main: CloudbaseEventHandler = async (event, context) => {
         }
 
         return ok(ticket, requestId);
+      }
+    }
+
+    {
+      const match = matchRoute("/admin/discover/posts/:id/moderation", pathname);
+
+      if (method === "POST" && match.matched) {
+        await requireRole(provider, { eventID: requestId, httpContext }, [
+          "community_admin",
+          "system_admin"
+        ]);
+        const input = parseOrThrow(ModeratePostInputSchema, body);
+        const post = await provider.posts.moderate(match.params.id, input);
+
+        if (!post) {
+          throw apiError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        return ok(post, requestId);
       }
     }
 

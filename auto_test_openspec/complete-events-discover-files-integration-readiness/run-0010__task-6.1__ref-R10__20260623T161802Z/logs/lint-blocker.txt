@@ -1,0 +1,1 @@
+pnpm lint failed. Review logs/lint.log; generated CloudBase bundle lint is a known scoped blocker when present.
