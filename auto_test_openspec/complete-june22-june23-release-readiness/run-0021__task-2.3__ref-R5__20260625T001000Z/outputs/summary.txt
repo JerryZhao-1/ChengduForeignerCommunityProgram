@@ -1,0 +1,5 @@
+Task 2.3 final real-device evidence recorded.
+Map-position and target map display passed.
+Native navigation opens or shows an acceptable runtime permission fallback.
+Share is accepted as a Mini Program certification limitation.
+

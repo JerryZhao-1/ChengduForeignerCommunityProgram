@@ -1,0 +1,5 @@
+No CLI assertions are executed for this GUI bundle.
+- Map-position action: passed; tapping `查看地图位置` opens the Places map page.
+- Map target result: passed; map page displays `CloudBase Dev 验收点位`.
+- Share result: accepted platform limitation; WeChat reports the Mini Program is not certified and temporarily cannot use the share panel.
+Native navigation/fallback remains pending; follow tests/gui_runbook_real_device_places.md.

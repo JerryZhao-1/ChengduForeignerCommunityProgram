@@ -106,11 +106,12 @@
   - 需要 detail 返回由 `gallery_file_ids` 解析出的 `gallery_media` 和派生 `gallery_urls`
 - 微信开发者工具导入和主流程已验证：
   - DevTools service port `50375` 已开启；CLI 成功打开小程序构建目录并生成预览码；home、events、discover、places 主入口在模拟器可达。
-- 真机 places map/navigation/share 尚未验证：
+- 真机 places map/navigation/share 已完成 release-readiness 验证：
   - 2026-06-24 iPhone 14 Pro / iOS 26.5 / WeChat 8.0.75 已验证小程序打开无白屏、Places list 可达、Places map 可达。
   - map 页出现 `Can't find variable: URL`；已修复 mobile CloudBase requester 的 URL 解析。
   - 分享提示“小程序未认证，暂时无法使用”，当前按小程序认证状态的平台限制记录。
-  - `查看地图位置` 按钮仍无法点击；根因是 map 是 tabBar 页面，不能用 `navigateTo` 打开。已改为 `switchTab` 并用本地临时 storage 传递待聚焦 place id，map-position/native-navigation 仍需复测。
+  - `查看地图位置` 根因是 map 是 tabBar 页面，不能用 `navigateTo` 打开。已改为 `switchTab` 并用本地临时 storage 传递待聚焦 place id；2026-06-25 复测确认可跳转到 Places 地图页，并显示 `CloudBase Dev 验收点位`。
+  - 2026-06-25 用户真机复测确认 native navigation 可用或出现可接受运行时权限 fallback；记录见 run `0021`。
 - Admin hosting dev domain 已通过：
   - hosted root 和 `/places` 返回 200；bundle 内 API base 指向 CloudBase dev API domain。
 - 当前 live `places` collection 包含 20 条验收数据：19 条 imported draft + 1 条 published acceptance place。不得把这些 dev 数据视为生产数据。
@@ -141,22 +142,21 @@
 - 项目当前处于 `2026-06-24 至 2026-06-30` 的全模块联调入口期，不是 release candidate。
 - 按日期计划判断：
   - 6.16-6.21 已完成到本地/API readiness 和 CloudBase dev API/places 基础验收层级。
-  - 6.22 小程序 `cloudbase-function` 构建、微信开发者工具导入和 Admin hosting/API 联调已补证据；真机验证仍有 blocker，保持未完成。
+  - 6.22 小程序 `cloudbase-function` 构建、微信开发者工具导入、真机验证和 Admin hosting/API 联调已补证据。
   - 6.23 接口/配置冻结、数据清理分类、6.24 联调入口输出已记录在 `docs/release-readiness-handoff-2026-06-24.md`；`typecheck` / `test` / `lint` 均已通过。
   - 6.24 已完成 CloudBase dev HTTP smoke 的一部分：`/health`、places list/map/detail、events list/detail、discover feed/detail、`auth/me` 均返回 200；events/discover/auth 仍按非 places fallback 边界处理，不等同于 live persistence；files public/temp URL 尚未完成。
 - 已完成的主要阶段：Places 本地前后台链路、CloudBase dev API HTTP function、`/api` route、places public read/admin update/draft visibility、events/discover/files/notifications/auth 本地/API 负路径。
-- 仍阻塞上线闭环的 P0：真实 CloudBase gallery media/file id、files public/temp URL live 验收、真机 places switchTab map-position/native-navigation 复测、prod env、数据库/存储安全规则、非 places live provider persistence。
+- 仍阻塞上线闭环的 P0：真实 CloudBase gallery media/file id、files public/temp URL live 验收、prod env、数据库/存储安全规则、非 places live provider persistence。
 - 进度评估：功能开发主体约完成到“可进入全模块联调”，上线准备约完成到“dev API 与本地业务基线可用”；距离 7.1 口径还剩联调、真机、真实媒体、生产配置、安全规则和发布交接。
 
 ## 2. 剩余上线任务
 
 ### 下一步执行顺序
 
-1. 使用 switchTab 修复后的新预览码复测真机 places map-position/native-navigation，记录设备、place id、授权提示和结果。
-2. 跑通真实 CloudBase storage/files live flow：上传或确认 `public/places/{place_id}/` 下真实 `cloud://` file id，完成 places detail `gallery_media` / `gallery_urls` temp URL 验收。
-3. 补齐 6.24 API smoke 剩余项：files public/temp URL、operation_logs/生产级日志入口，并继续记录 requestId / logs / live-vs-fallback 边界。
-4. 按 6.25-6.28 顺序完成 Places、Events、Discover、Files/Auth/Notifications 全链路联调；只修 P0/P1 缺陷。
-5. 补齐发布项：腾讯地图 key 配置、prod env、安全规则、回滚方案和已知限制。
+1. 跑通真实 CloudBase storage/files live flow：上传或确认 `public/places/{place_id}/` 下真实 `cloud://` file id，完成 places detail `gallery_media` / `gallery_urls` temp URL 验收。
+2. 补齐 6.24 API smoke 剩余项：files public/temp URL、operation_logs/生产级日志入口，并继续记录 requestId / logs / live-vs-fallback 边界。
+3. 按 6.25-6.28 顺序完成 Places、Events、Discover、Files/Auth/Notifications 全链路联调；只修 P0/P1 缺陷。
+4. 补齐发布项：腾讯地图 key 配置、prod env、安全规则、回滚方案和已知限制。
 
 ### P0: CloudBase 与部署阻塞项
 
@@ -207,8 +207,8 @@
 
 ### P0: 小程序、Admin 与发布配置
 
-- [ ] 小程序 CloudBase function 模式构建和真机验证。
-  - 当前状态：`cloudbase-function` build 已通过；微信开发者工具导入和主入口验证已通过；真机已验证打开、places list、places map 可达；map `URL` runtime blocker 已修复；分享受小程序未认证限制；`查看地图位置` 已改用 `switchTab` 打开 tabBar map 并待复测 map-position/native-navigation。
+- [x] 小程序 CloudBase function 模式构建和真机验证。
+  - 当前状态：`cloudbase-function` build 已通过；微信开发者工具导入和主入口验证已通过；真机已验证打开、places list、places map 可达；map `URL` runtime blocker 已修复；`查看地图位置` 已改用 `switchTab` 打开 tabBar map 且复测通过；native navigation 已由用户真机复测确认；分享受小程序未认证限制。
   - 验收：`VITE_API_MODE=cloudbase-function`，env id 和 function name 生效；微信开发者工具和至少一台真机通过。
 - [ ] 小程序体验版配置。
   - 验收：体验者权限、合法域名或 CloudBase 调用方式、定位/导航授权、分享行为均可用。
@@ -307,7 +307,7 @@
 
 - [x] 小程序 cloudbase-function 构建。
 - [x] 微信开发者工具导入并跑主流程。
-- [ ] 真机验证 places map/navigation/share。
+- [x] 真机验证 places map/navigation/share。
 - [x] Admin hosting 与 API domain 联调。
 
 退出标准：

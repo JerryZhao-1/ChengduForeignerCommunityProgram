@@ -35,7 +35,7 @@
     - For GUI scope, run scripts MUST only print/start prerequisites and point to `tests/gui_runbook_wechat_devtools_import.md`; GUI verification is executed through MCP/approved GUI tooling and evidence is stored under outputs/screenshots or logs.
     - Verify: evidence records import path, app id, env id, function name, launch result, reachable main entries, or the exact blocker with severity and next action.
 
-- [ ] 2.3 Verify real-device places map navigation and share or record a blocker [#R5]
+- [x] 2.3 Verify real-device places map navigation and share or record a blocker [#R5]
   - ACCEPT: At least one physical WeChat-capable device verifies places list/map/detail, marker selection, native navigation or acceptable permission fallback, and share behavior; if unavailable, the blocker is graded P0/P1/P2 with owner and next repair window.
   - TEST: SCOPE: GUI
     - When done, generate validation bundle under:

@@ -1,0 +1,3 @@
+Change 'complete-june22-june23-release-readiness' is valid
+- [ ] 2.3 Verify real-device places map navigation and share or record a blocker [#R5]
+| P0 | Real-device places native navigation/permission fallback not yet complete | release integrator with physical WeChat-capable device | Use the 2026-06-25 preview QR and execute `tests/gui_runbook_real_device_places.md` from run `0019`, recording native navigation or an acceptable permission fallback | Partial API/local integration can proceed; Mini Program release gate cannot |

@@ -37,6 +37,8 @@ This handoff freezes the dev integration entry state for the 2026-06-24 all-modu
 | `auto_test_openspec/complete-june22-june23-release-readiness/run-0015__task-2.3__ref-R5__20260624T140500Z/` | iPhone 14 Pro verified app launch, places list, and places map reachability; map showed `Can't find variable: URL`; mobile requester URL parsing was fixed and a new preview QR was generated for retest |
 | `auto_test_openspec/complete-june22-june23-release-readiness/run-0016__task-2.3__ref-R5__20260624T141000Z/` | Real-device retest classified share failure as Mini Program certification/platform limitation; detail map-position button was made tappable and a new preview QR was generated for retest |
 | `auto_test_openspec/complete-june22-june23-release-readiness/run-0017__task-2.3__ref-R5__20260624T151700Z/` | Real-device screenshot showed `查看地图位置` still inert; root cause identified as using `navigateTo` for a tabBar page; detail now uses `switchTab` with a stored focus place id and a new preview QR was generated |
+| `auto_test_openspec/complete-june22-june23-release-readiness/run-0019__task-2.3__ref-R5__20260625T000500Z/` | Real-device map-position retest passed: `查看地图位置` opens the Places map page and the map displays `CloudBase Dev 验收点位`; share remains an accepted Mini Program certification limitation; native navigation or permission fallback was still pending until run `0021` |
+| `auto_test_openspec/complete-june22-june23-release-readiness/run-0021__task-2.3__ref-R5__20260625T001000Z/` | User-confirmed final real-device retest passed native navigation or accepted runtime permission fallback; task `2.3` is accepted with share remaining a Mini Program certification limitation |
 
 ## Data Classification
 
@@ -63,7 +65,6 @@ No production data was mutated by this handoff.
 
 | Priority | Blocker | Owner | Next action / window | Can 6.24 integration proceed around it? |
 | --- | --- | --- | --- | --- |
-| P0 | Real-device places switchTab map-position/native-navigation retest not yet complete | release integrator with physical WeChat-capable device | Scan the switchTab fixed preview QR and execute `tests/gui_runbook_real_device_places_switchtab_retest.md` from run `0017` before trial/release signoff | Partial API/local integration can proceed; Mini Program release gate cannot |
 | P0 | Real CloudBase gallery media/temp URL not accepted | CloudBase/files owner | Attach real `cloud://` file id under `public/places/{place_id}/` and verify `gallery_media`/`gallery_urls` | Places without gallery can proceed; gallery release gate cannot |
 | P0 | Production env/security rules not configured | release owner | Create/confirm prod env and apply DB/storage rules before production release | Dev integration can proceed; production release cannot |
 | P1 | `operation_logs` and production-grade log workflow incomplete | API/ops owner | Define write path and runbook for key business operations | Smoke can proceed with requestId/function logs |
@@ -81,4 +82,4 @@ Go for 6.24 dev API and local all-module smoke:
 
 No-go for release candidate or Mini Program trial signoff:
 
-- Real-device verification, gallery media, production env, and production security rules remain incomplete.
+- Gallery media, production env, and production security rules remain incomplete.

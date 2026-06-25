@@ -1,0 +1,4 @@
+Task 2.3 map-position evidence recorded.
+Map-position and target map display passed.
+Share is accepted as a Mini Program certification limitation.
+Native navigation or an acceptable permission fallback remains pending.
