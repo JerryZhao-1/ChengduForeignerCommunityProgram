@@ -130,6 +130,9 @@ onLoad(() => {
     <view class="custom-nav" :style="customNavStyle">
       <view class="nav-content">
         <view class="nav-back" @click.stop="goBack">‹</view>
+        <button class="search-submit" :disabled="isSearching" @click="search()">
+          {{ copy.search }}
+        </button>
         <view class="search-field">
           <text class="search-mark">⌕</text>
           <input
@@ -141,9 +144,6 @@ onLoad(() => {
             @confirm="search()"
           />
         </view>
-        <button class="search-submit" :disabled="isSearching" @click="search()">
-          {{ copy.search }}
-        </button>
       </view>
     </view>
 
