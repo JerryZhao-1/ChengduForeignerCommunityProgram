@@ -161,6 +161,7 @@ const submitReport = async () => {
         <button class="nav-done" :disabled="isSubmitting" @click.stop="submitReport">
           {{ isSubmitting ? copy.submittingReport : copy.reportDone }}
         </button>
+        <view class="nav-spacer" />
       </view>
     </view>
 
@@ -259,11 +260,15 @@ const submitReport = async () => {
 }
 
 .nav-title {
-  flex: 1;
-  min-width: 0;
+  flex-shrink: 0;
   color: #111827;
   font-size: 30rpx;
   font-weight: 700;
+}
+
+.nav-spacer {
+  flex: 1;
+  min-width: 0;
 }
 
 .nav-done {
