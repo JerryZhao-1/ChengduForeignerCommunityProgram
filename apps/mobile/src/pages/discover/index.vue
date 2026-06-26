@@ -235,7 +235,7 @@ onReachBottom(loadMore);
 
 .top-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin: -12rpx 0 12rpx;
 }
 
