@@ -22,6 +22,17 @@ export interface HttpClientOptions {
 const buildUrl = (baseUrl: string, path: string) =>
   `${baseUrl.replace(/\/$/, "")}${path}`;
 
+const buildQuerySuffix = (query?: Record<string, unknown>) => {
+  const entries = Object.entries(query ?? {})
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
+    );
+
+  return entries.length > 0 ? `?${entries.join("&")}` : "";
+};
+
 export const createFetchRequester = (
   fetchImpl: typeof fetch = fetch
 ): HttpRequester => {
@@ -34,6 +45,10 @@ export const createFetchRequester = (
       },
       body: body === undefined ? undefined : JSON.stringify(body)
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
 
     return (await response.json()) as Promise<any>;
   };
@@ -61,13 +76,7 @@ export const createHttpClient = (
     },
     events: {
       list: (query) => {
-        const searchParams = new URLSearchParams();
-        Object.entries(query ?? {}).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            searchParams.set(key, String(value));
-          }
-        });
-        const suffix = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+        const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.events.list}${suffix}`);
       },
       detail: (id) => request("GET", apiPaths.events.detail(id)),
@@ -79,13 +88,7 @@ export const createHttpClient = (
     },
     discover: {
       listPosts: (query) => {
-        const searchParams = new URLSearchParams();
-        Object.entries(query ?? {}).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            searchParams.set(key, String(value));
-          }
-        });
-        const suffix = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+        const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.discover.listPosts}${suffix}`);
       },
       detailPost: (id) => request("GET", apiPaths.discover.detailPost(id)),
@@ -95,13 +98,7 @@ export const createHttpClient = (
     },
     places: {
       list: (query) => {
-        const searchParams = new URLSearchParams();
-        Object.entries(query ?? {}).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            searchParams.set(key, String(value));
-          }
-        });
-        const suffix = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+        const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.places.list}${suffix}`);
       },
       detail: (id) => request("GET", apiPaths.places.detail(id)),

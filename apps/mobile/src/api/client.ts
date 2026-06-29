@@ -1,4 +1,5 @@
 import {
+  type CommunityMapApiClient,
   createFetchRequester,
   createHttpClient,
   createMockClient,
@@ -43,7 +44,16 @@ const createUniRequester = (): HttpRequester => {
         method: uniMethod,
         data: body as Record<string, unknown> | undefined,
         header: headers,
-        success: (result) => resolve(result.data as any),
+        success: (result) => {
+          const statusCode = result.statusCode ?? 500;
+
+          if (statusCode < 200 || statusCode >= 300) {
+            reject(new Error(`HTTP ${statusCode}`));
+            return;
+          }
+
+          resolve(result.data as any);
+        },
         fail: reject
       });
     });
@@ -96,14 +106,26 @@ const createCloudbaseFunctionRequester = (): HttpRequester => {
   };
 };
 
+const mockClient = createMockClient({ actorId: mobileEnv.actorId });
+
+const createRemoteClient = (): CommunityMapApiClient => {
+  const httpClient = createHttpClient({
+    actorId: mobileEnv.actorId,
+    baseUrl: mobileEnv.apiBaseUrl,
+    requester:
+      mobileEnv.apiMode === "cloudbase-function"
+        ? createCloudbaseFunctionRequester()
+        : createUniRequester()
+  });
+
+  return {
+    ...httpClient,
+    // The deployed CloudBase HTTP API does not expose Profile/points yet.
+    // Keep these local so Profile tabs can work while public content uses HTTP.
+    profile: mockClient.profile,
+    points: mockClient.points
+  };
+};
+
 export const mobileApi =
-  mobileEnv.apiMode === "mock"
-    ? createMockClient({ actorId: mobileEnv.actorId })
-    : createHttpClient({
-        actorId: mobileEnv.actorId,
-        baseUrl: mobileEnv.apiBaseUrl,
-        requester:
-          mobileEnv.apiMode === "cloudbase-function"
-            ? createCloudbaseFunctionRequester()
-            : createUniRequester()
-      });
+  mobileEnv.apiMode === "mock" ? mockClient : createRemoteClient();

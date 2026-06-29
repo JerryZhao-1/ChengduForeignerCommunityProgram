@@ -20,7 +20,7 @@
     "ignore": [],
     "include": []
   },
-  "miniprogramRoot": "apps/mobile/dist/build/mp-weixin/",
+  "miniprogramRoot": "apps/mobile/dist/dev/mp-weixin/",
   "appid": "wx7518a3c1fcdd39a5",
   "editorSetting": {}
 }

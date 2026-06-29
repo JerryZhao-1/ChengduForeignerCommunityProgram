@@ -14,7 +14,7 @@ import { onShow } from "@dcloudio/uni-app";
 import { mobileApi } from "@/api/client";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 
-type ProfileTab = "favorites" | "reviews";
+type ProfileTab = "favorites" | "reviews" | "milestones";
 
 interface ProfileSummary {
   user: User;
@@ -23,6 +23,18 @@ interface ProfileSummary {
   follower_count: number;
   following_count: number;
 }
+
+interface MilestoneItem {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  current: number;
+  target: number;
+  unlocked: boolean;
+}
+
+const tabOrder: ProfileTab[] = ["favorites", "reviews", "milestones"];
 
 const { state } = useAppStore();
 const users = ref<User[]>([]);
@@ -59,6 +71,77 @@ const canViewFavorites = computed(
 
 const canViewComments = computed(
   () => !isSelectedBlocked.value && (summary.value?.is_self || selectedPrivacy.value?.show_comments !== false)
+);
+
+const totalFavorites = computed(
+  () => favoriteEvents.value.length + favoritePosts.value.length + favoritePlaces.value.length
+);
+
+const hasEventParticipation = computed(() =>
+  pointEntries.value.some(
+    (entry) => entry.source_type === "event_registration" || entry.reason.includes("参加活动")
+  )
+);
+
+const milestones = computed<MilestoneItem[]>(() => [
+  {
+    id: "first-step",
+    title: "社区初体验",
+    description: "获得任意积分，代表你已经开始参与社区互动。",
+    icon: "NEW",
+    current: Math.min(pointsBalance.value, 1),
+    target: 1,
+    unlocked: pointsBalance.value > 0
+  },
+  {
+    id: "event-joiner",
+    title: "活动参与者",
+    description: "完成一次活动报名后解锁。",
+    icon: "EVT",
+    current: hasEventParticipation.value ? 1 : 0,
+    target: 1,
+    unlocked: hasEventParticipation.value
+  },
+  {
+    id: "collector",
+    title: "收藏达人",
+    description: "收藏 3 个活动、帖子或地点，建立自己的社区清单。",
+    icon: "FAV",
+    current: Math.min(totalFavorites.value, 3),
+    target: 3,
+    unlocked: totalFavorites.value >= 3
+  },
+  {
+    id: "reviewer",
+    title: "邻里评论家",
+    description: "留下 3 条评价或评论，帮助邻里发现有用信息。",
+    icon: "REV",
+    current: Math.min(comments.value.length, 3),
+    target: 3,
+    unlocked: comments.value.length >= 3
+  },
+  {
+    id: "contributor",
+    title: "社区贡献者",
+    description: "累计达到 50 积分，说明你已经持续参与社区建设。",
+    icon: "PTS",
+    current: Math.min(pointsBalance.value, 50),
+    target: 50,
+    unlocked: pointsBalance.value >= 50
+  },
+  {
+    id: "place-explorer",
+    title: "探索新手",
+    description: "收藏 1 个地点后解锁，适合刚开始探索桐梓林的用户。",
+    icon: "MAP",
+    current: Math.min(favoritePlaces.value.length, 1),
+    target: 1,
+    unlocked: favoritePlaces.value.length >= 1
+  }
+]);
+
+const unlockedMilestoneCount = computed(
+  () => milestones.value.filter((milestone) => milestone.unlocked).length
 );
 
 const loadProfile = async (targetUserId = selectedUserId.value) => {
@@ -145,7 +228,9 @@ const switchTab = (tab: ProfileTab) => {
     return;
   }
 
-  slideClass.value = tab === "favorites" ? "slide-from-left" : "slide-from-right";
+  const previousIndex = tabOrder.indexOf(activeTab.value);
+  const nextIndex = tabOrder.indexOf(tab);
+  slideClass.value = nextIndex < previousIndex ? "slide-from-left" : "slide-from-right";
   activeTab.value = tab;
 };
 
@@ -177,6 +262,14 @@ const formatPointTime = (input: string) => {
   const min = String(date.getMinutes()).padStart(2, "0");
 
   return `${mm}-${dd} ${hh}:${min}`;
+};
+
+const milestoneProgress = (milestone: MilestoneItem) => {
+  if (milestone.target <= 0) {
+    return "0%";
+  }
+
+  return `${Math.min(100, Math.round((milestone.current / milestone.target) * 100))}%`;
 };
 
 onShow(load);
@@ -274,6 +367,13 @@ onShow(load);
         >
           评价
         </view>
+        <view
+          class="tab-item"
+          :class="{ active: activeTab === 'milestones' }"
+          @click="switchTab('milestones')"
+        >
+          里程碑
+        </view>
       </view>
 
       <view v-if="loading" class="state-text">加载中...</view>
@@ -314,7 +414,7 @@ onShow(load);
           </template>
         </template>
 
-        <template v-else>
+        <template v-else-if="activeTab === 'reviews'">
           <view v-if="isSelectedBlocked" class="state-text">
             你已屏蔽此用户，无法查看他的动态
           </view>
@@ -327,6 +427,42 @@ onShow(load);
               <text class="content-type">评论于 {{ item.post?.title ?? "帖子" }}</text>
               <text class="content-title">{{ item.comment.content }}</text>
               <text class="content-desc">{{ item.comment.created_at }}</text>
+            </view>
+          </template>
+        </template>
+
+        <template v-else>
+          <view v-if="isSelectedBlocked" class="state-text">
+            你已屏蔽此用户，无法查看他的里程碑
+          </view>
+          <template v-else>
+            <view class="milestone-summary">
+              <text class="milestone-summary-title">已解锁 {{ unlockedMilestoneCount }}/{{ milestones.length }}</text>
+              <text class="milestone-summary-desc">里程碑会根据积分、收藏、评价和活动参与自动点亮。</text>
+            </view>
+
+            <view
+              v-for="milestone in milestones"
+              :key="milestone.id"
+              class="milestone-card"
+              :class="{ unlocked: milestone.unlocked }"
+            >
+              <view class="milestone-badge">{{ milestone.icon }}</view>
+              <view class="milestone-main">
+                <view class="milestone-title-row">
+                  <text class="milestone-title">{{ milestone.title }}</text>
+                  <text class="milestone-status">
+                    {{ milestone.unlocked ? "已达成" : "进行中" }}
+                  </text>
+                </view>
+                <text class="milestone-desc">{{ milestone.description }}</text>
+                <view class="milestone-progress">
+                  <view class="milestone-progress-bar" :style="{ width: milestoneProgress(milestone) }" />
+                </view>
+                <text class="milestone-progress-text">
+                  进度 {{ milestone.current }}/{{ milestone.target }}
+                </text>
+              </view>
             </view>
           </template>
         </template>
@@ -640,6 +776,124 @@ onShow(load);
   color: #6b7280;
   font-size: 24rpx;
   line-height: 1.5;
+}
+
+.milestone-summary {
+  margin-bottom: 16rpx;
+  padding: 20rpx;
+  border-radius: 20rpx;
+  background: #ecfdf5;
+}
+
+.milestone-summary-title,
+.milestone-summary-desc,
+.milestone-title,
+.milestone-desc,
+.milestone-status,
+.milestone-progress-text {
+  display: block;
+}
+
+.milestone-summary-title {
+  color: #047857;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.milestone-summary-desc {
+  margin-top: 8rpx;
+  color: #047857;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.milestone-card {
+  display: flex;
+  gap: 18rpx;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid #e5e7eb;
+  opacity: 0.72;
+}
+
+.milestone-card.unlocked {
+  opacity: 1;
+}
+
+.milestone-badge {
+  flex-shrink: 0;
+  width: 86rpx;
+  height: 86rpx;
+  border-radius: 24rpx;
+  background: #e5e7eb;
+  color: #6b7280;
+  text-align: center;
+  line-height: 86rpx;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.milestone-card.unlocked .milestone-badge {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.milestone-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.milestone-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.milestone-title {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.milestone-status {
+  flex-shrink: 0;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 20rpx;
+}
+
+.milestone-card.unlocked .milestone-status {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.milestone-desc {
+  margin-top: 8rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.milestone-progress {
+  height: 10rpx;
+  margin-top: 16rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #e5e7eb;
+}
+
+.milestone-progress-bar {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #0f766e;
+}
+
+.milestone-progress-text {
+  margin-top: 8rpx;
+  color: #6b7280;
+  font-size: 22rpx;
 }
 
 .state-text {
