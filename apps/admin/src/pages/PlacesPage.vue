@@ -50,9 +50,22 @@ const hasUsableCoordinates = (place: Place) =>
   place.location.longitude >= -180 &&
   place.location.longitude <= 180;
 
+const isPendingEnglishName = (name: string) =>
+  name.trim().toLowerCase() === "pending english name";
+
+const hiddenImportReviewBlockers = new Set([
+  "needs_coordinate_review",
+  "missing_position_evidence",
+  "missing_media",
+  "needs_tag_review",
+  "needs_english_name_review",
+  "unsupported_category:missing",
+  "unsupported_category:pet space"
+]);
+
 const getReviewIndicators = (place: Place) => {
   const indicators: Array<{
-    type: "danger" | "warning" | "info";
+    type: "danger" | "warning" | "info" | "success";
     label: string;
   }> = [];
 
@@ -62,13 +75,27 @@ const getReviewIndicators = (place: Place) => {
   if (place.status === "draft") {
     indicators.push({ type: "warning", label: "草稿" });
   }
+  const canAppearOnMap =
+    place.status === "published" && hasUsableCoordinates(place);
+
   if (!hasUsableCoordinates(place)) {
     indicators.push({ type: "danger", label: "缺坐标/不可出地图点" });
   }
-  if (!place.address_zh || !place.address_en) {
+  if (!canAppearOnMap && place.status !== "published") {
+    indicators.push({ type: "warning", label: "未发布不上地图" });
+  }
+  if (canAppearOnMap) {
+    indicators.push({ type: "success", label: "可出地图" });
+  }
+  if (!place.address_zh.trim() || !place.address_en.trim()) {
     indicators.push({ type: "warning", label: "地址待补齐" });
   }
-  if (!place.name_en || !place.intro_en || !place.business_hours_en) {
+  if (
+    !place.name_en.trim() ||
+    isPendingEnglishName(place.name_en) ||
+    !place.intro_en.trim() ||
+    !place.business_hours_en.trim()
+  ) {
     indicators.push({ type: "warning", label: "英文待补齐" });
   }
   if (place.tag_ids.length === 0) {
@@ -81,11 +108,15 @@ const getReviewIndicators = (place: Place) => {
   ) {
     indicators.push({ type: "info", label: "缺图集" });
   }
-  if (!place.is_recommended) {
-    indicators.push({ type: "info", label: "非推荐" });
+  if (place.is_recommended) {
+    indicators.push({ type: "success", label: "推荐" });
   }
 
   for (const blocker of place.import_review?.review_blockers ?? []) {
+    if (hiddenImportReviewBlockers.has(blocker)) {
+      continue;
+    }
+
     indicators.push({ type: "danger", label: blocker });
   }
 
