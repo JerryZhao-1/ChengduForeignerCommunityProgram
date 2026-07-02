@@ -33,6 +33,7 @@ export const PlaceMapMarkerSchema = z.object({
   _id: z.string(),
   name_zh: z.string(),
   name_en: z.string(),
+  cover_url: z.string().url().nullable(),
   category_level_1: PlaceTopLevelCategorySchema,
   is_recommended: z.boolean(),
   location: z.object({

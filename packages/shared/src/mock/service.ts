@@ -654,6 +654,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           _id: place._id,
           name_zh: place.name_zh,
           name_en: place.name_en,
+          cover_url: place.cover_url,
           category_level_1: place.category_level_1,
           is_recommended: place.is_recommended,
           location: place.location

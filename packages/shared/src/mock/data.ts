@@ -24,6 +24,11 @@ export interface MockDataset {
   fileAssets: FileAsset[];
 }
 
+const PLACE_001_COVER_URL =
+  "https://images.unsplash.com/photo-1494526585095-c41746248156";
+const PLACE_002_COVER_URL =
+  "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb";
+
 export const createMockDataset = (): MockDataset => ({
   users: [
     {
@@ -210,7 +215,7 @@ export const createMockDataset = (): MockDataset => ({
       name_zh: "桐梓林社区中心",
       name_en: "Tongzilin Community Center",
       cover_file_id: "cloud://place-cover-001",
-      cover_url: "https://example.com/public/places/place_001/cover.jpg",
+      cover_url: PLACE_001_COVER_URL,
       cover_source: null,
       category_level_1: "public-service",
       category_level_2: "community-center",
@@ -246,7 +251,7 @@ export const createMockDataset = (): MockDataset => ({
       name_zh: "国际友好咖啡馆",
       name_en: "Global Corner Cafe",
       cover_file_id: "cloud://place-cover-002",
-      cover_url: "https://example.com/public/places/place_002/cover.jpg",
+      cover_url: PLACE_002_COVER_URL,
       cover_source: null,
       category_level_1: "food-drink",
       category_level_2: "cafe",

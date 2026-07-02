@@ -185,6 +185,7 @@ describe("shared contracts", () => {
       _id: "place_001",
       name_zh: "桐梓林社区中心",
       name_en: "Tongzilin Community Center",
+      cover_url: null,
       category_level_1: "public-service",
       is_recommended: true,
       location: {
@@ -194,6 +195,7 @@ describe("shared contracts", () => {
     });
 
     expect(marker.category_level_1).toBe("public-service");
+    expect(marker.cover_url).toBeNull();
   });
 
   it("normalizes the places list query contract", () => {

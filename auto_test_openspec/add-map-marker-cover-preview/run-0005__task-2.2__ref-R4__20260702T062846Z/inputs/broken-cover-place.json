@@ -1,0 +1,24 @@
+{
+  "name_zh": "坏封面测试点",
+  "name_en": "Broken Cover Test Place",
+  "cover_url": "https://example.invalid/community-map/missing-cover.jpg",
+  "category_level_1": "community",
+  "category_level_2": "validation",
+  "tag_ids": ["validation"],
+  "address_zh": "成都市武侯区测试路 2 号",
+  "address_en": "No. 2 Test Road, Wuhou District, Chengdu",
+  "location": {
+    "latitude": 30.618,
+    "longitude": 104.0658
+  },
+  "business_hours_zh": "测试时段",
+  "business_hours_en": "Validation hours",
+  "intro_zh": "用于地图坏封面验证。",
+  "intro_en": "Used for broken-cover map validation.",
+  "is_recommended": false,
+  "recommended_rank": 10,
+  "supports_navigation": true,
+  "supports_favorite": true,
+  "supports_share": true,
+  "status": "published"
+}

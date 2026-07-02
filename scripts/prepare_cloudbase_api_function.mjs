@@ -76,6 +76,7 @@ const esbuild = spawnSync(
     "--platform=node",
     "--target=node18",
     "--format=cjs",
+    "--minify",
     "--alias:@community-map/shared=./packages/shared/src/index.ts",
     `--outfile=${join(functionDir, "index.cjs")}`
   ],

@@ -59,6 +59,7 @@ describe("places marker contract", () => {
       _id: "place_001",
       name_zh: "桐梓林社区中心",
       name_en: "Tongzilin Community Center",
+      cover_url: "https://example.com/place-cover.jpg",
       category_level_1: "public-service",
       is_recommended: true,
       location: {
@@ -67,6 +68,26 @@ describe("places marker contract", () => {
       },
       address_zh: "成都",
       intro_zh: "简介",
+      cover_source: {
+        source: "amap",
+        source_place_id: "B001",
+        image_url: "https://example.com/source.jpg",
+        attribution: {
+          label: "Amap",
+          provider_name: "Amap"
+        }
+      },
+      external_gallery_media: [
+        {
+          source: "amap",
+          source_place_id: "B001",
+          image_url: "https://example.com/external.jpg",
+          attribution: {
+            label: "Amap",
+            provider_name: "Amap"
+          }
+        }
+      ],
       gallery_urls: ["https://example.com/gallery.jpg"],
       gallery_media: [
         {
@@ -91,6 +112,7 @@ describe("places marker contract", () => {
       _id: "place_001",
       name_zh: "桐梓林社区中心",
       name_en: "Tongzilin Community Center",
+      cover_url: "https://example.com/place-cover.jpg",
       category_level_1: "public-service",
       is_recommended: true,
       location: {
@@ -100,6 +122,8 @@ describe("places marker contract", () => {
     });
     expect(marker).not.toHaveProperty("address_zh");
     expect(marker).not.toHaveProperty("intro_zh");
+    expect(marker).not.toHaveProperty("cover_source");
+    expect(marker).not.toHaveProperty("external_gallery_media");
     expect(marker).not.toHaveProperty("gallery_urls");
     expect(marker).not.toHaveProperty("gallery_media");
     expect(marker).not.toHaveProperty("navigation");
@@ -143,6 +167,7 @@ describe("places marker contract", () => {
         _id: "place_invalid",
         name_zh: "无效分类地点",
         name_en: "Invalid Category Place",
+        cover_url: null,
         category_level_1: "service",
         is_recommended: false,
         location: {
@@ -189,6 +214,7 @@ describe("places marker contract", () => {
           _id: "place_000",
           name_zh: "Alpha",
           name_en: "Apple",
+          cover_url: "https://example.com/place-000-cover.jpg",
           is_recommended: true,
           recommended_rank: 1
         })
@@ -211,5 +237,24 @@ describe("places marker contract", () => {
       "Bravo",
       "Zulu"
     ]);
+    expect(markers[0].cover_url).toBe(
+      "https://example.com/place-000-cover.jpg"
+    );
+    expect(Object.keys(markers[0]).sort()).toEqual([
+      "_id",
+      "category_level_1",
+      "cover_url",
+      "is_recommended",
+      "location",
+      "name_en",
+      "name_zh"
+    ]);
+    expect(markers[0]).not.toHaveProperty("address_zh");
+    expect(markers[0]).not.toHaveProperty("intro_zh");
+    expect(markers[0]).not.toHaveProperty("cover_source");
+    expect(markers[0]).not.toHaveProperty("external_gallery_media");
+    expect(markers[0]).not.toHaveProperty("gallery_urls");
+    expect(markers[0]).not.toHaveProperty("gallery_media");
+    expect(markers[0]).not.toHaveProperty("navigation");
   });
 });

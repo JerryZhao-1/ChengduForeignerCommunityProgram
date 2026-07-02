@@ -1,0 +1,34 @@
+Scope: all 5 workspace projects
+? Verifying lockfile against supply-chain policies (937 entries)...
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+   ╭─────────────────────────────────────────╮
+   │                                         │
+   │   Update available! 11.7.0 → 11.9.0.    │
+   │   Changelog: https://pnpm.io/v/11.9.0   │
+   │    To update, run: pnpm self-update     │
+   │                                         │
+   ╰─────────────────────────────────────────╯
+
+[WARN] Request took 10699ms: https://registry.npmmirror.com/@typescript-eslint%2Ftypescript-estree
+[WARN] Request took 10045ms: https://registry.npmmirror.com/@typescript-eslint%2Fscope-manager
+[WARN] Request took 15869ms: https://registry.npmmirror.com/vite
+✓ Lockfile passes supply-chain policies (937 entries in 22s)
+
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: core-js-pure@3.49.0, core-js@3.49.0, esbuild@0.20.2, esbuild@0.25.12, esbuild@0.27.4
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+[ERROR] Command failed with exit code 1: /Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node /Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/bin/pnpm.mjs install
+
+pnpm: Command failed with exit code 1: /Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node /Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/bin/pnpm.mjs install
+    at getFinalError (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:34109:14)
+    at makeError (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:36416:21)
+    at getSyncResult (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:38260:10)
+    at spawnSubprocessSync (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:38220:14)
+    at execaCoreSync (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:38150:23)
+    at callBoundExeca (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:40678:23)
+    at boundExeca (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:40655:49)
+    at sync (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:40814:10)
+    at runPnpmCli (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:245099:5)
+    at runDepsStatusCheck (file:///Users/jerry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/pnpm@11.7.0/node_modules/pnpm/dist/pnpm.mjs:246833:7)

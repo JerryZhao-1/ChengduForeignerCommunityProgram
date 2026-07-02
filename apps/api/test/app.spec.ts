@@ -197,8 +197,13 @@ describe("api routes", () => {
       expect(markersBeforeResponse.status).toBe(200);
       expect(markersBeforeData.data.length).toBeGreaterThan(0);
       expect(markersBeforeData.data[0]).toHaveProperty("category_level_1");
+      expect(markersBeforeData.data[0]).toHaveProperty("cover_url");
       expect(markersBeforeData.data[0]).toHaveProperty("is_recommended");
       expect(markersBeforeData.data[0]).not.toHaveProperty("address_zh");
+      expect(markersBeforeData.data[0]).not.toHaveProperty("cover_source");
+      expect(markersBeforeData.data[0]).not.toHaveProperty(
+        "external_gallery_media"
+      );
       expect(markersBeforeData.data[0]).not.toHaveProperty("gallery_media");
 
       const recommendedResponse = await fetch(
@@ -1313,6 +1318,7 @@ describe("api routes", () => {
         "external_gallery_media"
       );
       expect(listBody.data.items[0]).not.toHaveProperty("cover_source");
+      expect(marker.cover_url).toBe(externalMedia.image_url);
       expect(marker).not.toHaveProperty("external_gallery_media");
       expect(marker).not.toHaveProperty("cover_source");
 
@@ -1743,17 +1749,23 @@ describe("api routes", () => {
       expect(Object.keys(markerData.data[0]).sort()).toEqual([
         "_id",
         "category_level_1",
+        "cover_url",
         "is_recommended",
         "location",
         "name_en",
         "name_zh"
       ]);
+      expect(markerData.data[0].cover_url).toBe(
+        "https://images.unsplash.com/photo-1494526585095-c41746248156"
+      );
       expect(markerData.data.map((item: { _id: string }) => item._id)).toEqual([
         "place_001",
         "place_002"
       ]);
       expect(markerData.data[0]).not.toHaveProperty("gallery_urls");
       expect(markerData.data[0]).not.toHaveProperty("gallery_media");
+      expect(markerData.data[0]).not.toHaveProperty("external_gallery_media");
+      expect(markerData.data[0]).not.toHaveProperty("cover_source");
       expect(markerData.data[0]).not.toHaveProperty("navigation");
       expect(markerData.data[0]).not.toHaveProperty("address_zh");
 

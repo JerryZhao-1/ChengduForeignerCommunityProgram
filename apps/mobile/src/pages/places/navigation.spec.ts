@@ -41,6 +41,7 @@ describe("mobile places navigation helpers", () => {
       _id: "place_001",
       name_zh: "桐梓林社区中心",
       name_en: "Tongzilin Community Center",
+      cover_url: null,
       category_level_1: "community",
       is_recommended: true,
       location: {

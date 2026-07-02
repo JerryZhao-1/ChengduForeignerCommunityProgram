@@ -1,6 +1,6 @@
 # CloudBase Dev API Deployment Evidence
 
-Last updated: 2026-06-24
+Last updated: 2026-07-02
 
 ## Scope
 
@@ -266,3 +266,36 @@ Boundary:
 - This verifies the create-before-place direct gallery upload path in CloudBase live mode.
 - The storage object path remains under `_pending`; ownership is represented by the bound `file_assets.biz_id` after place creation.
 - Admin authorization still uses the current project mock actor header path; production authentication and final security rules remain separate release work.
+
+## 2026-07-02 Map Marker Cover URL Deployment Evidence
+
+Target environment:
+
+```text
+cloud1-d7gxdk8t43bd639c0
+```
+
+Deployed backend:
+
+- Cloud function: `community-map-api`
+- Deploy command shape: `tcb fn deploy community-map-api --httpFn --force --dir apps/api/.cloudbase/community-map-api --config-file <temp> --deployMode cos`
+- Function status after deploy: `Status=Active`, `AvailableStatus=Available`, `Type=HTTP`
+- Function runtime/timeout after deploy: `Nodejs18.15`, `30s`
+- Function code size after deploy: `640054`
+- Function detail RequestId: `e8abfd98-dc4b-430a-909e-19d7b8daf944`
+- Function environment variables verified present by key: `API_PROVIDER`, `CLOUDBASE_PROVIDER_MODE`, `CLOUDBASE_ENV_ID`, `TENCENT_MAP_KEY`, `TENCENT_MAP_SECRET_KEY`, `AMAP_WEB_SERVICE_KEY`
+- Secret values were not written to repository files.
+
+Online API acceptance, using CloudBase `/api` only:
+
+| Check              | Result                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------ |
+| Health             | `GET /api/health` returned HTTP 200 and `{"ok":true}`                                            |
+| Map marker covers  | `GET /api/places/map-markers` returned 10 markers, each with a `cover_url` field and image URL   |
+| Image URL reachability | Sample `cover_url` values from `store.is.autonavi.com` and `aos-comment.amap.com` returned HTTP 200 `image/jpeg` |
+
+Boundary:
+
+- This verifies that public map marker payloads now include the lightweight `cover_url` field for the mini program map preview.
+- Marker payloads remain marker-safe and do not include detail-only media ownership fields such as `gallery_media`, `gallery_urls`, `external_gallery_media`, `cover_source`, or navigation details.
+- Mini Program simulator builds still need a page refresh/recompile to re-request marker data after backend deployment.

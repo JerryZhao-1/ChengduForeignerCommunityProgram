@@ -95,7 +95,21 @@ const sortPlacesForMapMarkers = (places: Place[]) =>
       return left.is_recommended ? -1 : 1;
     }
 
-    return left.name_en.localeCompare(right.name_en);
+    if (left.recommended_rank !== right.recommended_rank) {
+      return left.recommended_rank - right.recommended_rank;
+    }
+
+    const zhComparison = left.name_zh.localeCompare(right.name_zh);
+    if (zhComparison !== 0) {
+      return zhComparison;
+    }
+
+    const enComparison = left.name_en.localeCompare(right.name_en);
+    if (enComparison !== 0) {
+      return enComparison;
+    }
+
+    return left._id.localeCompare(right._id);
   });
 
 const toPlaceListItem = (place: Place): PlaceListItem => ({
@@ -398,6 +412,7 @@ const createLivePlacesProvider = (
         _id: place._id,
         name_zh: place.name_zh,
         name_en: place.name_en,
+        cover_url: place.cover_url,
         category_level_1: place.category_level_1,
         is_recommended: place.is_recommended,
         location: place.location

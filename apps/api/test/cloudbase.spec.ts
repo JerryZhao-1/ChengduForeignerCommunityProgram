@@ -45,6 +45,7 @@ describe("cloudbase event handler", () => {
     expect(response.statusCode).toBe(200);
     expect(body.success).toBe(true);
     expect(body.data.length).toBeGreaterThan(0);
+    expect(body.data[0]).toHaveProperty("cover_url");
     expect(body.data[0]).toHaveProperty("location");
   });
 
@@ -165,11 +166,15 @@ describe("cloudbase event handler", () => {
       expect(Object.keys(markerBody.data[0]).sort()).toEqual([
         "_id",
         "category_level_1",
+        "cover_url",
         "is_recommended",
         "location",
         "name_en",
         "name_zh"
       ]);
+      expect(markerBody.data[0].cover_url).toBe(
+        "https://images.unsplash.com/photo-1494526585095-c41746248156"
+      );
       expect(markerBody.data.map((item: { _id: string }) => item._id)).toEqual([
         "place_001",
         "place_002"
@@ -177,6 +182,8 @@ describe("cloudbase event handler", () => {
       expect(markerBody.data[0]).not.toHaveProperty("navigation");
       expect(markerBody.data[0]).not.toHaveProperty("gallery_urls");
       expect(markerBody.data[0]).not.toHaveProperty("gallery_media");
+      expect(markerBody.data[0]).not.toHaveProperty("external_gallery_media");
+      expect(markerBody.data[0]).not.toHaveProperty("cover_source");
       expect(markerBody.data[0]).not.toHaveProperty("address_zh");
 
       const invalidSortResponse = await main({}, {

@@ -74,6 +74,7 @@ describe("shared api clients", () => {
           _id: "place_http_001",
           name_zh: "社区中心",
           name_en: "Community Center",
+          cover_url: "https://example.com/place-http-cover.jpg",
           category_level_1: "public-service",
           is_recommended: true,
           location: { latitude: 30.615, longitude: 104.0625 }
@@ -92,7 +93,12 @@ describe("shared api clients", () => {
     expect(mockResult.success).toBe(true);
     expect(httpResult.success).toBe(true);
     expect(mockResult.data[0]).toHaveProperty("category_level_1");
+    expect(mockResult.data[0]).toHaveProperty("cover_url");
     expect(httpResult.data[0]).toHaveProperty("category_level_1");
+    expect(httpResult.data[0]).toHaveProperty(
+      "cover_url",
+      "https://example.com/place-http-cover.jpg"
+    );
     expect(httpResult.data[0]).toHaveProperty("is_recommended");
     expect(httpResult.data[0]).not.toHaveProperty("address_zh");
     expect(requester).toHaveBeenCalledWith(
