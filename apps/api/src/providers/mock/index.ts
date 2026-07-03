@@ -42,8 +42,16 @@ export const createMockProvider = (): ApiProvider => {
       async list(input) {
         return withMockErrors(() => service.events.list(input));
       },
+      async listAdmin() {
+        return withMockErrors(() => service.events.listAdmin());
+      },
       async detail(id) {
         return withMockErrors(() => service.events.detail(id));
+      },
+      async listRegistrationsForAdmin(eventId) {
+        return withMockErrors(() =>
+          service.events.listRegistrationsForAdmin(eventId)
+        );
       },
       async createRegistration(eventId, input, actorId) {
         return withMockErrors(() =>

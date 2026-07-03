@@ -30,15 +30,16 @@ describe("shared api clients", () => {
     ) as unknown as typeof fetch;
     const requester = createFetchRequester(fetchImpl);
 
-    await expect(requester("GET", "http://localhost/admin/places")).rejects
-      .toMatchObject({
-        name: "ApiClientError",
-        code: "FORBIDDEN",
-        message: "Insufficient permission.",
-        details: { role: "community_admin" },
-        requestId: "req_forbidden",
-        status: 403
-      });
+    await expect(
+      requester("GET", "http://localhost/admin/places")
+    ).rejects.toMatchObject({
+      name: "ApiClientError",
+      code: "FORBIDDEN",
+      message: "Insufficient permission.",
+      details: { role: "community_admin" },
+      requestId: "req_forbidden",
+      status: 403
+    });
   });
 
   it("throws typed client errors for non-envelope HTTP failures", async () => {
@@ -54,11 +55,12 @@ describe("shared api clients", () => {
     await expect(
       requester("GET", "http://localhost/upstream")
     ).rejects.toBeInstanceOf(ApiClientError);
-    await expect(requester("GET", "http://localhost/upstream")).rejects
-      .toMatchObject({
-        code: "UPSTREAM_ERROR",
-        status: 502
-      });
+    await expect(
+      requester("GET", "http://localhost/upstream")
+    ).rejects.toMatchObject({
+      code: "UPSTREAM_ERROR",
+      status: 502
+    });
   });
 
   it("keeps mock and http client signatures aligned for events list", async () => {
@@ -113,6 +115,111 @@ describe("shared api clients", () => {
     expect(requester).toHaveBeenCalledWith(
       "GET",
       "http://localhost:8787/events",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+  });
+
+  it("keeps mock and http client signatures aligned for admin event management", async () => {
+    const mockClient = createMockClient({ actorId: "user_001" });
+    const requester = vi.fn(async (_method: string, url: string) => {
+      if (String(url).endsWith("/registrations")) {
+        return {
+          success: true,
+          requestId: "req_admin_event_registrations",
+          data: [
+            {
+              _id: "reg_http_001",
+              event_id: "event_http_001",
+              user_id: "user_001",
+              contact_name: "Jerry",
+              contact_phone: "13800000000",
+              attendee_count: 2,
+              registration_status: "confirmed",
+              ticket_id: "ticket_http_001",
+              source_channel: "miniapp",
+              ticket_code: "TZL-HTTP-001",
+              ticket_status: "valid",
+              ticket_used_at: null
+            }
+          ]
+        };
+      }
+
+      return {
+        success: true,
+        requestId: "req_admin_events",
+        data: {
+          items: [
+            {
+              _id: "event_http_001",
+              community_id: "tongzilin",
+              title_zh: "HTTP 后台活动",
+              title_en: "HTTP Admin Event",
+              summary_zh: "简介",
+              summary_en: "Summary",
+              content_zh: "正文",
+              content_en: "Body",
+              cover_file_id: "cloud://cover",
+              cover_cloud_path: "public/events/event_http_001/cover.jpg",
+              cover_url: "https://example.com/admin-event.jpg",
+              address_text: "Address",
+              location: { latitude: 30.6, longitude: 104.0 },
+              start_time: "2027-03-28T10:00:00+08:00",
+              end_time: "2027-03-28T12:00:00+08:00",
+              signup_deadline: "2027-03-27T18:00:00+08:00",
+              capacity: 20,
+              organizer_user_id: "user_001",
+              review_status: "draft",
+              publish_status: "draft",
+              active_registration_count: 0,
+              confirmed_attendee_count: 0,
+              remaining_capacity: 20,
+              is_full: false
+            }
+          ],
+          page: 1,
+          pageSize: 10,
+          total: 1
+        }
+      };
+    });
+    const httpClient = createHttpClient({
+      actorId: "user_001",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    const mockEvents = await mockClient.admin.listEvents();
+    const httpEvents = await httpClient.admin.listEvents();
+    const mockRegistrations =
+      await mockClient.admin.listEventRegistrations("event_001");
+    const httpRegistrations =
+      await httpClient.admin.listEventRegistrations("event_http_001");
+
+    expect(mockEvents.success).toBe(true);
+    expect(mockEvents.data.items.map((event) => event._id)).toContain(
+      "event_draft"
+    );
+    expect(mockEvents.data.items[0]).toHaveProperty(
+      "active_registration_count"
+    );
+    expect(httpEvents.data.items[0].remaining_capacity).toBe(20);
+    expect(mockRegistrations.data[0]).toHaveProperty("ticket_code");
+    expect(httpRegistrations.data[0].ticket_status).toBe("valid");
+    expect(apiPaths.admin.listEvents).toBe("/admin/events");
+    expect(apiPaths.admin.eventRegistrations("event_http_001")).toBe(
+      "/admin/events/event_http_001/registrations"
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/admin/events",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/admin/events/event_http_001/registrations",
       undefined,
       { "x-mock-user-id": "user_001" }
     );

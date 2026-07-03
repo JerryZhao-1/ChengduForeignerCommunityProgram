@@ -3,6 +3,8 @@ import {
   apiPaths,
   CreateApiSuccessSchema,
   DeletePlaceResponseSchema,
+  EventAdminListItemSchema,
+  EventAdminRegistrationRowSchema,
   EVENT_REGISTRATION_STATUSES,
   FILE_PATH_RULES,
   FileAssetSchema,
@@ -19,6 +21,7 @@ import {
   PlacePoiSearchItemSchema,
   PlacePoiSearchQuerySchema,
   PlaceSchema,
+  eventContracts,
   placeContracts,
   PostSchema,
   UpdatePlaceInputSchema,
@@ -255,6 +258,96 @@ describe("shared contracts", () => {
       "/admin/places/place_001"
     );
     expect(deleteEnvelope.data.deleted_id).toBe("place_001");
+  });
+
+  it("exposes admin event list and registration contracts through shared paths", () => {
+    const adminListEnvelope = CreateApiSuccessSchema(
+      PageResultSchema(EventAdminListItemSchema)
+    ).parse({
+      success: true,
+      requestId: "req_admin_events",
+      data: {
+        items: [
+          {
+            _id: "event_admin_001",
+            community_id: "tongzilin",
+            title_zh: "后台活动",
+            title_en: "Admin Event",
+            summary_zh: "简介",
+            summary_en: "Summary",
+            content_zh: "正文",
+            content_en: "Body",
+            cover_file_id: "cloud://cover",
+            cover_cloud_path: "public/events/event_admin_001/cover.jpg",
+            cover_url: "https://example.com/event-admin.jpg",
+            address_text: "桐梓林",
+            location: { latitude: 30.615, longitude: 104.062 },
+            start_time: "2027-04-02T10:00:00+08:00",
+            end_time: "2027-04-02T12:00:00+08:00",
+            signup_deadline: "2027-04-01T18:00:00+08:00",
+            capacity: 10,
+            organizer_user_id: "user_001",
+            review_status: "draft",
+            publish_status: "draft",
+            active_registration_count: 0,
+            confirmed_attendee_count: 0,
+            remaining_capacity: 10,
+            is_full: false
+          }
+        ],
+        page: 1,
+        pageSize: 10,
+        total: 1
+      }
+    });
+    const registrationsEnvelope = CreateApiSuccessSchema(
+      EventAdminRegistrationRowSchema.array()
+    ).parse({
+      success: true,
+      requestId: "req_admin_event_registrations",
+      data: [
+        {
+          _id: "reg_001",
+          event_id: "event_admin_001",
+          user_id: "user_001",
+          contact_name: "Jerry",
+          contact_phone: "13800000000",
+          attendee_count: 2,
+          registration_status: "confirmed",
+          ticket_id: "ticket_001",
+          source_channel: "miniapp",
+          ticket_code: "TZL-001",
+          ticket_status: "valid",
+          ticket_used_at: null
+        }
+      ]
+    });
+
+    expect(eventContracts.adminList).toMatchObject({
+      method: "GET",
+      path: "/admin/events"
+    });
+    expect(eventContracts.adminRegistrations).toMatchObject({
+      method: "GET",
+      path: "/admin/events/:id/registrations"
+    });
+    expect(apiPaths.admin.listEvents).toBe("/admin/events");
+    expect(apiPaths.admin.eventRegistrations("event_admin_001")).toBe(
+      "/admin/events/event_admin_001/registrations"
+    );
+    expect(adminListEnvelope.data.items[0].remaining_capacity).toBe(10);
+    expect(registrationsEnvelope.data[0].ticket_code).toBe("TZL-001");
+    expect(
+      EventAdminListItemSchema.safeParse({
+        _id: "event_admin_001"
+      }).success
+    ).toBe(false);
+    expect(
+      EventAdminRegistrationRowSchema.safeParse({
+        _id: "reg_001",
+        event_id: "event_admin_001"
+      }).success
+    ).toBe(false);
   });
 
   it("normalizes admin place POI search contracts", () => {

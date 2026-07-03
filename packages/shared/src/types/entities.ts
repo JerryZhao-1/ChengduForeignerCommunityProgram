@@ -1,6 +1,10 @@
 import type { z } from "zod";
 
 import type {
+  EventAdminListItemSchema,
+  EventAdminRegistrationRowSchema
+} from "../schemas/events";
+import type {
   AnnouncementSchema,
   AuthSessionSchema,
   CommentSchema,
@@ -32,6 +36,10 @@ export type AuthSession = z.infer<typeof AuthSessionSchema>;
 export type Event = z.infer<typeof EventSchema>;
 export type EventRegistration = z.infer<typeof EventRegistrationSchema>;
 export type EventTicket = z.infer<typeof EventTicketSchema>;
+export type EventAdminListItem = z.infer<typeof EventAdminListItemSchema>;
+export type EventAdminRegistrationRow = z.infer<
+  typeof EventAdminRegistrationRowSchema
+>;
 export type Place = z.infer<typeof PlaceSchema>;
 export type PlaceExternalMedia = z.infer<typeof PlaceExternalMediaSchema>;
 export type PlaceCoverSource = z.infer<typeof PlaceCoverSourceSchema>;

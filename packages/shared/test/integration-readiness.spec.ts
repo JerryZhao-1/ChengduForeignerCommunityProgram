@@ -31,17 +31,22 @@ describe("launch-readiness shared mock fixtures", () => {
   it("seeds deterministic actors, states, files, notifications, and error codes", () => {
     const dataset = createMockDataset();
 
-    expect(dataset.users.find((user) => user._id === "user_001")?.role_flags).toEqual(
-      expect.arrayContaining(["community_admin", "system_admin"])
-    );
-    expect(dataset.users.find((user) => user._id === "user_002")?.role_flags).not.toContain(
-      "community_admin"
-    );
-    expect(dataset.users.find((user) => user._id === "user_inactive")?.status).toBe(
-      "inactive"
-    );
+    expect(
+      dataset.users.find((user) => user._id === "user_001")?.role_flags
+    ).toEqual(expect.arrayContaining(["community_admin", "system_admin"]));
+    expect(
+      dataset.users.find((user) => user._id === "user_002")?.role_flags
+    ).not.toContain("community_admin");
+    expect(
+      dataset.users.find((user) => user._id === "user_inactive")?.status
+    ).toBe("inactive");
     expect(dataset.events.map((event) => event._id)).toEqual(
-      expect.arrayContaining(["event_001", "event_draft", "event_full", "event_closed"])
+      expect.arrayContaining([
+        "event_001",
+        "event_draft",
+        "event_full",
+        "event_closed"
+      ])
     );
     expect(dataset.posts.map((post) => post._id)).toEqual(
       expect.arrayContaining(["post_001", "post_hidden", "post_deleted"])
@@ -59,26 +64,42 @@ describe("launch-readiness shared mock fixtures", () => {
       ])
     );
     expect(API_ERROR_CODES).toEqual(
-      expect.arrayContaining(["UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND", "CONFLICT"])
+      expect.arrayContaining([
+        "UNAUTHORIZED",
+        "FORBIDDEN",
+        "NOT_FOUND",
+        "CONFLICT"
+      ])
     );
   });
 
   it("enforces public visibility and actor ownership in the shared mock service", () => {
     const service = createMockService();
 
-    const events = service.events.list({ communityId: "tongzilin", pageSize: 20 });
+    const events = service.events.list({
+      communityId: "tongzilin",
+      pageSize: 20
+    });
     expect(events.items.map((event) => event._id)).toContain("event_001");
     expect(events.items.map((event) => event._id)).not.toContain("event_draft");
     expect(service.events.detail("event_draft")).toBeNull();
 
-    const posts = service.posts.list({ communityId: "tongzilin", pageSize: 20 });
-    expect(posts.items.map((post) => post._id)).toEqual(["post_001", "post_002"]);
+    const posts = service.posts.list({
+      communityId: "tongzilin",
+      pageSize: 20
+    });
+    expect(posts.items.map((post) => post._id)).toEqual([
+      "post_001",
+      "post_002"
+    ]);
     expect(service.posts.detail("post_hidden")).toBeNull();
 
-    expect(service.notifications.list("user_001").map((item) => item._id)).toEqual([
-      "notification_001"
-    ]);
-    expect(service.notifications.markRead("notification_002", "user_001")).toBeNull();
+    expect(
+      service.notifications.list("user_001").map((item) => item._id)
+    ).toEqual(["notification_001"]);
+    expect(
+      service.notifications.markRead("notification_002", "user_001")
+    ).toBeNull();
 
     expectMockError(() => service.auth.me("missing_user"), "UNAUTHORIZED", 401);
     expectMockError(
@@ -115,5 +136,67 @@ describe("launch-readiness shared mock fixtures", () => {
       uploaded_by: "user_002",
       status: "active"
     });
+  });
+
+  it("exposes admin event rows with management states and ticket joins", () => {
+    const service = createMockService();
+
+    const adminEvents = service.events.listAdmin();
+    const adminIds = adminEvents.items.map((event) => event._id);
+    const publicIds = service.events
+      .list({ communityId: "tongzilin", pageSize: 20 })
+      .items.map((event) => event._id);
+    const fullEvent = adminEvents.items.find(
+      (event) => event._id === "event_full"
+    );
+    const draftEvent = adminEvents.items.find(
+      (event) => event._id === "event_draft"
+    );
+    const registrations = service.events.listRegistrationsForAdmin("event_001");
+
+    expect(adminIds).toEqual(
+      expect.arrayContaining([
+        "event_001",
+        "event_draft",
+        "event_pending",
+        "event_offline",
+        "event_ended"
+      ])
+    );
+    expect(publicIds).not.toEqual(
+      expect.arrayContaining([
+        "event_draft",
+        "event_pending",
+        "event_offline",
+        "event_ended"
+      ])
+    );
+    expect(draftEvent).toMatchObject({
+      review_status: "draft",
+      publish_status: "draft",
+      active_registration_count: 0,
+      confirmed_attendee_count: 0,
+      remaining_capacity: 20,
+      is_full: false
+    });
+    expect(fullEvent).toMatchObject({
+      active_registration_count: 1,
+      confirmed_attendee_count: 2,
+      remaining_capacity: 0,
+      is_full: true
+    });
+    expect(registrations).toEqual([
+      expect.objectContaining({
+        _id: "reg_001",
+        contact_name: "Jerry",
+        ticket_id: "ticket_001",
+        ticket_code: "TZL-20260402-001",
+        ticket_status: "valid",
+        ticket_used_at: null
+      })
+    ]);
+    expect(
+      service.events.listRegistrationsForAdmin("event_missing")
+    ).toBeNull();
   });
 });

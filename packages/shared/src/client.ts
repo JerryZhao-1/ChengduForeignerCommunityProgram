@@ -118,9 +118,12 @@ export const createFetchRequester = (
     }
 
     if (!response.ok) {
-      throw new ApiClientError(createHttpStatusError(response.status, payload), {
-        status: response.status
-      });
+      throw new ApiClientError(
+        createHttpStatusError(response.status, payload),
+        {
+          status: response.status
+        }
+      );
     }
 
     return payload as any;
@@ -194,6 +197,7 @@ export const createHttpClient = (
       privateUrl: (input) => request("POST", apiPaths.files.privateUrl, input)
     },
     admin: {
+      listEvents: () => request("GET", apiPaths.admin.listEvents),
       listPlaces: () => request("GET", apiPaths.admin.listPlaces),
       createEvent: (input) =>
         request("POST", apiPaths.admin.createEvent, input),
@@ -203,6 +207,8 @@ export const createHttpClient = (
         request("POST", apiPaths.admin.reviewEvent(id), input),
       checkinEvent: (id, input) =>
         request("POST", apiPaths.admin.checkinEvent(id), input),
+      listEventRegistrations: (id) =>
+        request("GET", apiPaths.admin.eventRegistrations(id)),
       moderatePost: (id, input) =>
         request("POST", apiPaths.admin.moderatePost(id), input),
       createPlace: (input) =>

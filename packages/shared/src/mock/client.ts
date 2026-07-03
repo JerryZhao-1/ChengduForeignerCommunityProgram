@@ -3,6 +3,8 @@ import type {
   AuthSession,
   Comment,
   Event,
+  EventAdminListItem,
+  EventAdminRegistrationRow,
   EventRegistration,
   EventTicket,
   FileAsset,
@@ -121,6 +123,7 @@ export interface CommunityMapApiClient {
     }): Promise<ApiResult<{ temp_url: string; expires_at: string }>>;
   };
   admin: {
+    listEvents(): Promise<ApiResult<PageResult<EventAdminListItem>>>;
     listPlaces(): Promise<ApiResult<PageResult<Place>>>;
     createEvent(input: Partial<Event>): Promise<ApiResult<Event>>;
     updateEvent(id: string, input: Partial<Event>): Promise<ApiResult<Event>>;
@@ -135,6 +138,9 @@ export interface CommunityMapApiClient {
       id: string,
       input: { ticket_id: string }
     ): Promise<ApiResult<EventTicket>>;
+    listEventRegistrations(
+      eventId: string
+    ): Promise<ApiResult<EventAdminRegistrationRow[]>>;
     moderatePost(
       id: string,
       input: { review_status: Post["review_status"] }
@@ -271,6 +277,9 @@ export const createMockClient = (
       }
     },
     admin: {
+      async listEvents() {
+        return ok(service.events.listAdmin());
+      },
       async listPlaces() {
         return ok(service.places.listAdmin());
       },
@@ -285,6 +294,13 @@ export const createMockClient = (
       },
       async checkinEvent(id, input) {
         return ok(service.events.checkin(id, input.ticket_id) as EventTicket);
+      },
+      async listEventRegistrations(eventId) {
+        return ok(
+          service.events.listRegistrationsForAdmin(
+            eventId
+          ) as EventAdminRegistrationRow[]
+        );
       },
       async moderatePost(id, input) {
         return ok(service.posts.moderate(id, input) as Post);

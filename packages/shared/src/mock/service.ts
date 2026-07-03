@@ -2,6 +2,8 @@ import type {
   AuthSession,
   Comment,
   Event,
+  EventAdminListItem,
+  EventAdminRegistrationRow,
   EventRegistration,
   EventTicket,
   FileAsset,
@@ -178,6 +180,45 @@ export const PENDING_PLACE_GALLERY_BIZ_ID = "__pending_place_gallery__";
 const isLaunchVisibleEvent = (event: Event) =>
   event.review_status === "approved" && event.publish_status === "published";
 
+const isActiveRegistration = (registration: EventRegistration) =>
+  !["cancelled", "closed"].includes(registration.registration_status);
+
+const toEventAdminListItem = (
+  event: Event,
+  registrations: EventRegistration[]
+): EventAdminListItem => {
+  const activeRegistrations = registrations.filter(
+    (registration) =>
+      registration.event_id === event._id && isActiveRegistration(registration)
+  );
+  const confirmed_attendee_count = activeRegistrations.reduce(
+    (sum, registration) => sum + registration.attendee_count,
+    0
+  );
+  const remaining_capacity = Math.max(
+    event.capacity - confirmed_attendee_count,
+    0
+  );
+
+  return {
+    ...event,
+    active_registration_count: activeRegistrations.length,
+    confirmed_attendee_count,
+    remaining_capacity,
+    is_full: remaining_capacity === 0
+  };
+};
+
+const toEventAdminRegistrationRow = (
+  registration: EventRegistration,
+  ticket: EventTicket | undefined
+): EventAdminRegistrationRow => ({
+  ...registration,
+  ticket_code: ticket?.ticket_code ?? null,
+  ticket_status: ticket?.status ?? null,
+  ticket_used_at: ticket?.used_at ?? null
+});
+
 const isLaunchVisiblePost = (post: Post) =>
   post.status === "visible" && post.review_status === "visible";
 
@@ -327,9 +368,34 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
 
         return paginate(events, params);
       },
+      listAdmin() {
+        return paginate(
+          state.events.map((event) =>
+            toEventAdminListItem(event, state.registrations)
+          ),
+          { pageSize: state.events.length || 20 }
+        );
+      },
       detail(id: string) {
         const event = state.events.find((item) => item._id === id);
         return event && isLaunchVisibleEvent(event) ? event : null;
+      },
+      listRegistrationsForAdmin(eventId: string) {
+        const event = state.events.find((item) => item._id === eventId);
+        if (!event) {
+          return null;
+        }
+
+        return state.registrations
+          .filter((registration) => registration.event_id === eventId)
+          .map((registration) =>
+            toEventAdminRegistrationRow(
+              registration,
+              state.tickets.find(
+                (ticket) => ticket._id === registration.ticket_id
+              )
+            )
+          );
       },
       createRegistration(
         eventId: string,
@@ -348,31 +414,46 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           throw mockError("NOT_FOUND", "Event not found.", 404);
         }
 
-        if (new Date(event.signup_deadline).getTime() <= Date.now()) {
-          throw mockError("CONFLICT", "Event signup is closed.", 409);
+        const now = Date.now();
+
+        if (new Date(event.end_time).getTime() <= now) {
+          throw mockError("CONFLICT", "Event has ended.", 409, {
+            reason: "event_ended"
+          });
+        }
+
+        if (new Date(event.signup_deadline).getTime() <= now) {
+          throw mockError("CONFLICT", "Event signup is closed.", 409, {
+            reason: "signup_deadline_passed"
+          });
         }
 
         const hasActiveRegistration = state.registrations.some(
           (registration) =>
             registration.event_id === eventId &&
             registration.user_id === actor._id &&
-            registration.registration_status !== "cancelled"
+            isActiveRegistration(registration)
         );
 
         if (hasActiveRegistration) {
-          throw mockError("CONFLICT", "Registration already exists.", 409);
+          throw mockError("CONFLICT", "Registration already exists.", 409, {
+            reason: "already_registered"
+          });
         }
 
         const confirmedAttendees = state.registrations
           .filter(
             (registration) =>
               registration.event_id === eventId &&
-              registration.registration_status === "confirmed"
+              isActiveRegistration(registration)
           )
           .reduce((sum, registration) => sum + registration.attendee_count, 0);
 
         if (confirmedAttendees + input.attendee_count > event.capacity) {
-          throw mockError("CONFLICT", "Event capacity is full.", 409);
+          throw mockError("CONFLICT", "Event capacity is full.", 409, {
+            reason: "capacity_exceeded",
+            remaining: Math.max(event.capacity - confirmedAttendees, 0)
+          });
         }
 
         const ticketId = idFrom("ticket");
@@ -500,11 +581,21 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         );
 
         if (!registration || registration.event_id !== event._id) {
-          throw mockError("CONFLICT", "Ticket does not belong to event.", 409);
+          throw mockError("CONFLICT", "Ticket does not belong to event.", 409, {
+            reason: "ticket_event_mismatch"
+          });
         }
 
         if (ticket.status !== "valid") {
-          throw mockError("CONFLICT", "Ticket is not valid for check-in.", 409);
+          throw mockError(
+            "CONFLICT",
+            "Ticket is not valid for check-in.",
+            409,
+            {
+              reason: "ticket_not_valid",
+              ticket_status: ticket.status
+            }
+          );
         }
 
         ticket.status = "used";

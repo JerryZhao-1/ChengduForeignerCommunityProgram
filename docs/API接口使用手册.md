@@ -104,6 +104,7 @@ content-type: application/json
 - `/admin/events`
 - `/admin/events/:id`
 - `/admin/events/:id/review`
+- `/admin/events/:id/registrations`
 - `/admin/events/:id/checkin`
 - `/admin/discover/posts/:id/moderation`
 - `/admin/places`
@@ -386,7 +387,7 @@ Body：
     "contact_name": "Jerry",
     "contact_phone": "13800000000",
     "attendee_count": 1,
-    "registration_status": "registered",
+    "registration_status": "confirmed",
     "ticket_id": "ticket_001",
     "source_channel": "miniapp"
   },
@@ -397,7 +398,7 @@ Body：
     "qr_file_id": "cloud://...",
     "qr_cloud_path": "private/tickets/registration_001/qr.png",
     "visibility": "private",
-    "status": "issued",
+    "status": "valid",
     "issued_at": "2026-06-16T00:00:00.000Z",
     "used_at": null
   }
@@ -449,6 +450,35 @@ curl http://127.0.0.1:8787/events/registrations/registration_001/ticket \
   -H 'x-mock-user-id: user_001'
 ```
 
+### GET `/admin/events`
+
+用途：管理端获取活动列表，包含公开端不可见的草稿、待审核、已下线和已结束记录。
+
+权限：`community_admin` 或 `system_admin`。
+
+响应 data：分页 `EventAdminListItem[]`
+
+在标准 `Event` 字段外，每个 item 额外包含：
+
+| 字段                        | 类型    | 说明                                  |
+| --------------------------- | ------- | ------------------------------------- |
+| `active_registration_count` | number  | 未取消/未关闭的报名笔数               |
+| `confirmed_attendee_count`  | number  | 未取消/未关闭报名的总参与人数         |
+| `remaining_capacity`        | number  | 剩余名额，最低为 0                    |
+| `is_full`                   | boolean | `remaining_capacity === 0` 时为 `true` |
+
+常见错误：
+
+- `401 UNAUTHORIZED`：actor 无法解析。
+- `403 FORBIDDEN`：actor 不是 `community_admin` 或 `system_admin`。
+
+示例：
+
+```bash
+curl http://127.0.0.1:8787/admin/events \
+  -H 'x-mock-user-id: user_001'
+```
+
 ### POST `/admin/events`
 
 用途：管理端创建活动。
@@ -473,6 +503,8 @@ Body：
 | `cover_url`                 | URL string  | 否   | 封面 URL        |
 
 响应 data：`Event`
+
+说明：创建接口默认产生后台可见草稿；如需公开端可见，应随后调用 `POST /admin/events/:id/review` 设置 `review_status="approved"` 且 `publish_status="published"`。
 
 示例：
 
@@ -525,8 +557,8 @@ Body：
 
 | 字段             | 类型                                       | 必填 | 说明     |
 | ---------------- | ------------------------------------------ | ---- | -------- |
-| `review_status`  | `approved` / `rejected` / `pending_review` | 是   | 审核状态 |
-| `publish_status` | `draft` / `published` / `offline`          | 否   | 发布状态 |
+| `review_status`  | `draft` / `pending_review` / `approved` / `rejected` | 是   | 审核状态 |
+| `publish_status` | `draft` / `published` / `offline` / `ended`          | 否   | 发布状态 |
 | `reason`         | string                                     | 否   | 审核原因 |
 
 响应 data：`Event`
@@ -538,6 +570,56 @@ curl -X POST http://127.0.0.1:8787/admin/events/event_001/review \
   -H 'content-type: application/json' \
   -H 'x-mock-user-id: user_001' \
   -d '{"review_status":"approved","publish_status":"published"}'
+```
+
+常用状态动作：
+
+- 提交审核：`review_status="pending_review"`、`publish_status="draft"`。
+- 通过并发布 / 重新发布：`review_status="approved"`、`publish_status="published"`。
+- 下线：`review_status="approved"`、`publish_status="offline"`。
+- 标记结束：`review_status="approved"`、`publish_status="ended"`。
+
+Public Events 只读取 `review_status="approved"` 且 `publish_status="published"` 的活动。草稿、待审核、已拒绝、已下线、已结束记录仍可通过 `GET /admin/events` 管理，但不会出现在 Mobile public list/detail。
+
+### GET `/admin/events/:id/registrations`
+
+用途：管理端查看某个活动的报名与票据状态。
+
+权限：`community_admin` 或 `system_admin`。
+
+Path params：
+
+| 字段 | 类型   | 说明    |
+| ---- | ------ | ------- |
+| `id` | string | 活动 ID |
+
+响应 data：`EventAdminRegistrationRow[]`
+
+| 字段                  | 类型          | 说明                    |
+| --------------------- | ------------- | ----------------------- |
+| `_id`                 | string        | 报名 ID                 |
+| `event_id`            | string        | 活动 ID                 |
+| `user_id`             | string        | 用户 ID                 |
+| `contact_name`        | string        | 联系人                  |
+| `contact_phone`       | string        | 联系电话                |
+| `attendee_count`      | number        | 参与人数                |
+| `registration_status` | string        | 报名状态                |
+| `source_channel`      | string        | 来源渠道                |
+| `ticket_id`           | string        | 票据 ID                 |
+| `ticket_code`         | string/null   | 票码                    |
+| `ticket_status`       | string/null   | `valid` / `used` / `invalid` |
+| `ticket_used_at`      | string/null   | 核销时间                |
+
+常见错误：
+
+- `403 FORBIDDEN`：非管理员。
+- `404 NOT_FOUND`：活动不存在。
+
+示例：
+
+```bash
+curl http://127.0.0.1:8787/admin/events/event_001/registrations \
+  -H 'x-mock-user-id: user_001'
 ```
 
 ### POST `/admin/events/:id/checkin`
@@ -555,6 +637,11 @@ Body：
 
 响应 data：`EventTicket`
 
+常见错误：
+
+- `404 NOT_FOUND`：票据不存在。
+- `409 CONFLICT`：票据不属于该活动，或票据已核销/状态不可核销。
+
 示例：
 
 ```bash
@@ -563,6 +650,16 @@ curl -X POST http://127.0.0.1:8787/admin/events/event_001/checkin \
   -H 'x-mock-user-id: user_001' \
   -d '{"ticket_id":"ticket_001","note":"front desk"}'
 ```
+
+管理端 / Mobile 烟测期望：
+
+- Admin `/events` 可看到 draft、pending、published、offline、ended 等管理态记录。
+- Admin 新建草稿后，Mobile public Events 列表和详情不可见。
+- Admin 通过并发布后，Mobile public Events 列表和详情可见。
+- Admin 下线后，Mobile public Events 列表和详情不可见；重新发布后恢复可见。
+- Admin 报名抽屉可查看联系人、人数、来源、ticket id/code/status/used time，并能用 ticket id 核销。
+- 重复核销、错误活动票据、缺失票据应显示错误，不应改变无关票据。
+- 报名导出当前延后，后台不提供 export endpoint。
 
 ## 8. Discover
 
@@ -1394,9 +1491,11 @@ curl -X POST http://127.0.0.1:8787/files/private-url \
 
 | 模块     | 方法     | 路径                                   | 权限        | 用途                   |
 | -------- | -------- | -------------------------------------- | ----------- | ---------------------- |
+| Events   | `GET`    | `/admin/events`                        | admin       | 管理端活动列表         |
 | Events   | `POST`   | `/admin/events`                        | admin       | 创建活动               |
 | Events   | `PATCH`  | `/admin/events/:id`                    | admin       | 更新活动               |
 | Events   | `POST`   | `/admin/events/:id/review`             | admin       | 审核活动               |
+| Events   | `GET`    | `/admin/events/:id/registrations`      | admin       | 查看活动报名           |
 | Events   | `POST`   | `/admin/events/:id/checkin`            | admin       | 核销票据               |
 | Discover | `POST`   | `/admin/discover/posts/:id/moderation` | admin       | 审核/治理帖子          |
 | Places   | `GET`    | `/admin/places`                        | admin       | 地点列表               |

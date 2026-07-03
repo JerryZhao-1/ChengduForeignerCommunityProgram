@@ -9,9 +9,9 @@
 - `packages/shared/src/contracts/*.ts`：共享契约定义
 - `apps/api/src/providers/*` 与 `packages/shared/src/mock/service.ts`：当前业务实现入口
 
-截至当前版本，`apps/api` 一共注册了 32 个接口：
+截至当前版本，`apps/api` 一共注册了 34 个接口：
 
-- 业务接口 31 个
+- 业务接口 33 个
 - 健康检查接口 1 个：`GET /health`
 
 ## 2. 总入口与核心文件
@@ -56,12 +56,14 @@
 | `POST`  | `/events/:id/registrations`        | 创建活动报名并生成票据 | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.createRegistration`      |
 | `GET`   | `/events/me/registrations`         | 获取当前用户的报名记录 | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.listMyRegistrations`     |
 | `GET`   | `/events/registrations/:id/ticket` | 获取报名票据           | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.getTicketByRegistration` |
+| `GET`   | `/admin/events`                    | 管理端活动列表         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.listAdmin`               |
 | `POST`  | `/admin/events`                    | 管理端创建活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.create`                  |
 | `PATCH` | `/admin/events/:id`                | 管理端更新活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.update`                  |
 | `POST`  | `/admin/events/:id/review`         | 管理端审核活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.review`                  |
+| `GET`   | `/admin/events/:id/registrations`  | 管理端查看活动报名     | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.listRegistrationsForAdmin` |
 | `POST`  | `/admin/events/:id/checkin`        | 管理端核销活动票据     | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.checkin`                 |
 
-Events public reads 只返回 `review_status="approved"` 且 `publish_status="published"` 的目标社区活动；报名会拒绝重复报名、不可见活动、容量满、报名截止；票据读取校验 owner/admin；核销校验活动-票据归属和票据状态。
+Events public reads 只返回 `review_status="approved"` 且 `publish_status="published"` 的目标社区活动；`GET /admin/events` 返回 draft、pending_review、approved、rejected 与 draft/published/offline/ended 管理态记录，并附带 active registration count、confirmed attendee count、remaining capacity 和 full state；`GET /admin/events/:id/registrations` 返回联系人、人数、来源和 linked ticket state；报名会拒绝重复报名、不可见活动、容量满、报名截止；票据读取校验 owner/admin；核销校验活动-票据归属和票据状态。报名导出当前明确延后，尚未实现。
 
 ### 4.3 社区发现 Discover
 
@@ -177,8 +179,8 @@ Files 当前允许 public upload request/complete；`public/places/`、`private/
 
 当前测试已覆盖的重点包括：
 
-- `events` 列表、详情、报名
-- `events` public visibility、admin publish、registration duplicate/full/closed/hidden、ticket owner、check-in conflict/forbidden
+- `events` 列表、详情、报名、管理端列表、管理端报名列表
+- `events` public visibility、admin create/edit/publish/offline/re-publish、registration duplicate/full/closed/hidden、registration ticket join、ticket owner、check-in conflict/forbidden
 - `discover` 列表、发帖、visible-only public reads、comment unavailable post、report hiding、admin moderation forbidden/success
 - `files` public upload/complete、protected path denial、private URL owner/missing/forbidden
 - `auth/role/notifications` invalid actor、non-admin protected mutation、notification ownership list/read/cross-user denial

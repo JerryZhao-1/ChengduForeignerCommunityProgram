@@ -49,6 +49,21 @@ interface EventTicket {
   used_at: string | null;
 }
 
+interface EventInput {
+  title_zh: string;
+  title_en: string;
+  summary_zh: string;
+  summary_en: string;
+  content_zh: string;
+  content_en: string;
+  address_text: string;
+  location: { latitude: number; longitude: number };
+  start_time: string;
+  end_time: string;
+  signup_deadline: string;
+  capacity: number;
+}
+
 interface PostItem {
   _id: string;
   title: string;
@@ -123,20 +138,29 @@ const request = async <TBody>(
   };
 };
 
-const createEventInput = (title: string) => ({
-  title_zh: title,
-  title_en: title,
-  summary_zh: "简介",
-  summary_en: "Summary",
-  content_zh: "正文",
-  content_en: "Body",
-  address_text: "Tongzilin",
-  location: { latitude: 30.615, longitude: 104.062 },
-  start_time: "2027-08-02T10:00:00+08:00",
-  end_time: "2027-08-02T12:00:00+08:00",
-  signup_deadline: "2027-08-01T18:00:00+08:00",
-  capacity: 12
+const createEventInput = (
+  title: string,
+  overrides: Partial<EventInput> = {}
+): EventInput => ({
+  ...{
+    title_zh: title,
+    title_en: title,
+    summary_zh: "简介",
+    summary_en: "Summary",
+    content_zh: "正文",
+    content_en: "Body",
+    address_text: "Tongzilin",
+    location: { latitude: 30.615, longitude: 104.062 },
+    start_time: "2027-08-02T10:00:00+08:00",
+    end_time: "2027-08-02T12:00:00+08:00",
+    signup_deadline: "2027-08-01T18:00:00+08:00",
+    capacity: 12
+  },
+  ...overrides
 });
+
+const eventConflictReason = (body: ApiFailure) =>
+  (body.error.details as { reason?: string } | undefined)?.reason;
 
 describe("events integration readiness", () => {
   it("keeps public event reads launch-visible and reflects admin publication", async () => {
@@ -228,6 +252,7 @@ describe("events integration readiness", () => {
       );
       expect(duplicate.response.status).toBe(409);
       expect(duplicate.body.error.code).toBe("CONFLICT");
+      expect(eventConflictReason(duplicate.body)).toBe("already_registered");
 
       const full = await request<ApiFailure>(baseUrl, "/events/event_full/registrations", {
         method: "POST",
@@ -241,6 +266,7 @@ describe("events integration readiness", () => {
       });
       expect(full.response.status).toBe(409);
       expect(full.body.error.code).toBe("CONFLICT");
+      expect(eventConflictReason(full.body)).toBe("capacity_exceeded");
 
       const closed = await request<ApiFailure>(
         baseUrl,
@@ -258,6 +284,56 @@ describe("events integration readiness", () => {
       );
       expect(closed.response.status).toBe(409);
       expect(closed.body.error.code).toBe("CONFLICT");
+      expect(eventConflictReason(closed.body)).toBe("event_ended");
+
+      const createSignupClosed = await request<ApiSuccess<EventItem>>(
+        baseUrl,
+        "/admin/events",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: createEventInput("Signup Deadline Passed", {
+            start_time: "2026-01-02T10:00:00+08:00",
+            end_time: "2099-01-02T12:00:00+08:00",
+            signup_deadline: "2026-01-01T18:00:00+08:00"
+          })
+        }
+      );
+      expect(createSignupClosed.response.status).toBe(201);
+
+      const reviewSignupClosed = await request<ApiSuccess<EventItem>>(
+        baseUrl,
+        `/admin/events/${createSignupClosed.body.data._id}/review`,
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            review_status: "approved",
+            publish_status: "published"
+          }
+        }
+      );
+      expect(reviewSignupClosed.response.status).toBe(200);
+
+      const signupDeadlinePassed = await request<ApiFailure>(
+        baseUrl,
+        `/events/${createSignupClosed.body.data._id}/registrations`,
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            contact_name: "Emma",
+            contact_phone: "13900000000",
+            attendee_count: 1,
+            source_channel: "miniapp"
+          }
+        }
+      );
+      expect(signupDeadlinePassed.response.status).toBe(409);
+      expect(signupDeadlinePassed.body.error.code).toBe("CONFLICT");
+      expect(eventConflictReason(signupDeadlinePassed.body)).toBe(
+        "signup_deadline_passed"
+      );
 
       const hiddenEvent = await request<ApiFailure>(
         baseUrl,

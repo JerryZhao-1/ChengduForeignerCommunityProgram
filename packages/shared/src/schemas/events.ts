@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { EventRegistrationSchema, EventSchema, EventTicketSchema } from "./entities";
+import { EVENT_PUBLISH_STATUSES, EVENT_REVIEW_STATUSES } from "../enums";
+import {
+  EventRegistrationSchema,
+  EventSchema,
+  EventTicketSchema
+} from "./entities";
 
 export const EventListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -32,8 +37,8 @@ export const CreateEventInputSchema = EventSchema.pick({
 export const UpdateEventInputSchema = CreateEventInputSchema.partial();
 
 export const ReviewEventInputSchema = z.object({
-  review_status: z.enum(["approved", "rejected", "pending_review"]),
-  publish_status: z.enum(["draft", "published", "offline"]).optional(),
+  review_status: z.enum(EVENT_REVIEW_STATUSES),
+  publish_status: z.enum(EVENT_PUBLISH_STATUSES).optional(),
   reason: z.string().optional()
 });
 
@@ -52,4 +57,17 @@ export const CheckinInputSchema = z.object({
 export const EventWithRegistrationSchema = z.object({
   registration: EventRegistrationSchema,
   ticket: EventTicketSchema
+});
+
+export const EventAdminListItemSchema = EventSchema.extend({
+  active_registration_count: z.number().int().min(0),
+  confirmed_attendee_count: z.number().int().min(0),
+  remaining_capacity: z.number().int().min(0),
+  is_full: z.boolean()
+});
+
+export const EventAdminRegistrationRowSchema = EventRegistrationSchema.extend({
+  ticket_code: z.string().nullable(),
+  ticket_status: EventTicketSchema.shape.status.nullable(),
+  ticket_used_at: z.string().nullable()
 });

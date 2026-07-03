@@ -3,6 +3,8 @@ import type {
   AuthSession,
   Comment,
   Event,
+  EventAdminListItem,
+  EventAdminRegistrationRow,
   EventRegistration,
   EventTicket,
   FileAsset,
@@ -34,7 +36,11 @@ export interface ApiProvider {
       keyword?: string;
       communityId?: string;
     }): Promise<PageResult<Event>>;
+    listAdmin(): Promise<PageResult<EventAdminListItem>>;
     detail(id: string): Promise<Event | null>;
+    listRegistrationsForAdmin(
+      eventId: string
+    ): Promise<EventAdminRegistrationRow[] | null>;
     createRegistration(
       eventId: string,
       input: {

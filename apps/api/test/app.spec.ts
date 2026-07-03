@@ -306,6 +306,83 @@ describe("api routes", () => {
     }
   });
 
+  it("serves admin event list and registration inspection with envelopes", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const adminEventsResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      });
+      const adminEventsData = await adminEventsResponse.json();
+      expect(adminEventsResponse.status).toBe(200);
+      expect(adminEventsData.success).toBe(true);
+      expect(
+        adminEventsData.data.items.map((event: { _id: string }) => event._id)
+      ).toEqual(
+        expect.arrayContaining([
+          "event_001",
+          "event_draft",
+          "event_pending",
+          "event_offline",
+          "event_ended"
+        ])
+      );
+      expect(adminEventsData.data.items[0]).toHaveProperty(
+        "active_registration_count"
+      );
+      expect(adminEventsData.data.items[0]).toHaveProperty(
+        "confirmed_attendee_count"
+      );
+      expect(adminEventsData.data.items[0]).toHaveProperty(
+        "remaining_capacity"
+      );
+      expect(adminEventsData.data.items[0]).toHaveProperty("is_full");
+
+      const publicEventsResponse = await fetch(`${baseUrl}/events`);
+      const publicEventsData = await publicEventsResponse.json();
+      expect(
+        publicEventsData.data.items.map((event: { _id: string }) => event._id)
+      ).not.toEqual(
+        expect.arrayContaining(["event_draft", "event_offline", "event_ended"])
+      );
+
+      const registrationsResponse = await fetch(
+        `${baseUrl}/admin/events/event_001/registrations`,
+        {
+          headers: {
+            "x-mock-user-id": "user_001"
+          }
+        }
+      );
+      const registrationsData = await registrationsResponse.json();
+      expect(registrationsResponse.status).toBe(200);
+      expect(registrationsData.success).toBe(true);
+      expect(registrationsData.data[0]).toMatchObject({
+        _id: "reg_001",
+        ticket_id: "ticket_001",
+        ticket_code: "TZL-20260402-001",
+        ticket_status: "valid",
+        ticket_used_at: null
+      });
+
+      const missingResponse = await fetch(
+        `${baseUrl}/admin/events/event_missing/registrations`,
+        {
+          headers: {
+            "x-mock-user-id": "user_001"
+          }
+        }
+      );
+      const missingData = await missingResponse.json();
+      expect(missingResponse.status).toBe(404);
+      expect(missingData.error.code).toBe("NOT_FOUND");
+    } finally {
+      await close();
+    }
+  });
+
   it("serves health and places routes with the CloudBase /api prefix", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 
@@ -362,6 +439,16 @@ describe("api routes", () => {
 
       expect(response.status).toBe(403);
       expect(body.error.code).toBe("FORBIDDEN");
+
+      const adminListResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          "x-mock-user-id": "user_002"
+        }
+      });
+      const adminListBody = await adminListResponse.json();
+
+      expect(adminListResponse.status).toBe(403);
+      expect(adminListBody.error.code).toBe("FORBIDDEN");
 
       const placeGalleryResponse = await fetch(
         `${baseUrl}/admin/places/place_001`,

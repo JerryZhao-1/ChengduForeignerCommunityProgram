@@ -36,9 +36,11 @@ export const apiPaths = {
     privateUrl: "/files/private-url"
   },
   admin: {
+    listEvents: "/admin/events",
     createEvent: "/admin/events",
     updateEvent: (id: string) => `/admin/events/${id}`,
     reviewEvent: (id: string) => `/admin/events/${id}/review`,
+    eventRegistrations: (id: string) => `/admin/events/${id}/registrations`,
     checkinEvent: (id: string) => `/admin/events/${id}/checkin`,
     moderatePost: (id: string) => `/admin/discover/posts/${id}/moderation`,
     listPlaces: "/admin/places",

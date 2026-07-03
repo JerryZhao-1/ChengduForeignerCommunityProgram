@@ -27,6 +27,64 @@ describe("cloudbase event handler", () => {
     expect((response.body as any).data.items.length).toBeGreaterThan(0);
   });
 
+  it("supports admin event list and registrations with the /api prefix", async () => {
+    const listResponse = await main({}, {
+      eventID: "req_cloud_admin_events",
+      httpContext: {
+        url: "http://localhost/api/admin/events",
+        httpMethod: "GET",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      }
+    } as any);
+    const listBody = listResponse.body as any;
+
+    expect(listResponse.statusCode).toBe(200);
+    expect(listBody.success).toBe(true);
+    expect(
+      listBody.data.items.map((event: { _id: string }) => event._id)
+    ).toEqual(
+      expect.arrayContaining(["event_001", "event_draft", "event_offline"])
+    );
+    expect(listBody.data.items[0]).toHaveProperty("remaining_capacity");
+
+    const registrationsResponse = await main({}, {
+      eventID: "req_cloud_admin_event_registrations",
+      httpContext: {
+        url: "http://localhost/api/admin/events/event_001/registrations",
+        httpMethod: "GET",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      }
+    } as any);
+    const registrationsBody = registrationsResponse.body as any;
+
+    expect(registrationsResponse.statusCode).toBe(200);
+    expect(registrationsBody.success).toBe(true);
+    expect(registrationsBody.data[0]).toMatchObject({
+      ticket_id: "ticket_001",
+      ticket_code: "TZL-20260402-001",
+      ticket_status: "valid"
+    });
+
+    const forbiddenResponse = await main({}, {
+      eventID: "req_cloud_admin_events_forbidden",
+      httpContext: {
+        url: "http://localhost/api/admin/events",
+        httpMethod: "GET",
+        headers: {
+          "x-mock-user-id": "user_002"
+        }
+      }
+    } as any);
+    const forbiddenBody = forbiddenResponse.body as any;
+
+    expect(forbiddenResponse.statusCode).toBe(403);
+    expect(forbiddenBody.error.code).toBe("FORBIDDEN");
+  });
+
   it("accepts mini program cloud function style routing metadata", async () => {
     const response = await main(
       {
