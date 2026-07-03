@@ -173,6 +173,15 @@ const isApiFailureResult = (value: unknown): value is ApiFailureResult => {
   return record.success === false && typeof record.error === "object";
 };
 
+const toErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error && error.message ? error.message : fallback;
+
+const showOperationError = (error: unknown, fallback: string) => {
+  const message = toErrorMessage(error, fallback);
+  ElMessage.error(message);
+  return message;
+};
+
 const fillForm = (place?: Place) => {
   Object.assign(form, createEmptyForm());
   submittingError.value = "";
@@ -272,6 +281,8 @@ const load = async () => {
   try {
     const result = await adminApi.admin.listPlaces();
     places.value = result.data.items;
+  } catch (error) {
+    showOperationError(error, "地点列表加载失败。");
   } finally {
     loading.value = false;
   }
@@ -287,6 +298,8 @@ const submit = async () => {
       return;
     }
 
+    const wasEditing = editingId.value !== null;
+
     if (editingId.value) {
       await adminApi.admin.updatePlace(editingId.value, payload);
     } else {
@@ -295,6 +308,12 @@ const submit = async () => {
 
     fillForm();
     await load();
+    ElMessage.success(wasEditing ? "地点已保存。" : "地点已创建。");
+  } catch (error) {
+    submittingError.value = showOperationError(
+      error,
+      editingId.value ? "保存地点失败。" : "创建地点失败。"
+    );
   } finally {
     saving.value = false;
   }
@@ -303,8 +322,13 @@ const submit = async () => {
 const startCreate = () => fillForm();
 const startEdit = (place: Place) => fillForm(place);
 const quickPublish = async (place: Place, status: Place["status"]) => {
-  await adminApi.admin.updatePlace(place._id, { status });
-  await load();
+  try {
+    await adminApi.admin.updatePlace(place._id, { status });
+    await load();
+    ElMessage.success(status === "published" ? "地点已发布。" : "地点已转为草稿。");
+  } catch (error) {
+    showOperationError(error, "更新地点状态失败。");
+  }
 };
 
 const searchPoi = async () => {
@@ -453,6 +477,8 @@ const deletePlace = async (place: Place) => {
     }
     ElMessage.success("地点已删除。");
     await load();
+  } catch (error) {
+    showOperationError(error, "删除地点失败。");
   } finally {
     deletingId.value = null;
   }
@@ -548,6 +574,8 @@ const uploadGalleryFile = async (event: Event) => {
         : "图集图片已上传，创建地点时会自动绑定。"
     );
     await load();
+  } catch (error) {
+    showOperationError(error, "上传图集图片失败。");
   } finally {
     uploadingGallery.value = false;
     target.value = "";
@@ -571,6 +599,8 @@ const saveMediaOnly = async () => {
     });
     ElMessage.success("媒体设置已保存。");
     await load();
+  } catch (error) {
+    showOperationError(error, "保存媒体设置失败。");
   } finally {
     saving.value = false;
   }

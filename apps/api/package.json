@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/dev.ts",
-    "dev:cloudbase": "tcb-ff --source src/cloudbase.ts --target main",
+    "dev:cloudbase": "tsx watch src/http-function.ts",
     "build:cloudbase-http": "node ../../scripts/prepare_cloudbase_api_function.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

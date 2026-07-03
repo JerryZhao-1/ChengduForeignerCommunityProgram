@@ -1,4 +1,6 @@
 import {
+  ApiClientError,
+  createFetchRequester,
   createHttpClient,
   createMockClient,
   apiPaths,
@@ -7,6 +9,58 @@ import {
 import { describe, expect, it, vi } from "vitest";
 
 describe("shared api clients", () => {
+  it("throws typed client errors for API failure envelopes", async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            success: false,
+            error: {
+              code: "FORBIDDEN",
+              message: "Insufficient permission.",
+              details: { role: "community_admin" }
+            },
+            requestId: "req_forbidden"
+          }),
+          {
+            status: 403,
+            headers: { "content-type": "application/json" }
+          }
+        )
+    ) as unknown as typeof fetch;
+    const requester = createFetchRequester(fetchImpl);
+
+    await expect(requester("GET", "http://localhost/admin/places")).rejects
+      .toMatchObject({
+        name: "ApiClientError",
+        code: "FORBIDDEN",
+        message: "Insufficient permission.",
+        details: { role: "community_admin" },
+        requestId: "req_forbidden",
+        status: 403
+      });
+  });
+
+  it("throws typed client errors for non-envelope HTTP failures", async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ message: "Proxy failed" }), {
+          status: 502,
+          headers: { "content-type": "application/json" }
+        })
+    ) as unknown as typeof fetch;
+    const requester = createFetchRequester(fetchImpl);
+
+    await expect(
+      requester("GET", "http://localhost/upstream")
+    ).rejects.toBeInstanceOf(ApiClientError);
+    await expect(requester("GET", "http://localhost/upstream")).rejects
+      .toMatchObject({
+        code: "UPSTREAM_ERROR",
+        status: 502
+      });
+  });
+
   it("keeps mock and http client signatures aligned for events list", async () => {
     const mockClient = createMockClient({ actorId: "user_001" });
     const requester = vi.fn(async () => ({

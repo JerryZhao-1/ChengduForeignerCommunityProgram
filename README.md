@@ -78,14 +78,20 @@ pnpm --filter @community-map/api exec tsx src/dev.ts
 
 API 已包含本地开发 CORS 处理，支持 Admin / Mobile H5 从 `localhost` 端口访问 `127.0.0.1:8787`。
 
-CloudBase 函数框架开发命令：
+CloudBase HTTP 函数本地入口：
 
 ```bash
 pnpm --filter @community-map/api dev:cloudbase
 ```
 
+默认监听：
+
+- HTTP Function Base：`http://127.0.0.1:9000`
+
 说明：
 
+- 该命令运行 `apps/api/src/http-function.ts`，复用和正式 CloudBase HTTP 函数包一致的 Koa `createApp()` 路由集合。
+- 旧的 `apps/api/src/cloudbase.ts` 只保留为兼容入口，不应用作完整 API / Admin / Places 验收依据。
 - `API_PROVIDER=mock` 是默认模式。
 - `API_PROVIDER=cloudbase` 会尝试使用 CloudBase provider；CloudBase dev `community-map-api` HTTP function 和 `/api` route 已完成基础 smoke，完整 places live acceptance 仍需导入或创建 live 数据后继续验收。
 - 本地演示新增地点时，确保 `status=published`，否则前台 public list 不展示。

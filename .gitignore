@@ -5,6 +5,7 @@ coverage
 .pnpm-store
 .npm-cache
 .codex/.npm-cache
+.playwright-cli/
 *.tsbuildinfo
 .cloudbase
 apps/api/.cloudbase

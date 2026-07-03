@@ -1,6 +1,8 @@
 import type { CommunityMapApiClient } from "./mock/client";
 
 import { apiPaths } from "./contracts/paths";
+import { ApiFailureResultSchema } from "./schemas/common";
+import type { ApiError, ApiFailureResult } from "./types/common";
 
 type RequestMethod = "GET" | "POST" | "PATCH" | "DELETE";
 type RequestBody = unknown;
@@ -18,6 +20,25 @@ export interface HttpClientOptions {
   baseUrl: string;
   actorId?: string;
   requester: HttpRequester;
+}
+
+export class ApiClientError extends Error {
+  readonly code: ApiError["code"];
+  readonly details?: unknown;
+  readonly requestId?: string;
+  readonly status?: number;
+
+  constructor(
+    error: ApiError,
+    options: { requestId?: string; status?: number } = {}
+  ) {
+    super(error.message);
+    this.name = "ApiClientError";
+    this.code = error.code;
+    this.details = error.details;
+    this.requestId = options.requestId;
+    this.status = options.status;
+  }
 }
 
 const buildUrl = (baseUrl: string, path: string) =>
@@ -57,6 +78,15 @@ const buildGalleryUploadFormData = (input: {
   return formData;
 };
 
+const isApiFailureResult = (value: unknown): value is ApiFailureResult =>
+  ApiFailureResultSchema.safeParse(value).success;
+
+const createHttpStatusError = (status: number, payload: unknown): ApiError => ({
+  code: "UPSTREAM_ERROR",
+  message: `HTTP request failed with status ${status}.`,
+  details: payload
+});
+
 export const createFetchRequester = (
   fetchImpl: typeof fetch = fetch
 ): HttpRequester => {
@@ -78,8 +108,22 @@ export const createFetchRequester = (
             ? body
             : JSON.stringify(body)
     });
+    const payload = (await response.json()) as unknown;
 
-    return (await response.json()) as Promise<any>;
+    if (isApiFailureResult(payload)) {
+      throw new ApiClientError(payload.error, {
+        requestId: payload.requestId,
+        status: response.status
+      });
+    }
+
+    if (!response.ok) {
+      throw new ApiClientError(createHttpStatusError(response.status, payload), {
+        status: response.status
+      });
+    }
+
+    return payload as any;
   };
 };
 
