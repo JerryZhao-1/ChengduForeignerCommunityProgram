@@ -254,11 +254,6 @@ onLoad((query) => {
         :show-location="true"
         @markertap="handleMarkerTap"
       />
-      <cover-view v-if="selectedPlace" class="marker-cover-preview">
-        <cover-view class="marker-cover-preview__label">
-          {{ selectedPlaceName }}
-        </cover-view>
-      </cover-view>
     </view>
 
     <view class="summary-slot">
@@ -345,25 +340,6 @@ onLoad((query) => {
 .map-card {
   width: 100%;
   height: 100%;
-}
-
-.marker-cover-preview {
-  position: absolute;
-  right: 28rpx;
-  top: 28rpx;
-  max-width: 300rpx;
-  min-height: 56rpx;
-  padding: 12rpx 16rpx;
-  border-radius: 8rpx;
-  background: rgba(15, 23, 42, 0.86);
-  box-shadow: 0 12rpx 28rpx rgba(15, 23, 42, 0.22);
-  z-index: 2;
-}
-
-.marker-cover-preview__label {
-  color: #ffffff;
-  font-size: 22rpx;
-  line-height: 1.35;
 }
 
 .action-row {
