@@ -1,14 +1,17 @@
 import type { CommunityMapApiClient } from "./mock/client";
 
 import { apiPaths } from "./contracts/paths";
+import { ApiFailureResultSchema } from "./schemas/common";
+import type { ApiError, ApiFailureResult } from "./types/common";
 
-type RequestMethod = "GET" | "POST" | "PATCH";
+type RequestMethod = "GET" | "POST" | "PATCH" | "DELETE";
+type RequestBody = unknown;
 
 export interface HttpRequester {
   <TResponse>(
     method: RequestMethod,
     url: string,
-    body?: unknown,
+    body?: RequestBody,
     headers?: Record<string, string>
   ): Promise<TResponse>;
 }
@@ -19,23 +22,108 @@ export interface HttpClientOptions {
   requester: HttpRequester;
 }
 
+export class ApiClientError extends Error {
+  readonly code: ApiError["code"];
+  readonly details?: unknown;
+  readonly requestId?: string;
+  readonly status?: number;
+
+  constructor(
+    error: ApiError,
+    options: { requestId?: string; status?: number } = {}
+  ) {
+    super(error.message);
+    this.name = "ApiClientError";
+    this.code = error.code;
+    this.details = error.details;
+    this.requestId = options.requestId;
+    this.status = options.status;
+  }
+}
+
 const buildUrl = (baseUrl: string, path: string) =>
   `${baseUrl.replace(/\/$/, "")}${path}`;
+
+const buildQuerySuffix = (query?: Record<string, unknown>) => {
+  const entries = Object.entries(query ?? {}).filter(
+    ([, value]) => value !== undefined && value !== null
+  );
+
+  if (entries.length === 0) {
+    return "";
+  }
+
+  return `?${entries
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
+    )
+    .join("&")}`;
+};
+
+const buildGalleryUploadFormData = (input: {
+  file: Blob;
+  file_name?: string;
+  content_type?: string;
+}) => {
+  const formData = new FormData();
+  formData.append(
+    "file",
+    input.file,
+    input.file_name ?? "place-gallery-upload"
+  );
+  if (input.content_type) {
+    formData.append("content_type", input.content_type);
+  }
+  return formData;
+};
+
+const isApiFailureResult = (value: unknown): value is ApiFailureResult =>
+  ApiFailureResultSchema.safeParse(value).success;
+
+const createHttpStatusError = (status: number, payload: unknown): ApiError => ({
+  code: "UPSTREAM_ERROR",
+  message: `HTTP request failed with status ${status}.`,
+  details: payload
+});
 
 export const createFetchRequester = (
   fetchImpl: typeof fetch = fetch
 ): HttpRequester => {
   return async (method, url, body, headers = {}) => {
+    const isFormData =
+      typeof FormData !== "undefined" && body instanceof FormData;
     const response = await fetchImpl(url, {
       method,
-      headers: {
-        "content-type": "application/json",
-        ...headers
-      },
-      body: body === undefined ? undefined : JSON.stringify(body)
+      headers: isFormData
+        ? headers
+        : {
+            "content-type": "application/json",
+            ...headers
+          },
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+            ? body
+            : JSON.stringify(body)
     });
+    const payload = (await response.json()) as unknown;
 
-    return (await response.json()) as Promise<any>;
+    if (isApiFailureResult(payload)) {
+      throw new ApiClientError(payload.error, {
+        requestId: payload.requestId,
+        status: response.status
+      });
+    }
+
+    if (!response.ok) {
+      throw new ApiClientError(createHttpStatusError(response.status, payload), {
+        status: response.status
+      });
+    }
+
+    return payload as any;
   };
 };
 
@@ -45,7 +133,7 @@ export const createHttpClient = (
   const request = <TResponse>(
     method: RequestMethod,
     path: string,
-    body?: unknown
+    body?: RequestBody
   ) =>
     options.requester<TResponse>(
       method,
@@ -61,13 +149,7 @@ export const createHttpClient = (
     },
     events: {
       list: (query) => {
-        const searchParams = new URLSearchParams();
-        Object.entries(query ?? {}).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            searchParams.set(key, String(value));
-          }
-        });
-        const suffix = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+        const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.events.list}${suffix}`);
       },
       detail: (id) => request("GET", apiPaths.events.detail(id)),
@@ -79,29 +161,18 @@ export const createHttpClient = (
     },
     discover: {
       listPosts: (query) => {
-        const searchParams = new URLSearchParams();
-        Object.entries(query ?? {}).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            searchParams.set(key, String(value));
-          }
-        });
-        const suffix = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+        const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.discover.listPosts}${suffix}`);
       },
       detailPost: (id) => request("GET", apiPaths.discover.detailPost(id)),
-      createPost: (input) => request("POST", apiPaths.discover.createPost, input),
+      createPost: (input) =>
+        request("POST", apiPaths.discover.createPost, input),
       createComment: (id, input) =>
         request("POST", apiPaths.discover.createComment(id), input)
     },
     places: {
       list: (query) => {
-        const searchParams = new URLSearchParams();
-        Object.entries(query ?? {}).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            searchParams.set(key, String(value));
-          }
-        });
-        const suffix = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+        const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.places.list}${suffix}`);
       },
       detail: (id) => request("GET", apiPaths.places.detail(id)),
@@ -118,12 +189,14 @@ export const createHttpClient = (
     files: {
       createUploadRequest: (input) =>
         request("POST", apiPaths.files.createUploadRequest, input),
-      complete: (input) => request("POST", apiPaths.files.completeUpload, input),
+      complete: (input) =>
+        request("POST", apiPaths.files.completeUpload, input),
       privateUrl: (input) => request("POST", apiPaths.files.privateUrl, input)
     },
     admin: {
       listPlaces: () => request("GET", apiPaths.admin.listPlaces),
-      createEvent: (input) => request("POST", apiPaths.admin.createEvent, input),
+      createEvent: (input) =>
+        request("POST", apiPaths.admin.createEvent, input),
       updateEvent: (id, input) =>
         request("PATCH", apiPaths.admin.updateEvent(id), input),
       reviewEvent: (id, input) =>
@@ -132,9 +205,36 @@ export const createHttpClient = (
         request("POST", apiPaths.admin.checkinEvent(id), input),
       moderatePost: (id, input) =>
         request("POST", apiPaths.admin.moderatePost(id), input),
-      createPlace: (input) => request("POST", apiPaths.admin.createPlace, input),
+      createPlace: (input) =>
+        request("POST", apiPaths.admin.createPlace, input),
       updatePlace: (id, input) =>
-        request("PATCH", apiPaths.admin.updatePlace(id), input)
+        request("PATCH", apiPaths.admin.updatePlace(id), input),
+      deletePlace: (id) => request("DELETE", apiPaths.admin.deletePlace(id)),
+      searchPlacePoi: (input) => {
+        const suffix = buildQuerySuffix(input);
+        return request("GET", `${apiPaths.admin.searchPlacePoi}${suffix}`);
+      },
+      searchPlaceAmapMedia: (input) => {
+        const suffix = buildQuerySuffix(input);
+        return request(
+          "GET",
+          `${apiPaths.admin.searchPlaceAmapMedia}${suffix}`
+        );
+      },
+      uploadPlaceGalleryFile: (id, input) => {
+        return request(
+          "POST",
+          apiPaths.admin.uploadPlaceGalleryFile(id),
+          buildGalleryUploadFormData(input)
+        );
+      },
+      uploadPendingPlaceGalleryFile: (input) => {
+        return request(
+          "POST",
+          apiPaths.admin.uploadPendingPlaceGalleryFile,
+          buildGalleryUploadFormData(input)
+        );
+      }
     }
   };
 };

@@ -1,6 +1,27 @@
-import { createMockService } from "@community-map/shared";
+import { randomUUID } from "node:crypto";
 
+import {
+  PENDING_PLACE_GALLERY_BIZ_ID,
+  createMockService,
+  isMockServiceError
+} from "@community-map/shared";
+
+import { apiError } from "../../lib/errors";
 import type { ApiProvider } from "../types";
+
+const withMockErrors = async <TValue>(
+  operation: () => TValue | Promise<TValue>
+) => {
+  try {
+    return await operation();
+  } catch (error) {
+    if (isMockServiceError(error)) {
+      throw apiError(error.code, error.message, error.status, error.details);
+    }
+
+    throw error;
+  }
+};
 
 export const createMockProvider = (): ApiProvider => {
   const service = createMockService();
@@ -8,62 +29,70 @@ export const createMockProvider = (): ApiProvider => {
   return {
     auth: {
       async resolveActor(userId) {
-        return service.auth.me(userId).user;
+        return withMockErrors(() => service.auth.me(userId).user);
       },
       async login(input) {
-        return service.auth.login(input);
+        return withMockErrors(() => service.auth.login(input));
       },
       async me(userId) {
-        return service.auth.me(userId);
+        return withMockErrors(() => service.auth.me(userId));
       }
     },
     events: {
       async list(input) {
-        return service.events.list(input);
+        return withMockErrors(() => service.events.list(input));
       },
       async detail(id) {
-        return service.events.detail(id);
+        return withMockErrors(() => service.events.detail(id));
       },
       async createRegistration(eventId, input, actorId) {
-        return service.events.createRegistration(eventId, input, actorId);
+        return withMockErrors(() =>
+          service.events.createRegistration(eventId, input, actorId)
+        );
       },
       async listMyRegistrations(actorId) {
-        return service.events.listMyRegistrations(actorId);
+        return withMockErrors(() =>
+          service.events.listMyRegistrations(actorId)
+        );
       },
-      async getTicketByRegistration(registrationId) {
-        return service.events.getTicketByRegistration(registrationId);
+      async getTicketByRegistration(registrationId, actorId) {
+        return withMockErrors(() =>
+          service.events.getTicketByRegistration(registrationId, actorId)
+        );
       },
       async create(input, actorId) {
-        return service.events.create(input, actorId);
+        return withMockErrors(() => service.events.create(input, actorId));
       },
       async update(id, input) {
-        return service.events.update(id, input);
+        return withMockErrors(() => service.events.update(id, input));
       },
       async review(id, input) {
-        return service.events.review(id, input);
+        return withMockErrors(() => service.events.review(id, input));
       },
       async checkin(id, ticketId) {
-        return service.events.checkin(id, ticketId);
+        return withMockErrors(() => service.events.checkin(id, ticketId));
       }
     },
     posts: {
       async list(input) {
-        return service.posts.list(input);
+        return withMockErrors(() => service.posts.list(input));
       },
       async detail(id) {
-        return service.posts.detail(id);
+        return withMockErrors(() => service.posts.detail(id));
       },
       async create(input, actorId) {
-        return service.posts.create(input, actorId);
+        return withMockErrors(() => service.posts.create(input, actorId));
       },
       async createComment(postId, input, actorId) {
-        return service.posts.createComment(postId, input, actorId);
+        return withMockErrors(() =>
+          service.posts.createComment(postId, input, actorId)
+        );
       },
       async report(id) {
-        return service.posts.report(id);
+        return withMockErrors(() => service.posts.report(id));
       },
       async moderate(id, input) {
-        return service.posts.moderate(id, input);
+        return withMockErrors(() => service.posts.moderate(id, input));
       }
     },
     places: {
@@ -84,6 +113,42 @@ export const createMockProvider = (): ApiProvider => {
       },
       async update(id, input) {
         return service.places.update(id, input);
+      },
+      async delete(id) {
+        return service.places.delete(id);
+      },
+      async uploadGalleryFile(id, input, actorId) {
+        return withMockErrors(() => {
+          const place = id
+            ? service._state.places.find((item) => item._id === id)
+            : null;
+          if (id && !place) {
+            return null;
+          }
+
+          const safeFileName = input.file_name.replace(/[^\w.-]+/g, "-");
+          const targetPath = id ?? `_pending/${randomUUID()}`;
+          const cloudPath = `public/places/${targetPath}/${randomUUID()}-${safeFileName}`;
+          const asset = service.files.complete(
+            {
+              biz_type: "place_gallery",
+              biz_id: id ?? PENDING_PLACE_GALLERY_BIZ_ID,
+              file_id: `cloud://${cloudPath}`,
+              cloud_path: cloudPath,
+              visibility: "public"
+            },
+            actorId
+          );
+
+          if (place) {
+            place.gallery_file_ids = [...place.gallery_file_ids, asset.file_id];
+          }
+
+          return {
+            file_asset: asset,
+            gallery_file_ids: place?.gallery_file_ids ?? [asset.file_id]
+          };
+        });
       }
     },
     announcements: {
@@ -96,21 +161,23 @@ export const createMockProvider = (): ApiProvider => {
     },
     notifications: {
       async list(actorId) {
-        return service.notifications.list(actorId);
+        return withMockErrors(() => service.notifications.list(actorId));
       },
       async markRead(id, actorId) {
-        return service.notifications.markRead(id, actorId);
+        return withMockErrors(() =>
+          service.notifications.markRead(id, actorId)
+        );
       }
     },
     files: {
       async createUploadRequest(input) {
-        return service.files.createUploadRequest(input);
+        return withMockErrors(() => service.files.createUploadRequest(input));
       },
       async complete(input, actorId) {
-        return service.files.complete(input, actorId);
+        return withMockErrors(() => service.files.complete(input, actorId));
       },
-      async privateUrl(input) {
-        return service.files.privateUrl(input);
+      async privateUrl(input, actorId) {
+        return withMockErrors(() => service.files.privateUrl(input, actorId));
       }
     }
   };

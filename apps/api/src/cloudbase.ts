@@ -10,9 +10,12 @@ import {
   CreateUploadRequestInputSchema,
   EventListQuerySchema,
   LoginRequestSchema,
+  ModeratePostInputSchema,
   PlaceListQuerySchema,
+  PlacePoiSearchQuerySchema,
   PostListQuerySchema,
   PrivateUrlRequestInputSchema,
+  ReportPostInputSchema,
   ReviewEventInputSchema,
   UpdateEventInputSchema,
   UpdatePlaceInputSchema
@@ -24,10 +27,11 @@ import {
   isProtectedGalleryCompletion,
   isProtectedGalleryUploadRequest
 } from "./lib/protected-files";
+import { searchTencentPlacePois } from "./lib/tencent-map";
 import { createProvider } from "./providers";
 import type { ApiProvider } from "./providers/types";
 
-type HttpMethod = "GET" | "POST" | "PATCH";
+type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 type CloudbaseEventHandler = (
   event: unknown,
   context: Partial<CloudbaseContextLike>
@@ -85,6 +89,18 @@ const matchRoute = (pattern: string, pathname: string): RouteMatch => {
   }
 
   return { matched: true, params };
+};
+
+const stripApiPrefix = (path: string) => {
+  if (path === "/api") {
+    return "/";
+  }
+
+  if (path.startsWith("/api/")) {
+    return path.slice(4);
+  }
+
+  return path;
 };
 
 const getActorId = (context: CloudbaseContextLike) => {
@@ -175,7 +191,7 @@ const normalizeRequest = (
 export const main: CloudbaseEventHandler = async (event, context) => {
   const { requestId, httpContext, body } = normalizeRequest(event, context);
   const url = new URL(httpContext.url, "http://localhost");
-  const pathname = url.pathname;
+  const pathname = stripApiPrefix(url.pathname);
   const method = httpContext.httpMethod.toUpperCase() as HttpMethod;
   const actorId = getActorId({
     eventID: requestId,
@@ -225,7 +241,11 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       if (method === "POST" && match.matched) {
         const input = parseOrThrow(CreateEventRegistrationInputSchema, body);
         return ok(
-          await provider.events.createRegistration(match.params.id, input, actorId),
+          await provider.events.createRegistration(
+            match.params.id,
+            input,
+            actorId
+          ),
           requestId,
           201
         );
@@ -240,7 +260,10 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       const match = matchRoute("/events/registrations/:id/ticket", pathname);
 
       if (method === "GET" && match.matched) {
-        const ticket = await provider.events.getTicketByRegistration(match.params.id);
+        const ticket = await provider.events.getTicketByRegistration(
+          match.params.id,
+          actorId
+        );
 
         if (!ticket) {
           throw apiError("NOT_FOUND", "Ticket not found.", 404);
@@ -283,10 +306,29 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       if (method === "POST" && commentMatch.matched) {
         const input = parseOrThrow(CreateCommentInputSchema, body);
         return ok(
-          await provider.posts.createComment(commentMatch.params.id, input, actorId),
+          await provider.posts.createComment(
+            commentMatch.params.id,
+            input,
+            actorId
+          ),
           requestId,
           201
         );
+      }
+    }
+
+    {
+      const match = matchRoute("/discover/posts/:id/report", pathname);
+
+      if (method === "POST" && match.matched) {
+        parseOrThrow(ReportPostInputSchema, body);
+        const post = await provider.posts.report(match.params.id);
+
+        if (!post) {
+          throw apiError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        return ok(post, requestId);
       }
     }
 
@@ -328,7 +370,9 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       const match = matchRoute("/announcements/:id", pathname);
 
       if (method === "GET" && match.matched) {
-        const announcement = await provider.announcements.detail(match.params.id);
+        const announcement = await provider.announcements.detail(
+          match.params.id
+        );
 
         if (!announcement) {
           throw apiError("NOT_FOUND", "Announcement not found.", 404);
@@ -367,7 +411,11 @@ export const main: CloudbaseEventHandler = async (event, context) => {
           "system_admin"
         ]);
       }
-      return ok(await provider.files.createUploadRequest(input), requestId, 201);
+      return ok(
+        await provider.files.createUploadRequest(input),
+        requestId,
+        201
+      );
     }
 
     if (method === "POST" && pathname === "/files/complete") {
@@ -387,14 +435,15 @@ export const main: CloudbaseEventHandler = async (event, context) => {
 
     if (method === "POST" && pathname === "/files/private-url") {
       const input = parseOrThrow(PrivateUrlRequestInputSchema, body);
-      return ok(await provider.files.privateUrl(input), requestId);
+      return ok(await provider.files.privateUrl(input, actorId), requestId);
     }
 
     if (method === "POST" && pathname === "/admin/events") {
-      const actor = await requireRole(provider, { eventID: requestId, httpContext }, [
-        "community_admin",
-        "system_admin"
-      ]);
+      const actor = await requireRole(
+        provider,
+        { eventID: requestId, httpContext },
+        ["community_admin", "system_admin"]
+      );
       const input = parseOrThrow(CreateEventInputSchema, body);
       return ok(await provider.events.create(input, actor._id), requestId, 201);
     }
@@ -459,6 +508,28 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       }
     }
 
+    {
+      const match = matchRoute(
+        "/admin/discover/posts/:id/moderation",
+        pathname
+      );
+
+      if (method === "POST" && match.matched) {
+        await requireRole(provider, { eventID: requestId, httpContext }, [
+          "community_admin",
+          "system_admin"
+        ]);
+        const input = parseOrThrow(ModeratePostInputSchema, body);
+        const post = await provider.posts.moderate(match.params.id, input);
+
+        if (!post) {
+          throw apiError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        return ok(post, requestId);
+      }
+    }
+
     if (method === "POST" && pathname === "/admin/places") {
       await requireRole(provider, { eventID: requestId, httpContext }, [
         "community_admin",
@@ -476,6 +547,18 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       return ok(await provider.places.listAdmin(), requestId);
     }
 
+    if (method === "GET" && pathname === "/admin/places/poi-search") {
+      await requireRole(provider, { eventID: requestId, httpContext }, [
+        "community_admin",
+        "system_admin"
+      ]);
+      const query = parseOrThrow(
+        PlacePoiSearchQuerySchema,
+        Object.fromEntries(url.searchParams.entries())
+      );
+      return ok(await searchTencentPlacePois(query.keyword), requestId);
+    }
+
     {
       const match = matchRoute("/admin/places/:id", pathname);
 
@@ -486,6 +569,20 @@ export const main: CloudbaseEventHandler = async (event, context) => {
         ]);
         const input = parseOrThrow(UpdatePlaceInputSchema, body);
         const item = await provider.places.update(match.params.id, input);
+
+        if (!item) {
+          throw apiError("NOT_FOUND", "Place not found.", 404);
+        }
+
+        return ok(item, requestId);
+      }
+
+      if (method === "DELETE" && match.matched) {
+        await requireRole(provider, { eventID: requestId, httpContext }, [
+          "community_admin",
+          "system_admin"
+        ]);
+        const item = await provider.places.delete(match.params.id);
 
         if (!item) {
           throw apiError("NOT_FOUND", "Place not found.", 404);

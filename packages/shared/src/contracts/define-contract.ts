@@ -4,7 +4,7 @@ export interface ContractDefinition<
   TRequest extends ZodTypeAny | undefined = ZodTypeAny | undefined,
   TResponse extends ZodTypeAny | undefined = ZodTypeAny | undefined
 > {
-  method: "GET" | "POST" | "PATCH";
+  method: "GET" | "POST" | "PATCH" | "DELETE";
   path: string;
   request?: TRequest;
   response?: TResponse;

@@ -1,17 +1,27 @@
 import {
   API_ERROR_CODES,
+  apiPaths,
   CreateApiSuccessSchema,
+  DeletePlaceResponseSchema,
   EVENT_REGISTRATION_STATUSES,
   FILE_PATH_RULES,
   FileAssetSchema,
   LocaleSchema,
   PageResultSchema,
+  PlaceAmapImageCandidateSchema,
+  PlaceAmapMediaSearchItemSchema,
+  PlaceAmapMediaSearchQuerySchema,
   PlaceDetailSchema,
+  PlaceExternalMediaSchema,
   PlaceListItemSchema,
   PlaceListQuerySchema,
   PlaceMapMarkerSchema,
+  PlacePoiSearchItemSchema,
+  PlacePoiSearchQuerySchema,
   PlaceSchema,
+  placeContracts,
   PostSchema,
+  UpdatePlaceInputSchema,
   UserSchema
 } from "@community-map/shared";
 import { describe, expect, it } from "vitest";
@@ -25,6 +35,7 @@ describe("shared contracts", () => {
       name_en: "Tongzilin Community Center",
       cover_file_id: null,
       cover_url: null,
+      cover_source: null,
       category_level_1: "public-service",
       category_level_2: "community",
       tag_ids: ["service"],
@@ -41,6 +52,7 @@ describe("shared contracts", () => {
       is_recommended: false,
       recommended_rank: 0,
       gallery_file_ids: [],
+      external_gallery_media: [],
       gallery_urls: [],
       supports_navigation: true,
       supports_favorite: true,
@@ -75,6 +87,16 @@ describe("shared contracts", () => {
       name_zh: "桐梓林社区中心",
       name_en: "Tongzilin Community Center",
       cover_url: "https://example.com/place.jpg",
+      cover_source: {
+        source: "amap",
+        source_place_id: "B001",
+        image_url: "https://store.is.autonavi.com/showpic/place-cover.jpg",
+        image_title: null,
+        attribution: {
+          label: "Image source: Amap",
+          provider_name: "Amap"
+        }
+      },
       category_level_1: "public-service",
       category_level_2: "community-center",
       tag_ids: ["service"],
@@ -94,7 +116,21 @@ describe("shared contracts", () => {
           alt_en: "Tongzilin Community Center gallery 1"
         }
       ],
-      gallery_urls: ["https://images.unsplash.com/photo-1494526585095-c41746248156"],
+      external_gallery_media: [
+        {
+          source: "amap",
+          source_place_id: "B001",
+          image_url: "https://store.is.autonavi.com/showpic/place.jpg",
+          image_title: "门头",
+          attribution: {
+            label: "Image source: Amap",
+            provider_name: "Amap"
+          }
+        }
+      ],
+      gallery_urls: [
+        "https://images.unsplash.com/photo-1494526585095-c41746248156"
+      ],
       is_recommended: true,
       recommended_reason_zh: "推荐理由",
       recommended_reason_en: "Reason",
@@ -119,6 +155,29 @@ describe("shared contracts", () => {
 
     expect(item.short_address_en).toContain("Chengdu");
     expect(detail.navigation.latitude).toBe(30.6);
+    expect(detail.cover_source?.source).toBe("amap");
+    expect(detail.external_gallery_media[0].source_place_id).toBe("B001");
+  });
+
+  it("validates external place media source attribution", () => {
+    const media = PlaceExternalMediaSchema.parse({
+      source: "amap",
+      source_place_id: "B001",
+      image_url: "https://store.is.autonavi.com/showpic/B001.jpg",
+      image_title: "Amap storefront",
+      attribution: {
+        label: "Image source: Amap"
+      }
+    });
+    const candidate = PlaceAmapImageCandidateSchema.parse(media);
+
+    expect(candidate.attribution.provider_name).toBe("Amap");
+    expect(() =>
+      PlaceExternalMediaSchema.parse({
+        ...media,
+        source: "google"
+      })
+    ).toThrow();
   });
 
   it("accepts a place map marker payload", () => {
@@ -126,6 +185,7 @@ describe("shared contracts", () => {
       _id: "place_001",
       name_zh: "桐梓林社区中心",
       name_en: "Tongzilin Community Center",
+      cover_url: null,
       category_level_1: "public-service",
       is_recommended: true,
       location: {
@@ -135,6 +195,7 @@ describe("shared contracts", () => {
     });
 
     expect(marker.category_level_1).toBe("public-service");
+    expect(marker.cover_url).toBeNull();
   });
 
   it("normalizes the places list query contract", () => {
@@ -144,6 +205,7 @@ describe("shared contracts", () => {
       communityId: "tongzilin",
       keyword: "coffee",
       category: "cafe",
+      tag: "english-friendly",
       recommended: "true",
       sort: "recommended"
     });
@@ -153,6 +215,7 @@ describe("shared contracts", () => {
     expect(query.communityId).toBe("tongzilin");
     expect(query.keyword).toBe("coffee");
     expect(query.category).toBe("cafe");
+    expect(query.tag).toBe("english-friendly");
     expect(query.recommended).toBe(true);
     expect(query.sort).toBe("recommended");
 
@@ -164,6 +227,190 @@ describe("shared contracts", () => {
       communityId: "tongzilin",
       sort: "recommended"
     });
+  });
+
+  it("exposes admin place update and delete contracts through shared paths", () => {
+    const deleteEnvelope = CreateApiSuccessSchema(
+      DeletePlaceResponseSchema
+    ).parse({
+      success: true,
+      requestId: "req_delete_place",
+      data: {
+        deleted_id: "place_001"
+      }
+    });
+
+    expect(placeContracts.adminUpdate).toMatchObject({
+      method: "PATCH",
+      path: "/admin/places/:id"
+    });
+    expect(placeContracts.adminDelete).toMatchObject({
+      method: "DELETE",
+      path: "/admin/places/:id"
+    });
+    expect(apiPaths.admin.updatePlace("place_001")).toBe(
+      "/admin/places/place_001"
+    );
+    expect(apiPaths.admin.deletePlace("place_001")).toBe(
+      "/admin/places/place_001"
+    );
+    expect(deleteEnvelope.data.deleted_id).toBe("place_001");
+  });
+
+  it("normalizes admin place POI search contracts", () => {
+    const query = PlacePoiSearchQuerySchema.parse({
+      keyword: " 桐梓林 "
+    });
+    const item = PlacePoiSearchItemSchema.parse({
+      id: "poi_001",
+      title: "桐梓林",
+      address: "四川省成都市武侯区桐梓林路",
+      category: "交通设施",
+      location: {
+        latitude: 30.615,
+        longitude: 104.062
+      },
+      province: "四川省",
+      city: "成都市",
+      district: "武侯区"
+    });
+
+    expect(query.keyword).toBe("桐梓林");
+    expect(item.location.latitude).toBe(30.615);
+    expect(placeContracts.adminPoiSearch).toMatchObject({
+      method: "GET",
+      path: "/admin/places/poi-search"
+    });
+    expect(apiPaths.admin.searchPlacePoi).toBe("/admin/places/poi-search");
+    expect(() => PlacePoiSearchQuerySchema.parse({ keyword: "" })).toThrow();
+    expect(() =>
+      PlacePoiSearchItemSchema.parse({
+        ...item,
+        location: {
+          latitude: 999,
+          longitude: 104.062
+        }
+      })
+    ).toThrow();
+  });
+
+  it("normalizes admin Amap media search contracts", () => {
+    const query = PlaceAmapMediaSearchQuerySchema.parse({
+      keyword: " 桐梓林 ",
+      city: "成都"
+    });
+    const item = PlaceAmapMediaSearchItemSchema.parse({
+      id: "B001",
+      title: "桐梓林",
+      address: "四川省成都市武侯区桐梓林路",
+      category: "生活服务",
+      location: {
+        latitude: 30.615,
+        longitude: 104.062
+      },
+      province: "四川省",
+      city: "成都市",
+      district: "武侯区",
+      image_candidates: [
+        {
+          source: "amap",
+          source_place_id: "B001",
+          image_url: "https://store.is.autonavi.com/showpic/B001.jpg",
+          image_title: null,
+          attribution: {
+            label: "Image source: Amap",
+            provider_name: "Amap"
+          }
+        }
+      ]
+    });
+
+    expect(query.keyword).toBe("桐梓林");
+    expect(item.image_candidates).toHaveLength(1);
+    expect(placeContracts.adminAmapMediaSearch).toMatchObject({
+      method: "GET",
+      path: "/admin/places/amap-media-search"
+    });
+    expect(apiPaths.admin.searchPlaceAmapMedia).toBe(
+      "/admin/places/amap-media-search"
+    );
+    expect(() =>
+      PlaceAmapImageCandidateSchema.parse({
+        ...item.image_candidates[0],
+        source: "unsupported"
+      })
+    ).toThrow();
+  });
+
+  it("keeps admin place updates partial and rejects invalid editable fields", () => {
+    const update = UpdatePlaceInputSchema.parse({
+      name_en: "Edited Place",
+      cover_url: null,
+      cover_source: null,
+      gallery_file_ids: [],
+      external_gallery_media: [
+        {
+          source: "amap",
+          source_place_id: "B001",
+          image_url: "https://store.is.autonavi.com/showpic/B001.jpg",
+          image_title: null,
+          attribution: {
+            label: "Image source: Amap",
+            provider_name: "Amap"
+          }
+        }
+      ],
+      recommended_reason_en: null
+    });
+
+    expect(update).toEqual({
+      name_en: "Edited Place",
+      cover_url: null,
+      cover_source: null,
+      gallery_file_ids: [],
+      external_gallery_media: [
+        {
+          source: "amap",
+          source_place_id: "B001",
+          image_url: "https://store.is.autonavi.com/showpic/B001.jpg",
+          image_title: null,
+          attribution: {
+            label: "Image source: Amap",
+            provider_name: "Amap"
+          }
+        }
+      ],
+      recommended_reason_en: null
+    });
+    expect(update).not.toHaveProperty("name_zh");
+    expect(update).not.toHaveProperty("_id");
+    expect(apiPaths.admin.updatePlace("place_001")).toBe(
+      "/admin/places/place_001"
+    );
+
+    expect(() =>
+      UpdatePlaceInputSchema.parse({
+        category_level_1: "service"
+      })
+    ).toThrow();
+    expect(() =>
+      UpdatePlaceInputSchema.parse({
+        status: "deleted"
+      })
+    ).toThrow();
+    expect(() =>
+      UpdatePlaceInputSchema.parse({
+        cover_url: "not-a-url"
+      })
+    ).toThrow();
+    expect(() =>
+      UpdatePlaceInputSchema.parse({
+        location: {
+          latitude: "30.6",
+          longitude: 104.0
+        }
+      })
+    ).toThrow();
   });
 
   it("keeps places list items limited to card browsing fields", () => {
@@ -183,7 +430,29 @@ describe("shared contracts", () => {
       recommended_reason_zh: "推荐理由",
       recommended_reason_en: "Reason",
       supports_navigation: true,
+      cover_source: {
+        source: "amap",
+        source_place_id: "B001",
+        image_url: "https://store.is.autonavi.com/showpic/B001-cover.jpg",
+        image_title: null,
+        attribution: {
+          label: "Image source: Amap",
+          provider_name: "Amap"
+        }
+      },
       gallery_urls: ["https://example.com/gallery.jpg"],
+      external_gallery_media: [
+        {
+          source: "amap",
+          source_place_id: "B001",
+          image_url: "https://store.is.autonavi.com/showpic/B001.jpg",
+          image_title: null,
+          attribution: {
+            label: "Image source: Amap",
+            provider_name: "Amap"
+          }
+        }
+      ],
       gallery_media: [
         {
           file_id: "cloud://place-001-1",
@@ -221,6 +490,8 @@ describe("shared contracts", () => {
       "supports_navigation",
       "tag_ids"
     ]);
+    expect(item).not.toHaveProperty("cover_source");
+    expect(item).not.toHaveProperty("external_gallery_media");
     expect(item).not.toHaveProperty("gallery_urls");
     expect(item).not.toHaveProperty("gallery_media");
     expect(item).not.toHaveProperty("navigation");

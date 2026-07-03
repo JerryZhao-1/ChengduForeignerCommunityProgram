@@ -18,6 +18,7 @@ const { loading, error, run } = usePlaceAsyncState();
 const filters = ref({
   keyword: "",
   category: "",
+  tag: "",
   recommended: false,
   sort: "recommended" as "recommended" | "name"
 });
@@ -42,6 +43,14 @@ const activeCategoryIndex = computed(() =>
   )
 );
 
+const localizedText = (zh: string, en: string) =>
+  pickLocalized(state.locale, zh, en).trim();
+
+const placeCategoryLabel = (place: PlaceListItem) =>
+  place.category_level_2
+    ? `${place.category_level_1} / ${place.category_level_2}`
+    : place.category_level_1;
+
 const load = async () => {
   const result = await run(
     async () =>
@@ -49,6 +58,7 @@ const load = async () => {
         communityId: state.communityId,
         keyword: filters.value.keyword || undefined,
         category: filters.value.category || undefined,
+        tag: filters.value.tag || undefined,
         recommended: filters.value.recommended || undefined,
         sort: filters.value.sort
       }),
@@ -81,10 +91,16 @@ const handleCategoryChange = (event: { detail: { value: number | string } }) => 
   load();
 };
 
+const applyTag = (tag: string) => {
+  filters.value.tag = tag;
+  load();
+};
+
 const resetFilters = () => {
   filters.value = {
     keyword: "",
     category: "",
+    tag: "",
     recommended: false,
     sort: "recommended"
   };
@@ -94,6 +110,7 @@ const resetFilters = () => {
 onLoad((query) => {
   filters.value.keyword = String(query?.keyword ?? "");
   filters.value.category = String(query?.category ?? "");
+  filters.value.tag = String(query?.tag ?? "");
   filters.value.recommended = query?.recommended === "true";
   filters.value.sort = query?.sort === "name" ? "name" : "recommended";
 
@@ -105,7 +122,7 @@ onLoad((query) => {
   <view class="page">
     <SectionPanel :title="listCopy.title" :subtitle="listCopy.subtitle">
       <view class="toolbar">
-        <button class="secondary" @click="openRecommended">
+        <button class="place-action secondary" @click="openRecommended">
           {{ listCopy.recommendedFilter }}
         </button>
       </view>
@@ -148,6 +165,11 @@ onLoad((query) => {
         </button>
         <button class="chip ghost" @click="resetFilters">{{ listCopy.clearFilters }}</button>
       </view>
+      <view v-if="filters.tag" class="active-filter-row">
+        <button class="chip active" @click="filters.tag = ''; load()">
+          {{ listCopy.activeTag }} #{{ filters.tag }} ×
+        </button>
+      </view>
 
       <AsyncStateCard v-if="loading" variant="loading" :text="listCopy.loading" />
       <AsyncStateCard v-else-if="error" variant="error" :text="error" />
@@ -160,7 +182,7 @@ onLoad((query) => {
         v-else
         v-for="place in places"
         :key="place._id"
-        class="card"
+        class="place-card"
         @click="openDetail(place._id)"
       >
         <image
@@ -173,21 +195,29 @@ onLoad((query) => {
           <view class="card-title">{{
             pickLocalized(state.locale, place.name_zh, place.name_en)
           }}</view>
-          <view v-if="place.is_recommended" class="badge">
+          <view v-if="place.is_recommended" class="place-badge">
             {{ listCopy.recommendedBadge }}
           </view>
         </view>
-        <view class="card-meta">
-          {{ place.category_level_1 }} / {{ place.category_level_2 }}
+        <view class="card-meta">{{ placeCategoryLabel(place) }}</view>
+        <view
+          v-if="localizedText(place.short_address_zh, place.short_address_en)"
+          class="card-text"
+        >
+          {{ localizedText(place.short_address_zh, place.short_address_en) }}
         </view>
-        <view class="card-text">{{
-          pickLocalized(state.locale, place.short_address_zh, place.short_address_en)
-        }}</view>
-        <view class="card-text">{{
-          pickLocalized(state.locale, place.summary_zh, place.summary_en)
-        }}</view>
+        <view v-if="localizedText(place.summary_zh, place.summary_en)" class="card-text">
+          {{ localizedText(place.summary_zh, place.summary_en) }}
+        </view>
         <view v-if="place.tag_ids.length" class="tags">
-          <text v-for="tag in place.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
+          <button
+            v-for="tag in place.tag_ids"
+            :key="tag"
+            class="tag"
+            @click.stop="applyTag(tag)"
+          >
+            #{{ tag }}
+          </button>
         </view>
       </view>
     </SectionPanel>
@@ -202,19 +232,28 @@ onLoad((query) => {
 }
 
 .toolbar,
-.sort-row {
+.sort-row,
+.active-filter-row {
   display: flex;
   gap: 16rpx;
   margin-bottom: 16rpx;
   flex-wrap: wrap;
 }
 
-.secondary,
+.place-action,
 .chip {
   border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.place-action {
+  min-width: 220rpx;
+}
+
+.secondary,
+.chip {
   background: #e6f4ff;
   color: #0052d9;
-  font-size: 24rpx;
 }
 
 .chip.active {
@@ -237,11 +276,11 @@ onLoad((query) => {
   font-size: 26rpx;
 }
 
-.card {
+.place-card {
   margin-top: 16rpx;
   background: #ffffff;
   border: 1rpx solid #e5e7eb;
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   padding: 24rpx;
   overflow: hidden;
 }
@@ -272,16 +311,17 @@ onLoad((query) => {
   line-height: 1.5;
 }
 
-.badge,
+.place-badge,
 .tag {
   display: inline-flex;
   align-items: center;
   padding: 6rpx 14rpx;
   border-radius: 8rpx;
   font-size: 22rpx;
+  line-height: 1.4;
 }
 
-.badge {
+.place-badge {
   background: #fff7e6;
   color: #ad5a00;
 }
@@ -294,6 +334,7 @@ onLoad((query) => {
 }
 
 .tag {
+  margin: 0;
   background: #e6f4ff;
   color: #0052d9;
 }

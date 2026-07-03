@@ -53,3 +53,8 @@ export const PrivateUrlResponseSchema = z.object({
   temp_url: z.string().url(),
   expires_at: z.string()
 });
+
+export const DirectPlaceGalleryUploadResponseSchema = z.object({
+  file_asset: FileAssetSchema,
+  gallery_file_ids: z.array(z.string())
+});

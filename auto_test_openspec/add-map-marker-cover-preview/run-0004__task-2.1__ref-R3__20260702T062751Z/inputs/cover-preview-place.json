@@ -1,0 +1,24 @@
+{
+  "name_zh": "封面预览测试点",
+  "name_en": "Cover Preview Test Place",
+  "cover_url": "http://127.0.0.1:5174/static/place-marker.svg",
+  "category_level_1": "community",
+  "category_level_2": "validation",
+  "tag_ids": ["validation"],
+  "address_zh": "成都市武侯区测试路 3 号",
+  "address_en": "No. 3 Test Road, Wuhou District, Chengdu",
+  "location": {
+    "latitude": 30.619,
+    "longitude": 104.0665
+  },
+  "business_hours_zh": "测试时段",
+  "business_hours_en": "Validation hours",
+  "intro_zh": "用于地图封面预览验证。",
+  "intro_en": "Used for map cover preview validation.",
+  "is_recommended": false,
+  "recommended_rank": 8,
+  "supports_navigation": true,
+  "supports_favorite": true,
+  "supports_share": true,
+  "status": "published"
+}

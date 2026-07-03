@@ -3,6 +3,12 @@ dist
 .turbo
 coverage
 .pnpm-store
+.npm-cache
+.codex/.npm-cache
+.playwright-cli/
+*.tsbuildinfo
+.cloudbase
+apps/api/.cloudbase
 .DS_Store
 .env.local
 .env.*.local

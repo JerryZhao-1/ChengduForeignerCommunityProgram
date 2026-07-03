@@ -133,6 +133,8 @@ API 环境变量：
 - `API_PROVIDER`
   - `mock`：默认 provider。
   - `cloudbase`：CloudBase provider；当前部分 CloudBase 能力仍复用 mock provider 行为。
+- `AMAP_WEB_SERVICE_KEY`：服务端 Amap WebService Key，用于管理端地点图片候选搜索；不要配置为前端 `VITE_` 变量。
+- `TENCENT_MAP_KEY` / `TENCENT_MAP_SECRET_KEY`：服务端腾讯地图 POI 搜索配置；不要配置为前端 `VITE_` 变量。
 
 配置要求：
 

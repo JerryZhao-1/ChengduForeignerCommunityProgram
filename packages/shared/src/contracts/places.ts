@@ -3,10 +3,15 @@ import { z } from "zod";
 import { defineContract } from "./define-contract";
 import {
   CreatePlaceInputSchema,
+  DeletePlaceResponseSchema,
   PlaceDetailSchema,
+  PlaceAmapMediaSearchQuerySchema,
+  PlaceAmapMediaSearchResponseSchema,
   PlaceListItemSchema,
   PlaceListQuerySchema,
   PlaceMapMarkerSchema,
+  PlacePoiSearchQuerySchema,
+  PlacePoiSearchResponseSchema,
   UpdatePlaceInputSchema
 } from "../schemas/places";
 import { PlaceSchema } from "../schemas/entities";
@@ -33,6 +38,18 @@ export const placeContracts = {
     path: "/admin/places",
     response: PlaceSchema
   }),
+  adminPoiSearch: defineContract({
+    method: "GET",
+    path: "/admin/places/poi-search",
+    request: PlacePoiSearchQuerySchema,
+    response: PlacePoiSearchResponseSchema
+  }),
+  adminAmapMediaSearch: defineContract({
+    method: "GET",
+    path: "/admin/places/amap-media-search",
+    request: PlaceAmapMediaSearchQuerySchema,
+    response: PlaceAmapMediaSearchResponseSchema
+  }),
   adminCreate: defineContract({
     method: "POST",
     path: "/admin/places",
@@ -44,5 +61,10 @@ export const placeContracts = {
     path: "/admin/places/:id",
     request: UpdatePlaceInputSchema,
     response: PlaceSchema
+  }),
+  adminDelete: defineContract({
+    method: "DELETE",
+    path: "/admin/places/:id",
+    response: DeletePlaceResponseSchema
   })
 };

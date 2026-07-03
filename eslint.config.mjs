@@ -8,6 +8,7 @@ export default tseslint.config(
       "**/dist/**",
       "**/coverage/**",
       "**/.turbo/**",
+      "**/.cloudbase/**",
       "**/node_modules/**",
       "**/*.vue"
     ]

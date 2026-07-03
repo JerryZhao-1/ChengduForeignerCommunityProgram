@@ -3,6 +3,7 @@ import {
   CompleteUploadInputSchema,
   CreateUploadRequestInputSchema,
   FileCompletionResponseSchema,
+  DirectPlaceGalleryUploadResponseSchema,
   PrivateUrlRequestInputSchema,
   PrivateUrlResponseSchema,
   UploadRequestResponseSchema
@@ -26,5 +27,15 @@ export const fileContracts = {
     path: "/files/private-url",
     request: PrivateUrlRequestInputSchema,
     response: PrivateUrlResponseSchema
+  }),
+  directPlaceGalleryUpload: defineContract({
+    method: "POST",
+    path: "/admin/places/:id/gallery-files",
+    response: DirectPlaceGalleryUploadResponseSchema
+  }),
+  directPendingPlaceGalleryUpload: defineContract({
+    method: "POST",
+    path: "/admin/places/gallery-files",
+    response: DirectPlaceGalleryUploadResponseSchema
   })
 };

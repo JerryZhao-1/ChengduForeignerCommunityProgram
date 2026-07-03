@@ -94,6 +94,9 @@ importers:
       '@types/koa__router':
         specifier: ^12.0.4
         version: 12.0.5
+      esbuild:
+        specifier: ^0.27.0
+        version: 0.27.4
       tsx:
         specifier: ^4.19.3
         version: 4.21.0

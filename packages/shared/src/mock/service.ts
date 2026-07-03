@@ -12,6 +12,7 @@ import type {
   Post,
   User
 } from "../types/entities";
+import type { ApiErrorCode } from "../enums";
 import type { MockDataset } from "./data";
 import { FILE_PATH_RULES } from "../schemas/files";
 import { PLACE_TOP_LEVEL_CATEGORIES } from "../schemas/place-categories";
@@ -24,6 +25,7 @@ interface PageParams {
   keyword?: string;
   communityId?: string;
   category?: string;
+  tag?: string;
   recommended?: boolean;
   sort?: "recommended" | "name";
 }
@@ -58,11 +60,14 @@ const keywordMatch = (value: string | null | undefined, keyword?: string) => {
 const idFrom = (prefix: string) =>
   `${prefix}_${Math.random().toString(36).slice(2, 8)}`;
 
-const shortAddress = (value: string) => value.split("，")[0]?.split(",")[0] ?? value;
+const shortAddress = (value: string) =>
+  value.split("，")[0]?.split(",")[0] ?? value;
 
 const sortPlaces = (items: Place[], sort: PageParams["sort"]) => {
   if (sort === "name") {
-    return [...items].sort((left, right) => left.name_en.localeCompare(right.name_en));
+    return [...items].sort((left, right) =>
+      left.name_en.localeCompare(right.name_en)
+    );
   }
 
   return [...items].sort((left, right) => {
@@ -143,6 +148,39 @@ const publicFileUrl = (cloudPath: string) =>
   mockPublicFileUrls[cloudPath] ??
   `https://example.com/${cloudPath.replace(/^\/+/, "")}`;
 
+export class MockServiceError extends Error {
+  constructor(
+    public readonly code: ApiErrorCode,
+    message: string,
+    public readonly status: number,
+    public readonly details?: unknown
+  ) {
+    super(message);
+  }
+}
+
+export const isMockServiceError = (error: unknown): error is MockServiceError =>
+  error instanceof MockServiceError;
+
+const mockError = (
+  code: ApiErrorCode,
+  message: string,
+  status: number,
+  details?: unknown
+) => new MockServiceError(code, message, status, details);
+
+const isAdmin = (user: User) =>
+  user.role_flags.includes("community_admin") ||
+  user.role_flags.includes("system_admin");
+
+export const PENDING_PLACE_GALLERY_BIZ_ID = "__pending_place_gallery__";
+
+const isLaunchVisibleEvent = (event: Event) =>
+  event.review_status === "approved" && event.publish_status === "published";
+
+const isLaunchVisiblePost = (post: Post) =>
+  post.status === "visible" && post.review_status === "visible";
+
 const toPlaceGalleryMedia = (
   place: Place,
   fileAssets: FileAsset[]
@@ -184,43 +222,45 @@ const toPlaceDetail = (
   const gallery_media = toPlaceGalleryMedia(place, fileAssets);
 
   return {
-  _id: place._id,
-  community_id: place.community_id,
-  name_zh: place.name_zh,
-  name_en: place.name_en,
-  cover_url: place.cover_url,
-  category_level_1: place.category_level_1,
-  category_level_2: place.category_level_2,
-  tag_ids: place.tag_ids,
-  address_zh: place.address_zh,
-  address_en: place.address_en,
-  location: place.location,
-  business_hours_zh: place.business_hours_zh,
-  business_hours_en: place.business_hours_en,
-  intro_zh: place.intro_zh,
-  intro_en: place.intro_en,
-  gallery_media,
-  gallery_urls: gallery_media.map((media) => media.url),
-  is_recommended: place.is_recommended,
-  recommended_reason_zh: place.recommended_reason_zh,
-  recommended_reason_en: place.recommended_reason_en,
-  supports_navigation: place.supports_navigation,
-  supports_favorite: place.supports_favorite,
-  supports_share: place.supports_share,
-  navigation: {
-    latitude: place.location.latitude,
-    longitude: place.location.longitude,
+    _id: place._id,
+    community_id: place.community_id,
     name_zh: place.name_zh,
     name_en: place.name_en,
+    cover_url: place.cover_url,
+    cover_source: place.cover_source,
+    category_level_1: place.category_level_1,
+    category_level_2: place.category_level_2,
+    tag_ids: place.tag_ids,
     address_zh: place.address_zh,
-    address_en: place.address_en
-  },
-  share: {
-    title_zh: place.name_zh,
-    title_en: place.name_en,
-    summary_zh: place.recommended_reason_zh ?? place.intro_zh,
-    summary_en: place.recommended_reason_en ?? place.intro_en
-  }
+    address_en: place.address_en,
+    location: place.location,
+    business_hours_zh: place.business_hours_zh,
+    business_hours_en: place.business_hours_en,
+    intro_zh: place.intro_zh,
+    intro_en: place.intro_en,
+    gallery_media,
+    external_gallery_media: place.external_gallery_media,
+    gallery_urls: gallery_media.map((media) => media.url),
+    is_recommended: place.is_recommended,
+    recommended_reason_zh: place.recommended_reason_zh,
+    recommended_reason_en: place.recommended_reason_en,
+    supports_navigation: place.supports_navigation,
+    supports_favorite: place.supports_favorite,
+    supports_share: place.supports_share,
+    navigation: {
+      latitude: place.location.latitude,
+      longitude: place.location.longitude,
+      name_zh: place.name_zh,
+      name_en: place.name_en,
+      address_zh: place.address_zh,
+      address_en: place.address_en
+    },
+    share: {
+      title_zh: place.name_zh,
+      title_en: place.name_en,
+      summary_zh: place.recommended_reason_zh ?? place.intro_zh,
+      summary_en: place.recommended_reason_en ?? place.intro_en
+    }
   };
 };
 
@@ -230,8 +270,25 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     ...seed
   };
 
-  const findUser = (userId?: string) =>
-    state.users.find((user) => user._id === userId) ?? state.users[0];
+  const findUser = (userId?: string) => {
+    const user = state.users.find(
+      (item) => item._id === (userId ?? "user_001")
+    );
+
+    if (!user || user.status !== "active") {
+      return null;
+    }
+
+    return user;
+  };
+
+  const requireUser = (userId?: string) => {
+    const user = findUser(userId);
+    if (!user) {
+      throw mockError("UNAUTHORIZED", "Invalid actor.", 401);
+    }
+    return user;
+  };
 
   const createSession = (user: User): AuthSession => ({
     user,
@@ -244,7 +301,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         mock_user_id?: string;
         preferred_language?: "zh" | "en";
       }) {
-        const user = findUser(input.mock_user_id);
+        const user = requireUser(input.mock_user_id);
         if (input.preferred_language) {
           user.preferred_language = input.preferred_language;
         }
@@ -252,23 +309,27 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         return createSession(user);
       },
       me(userId?: string) {
-        return createSession(findUser(userId));
+        return createSession(requireUser(userId));
       }
     },
     events: {
       list(params: PageParams = {}) {
         const events = state.events.filter(
           (event) =>
-            keywordMatch(event.title_zh, params.keyword) ||
-            keywordMatch(event.title_en, params.keyword) ||
-            keywordMatch(event.summary_zh, params.keyword) ||
-            keywordMatch(event.summary_en, params.keyword)
+            isLaunchVisibleEvent(event) &&
+            (!params.communityId ||
+              event.community_id === params.communityId) &&
+            (keywordMatch(event.title_zh, params.keyword) ||
+              keywordMatch(event.title_en, params.keyword) ||
+              keywordMatch(event.summary_zh, params.keyword) ||
+              keywordMatch(event.summary_en, params.keyword))
         );
 
         return paginate(events, params);
       },
       detail(id: string) {
-        return state.events.find((event) => event._id === id) ?? null;
+        const event = state.events.find((item) => item._id === id);
+        return event && isLaunchVisibleEvent(event) ? event : null;
       },
       createRegistration(
         eventId: string,
@@ -280,19 +341,54 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         },
         actorId?: string
       ) {
+        const actor = requireUser(actorId);
+        const event = state.events.find((item) => item._id === eventId);
+
+        if (!event || !isLaunchVisibleEvent(event)) {
+          throw mockError("NOT_FOUND", "Event not found.", 404);
+        }
+
+        if (new Date(event.signup_deadline).getTime() <= Date.now()) {
+          throw mockError("CONFLICT", "Event signup is closed.", 409);
+        }
+
+        const hasActiveRegistration = state.registrations.some(
+          (registration) =>
+            registration.event_id === eventId &&
+            registration.user_id === actor._id &&
+            registration.registration_status !== "cancelled"
+        );
+
+        if (hasActiveRegistration) {
+          throw mockError("CONFLICT", "Registration already exists.", 409);
+        }
+
+        const confirmedAttendees = state.registrations
+          .filter(
+            (registration) =>
+              registration.event_id === eventId &&
+              registration.registration_status === "confirmed"
+          )
+          .reduce((sum, registration) => sum + registration.attendee_count, 0);
+
+        if (confirmedAttendees + input.attendee_count > event.capacity) {
+          throw mockError("CONFLICT", "Event capacity is full.", 409);
+        }
+
+        const ticketId = idFrom("ticket");
         const registration: EventRegistration = {
           _id: idFrom("reg"),
           event_id: eventId,
-          user_id: findUser(actorId)._id,
+          user_id: actor._id,
           contact_name: input.contact_name,
           contact_phone: input.contact_phone,
           attendee_count: input.attendee_count,
           registration_status: "confirmed",
-          ticket_id: idFrom("ticket"),
+          ticket_id: ticketId,
           source_channel: input.source_channel
         };
         const ticket: EventTicket = {
-          _id: registration.ticket_id,
+          _id: ticketId,
           registration_id: registration._id,
           ticket_code: `TZL-${Date.now()}`,
           qr_file_id: `cloud://${registration.ticket_id}`,
@@ -309,17 +405,23 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         return { registration, ticket };
       },
       listMyRegistrations(actorId?: string) {
+        const actor = requireUser(actorId);
         return state.registrations.filter(
-          (registration) => registration.user_id === findUser(actorId)._id
+          (registration) => registration.user_id === actor._id
         );
       },
-      getTicketByRegistration(registrationId: string) {
+      getTicketByRegistration(registrationId: string, actorId?: string) {
+        const actor = requireUser(actorId);
         const registration = state.registrations.find(
           (item) => item._id === registrationId
         );
 
         if (!registration) {
           return null;
+        }
+
+        if (registration.user_id !== actor._id && !isAdmin(actor)) {
+          throw mockError("FORBIDDEN", "Ticket access denied.", 403);
         }
 
         return (
@@ -329,6 +431,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         );
       },
       create(input: Partial<Event>, actorId?: string) {
+        const actor = requireUser(actorId);
         const event: Event = {
           _id: idFrom("event"),
           community_id: "tongzilin",
@@ -351,7 +454,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           end_time: input.end_time ?? new Date().toISOString(),
           signup_deadline: input.signup_deadline ?? new Date().toISOString(),
           capacity: input.capacity ?? 30,
-          organizer_user_id: actorId ?? state.users[0]._id,
+          organizer_user_id: actor._id,
           review_status: "draft",
           publish_status: "draft"
         };
@@ -392,6 +495,18 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           return null;
         }
 
+        const registration = state.registrations.find(
+          (item) => item._id === ticket.registration_id
+        );
+
+        if (!registration || registration.event_id !== event._id) {
+          throw mockError("CONFLICT", "Ticket does not belong to event.", 409);
+        }
+
+        if (ticket.status !== "valid") {
+          throw mockError("CONFLICT", "Ticket is not valid for check-in.", 409);
+        }
+
         ticket.status = "used";
         ticket.used_at = new Date().toISOString();
         return ticket;
@@ -401,19 +516,23 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
       list(params: PageParams = {}) {
         const posts = state.posts.filter(
           (post) =>
-            keywordMatch(post.title, params.keyword) ||
-            keywordMatch(post.content, params.keyword)
+            isLaunchVisiblePost(post) &&
+            (!params.communityId || post.community_id === params.communityId) &&
+            (keywordMatch(post.title, params.keyword) ||
+              keywordMatch(post.content, params.keyword))
         );
 
         return paginate(posts, params);
       },
       detail(id: string) {
-        return state.posts.find((post) => post._id === id) ?? null;
+        const post = state.posts.find((item) => item._id === id);
+        return post && isLaunchVisiblePost(post) ? post : null;
       },
       create(input: Partial<Post>, actorId?: string) {
+        const actor = requireUser(actorId);
         const post: Post = {
           _id: idFrom("post"),
-          author_user_id: findUser(actorId)._id,
+          author_user_id: actor._id,
           community_id: "tongzilin",
           title: input.title ?? "",
           content: input.content ?? "",
@@ -433,10 +552,17 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         input: Pick<Comment, "content" | "language">,
         actorId?: string
       ) {
+        const actor = requireUser(actorId);
+        const post = state.posts.find((item) => item._id === postId);
+
+        if (!post || !isLaunchVisiblePost(post)) {
+          throw mockError("NOT_FOUND", "Post not found.", 404);
+        }
+
         const comment: Comment = {
           _id: idFrom("comment"),
           post_id: postId,
-          author_user_id: findUser(actorId)._id,
+          author_user_id: actor._id,
           content: input.content,
           language: input.language,
           created_at: new Date().toISOString()
@@ -446,7 +572,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
       },
       report(id: string) {
         const post = state.posts.find((item) => item._id === id);
-        if (!post) {
+        if (!post || !isLaunchVisiblePost(post)) {
           return null;
         }
         post.review_status = "reported";
@@ -470,7 +596,10 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
               return false;
             }
 
-            if (params.communityId && place.community_id !== params.communityId) {
+            if (
+              params.communityId &&
+              place.community_id !== params.communityId
+            ) {
               return false;
             }
 
@@ -479,6 +608,10 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
               place.category_level_1 !== params.category &&
               place.category_level_2 !== params.category
             ) {
+              return false;
+            }
+
+            if (params.tag && !place.tag_ids.includes(params.tag)) {
               return false;
             }
 
@@ -499,7 +632,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         return paginate(places.map(toPlaceListItem), params);
       },
       listAdmin() {
-        return paginate(state.places, {});
+        return paginate(state.places, { pageSize: state.places.length || 20 });
       },
       detail(id: string) {
         const place = state.places.find((item) => item._id === id);
@@ -517,15 +650,15 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
               place.status === "published" &&
               hasUsableCoordinates(place)
           )
-        )
-          .map((place) => ({
-            _id: place._id,
-            name_zh: place.name_zh,
-            name_en: place.name_en,
-            category_level_1: place.category_level_1,
-            is_recommended: place.is_recommended,
-            location: place.location
-          }));
+        ).map((place) => ({
+          _id: place._id,
+          name_zh: place.name_zh,
+          name_en: place.name_en,
+          cover_url: place.cover_url,
+          category_level_1: place.category_level_1,
+          is_recommended: place.is_recommended,
+          location: place.location
+        }));
       },
       create(input: Partial<Place>) {
         const place: Place = {
@@ -535,6 +668,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           name_en: input.name_en ?? "",
           cover_file_id: input.cover_file_id ?? null,
           cover_url: input.cover_url ?? null,
+          cover_source: input.cover_source ?? null,
           category_level_1:
             input.category_level_1 ?? PLACE_TOP_LEVEL_CATEGORIES[0],
           category_level_2: input.category_level_2 ?? "",
@@ -552,14 +686,25 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           is_recommended: input.is_recommended ?? false,
           recommended_rank: input.recommended_rank ?? 0,
           gallery_file_ids: input.gallery_file_ids ?? [],
+          external_gallery_media: input.external_gallery_media ?? [],
           gallery_urls: input.gallery_urls ?? [],
           supports_navigation: input.supports_navigation ?? true,
           supports_favorite: input.supports_favorite ?? true,
           supports_share: input.supports_share ?? true,
-          status: input.status ?? "draft"
+          status: input.status ?? "draft",
+          import_review: input.import_review ?? null
         };
 
         state.places.unshift(place);
+        for (const asset of state.fileAssets) {
+          if (
+            place.gallery_file_ids.includes(asset.file_id) &&
+            asset.biz_type === "place_gallery" &&
+            asset.biz_id === PENDING_PLACE_GALLERY_BIZ_ID
+          ) {
+            asset.biz_id = place._id;
+          }
+        }
         return place;
       },
       update(id: string, input: Partial<Place>) {
@@ -569,6 +714,17 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         }
         Object.assign(existing, input);
         return existing;
+      },
+      delete(id: string) {
+        const existingIndex = state.places.findIndex(
+          (place) => place._id === id
+        );
+        if (existingIndex < 0) {
+          return null;
+        }
+
+        state.places.splice(existingIndex, 1);
+        return { deleted_id: id };
       }
     },
     announcements: {
@@ -581,13 +737,15 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     },
     notifications: {
       list(actorId?: string) {
+        const actor = requireUser(actorId);
         return state.notifications.filter(
-          (notification) => notification.user_id === findUser(actorId)._id
+          (notification) => notification.user_id === actor._id
         );
       },
       markRead(id: string, actorId?: string) {
+        const actor = requireUser(actorId);
         const notification = state.notifications.find(
-          (item) => item._id === id && item.user_id === findUser(actorId)._id
+          (item) => item._id === id && item.user_id === actor._id
         );
         if (!notification) {
           return null;
@@ -620,6 +778,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         },
         actorId?: string
       ) {
+        const actor = requireUser(actorId);
         const asset: FileAsset = {
           _id: idFrom("file"),
           file_id: input.file_id,
@@ -627,13 +786,30 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           visibility: input.visibility,
           biz_type: input.biz_type,
           biz_id: input.biz_id,
-          uploaded_by: findUser(actorId)._id,
+          uploaded_by: actor._id,
           status: "active"
         };
         state.fileAssets.unshift(asset);
         return asset;
       },
-      privateUrl(input: { file_id: string }) {
+      privateUrl(input: { file_id: string }, actorId?: string) {
+        const actor = requireUser(actorId);
+        const asset = state.fileAssets.find(
+          (item) => item.file_id === input.file_id && item.status === "active"
+        );
+
+        if (!asset) {
+          throw mockError("NOT_FOUND", "File not found.", 404);
+        }
+
+        if (
+          asset.visibility === "private" &&
+          asset.uploaded_by !== actor._id &&
+          !isAdmin(actor)
+        ) {
+          throw mockError("FORBIDDEN", "File access denied.", 403);
+        }
+
         return {
           temp_url: `https://example.com/temp/${input.file_id}`,
           expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()

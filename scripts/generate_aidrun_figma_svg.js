@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 const path = require('path');
 
@@ -155,7 +156,6 @@ function phoneShell(x, y, role = 'blind') {
 }
 
 function renderBlindScreen(x, y, idx, titleText, subtitle) {
-  const top = y + 48;
   const items = [];
   items.push(rect(x, y, 620, 860, '#121212', 24, '#272727'));
   items.push(text(x + 22, y + 40, titleText, 22, COLORS.blindText, 800));

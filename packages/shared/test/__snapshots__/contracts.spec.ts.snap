@@ -6,6 +6,8 @@ exports[`shared contracts > keeps page envelope, file rules, and enums stable 1`
     "UNAUTHORIZED",
     "FORBIDDEN",
     "VALIDATION_ERROR",
+    "CONFIGURATION_ERROR",
+    "UPSTREAM_ERROR",
     "NOT_FOUND",
     "CONFLICT",
     "NOT_IMPLEMENTED",

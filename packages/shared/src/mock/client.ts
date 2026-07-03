@@ -8,9 +8,12 @@ import type {
   FileAsset,
   Notification,
   Place,
+  DeletePlaceResponse,
   PlaceDetail,
+  PlaceAmapMediaSearchItem,
   PlaceListItem,
   PlaceMapMarker,
+  PlacePoiSearchItem,
   Post
 } from "../types/entities";
 import type { ApiResult, PageResult } from "../types/common";
@@ -81,6 +84,7 @@ export interface CommunityMapApiClient {
       communityId?: string;
       keyword?: string;
       category?: string;
+      tag?: string;
       recommended?: boolean;
       sort?: "recommended" | "name";
     }): Promise<ApiResult<PageResult<PlaceListItem>>>;
@@ -137,6 +141,27 @@ export interface CommunityMapApiClient {
     ): Promise<ApiResult<Post>>;
     createPlace(input: Partial<Place>): Promise<ApiResult<Place>>;
     updatePlace(id: string, input: Partial<Place>): Promise<ApiResult<Place>>;
+    deletePlace(id: string): Promise<ApiResult<DeletePlaceResponse>>;
+    searchPlacePoi(input: {
+      keyword: string;
+    }): Promise<ApiResult<PlacePoiSearchItem[]>>;
+    searchPlaceAmapMedia(input: {
+      keyword: string;
+      city?: string;
+    }): Promise<ApiResult<PlaceAmapMediaSearchItem[]>>;
+    uploadPlaceGalleryFile(
+      id: string,
+      input: { file: Blob; file_name?: string; content_type?: string }
+    ): Promise<
+      ApiResult<{ file_asset: FileAsset; gallery_file_ids: string[] }>
+    >;
+    uploadPendingPlaceGalleryFile(input: {
+      file: Blob;
+      file_name?: string;
+      content_type?: string;
+    }): Promise<
+      ApiResult<{ file_asset: FileAsset; gallery_file_ids: string[] }>
+    >;
   };
 }
 
@@ -269,6 +294,129 @@ export const createMockClient = (
       },
       async updatePlace(id, input) {
         return ok(service.places.update(id, input) as Place);
+      },
+      async deletePlace(id) {
+        return ok(service.places.delete(id) as DeletePlaceResponse);
+      },
+      async searchPlacePoi(input) {
+        return ok([
+          {
+            id: `mock_poi_${encodeURIComponent(input.keyword)}`,
+            title: input.keyword,
+            address: "四川省成都市武侯区桐梓林路",
+            category: "生活服务",
+            location: {
+              latitude: 30.615,
+              longitude: 104.062
+            },
+            province: "四川省",
+            city: "成都市",
+            district: "武侯区"
+          },
+          {
+            id: `mock_poi_${encodeURIComponent(input.keyword)}_metro`,
+            title: `${input.keyword} A口`,
+            address: "四川省成都市武侯区人民南路四段",
+            category: "交通设施",
+            location: {
+              latitude: 30.6162,
+              longitude: 104.0634
+            },
+            province: "四川省",
+            city: "成都市",
+            district: "武侯区"
+          },
+          {
+            id: `mock_poi_${encodeURIComponent(input.keyword)}_business`,
+            title: `${input.keyword} 商圈`,
+            address: "四川省成都市武侯区桐梓林东路",
+            category: "商务住宅",
+            location: {
+              latitude: 30.6143,
+              longitude: 104.0608
+            },
+            province: "四川省",
+            city: "成都市",
+            district: "武侯区"
+          }
+        ]);
+      },
+      async searchPlaceAmapMedia(input) {
+        const encodedKeyword = encodeURIComponent(input.keyword);
+        return ok([
+          {
+            id: `amap_${encodedKeyword}`,
+            title: input.keyword,
+            address: "四川省成都市武侯区桐梓林路",
+            category: "生活服务",
+            location: {
+              latitude: 30.615,
+              longitude: 104.062
+            },
+            province: "四川省",
+            city: input.city ?? "成都",
+            district: "武侯区",
+            image_candidates: [
+              {
+                source: "amap",
+                source_place_id: `amap_${encodedKeyword}`,
+                image_url: `https://store.is.autonavi.com/showpic/mock-${encodedKeyword}.jpg`,
+                image_title: `${input.keyword} photo`,
+                attribution: {
+                  label: "Image source: Amap",
+                  provider_name: "Amap"
+                }
+              }
+            ]
+          }
+        ]);
+      },
+      async uploadPlaceGalleryFile(id, input) {
+        const fileName = input.file_name ?? "gallery-upload.jpg";
+        const cloudPath = `${id}/${fileName}`;
+        const completion = service.files.complete(
+          {
+            biz_type: "place_gallery",
+            biz_id: id,
+            file_id: `cloud://public/places/${cloudPath}`,
+            cloud_path: `public/places/${cloudPath}`,
+            visibility: "public"
+          },
+          actorId
+        );
+        const place = service.places.update(id, {
+          gallery_file_ids: [
+            ...new Set([
+              ...(service._state.places.find((item) => item._id === id)
+                ?.gallery_file_ids ?? []),
+              completion.file_id
+            ])
+          ]
+        });
+
+        return ok({
+          file_asset: completion,
+          gallery_file_ids: place?.gallery_file_ids ?? [completion.file_id]
+        });
+      },
+      async uploadPendingPlaceGalleryFile(input) {
+        const fileName = input.file_name ?? "gallery-upload.jpg";
+        const pendingId = `pending_${Date.now().toString(36)}`;
+        const completion = service.files.complete(
+          {
+            biz_type: "place_gallery",
+            biz_id: "__pending_place_gallery__",
+            file_id: `cloud://public/places/_pending/${pendingId}/${fileName}`,
+            cloud_path: `public/places/_pending/${pendingId}/${fileName}`,
+            visibility: "public"
+          },
+          actorId
+        );
+
+        return ok({
+          file_asset: completion,
+          gallery_file_ids: [completion.file_id]
+        });
       }
     }
   };

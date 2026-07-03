@@ -9,6 +9,8 @@ import type {
   Notification,
   PageResult,
   Place,
+  DirectPlaceGalleryUploadResponse,
+  DeletePlaceResponse,
   PlaceDetail,
   PlaceListItem,
   PlaceMapMarker,
@@ -45,7 +47,8 @@ export interface ApiProvider {
     ): Promise<{ registration: EventRegistration; ticket: EventTicket }>;
     listMyRegistrations(actorId?: string): Promise<EventRegistration[]>;
     getTicketByRegistration(
-      registrationId: string
+      registrationId: string,
+      actorId?: string
     ): Promise<EventTicket | null>;
     create(input: Partial<Event>, actorId?: string): Promise<Event>;
     update(id: string, input: Partial<Event>): Promise<Event | null>;
@@ -85,6 +88,7 @@ export interface ApiProvider {
       keyword?: string;
       communityId?: string;
       category?: string;
+      tag?: string;
       recommended?: boolean;
       sort?: "recommended" | "name";
     }): Promise<PageResult<PlaceListItem>>;
@@ -93,6 +97,16 @@ export interface ApiProvider {
     mapMarkers(): Promise<PlaceMapMarker[]>;
     create(input: Partial<Place>): Promise<Place>;
     update(id: string, input: Partial<Place>): Promise<Place | null>;
+    delete(id: string): Promise<DeletePlaceResponse | null>;
+    uploadGalleryFile(
+      id: string | null,
+      input: {
+        file_name: string;
+        content_type: string;
+        buffer: Buffer;
+      },
+      actorId?: string
+    ): Promise<DirectPlaceGalleryUploadResponse | null>;
   };
   announcements: {
     list(input: {
@@ -122,7 +136,10 @@ export interface ApiProvider {
       },
       actorId?: string
     ): Promise<FileAsset>;
-    privateUrl(input: { file_id: string }): Promise<{
+    privateUrl(
+      input: { file_id: string },
+      actorId?: string
+    ): Promise<{
       temp_url: string;
       expires_at: string;
     }>;

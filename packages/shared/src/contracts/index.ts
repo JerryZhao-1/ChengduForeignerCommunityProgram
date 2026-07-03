@@ -5,4 +5,5 @@ export * from "./discover";
 export * from "./events";
 export * from "./files";
 export * from "./notifications";
+export * from "./paths";
 export * from "./places";

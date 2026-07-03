@@ -6,6 +6,7 @@ import {
 } from "@community-map/shared";
 
 import { mobileEnv } from "@/config/env";
+import { resolveCloudbaseFunctionPath } from "./cloudbase-path";
 
 declare const wx:
   | {
@@ -24,11 +25,6 @@ declare const wx:
       };
     }
   | undefined;
-
-const appendQueryToPath = (path: string, url: string) => {
-  const queryIndex = url.indexOf("?");
-  return queryIndex === -1 ? path : `${path}${url.slice(queryIndex)}`;
-};
 
 const createUniRequester = (): HttpRequester => {
   if (typeof uni === "undefined" || typeof uni.request !== "function") {
@@ -63,8 +59,7 @@ const createCloudbaseFunctionRequester = (): HttpRequester => {
   }
 
   return async (method, url, body, headers = {}) => {
-    const parsedUrl = new URL(url, "http://localhost");
-    const path = appendQueryToPath(parsedUrl.pathname, parsedUrl.search);
+    const path = resolveCloudbaseFunctionPath(url);
 
     if (typeof callHTTPFunction === "function") {
       const result = await callHTTPFunction({

@@ -39,7 +39,7 @@ export const registerFileRoutes = (router: Router) => {
 
   router.post("/files/private-url", async (ctx) => {
     const input = parseOrThrow(PrivateUrlRequestInputSchema, ctx.request.body);
-    const data = await ctx.state.provider.files.privateUrl(input);
+    const data = await ctx.state.provider.files.privateUrl(input, ctx.state.actor._id);
     sendSuccess(ctx, data);
   });
 };

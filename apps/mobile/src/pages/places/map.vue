@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import type { PlaceMapMarker } from "@community-map/shared";
-import { onLoad } from "@dcloudio/uni-app";
+import { onLoad, onShow } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 import { getPlacesCopy } from "./copy";
-import { placesPagePaths } from "./navigation";
+import {
+  buildPlaceMarkerNavigationTarget,
+  openPlaceNativeNavigation,
+  PLACE_MAP_FOCUS_STORAGE_KEY,
+  placesPagePaths
+} from "./navigation";
 import { usePlaceAsyncState } from "./usePlaceAsyncState";
 
 interface RenderedMarker {
@@ -40,6 +45,7 @@ const places = ref<PlaceMapMarker[]>([]);
 const { loading, error, run } = usePlaceAsyncState();
 const selectedPlaceId = ref<string | null>(null);
 const presetPlaceId = ref<string | null>(null);
+const pageHeight = ref("100vh");
 
 const mapCopy = computed(() => getPlacesCopy(state.locale, "map"));
 const selectedPlace = computed(
@@ -48,6 +54,27 @@ const selectedPlace = computed(
     places.value.find((place) => place._id === presetPlaceId.value) ??
     places.value[0] ??
     null
+);
+const failedCoverUrls = ref<Record<string, true>>({});
+
+const selectedCoverUrl = computed(() => {
+  const coverUrl = selectedPlace.value?.cover_url;
+
+  if (!coverUrl || failedCoverUrls.value[coverUrl]) {
+    return null;
+  }
+
+  return coverUrl;
+});
+
+const selectedPlaceName = computed(() =>
+  selectedPlace.value
+    ? pickLocalized(
+        state.locale,
+        selectedPlace.value.name_zh,
+        selectedPlace.value.name_en
+      )
+    : ""
 );
 
 const mapLatitude = computed(
@@ -71,16 +98,31 @@ const renderedMarkers = computed<RenderedMarker[]>(() =>
       color: "#ffffff",
       fontSize: 12,
       borderRadius: 16,
-      bgColor:
-        place._id === selectedPlace.value?._id ? "#0052d9" : "#334155",
+      bgColor: place._id === selectedPlace.value?._id ? "#0052d9" : "#334155",
       padding: 8,
       display: "BYCLICK"
     }
   }))
 );
 
+const updatePageHeight = () => {
+  try {
+    const systemInfo = uni.getSystemInfoSync();
+    const windowHeight = Number(systemInfo.windowHeight);
+
+    if (Number.isFinite(windowHeight) && windowHeight > 0) {
+      pageHeight.value = `${windowHeight}px`;
+    }
+  } catch {
+    pageHeight.value = "100vh";
+  }
+};
+
 const loadMarkers = async () => {
-  const result = await run(() => mobileApi.places.mapMarkers(), mapCopy.value.error);
+  const result = await run(
+    () => mobileApi.places.mapMarkers(),
+    mapCopy.value.error
+  );
 
   if (!result) {
     places.value = [];
@@ -95,6 +137,27 @@ const loadMarkers = async () => {
     null;
 };
 
+const focusPresetPlace = (placeId: string | null) => {
+  if (!placeId) {
+    return;
+  }
+
+  presetPlaceId.value = placeId;
+  selectedPlaceId.value =
+    places.value.find((place) => place._id === placeId)?._id ?? null;
+};
+
+const consumePendingFocusPlace = () => {
+  const pendingPlaceId = uni.getStorageSync?.(PLACE_MAP_FOCUS_STORAGE_KEY);
+
+  if (typeof pendingPlaceId !== "string" || pendingPlaceId.length === 0) {
+    return;
+  }
+
+  uni.removeStorageSync?.(PLACE_MAP_FOCUS_STORAGE_KEY);
+  focusPresetPlace(pendingPlaceId);
+};
+
 const handleMarkerTap = (event: { detail?: { markerId?: number } }) => {
   const markerId = event.detail?.markerId;
   if (markerId === undefined) {
@@ -107,6 +170,19 @@ const handleMarkerTap = (event: { detail?: { markerId?: number } }) => {
   }
 };
 
+const handleSelectedCoverError = () => {
+  const coverUrl = selectedPlace.value?.cover_url;
+
+  if (!coverUrl) {
+    return;
+  }
+
+  failedCoverUrls.value = {
+    ...failedCoverUrls.value,
+    [coverUrl]: true
+  };
+};
+
 const openDetail = () => {
   if (!selectedPlace.value) {
     return;
@@ -117,6 +193,20 @@ const openDetail = () => {
   });
 };
 
+const openNavigation = () => {
+  if (!selectedPlace.value) {
+    return;
+  }
+
+  openPlaceNativeNavigation(
+    buildPlaceMarkerNavigationTarget(selectedPlace.value, state.locale),
+    {
+      unavailable: mapCopy.value.navigationUnavailable,
+      failed: mapCopy.value.navigationFailed
+    }
+  );
+};
+
 const openList = (recommended = false) => {
   uni.navigateTo({
     url: recommended ? placesPagePaths.recommended() : placesPagePaths.list()
@@ -125,124 +215,240 @@ const openList = (recommended = false) => {
 
 onMounted(loadMarkers);
 
+onMounted(updatePageHeight);
+
+onShow(() => {
+  updatePageHeight();
+  consumePendingFocusPlace();
+});
+
 onLoad((query) => {
-  presetPlaceId.value = query?.id ? String(query.id) : null;
+  focusPresetPlace(query?.id ? String(query.id) : null);
 });
 </script>
 
 <template>
-  <view class="page">
-    <view class="title">{{ mapCopy.title }}</view>
-    <view class="subtitle">{{ mapCopy.subtitle }}</view>
-    <view class="action-row">
-      <button class="secondary" @click="openList(false)">{{ mapCopy.openList }}</button>
-      <button class="secondary" @click="openList(true)">{{ mapCopy.openRecommended }}</button>
+  <view class="page" :style="{ height: pageHeight }">
+    <view class="page-header">
+      <view>
+        <view class="page-title">{{ mapCopy.title }}</view>
+        <view class="page-subtitle">{{ mapCopy.subtitle }}</view>
+      </view>
+      <view class="action-row">
+        <button class="place-action secondary" @click="openList(false)">
+          {{ mapCopy.openList }}
+        </button>
+        <button class="place-action secondary" @click="openList(true)">
+          {{ mapCopy.openRecommended }}
+        </button>
+      </view>
     </view>
 
-    <map
-      class="map-card"
-      :latitude="mapLatitude"
-      :longitude="mapLongitude"
-      :scale="15"
-      :markers="renderedMarkers"
-      :show-location="true"
-      @markertap="handleMarkerTap"
-    />
-
-    <AsyncStateCard v-if="loading" variant="loading" :text="mapCopy.loading" />
-    <AsyncStateCard v-else-if="error" variant="error" :text="error" />
-    <view v-else-if="selectedPlace" class="summary-card">
-      <view class="summary-title">
-        {{
-          pickLocalized(
-            state.locale,
-            selectedPlace.name_zh,
-            selectedPlace.name_en
-          )
-        }}
-      </view>
-      <view class="summary-meta">{{ selectedPlace.category_level_1 }}</view>
-      <view v-if="selectedPlace.is_recommended" class="pill">
-        {{ mapCopy.recommendedBadge }}
-      </view>
-      <button class="primary" @click="openDetail">{{ mapCopy.openDetail }}</button>
+    <view class="map-frame">
+      <map
+        class="map-card"
+        :latitude="mapLatitude"
+        :longitude="mapLongitude"
+        :scale="15"
+        :markers="renderedMarkers"
+        :show-location="true"
+        @markertap="handleMarkerTap"
+      />
     </view>
-    <AsyncStateCard v-else variant="empty" :text="mapCopy.empty" />
+
+    <view class="summary-slot">
+      <AsyncStateCard v-if="loading" variant="loading" :text="mapCopy.loading" />
+      <AsyncStateCard v-else-if="error" variant="error" :text="error" />
+      <view v-else-if="selectedPlace" class="summary-card">
+        <view class="summary-main">
+          <view class="summary-cover">
+            <image
+              v-if="selectedCoverUrl"
+              class="summary-cover__image"
+              :src="selectedCoverUrl"
+              mode="aspectFit"
+              @error="handleSelectedCoverError"
+            />
+            <view v-else class="summary-cover__fallback">
+              {{ selectedPlaceName }}
+            </view>
+          </view>
+          <view class="summary-content">
+            <view class="summary-title">
+              {{ selectedPlaceName }}
+            </view>
+            <view class="summary-meta">{{ selectedPlace.category_level_1 }}</view>
+            <view v-if="selectedPlace.is_recommended" class="place-badge">
+              {{ mapCopy.recommendedBadge }}
+            </view>
+          </view>
+        </view>
+        <view class="summary-actions">
+          <button class="place-action primary" @click="openDetail">
+            {{ mapCopy.openDetail }}
+          </button>
+          <button class="place-action secondary" @click="openNavigation">
+            {{ mapCopy.openNavigation }}
+          </button>
+        </view>
+      </view>
+      <AsyncStateCard v-else variant="empty" :text="mapCopy.empty" />
+    </view>
   </view>
 </template>
 
 <style scoped>
 .page {
-  padding: 24rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100vh;
+  padding: 18rpx 20rpx;
+  overflow: hidden;
   background: #f8fafc;
-  min-height: 100vh;
 }
 
-.title {
-  font-size: 36rpx;
+.page-header {
+  flex: 0 0 auto;
+}
+
+.page-title {
+  font-size: 32rpx;
   font-weight: 700;
+  line-height: 1.25;
 }
 
-.subtitle {
+.page-subtitle {
   color: #6b7280;
-  margin-top: 12rpx;
-  margin-bottom: 24rpx;
-  line-height: 1.6;
+  margin-top: 6rpx;
+  line-height: 1.4;
+  font-size: 24rpx;
 }
 
-.map-card {
+.map-frame {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 260rpx;
   width: 100%;
-  height: 720rpx;
+  margin-top: 14rpx;
   border-radius: 16rpx;
   overflow: hidden;
   background: #e2e8f0;
 }
 
+.map-card {
+  width: 100%;
+  height: 100%;
+}
+
 .action-row {
   display: flex;
-  gap: 16rpx;
-  margin-bottom: 20rpx;
+  gap: 12rpx;
+  margin-top: 12rpx;
+  flex-wrap: wrap;
+}
+
+.place-action {
+  flex: 1 1 0;
+  min-width: 0;
+  height: auto;
+  margin: 0;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.2;
+  padding: 12rpx 16rpx;
+}
+
+.primary {
+  background: #0052d9;
+  color: #ffffff;
 }
 
 .secondary {
-  flex: 1;
-  border-radius: 8rpx;
   background: #e6f4ff;
   color: #0052d9;
 }
 
+.summary-slot {
+  flex: 0 0 auto;
+  margin-top: 14rpx;
+}
+
 .summary-card {
-  margin-top: 24rpx;
   background: #ffffff;
   border: 1rpx solid #e5e7eb;
   border-radius: 16rpx;
-  padding: 28rpx;
+  padding: 16rpx;
+}
+
+.summary-main {
+  display: flex;
+  gap: 16rpx;
+  align-items: stretch;
+}
+
+.summary-cover {
+  flex: 0 0 188rpx;
+  width: 188rpx;
+  height: 128rpx;
+  border-radius: 10rpx;
+  overflow: hidden;
+  background: #eef2f7;
+  border: 1rpx solid #e5e7eb;
+}
+
+.summary-cover__image {
+  width: 100%;
+  height: 100%;
+}
+
+.summary-cover__fallback {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 12rpx;
+  color: #475569;
+  font-size: 20rpx;
+  line-height: 1.35;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.summary-content {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .summary-title {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 .summary-meta {
-  margin-top: 10rpx;
+  margin-top: 6rpx;
   color: #64748b;
+  font-size: 22rpx;
+  line-height: 1.35;
 }
 
-.pill {
+.place-badge {
   display: inline-flex;
-  margin-top: 14rpx;
-  padding: 6rpx 14rpx;
+  margin-top: 8rpx;
+  padding: 4rpx 12rpx;
   border-radius: 8rpx;
   background: #fff7e6;
   color: #ad5a00;
   font-size: 22rpx;
 }
 
-.primary {
-  margin-top: 24rpx;
-  border-radius: 8rpx;
-  background: #0052d9;
-  color: #ffffff;
+.summary-actions {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 14rpx;
 }
 </style>
