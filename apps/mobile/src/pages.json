@@ -103,6 +103,7 @@
       }
     }
   ],
+  "subPackages": [],
   "tabBar": {
     "color": "#6b7280",
     "selectedColor": "#0f766e",
