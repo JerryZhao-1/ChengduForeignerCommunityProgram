@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { Event, EventRegistration } from "@community-map/shared";
+import {
+  ApiClientError,
+  type Event,
+  type EventRegistration
+} from "@community-map/shared";
 import { computed, ref } from "vue";
 import { onLoad, onShow } from "@dcloudio/uni-app";
 
@@ -7,7 +11,8 @@ import { mobileApi } from "@/api/client";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 import {
   getEventSignupState,
-  isActiveEventRegistration
+  isActiveEventRegistration,
+  isPublicEvent
 } from "./event-signup-state";
 
 const { state } = useAppStore();
@@ -23,6 +28,12 @@ const form = ref({
   phone: "",
   attendeeCount: 1
 });
+const unavailableEventMessage = "活动暂不可访问或已下线";
+
+const isUnavailableEventError = (err: unknown) =>
+  err instanceof ApiClientError
+    ? err.code === "NOT_FOUND" || err.status === 404
+    : err instanceof Error && err.message.includes("HTTP 404");
 
 const registeredEventIds = computed(
   () =>
@@ -85,27 +96,49 @@ const loadEvent = async (id: string) => {
 
   loading.value = true;
   error.value = "";
+  event.value = null;
 
   try {
-    const [eventResult, registrationResult, meResult] = await Promise.all([
-      mobileApi.events.detail(id),
-      mobileApi.events.myRegistrations(),
-      mobileApi.auth.me()
-    ]);
+    const eventResult = await mobileApi.events.detail(id);
+    if (!isPublicEvent(eventResult.data)) {
+      error.value = unavailableEventMessage;
+      loading.value = false;
+      return;
+    }
     event.value = eventResult.data;
+  } catch (err) {
+    console.error(err);
+    error.value = isUnavailableEventError(err)
+      ? unavailableEventMessage
+      : "活动加载失败，请稍后重试";
+    loading.value = false;
+    return;
+  }
+
+  try {
+    const registrationResult = await mobileApi.events.myRegistrations();
     registrations.value = Array.isArray(registrationResult.data)
       ? registrationResult.data
       : [];
+  } catch (err) {
+    console.error(err);
+    registrations.value = [];
+  }
 
+  try {
+    const meResult = await mobileApi.auth.me();
     const currentPhone = meResult.data.user.phone ?? "";
     if (!form.value.phone && currentPhone.length >= 6) {
       form.value.phone = currentPhone;
     }
+  } catch (err) {
+    console.error(err);
+  }
 
+  try {
     await loadRegistrationTicket(currentRegistration.value);
   } catch (err) {
     console.error(err);
-    error.value = "活动加载失败，请稍后重试";
   } finally {
     loading.value = false;
   }

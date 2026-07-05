@@ -144,9 +144,9 @@
   - 6.16-6.21 已完成到本地/API readiness 和 CloudBase dev API/places 基础验收层级。
   - 6.22 小程序 `cloudbase-function` 构建、微信开发者工具导入、真机验证和 Admin hosting/API 联调已补证据。
   - 6.23 接口/配置冻结、数据清理分类、6.24 联调入口输出已记录在 `docs/release-readiness-handoff-2026-06-24.md`；`typecheck` / `test` / `lint` 均已通过。
-  - 6.24 已完成 CloudBase dev HTTP smoke 的一部分：`/health`、places list/map/detail、events list/detail、discover feed/detail、`auth/me` 均返回 200；events/discover/auth 仍按非 places fallback 边界处理，不等同于 live persistence；files public/temp URL 尚未完成。
-- 已完成的主要阶段：Places 本地前后台链路、CloudBase dev API HTTP function、`/api` route、places public read/admin update/draft visibility、events/discover/files/notifications/auth 本地/API 负路径。
-- 仍阻塞上线闭环的 P0：prod env、数据库/存储安全规则、非 places live provider persistence；CloudBase dev places gallery media/file id 验收已完成。
+  - 6.24 已完成 CloudBase dev HTTP smoke 的一部分：`/health`、places list/map/detail、events list/detail、discover feed/detail、`auth/me` 均返回 200；7.5 已将 events 切到 CloudBase live provider，并完成 public visibility 与报名 smoke。
+- 已完成的主要阶段：Places 本地前后台链路、CloudBase dev API HTTP function、`/api` route、places public read/admin update/draft visibility、events live public read/registration、discover/files/notifications/auth 本地/API 负路径。
+- 仍阻塞上线闭环的 P0：prod env、数据库/存储安全规则、非 places/events live provider persistence；CloudBase dev places gallery media/file id 验收已完成。
 - 进度评估：功能开发主体约完成到“可进入全模块联调”，上线准备约完成到“dev API 与本地业务基线可用”；距离 7.1 口径还剩联调、真机、真实媒体、生产配置、安全规则和发布交接。
 
 ## 2. 剩余上线任务

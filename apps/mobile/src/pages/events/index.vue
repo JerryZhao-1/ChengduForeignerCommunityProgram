@@ -7,7 +7,8 @@ import { mobileApi } from "@/api/client";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 import {
   getEventSignupState,
-  isActiveEventRegistration
+  isActiveEventRegistration,
+  isPublicEvent
 } from "./event-signup-state";
 
 type TabKey = "all" | "thisWeek" | "upcoming" | "mine";
@@ -72,12 +73,16 @@ const filteredEvents = computed(() => {
   return events.value.filter((event) => {
     const start = new Date(event.start_time);
 
+    if (!isPublicEvent(event)) {
+      return false;
+    }
+
     if (activeTab.value === "mine") {
       return registeredEventIds.value.has(event._id);
     }
 
     if (activeTab.value === "upcoming") {
-      return start > now && event.publish_status === "published";
+      return start > now;
     }
 
     if (activeTab.value === "thisWeek") {

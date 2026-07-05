@@ -14,11 +14,23 @@ export const isActiveEventRegistration = (registration: EventRegistration) =>
   registration.registration_status !== "cancelled" &&
   registration.registration_status !== "closed";
 
+export const isPublicEvent = (
+  event: Pick<Event, "review_status" | "publish_status">
+) => event.review_status === "approved" && event.publish_status === "published";
+
 export const getEventSignupState = (
   event: Event,
   now = new Date(),
   options: EventSignupStateOptions = {}
 ): EventSignupState => {
+  if (!isPublicEvent(event)) {
+    return {
+      canSignup: false,
+      label: "暂不可报名",
+      reason: "活动暂不可访问或已下线。"
+    };
+  }
+
   if (event.publish_status === "offline") {
     return {
       canSignup: false,

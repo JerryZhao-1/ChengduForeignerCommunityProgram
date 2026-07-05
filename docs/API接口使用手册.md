@@ -126,9 +126,9 @@ Protected file paths / business types:
 | `mock`                  | 默认模式，主要用于本地开发；数据在 mock service 中。                                                                          |
 | `http`                  | 前端通过 HTTP 访问本地 Koa API。                                                                                              |
 | `cloudbase-function`    | 小程序通过 `wx.cloud.callHTTPFunction` 或 fallback cloud function 调用 API。                                                  |
-| CloudBase live provider | 当前只覆盖 places live 路径；需要 `API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、`CLOUDBASE_ENV_ID` 或 `TCB_ENV`。 |
+| CloudBase live provider | 当前覆盖 places 与 events live 路径；需要 `API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、`CLOUDBASE_ENV_ID` 或 `TCB_ENV`。 |
 
-注意：events、discover、comments、files、notifications、auth/role 当前只完成 local/API readiness 和 CloudBase handler fallback parity；非 places live provider persistence 尚未验收。
+注意：discover、comments、files、notifications、auth/role 当前只完成 local/API readiness 和 CloudBase handler fallback parity；非 places/events live provider persistence 尚未验收。
 
 Admin 地点腾讯地图搜索由 API 端代理调用腾讯位置服务 WebServiceAPI：
 

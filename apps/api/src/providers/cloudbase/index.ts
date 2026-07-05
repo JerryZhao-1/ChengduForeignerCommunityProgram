@@ -5,8 +5,17 @@ import {
   FILE_PATH_RULES,
   PLACE_TOP_LEVEL_CATEGORIES,
   PENDING_PLACE_GALLERY_BIZ_ID,
+  EventRegistrationSchema,
+  EventSchema,
+  EventTicketSchema,
+  EventWithRegistrationSchema,
   FileAssetSchema,
   PlaceSchema,
+  type Event,
+  type EventAdminListItem,
+  type EventAdminRegistrationRow,
+  type EventRegistration,
+  type EventTicket,
   type FileAsset,
   type PageResult,
   type Place,
@@ -16,31 +25,69 @@ import {
   type PlaceMapMarker
 } from "@community-map/shared";
 
+import { apiError } from "../../lib/errors";
 import { createMockProvider } from "../mock";
 import type { ApiProvider } from "../types";
 
 const DEFAULT_COMMUNITY_ID = "tongzilin";
 const MAX_PLACES_FETCH = 1000;
+const MAX_EVENTS_FETCH = 1000;
 
 type CloudbaseApp = ReturnType<typeof tcb.init>;
-type PlacesCollection = ReturnType<
+type CloudbaseDatabase = ReturnType<CloudbaseApp["database"]>;
+type CloudbaseCollection = ReturnType<
   ReturnType<ReturnType<typeof tcb.init>["database"]>["collection"]
 >;
-type FileAssetsCollection = PlacesCollection;
+
+interface CloudbaseDocumentGetResult {
+  data: unknown;
+}
+
+interface CloudbaseListGetResult {
+  data: unknown[];
+}
+
+interface CloudbaseUpdateResult {
+  updated?: number;
+}
+
+interface CloudbaseDocumentReference {
+  get(): Promise<CloudbaseDocumentGetResult>;
+  set(data: object): Promise<unknown>;
+  update(data: object): Promise<CloudbaseUpdateResult>;
+}
+
+interface CloudbaseTransactionQuery {
+  where(query: object): CloudbaseTransactionQuery;
+  limit(limit: number): CloudbaseTransactionQuery;
+  get(): Promise<CloudbaseListGetResult>;
+}
+
+interface CloudbaseTransactionCollection extends CloudbaseTransactionQuery {
+  doc(id: string | number): CloudbaseDocumentReference;
+}
+
+interface CloudbaseTransaction {
+  collection(collectionName: string): CloudbaseTransactionCollection;
+}
 
 interface LiveCloudbaseContext {
   app: CloudbaseApp;
-  places: PlacesCollection;
-  fileAssets: FileAssetsCollection;
+  db: CloudbaseDatabase;
+  events: CloudbaseCollection;
+  eventRegistrations: CloudbaseCollection;
+  eventTickets: CloudbaseCollection;
+  places: CloudbaseCollection;
+  fileAssets: CloudbaseCollection;
 }
 
-const cleanUpdate = <TInput extends Record<string, unknown>>(input: TInput) =>
+const cleanUndefined = <TItem extends object>(input: Partial<TItem>) =>
   Object.fromEntries(
     Object.entries(input).filter(([, value]) => value !== undefined)
-  ) as Partial<Place>;
+  ) as Partial<TItem>;
 
-const toCloudbaseSetDocument = (place: Place) => {
-  const document: Partial<Place> = { ...place };
+const toCloudbaseSetDocument = <TItem extends { _id: string }>(item: TItem) => {
+  const document: Partial<TItem> = { ...item };
   delete document._id;
   return document;
 };
@@ -63,6 +110,95 @@ const paginate = <TItem>(
 
 const keywordMatch = (value: string, keyword?: string) =>
   !keyword || value.toLowerCase().includes(keyword.toLowerCase());
+
+const isAdmin = (user: { role_flags: string[] }) =>
+  user.role_flags.includes("community_admin") ||
+  user.role_flags.includes("system_admin");
+
+const isLaunchVisibleEvent = (event: Event) =>
+  event.review_status === "approved" && event.publish_status === "published";
+
+const isActiveRegistration = (registration: EventRegistration) =>
+  !["cancelled", "closed"].includes(registration.registration_status);
+
+const storedConfirmedAttendeeCount = (raw: unknown) => {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+
+  const value = (raw as { confirmed_attendee_count?: unknown })
+    .confirmed_attendee_count;
+  return Number.isInteger(value) && typeof value === "number" && value >= 0
+    ? value
+    : null;
+};
+
+const toEventAdminListItem = (
+  event: Event,
+  registrations: EventRegistration[]
+): EventAdminListItem => {
+  const activeRegistrations = registrations.filter(
+    (registration) =>
+      registration.event_id === event._id && isActiveRegistration(registration)
+  );
+  const confirmed_attendee_count = activeRegistrations.reduce(
+    (sum, registration) => sum + registration.attendee_count,
+    0
+  );
+  const remaining_capacity = Math.max(
+    event.capacity - confirmed_attendee_count,
+    0
+  );
+
+  return {
+    ...event,
+    active_registration_count: activeRegistrations.length,
+    confirmed_attendee_count,
+    remaining_capacity,
+    is_full: remaining_capacity === 0
+  };
+};
+
+const toEventAdminRegistrationRow = (
+  registration: EventRegistration,
+  ticket: EventTicket | undefined
+): EventAdminRegistrationRow => ({
+  ...registration,
+  ticket_code: ticket?.ticket_code ?? null,
+  ticket_status: ticket?.status ?? null,
+  ticket_used_at: ticket?.used_at ?? null
+});
+
+const createEventFromInput = (
+  input: Partial<Event>,
+  organizerUserId: string
+): Event =>
+  EventSchema.parse({
+    _id: `event_${randomUUID()}`,
+    community_id: DEFAULT_COMMUNITY_ID,
+    title_zh: input.title_zh ?? "",
+    title_en: input.title_en ?? "",
+    summary_zh: input.summary_zh ?? "",
+    summary_en: input.summary_en ?? "",
+    content_zh: input.content_zh ?? "",
+    content_en: input.content_en ?? "",
+    cover_file_id: input.cover_file_id ?? "cloud://placeholder-cover",
+    cover_cloud_path:
+      input.cover_cloud_path ?? "public/events/placeholder/cover.jpg",
+    cover_url:
+      input.cover_url ??
+      "https://example.com/public/events/placeholder/cover.jpg",
+    place_id: input.place_id,
+    address_text: input.address_text ?? "",
+    location: input.location ?? { latitude: 30.615, longitude: 104.062 },
+    start_time: input.start_time ?? new Date().toISOString(),
+    end_time: input.end_time ?? new Date().toISOString(),
+    signup_deadline: input.signup_deadline ?? new Date().toISOString(),
+    capacity: input.capacity ?? 30,
+    organizer_user_id: organizerUserId,
+    review_status: "draft",
+    publish_status: "draft"
+  });
 
 const hasUsableCoordinates = (place: Place) =>
   Number.isFinite(place.location.latitude) &&
@@ -253,14 +389,56 @@ const createLiveContext = (): LiveCloudbaseContext | null => {
 
   return {
     app,
+    db,
+    events: db.collection("events"),
+    eventRegistrations: db.collection("event_registrations"),
+    eventTickets: db.collection("event_tickets"),
     places: db.collection("places"),
     fileAssets: db.collection("file_assets")
   };
 };
 
+const normalizeEvent = (raw: unknown): Event | null => {
+  const parsed = EventSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizeEventRegistration = (raw: unknown): EventRegistration | null => {
+  const parsed = EventRegistrationSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizeEventTicket = (raw: unknown): EventTicket | null => {
+  const parsed = EventTicketSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
 const normalizePlace = (raw: unknown): Place | null => {
   const parsed = PlaceSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;
+};
+
+const readEvents = async (context: LiveCloudbaseContext) => {
+  const result = await context.events.limit(MAX_EVENTS_FETCH).get();
+  return result.data
+    .map(normalizeEvent)
+    .filter((event): event is Event => !!event);
+};
+
+const readEventRegistrations = async (context: LiveCloudbaseContext) => {
+  const result = await context.eventRegistrations
+    .limit(MAX_EVENTS_FETCH)
+    .get();
+  return result.data
+    .map(normalizeEventRegistration)
+    .filter((registration): registration is EventRegistration => !!registration);
+};
+
+const readEventTickets = async (context: LiveCloudbaseContext) => {
+  const result = await context.eventTickets.limit(MAX_EVENTS_FETCH).get();
+  return result.data
+    .map(normalizeEventTicket)
+    .filter((ticket): ticket is EventTicket => !!ticket);
 };
 
 const readPlaces = async (context: LiveCloudbaseContext) => {
@@ -269,6 +447,306 @@ const readPlaces = async (context: LiveCloudbaseContext) => {
     .map(normalizePlace)
     .filter((place): place is Place => !!place);
 };
+
+const createLiveEventsProvider = (
+  context: LiveCloudbaseContext,
+  fallbackAuth: ApiProvider["auth"]
+): ApiProvider["events"] => ({
+  async list(input) {
+    const events = (await readEvents(context)).filter(
+      (event) =>
+        isLaunchVisibleEvent(event) &&
+        (!input.communityId || event.community_id === input.communityId) &&
+        (keywordMatch(event.title_zh, input.keyword) ||
+          keywordMatch(event.title_en, input.keyword) ||
+          keywordMatch(event.summary_zh, input.keyword) ||
+          keywordMatch(event.summary_en, input.keyword))
+    );
+
+    return paginate(events, input);
+  },
+  async listAdmin() {
+    const [events, registrations] = await Promise.all([
+      readEvents(context),
+      readEventRegistrations(context)
+    ]);
+
+    return paginate(
+      events.map((event) => toEventAdminListItem(event, registrations)),
+      { pageSize: events.length || 20 }
+    );
+  },
+  async detail(id) {
+    const event = (await readEvents(context)).find((item) => item._id === id);
+    return event && isLaunchVisibleEvent(event) ? event : null;
+  },
+  async listRegistrationsForAdmin(eventId) {
+    const [events, registrations, tickets] = await Promise.all([
+      readEvents(context),
+      readEventRegistrations(context),
+      readEventTickets(context)
+    ]);
+    const event = events.find((item) => item._id === eventId);
+
+    if (!event) {
+      return null;
+    }
+
+    return registrations
+      .filter((registration) => registration.event_id === eventId)
+      .map((registration) =>
+        toEventAdminRegistrationRow(
+          registration,
+          tickets.find((ticket) => ticket._id === registration.ticket_id)
+        )
+      );
+  },
+  async createRegistration(eventId, input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    const result: unknown = await context.db.runTransaction(
+      async (transaction: CloudbaseTransaction) => {
+        const [eventResult, registrationResult] = await Promise.all([
+          transaction.collection("events").doc(eventId).get(),
+          transaction
+            .collection("event_registrations")
+            .where({ event_id: eventId })
+            .limit(MAX_EVENTS_FETCH)
+            .get()
+        ]);
+        const event = normalizeEvent(eventResult.data);
+        const registrations = Array.isArray(registrationResult.data)
+          ? registrationResult.data
+              .map(normalizeEventRegistration)
+              .filter(
+                (registration): registration is EventRegistration =>
+                  !!registration
+              )
+          : [];
+
+        if (!event || !isLaunchVisibleEvent(event)) {
+          throw apiError("NOT_FOUND", "Event not found.", 404);
+        }
+
+        const now = Date.now();
+
+        if (new Date(event.end_time).getTime() <= now) {
+          throw apiError("CONFLICT", "Event has ended.", 409, {
+            reason: "event_ended"
+          });
+        }
+
+        if (new Date(event.signup_deadline).getTime() <= now) {
+          throw apiError("CONFLICT", "Event signup is closed.", 409, {
+            reason: "signup_deadline_passed"
+          });
+        }
+
+        const hasActiveRegistration = registrations.some(
+          (registration) =>
+            registration.user_id === actor._id &&
+            isActiveRegistration(registration)
+        );
+
+        if (hasActiveRegistration) {
+          throw apiError("CONFLICT", "Registration already exists.", 409, {
+            reason: "already_registered"
+          });
+        }
+
+        const confirmedAttendees = registrations
+          .filter(isActiveRegistration)
+          .reduce(
+            (sum, registration) => sum + registration.attendee_count,
+            0
+          );
+        const currentConfirmedAttendees = Math.max(
+          storedConfirmedAttendeeCount(eventResult.data) ?? 0,
+          confirmedAttendees
+        );
+
+        if (
+          currentConfirmedAttendees + input.attendee_count >
+          event.capacity
+        ) {
+          throw apiError("CONFLICT", "Event capacity is full.", 409, {
+            reason: "capacity_exceeded",
+            remaining: Math.max(event.capacity - currentConfirmedAttendees, 0)
+          });
+        }
+
+        const nextConfirmedAttendees =
+          currentConfirmedAttendees + input.attendee_count;
+        const ticketId = `ticket_${randomUUID()}`;
+        const registration: EventRegistration = {
+          _id: `reg_${randomUUID()}`,
+          event_id: eventId,
+          user_id: actor._id,
+          contact_name: input.contact_name,
+          contact_phone: input.contact_phone,
+          attendee_count: input.attendee_count,
+          registration_status: "confirmed",
+          ticket_id: ticketId,
+          source_channel: input.source_channel
+        };
+        const ticket: EventTicket = {
+          _id: ticketId,
+          registration_id: registration._id,
+          ticket_code: `TZL-${Date.now()}`,
+          qr_file_id: `cloud://${registration.ticket_id}`,
+          qr_cloud_path: `${FILE_PATH_RULES.tickets}${registration.ticket_id}.png`,
+          visibility: "private",
+          status: "valid",
+          issued_at: new Date().toISOString(),
+          used_at: null
+        };
+
+        await Promise.all([
+          transaction.collection("events").doc(eventId).update({
+            confirmed_attendee_count: nextConfirmedAttendees
+          }),
+          transaction
+            .collection("event_registrations")
+            .doc(registration._id)
+            .set(toCloudbaseSetDocument(registration)),
+          transaction
+            .collection("event_tickets")
+            .doc(ticket._id)
+            .set(toCloudbaseSetDocument(ticket))
+        ]);
+
+        return { registration, ticket };
+      }
+    );
+
+    return EventWithRegistrationSchema.parse(result);
+  },
+  async listMyRegistrations(actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    return (await readEventRegistrations(context)).filter(
+      (registration) => registration.user_id === actor._id
+    );
+  },
+  async getTicketByRegistration(registrationId, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    const registrations = await readEventRegistrations(context);
+    const registration = registrations.find(
+      (item) => item._id === registrationId
+    );
+
+    if (!registration) {
+      return null;
+    }
+
+    if (registration.user_id !== actor._id && !isAdmin(actor)) {
+      throw apiError("FORBIDDEN", "Ticket access denied.", 403);
+    }
+
+    return (
+      (await readEventTickets(context)).find(
+        (ticket) => ticket._id === registration.ticket_id
+      ) ?? null
+    );
+  },
+  async create(input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    const event = createEventFromInput(input, actor._id);
+    await context.events.doc(event._id).set(toCloudbaseSetDocument(event));
+    return event;
+  },
+  async update(id, input) {
+    const events = await readEvents(context);
+    const existing = events.find((event) => event._id === id);
+
+    if (!existing) {
+      return null;
+    }
+
+    const update = cleanUndefined<Event>(input);
+    const nextEvent = EventSchema.parse({
+      ...existing,
+      ...update
+    });
+
+    if (Object.keys(update).length > 0) {
+      await context.events.doc(id).update(update);
+    }
+
+    return nextEvent;
+  },
+  async review(id, input) {
+    const events = await readEvents(context);
+    const existing = events.find((event) => event._id === id);
+
+    if (!existing) {
+      return null;
+    }
+
+    const update = cleanUndefined<Event>({
+      review_status: input.review_status,
+      publish_status: input.publish_status
+    });
+    const nextEvent = EventSchema.parse({
+      ...existing,
+      ...update
+    });
+
+    await context.events.doc(id).update(update);
+    return nextEvent;
+  },
+  async checkin(id, ticketId) {
+    const [events, registrations, tickets] = await Promise.all([
+      readEvents(context),
+      readEventRegistrations(context),
+      readEventTickets(context)
+    ]);
+    const event = events.find((item) => item._id === id);
+    const ticket = tickets.find((item) => item._id === ticketId);
+
+    if (!event || !ticket) {
+      return null;
+    }
+
+    const registration = registrations.find(
+      (item) => item._id === ticket.registration_id
+    );
+
+    if (!registration || registration.event_id !== event._id) {
+      throw apiError("CONFLICT", "Ticket does not belong to event.", 409, {
+        reason: "ticket_event_mismatch"
+      });
+    }
+
+    if (ticket.status !== "valid") {
+      throw apiError("CONFLICT", "Ticket is not valid for check-in.", 409, {
+        reason: "ticket_not_valid",
+        ticket_status: ticket.status
+      });
+    }
+
+    const usedTicket = EventTicketSchema.parse({
+      ...ticket,
+      status: "used",
+      used_at: new Date().toISOString()
+    });
+
+    const updateResult = await context.eventTickets
+      .where({ _id: ticket._id, status: "valid" })
+      .options({ multiple: false })
+      .update({
+        status: usedTicket.status,
+        used_at: usedTicket.used_at
+      });
+
+    if (updateResult.updated !== 1) {
+      throw apiError("CONFLICT", "Ticket is not valid for check-in.", 409, {
+        reason: "ticket_not_valid",
+        ticket_status: ticket.status
+      });
+    }
+
+    return usedTicket;
+  }
+});
 
 const createPlaceFromInput = (input: Partial<Place>): Place =>
   PlaceSchema.parse({
@@ -439,10 +917,13 @@ const createLivePlacesProvider = (
 
     const nextPlace = PlaceSchema.parse({
       ...existing,
-      ...cleanUpdate(input)
+      ...cleanUndefined<Place>(input)
     });
+    const update = cleanUndefined<Place>(input);
 
-    await context.places.doc(id).update(cleanUpdate(input));
+    if (Object.keys(update).length > 0) {
+      await context.places.doc(id).update(update);
+    }
     return nextPlace;
   },
   async delete(id) {
@@ -527,6 +1008,7 @@ export const createCloudbaseProvider = (): ApiProvider => {
 
   return {
     ...fallback,
+    events: createLiveEventsProvider(liveContext, fallback.auth),
     places: createLivePlacesProvider(liveContext)
   };
 };
