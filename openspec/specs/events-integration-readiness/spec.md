@@ -2,7 +2,6 @@
 
 ## Purpose
 Define local/API readiness requirements for the events launch flow, including public visibility, registration guards, ticket ownership, admin maintenance, and check-in validation.
-
 ## Requirements
 ### Requirement: Events public reads SHALL expose only launch-visible events
 The system SHALL keep public event list and detail reads limited to events that are intended for public browsing in the target community.
@@ -49,27 +48,110 @@ The system SHALL keep ticket retrieval limited to the owning actor or authorized
 - **AND** the response does not expose private ticket file identifiers beyond the allowed error details
 
 ### Requirement: Event admin maintenance SHALL support minimum launch operations
-The system SHALL let authorized admins create, update, review, publish, and check in events through the BFF without bypassing shared contracts.
+
+The system SHALL let authorized admins create, update, review, publish, check in, sort, and delete events through the BFF and admin console without bypassing shared contracts.
 
 #### Scenario: Admin creates and publishes an event
+
 - **WHEN** an authorized admin creates an event and then approves it for publication
 - **THEN** the event becomes visible through public event list and detail reads
 - **AND** the public response reflects the latest admin-maintained fields
 
+#### Scenario: Admin deletes an event
+
+- **WHEN** a `community_admin` or `system_admin` sends `DELETE /admin/events/:id` for an existing event
+- **THEN** the system removes the event record from subsequent admin and public event reads
+- **AND** returns a standard success envelope containing the deleted event id
+- **AND** existing registration and ticket records are not cascade-deleted by this operation
+
+#### Scenario: Missing event delete returns not found
+
+- **WHEN** an authorized admin sends `DELETE /admin/events/:id` for a missing event
+- **THEN** the system returns `404 NOT_FOUND`
+- **AND** no other event, registration, or ticket records are changed
+
 #### Scenario: Non-admin cannot mutate events
-- **WHEN** a non-admin actor calls an admin event create, update, review, or check-in route
+
+- **WHEN** a non-admin actor calls an admin event create, update, review, check-in, or delete route
 - **THEN** the API returns a forbidden error envelope
 - **AND** protected event, registration, and ticket data is not mutated
 
 ### Requirement: Event check-in SHALL enforce ticket validity
-The system SHALL validate event-ticket association and ticket state before marking a ticket used.
+
+The system SHALL validate event-ticket association and ticket state before marking a ticket used, and the admin console SHALL make used ticket state visible to operators.
 
 #### Scenario: Admin checks in a valid ticket
+
 - **WHEN** an authorized admin checks in a valid ticket for the matching event
 - **THEN** the ticket status changes to `used`
 - **AND** `used_at` is recorded
+- **AND** the admin registration list marks the attendee as checked in and places them after unchecked attendees
 
 #### Scenario: Reject invalid check-in
+
 - **WHEN** an admin checks in a missing ticket, a ticket for another event, or an already-used ticket
 - **THEN** the API returns a stable error envelope
 - **AND** no unrelated ticket state is mutated
+
+### Requirement: Events backoffice UI SHALL support basic admin event management
+The admin Events page SHALL provide a usable management interface for event listing, filtering, creation, editing, publication state changes, and user feedback.
+
+#### Scenario: Admin views and filters all event states
+- **WHEN** an admin opens the Events management page
+- **THEN** the page loads events from the admin list API
+- **AND** draft and non-public events are visible to the admin
+- **AND** filters allow narrowing by review status, publish status, keyword, drafts, and published events
+- **AND** the table displays event time, signup deadline, capacity, current registration count, and full-capacity state
+
+#### Scenario: Admin creates and edits event fields through a dialog
+- **WHEN** an admin opens the create or edit event dialog
+- **THEN** the form exposes bilingual title, summary, and content fields
+- **AND** the form exposes address, latitude, longitude, start time, end time, signup deadline, capacity, cover URL or file fields, review status, and publish status
+- **AND** saving valid input persists the event through shared admin client methods
+- **AND** invalid input shows a clear error without silently closing the dialog
+
+#### Scenario: Admin actions provide visible feedback and safe loading states
+- **WHEN** an admin saves a draft, edits an event, publishes, takes an event offline, republishes, or checks in a ticket
+- **THEN** the UI shows a pending state for the affected action
+- **AND** repeated clicks are disabled while the request is in flight
+- **AND** success shows an Element Plus success message
+- **AND** failure shows an Element Plus error message with enough context for manual troubleshooting
+- **AND** the table or drawer refreshes after successful mutation
+
+### Requirement: Event registration management SHALL support admin inspection and check-in
+The system SHALL let authorized admins inspect registrations for an event and check in tickets from the backoffice.
+
+#### Scenario: Admin lists registrations for an event
+- **WHEN** an authorized admin requests `GET /admin/events/:id/registrations`
+- **THEN** the API returns a standard success envelope with registrations for that event
+- **AND** each row includes registration status, contact name, contact phone, attendee count, source channel, linked ticket id, ticket code, ticket status, and used time when available
+- **AND** missing event ids return a standard not-found error envelope
+
+#### Scenario: Admin opens registration details from the Events page
+- **WHEN** an admin opens the registration drawer or detail panel for an event
+- **THEN** the UI displays that event's registrations with user/contact data and ticket state
+- **AND** empty registration lists render an explicit empty state
+- **AND** loading or failed registration fetches render clear states instead of leaving a blank panel
+
+#### Scenario: Admin checks in a valid ticket from the backoffice
+- **WHEN** an authorized admin submits a valid ticket id for the matching event
+- **THEN** the backend marks the ticket as `used`
+- **AND** `used_at` is recorded
+- **AND** the UI refreshes the registration list and shows a success message
+
+#### Scenario: Admin sees clear errors for invalid or repeated check-in
+- **WHEN** an admin submits a missing ticket, a ticket for another event, or an already-used ticket
+- **THEN** the API returns a stable error envelope
+- **AND** no unrelated ticket state is mutated
+- **AND** the UI shows an error message rather than appearing unresponsive
+
+### Requirement: Event admin list SHALL support local operator sorting
+
+The system SHALL let administrators sort the currently loaded admin events list by operationally useful fields.
+
+#### Scenario: Sort admin event rows
+
+- **WHEN** an administrator chooses a sort field and direction on the admin events page
+- **THEN** the currently loaded rows are ordered by that field and direction
+- **AND** supported fields include name, start time, end time, signup deadline, capacity, and remaining capacity
+- **AND** resetting filters restores the default loaded order

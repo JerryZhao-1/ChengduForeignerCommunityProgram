@@ -13,11 +13,18 @@ The system SHALL allow administrators to maintain the place metadata required by
 - **THEN** the system persists bilingual names, bilingual intro, coordinates, Tencent POI reference, top-level category, second-level category, tags, recommendation state, recommendation reason, recommendation rank, and publish state through the backend
 - **AND** downstream public browsing surfaces can consume those values according to public visibility rules
 
-#### Scenario: Publish a maintained place
+#### Scenario: Select a fixed second-level category
 
-- **WHEN** an authorized administrator changes a maintained place to `published`
-- **THEN** the place can appear in public list, recommendation, tag/category filtered list, map marker, and detail reads according to the public contracts
-- **AND** draft or unpublished places remain hidden from those public surfaces
+- **WHEN** an authorized administrator selects a place top-level category in the admin editor
+- **THEN** the editor offers a fixed set of second-level category options for that top-level category
+- **AND** selecting an option stores the selected value in `category_level_2`
+- **AND** the shared schema continues to treat `category_level_2` as a string so existing imported or legacy values remain valid
+
+#### Scenario: Preserve a legacy second-level category while editing
+
+- **WHEN** an authorized administrator edits a place whose current `category_level_2` is not in the fixed option set for its top-level category
+- **THEN** the editor shows the current value as a selectable current-value option
+- **AND** the administrator can keep it or replace it with a fixed option
 
 ### Requirement: Use a shared top-level category taxonomy for places
 
@@ -194,3 +201,97 @@ The system SHALL allow administrators to use Amap image candidates while creatin
 - **WHEN** an authorized administrator uses the existing Tencent place search
 - **THEN** the system continues to fill supported metadata such as Chinese name, Chinese address, coordinates, and Tencent POI id
 - **AND** the Tencent search flow is not required to return image candidates
+
+### Requirement: Maintain places from the admin console
+
+The system SHALL allow administrators to maintain places from the admin console.
+
+#### Scenario: Create or edit a place
+
+- **WHEN** an authorized administrator creates or edits a place
+- **THEN** the system stores the updated bilingual place data through the backend
+- **AND** the place becomes available to downstream public/admin reads according to its status
+
+### Requirement: Maintain places metadata for discovery surfaces
+
+The system SHALL allow administrators to maintain discovery-related metadata for places.
+
+#### Scenario: Update category, tag, or recommendation state
+
+- **WHEN** an authorized administrator updates a place category, tag, or recommendation-related field
+- **THEN** the backend persists the metadata
+- **AND** the mobile places module can consume the updated discovery state
+
+### Requirement: Maintain place galleries through backend-controlled media flows
+
+The system SHALL allow administrators to attach place gallery media through the backend-controlled file workflow.
+
+#### Scenario: Attach gallery media to a place
+
+- **WHEN** an authorized administrator uploads and attaches place gallery media
+- **THEN** the system stores the file metadata using the backend file flow
+- **AND** the place detail payload includes the media required by the mobile detail page
+
+### Requirement: Review imported volunteer place drafts in admin
+The system SHALL allow administrators to identify and complete imported volunteer place records before publication.
+
+#### Scenario: Inspect imported draft quality
+- **WHEN** an administrator views imported volunteer place drafts
+- **THEN** the admin surface exposes the canonical fields that need completion, including category, coordinates, address, bilingual content, tags, gallery attachment, and publish state
+- **AND** the administrator can keep incomplete records in draft without exposing them publicly
+
+#### Scenario: Complete an imported draft
+- **WHEN** an administrator normalizes an imported record and saves required public fields
+- **THEN** the backend persists the completed canonical place fields
+- **AND** the administrator can publish the place only through the admin-owned publication state
+
+### Requirement: Highlight map and publication blockers
+The system SHALL make place data issues that block public map or high-quality detail rendering visible to administrators.
+
+#### Scenario: Missing coordinates
+- **WHEN** a place has missing or unusable coordinates
+- **THEN** the admin workflow indicates that the place cannot produce a public map marker
+- **AND** saving the draft remains allowed so the record can be completed later
+
+#### Scenario: Missing optional content
+- **WHEN** a place lacks gallery media, tags, recommendation state, or English fields
+- **THEN** the admin workflow allows saving while making the missing content clear enough for review
+- **AND** public surfaces degrade according to their contracts when the place is eventually published
+
+### Requirement: Edit existing place records through the admin backend
+The system SHALL allow authorized administrators to update existing canonical place records through the backend admin API without creating duplicate place records or bypassing shared validation.
+
+#### Scenario: Authorized partial edit persists canonical place fields
+- **WHEN** an authorized administrator sends `PATCH /admin/places/:id` with a valid subset of editable place fields
+- **THEN** the backend validates the request with the shared update schema
+- **AND** the backend merges only provided fields into the existing place record
+- **AND** omitted fields remain unchanged
+- **AND** the response returns the updated canonical place with the same `_id` and `community_id`
+- **AND** subsequent `GET /admin/places` reads include the updated record
+
+#### Scenario: Published edit updates public browsing surfaces
+- **WHEN** an authorized administrator edits a place and the resulting place has `status="published"`
+- **THEN** public list, map marker, and detail reads reflect the edited public fields according to their existing public contracts
+- **AND** public marker responses remain marker-safe and do not include detail-only or admin-only fields
+- **AND** public list and detail responses do not expose admin-only review or volunteer intake metadata
+
+#### Scenario: Draft edit remains hidden from public surfaces
+- **WHEN** an authorized administrator edits an existing place and the resulting place has `status="draft"`
+- **THEN** the updated place is visible through admin reads
+- **AND** the place is absent from public list and map marker reads
+- **AND** public detail reads for that place return the standard not-found error
+
+#### Scenario: Invalid edit is rejected without mutation
+- **WHEN** an authorized administrator sends `PATCH /admin/places/:id` with an invalid category, invalid URL, invalid status, invalid coordinates, or another payload that violates the shared update schema
+- **THEN** the backend returns a validation error using the standard error envelope
+- **AND** the existing place record is not mutated
+
+#### Scenario: Missing place id is rejected
+- **WHEN** an authorized administrator sends `PATCH /admin/places/:id` for a place id that does not exist
+- **THEN** the backend returns a not-found error using the standard error envelope
+- **AND** no new place record is created
+
+#### Scenario: Unauthorized edit is rejected
+- **WHEN** a caller without the required admin role sends `PATCH /admin/places/:id`
+- **THEN** the backend rejects the request with the standard authentication or permission error
+- **AND** the existing place record is not mutated

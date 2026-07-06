@@ -46,6 +46,8 @@ The system SHALL validate event-ticket association and ticket state before marki
 - **THEN** the API returns a stable error envelope
 - **AND** no unrelated ticket state is mutated
 
+## ADDED Requirements
+
 ### Requirement: Event admin list SHALL support local operator sorting
 
 The system SHALL let administrators sort the currently loaded admin events list by operationally useful fields.

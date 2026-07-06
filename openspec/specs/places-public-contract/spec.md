@@ -10,8 +10,8 @@ The system SHALL treat `GET /places/map-markers` as a stable v1 map contract tha
 #### Scenario: Return a marker payload
 
 - **WHEN** the system returns place markers for the public map
-- **THEN** each marker includes only id, localized names, top-level category, recommendation flag, and coordinates
-- **AND** the response does not include detail-only fields such as full address text, intro body, gallery arrays, or navigation objects
+- **THEN** each marker includes only id, localized names, nullable cover URL, top-level category, recommendation flag, and coordinates
+- **AND** the response does not include detail-only fields such as full address text, intro body, gallery arrays, external media arrays, cover source attribution, or navigation objects
 
 #### Scenario: Return markers in deterministic order
 
@@ -52,8 +52,9 @@ The system SHALL keep public places list and map marker payloads separate from p
 #### Scenario: Request list and marker payloads
 
 - **WHEN** a client requests `GET /places` or `GET /places/map-markers`
-- **THEN** the response does not include `gallery_media`, `gallery_urls`, complete intro bodies, full address bodies, or navigation objects
+- **THEN** the response does not include `gallery_media`, `gallery_urls`, external media arrays, complete intro bodies, full address bodies, or navigation objects
 - **AND** media-backed gallery data is only returned from `GET /places/:id`
+- **AND** nullable `cover_url` on list or marker payloads is treated as a lightweight card or marker preview field rather than a gallery media payload
 
 ### Requirement: Public place detail SHALL enforce published visibility
 
@@ -98,8 +99,8 @@ The system SHALL treat `GET /places/map-markers` as a lightweight marker contrac
 #### Scenario: Marker response stays lightweight
 
 - **WHEN** the system returns map markers
-- **THEN** each marker only contains marker-safe fields such as id, localized name, top-level category, recommendation flag, and coordinates
-- **AND** the response does not include detail-only fields such as gallery, address body, intro, or navigation objects
+- **THEN** each marker only contains marker-safe fields such as id, localized name, nullable cover URL, top-level category, recommendation flag, and coordinates
+- **AND** the response does not include detail-only fields such as gallery, address body, intro, cover source metadata, external media arrays, or navigation objects
 
 ### Requirement: Public place detail SHALL expose externally sourced media separately
 The system SHALL include selected external gallery media only in public place detail payloads and SHALL distinguish them from owned gallery media backed by completed file assets.
@@ -113,7 +114,8 @@ The system SHALL include selected external gallery media only in public place de
 #### Scenario: List and marker exclude external media
 - **WHEN** a client requests `GET /places` or `GET /places/map-markers`
 - **THEN** the response does not include external gallery media arrays, cover source metadata, owned `gallery_media`, or `gallery_urls`
-- **AND** list and marker payloads remain bounded to their existing public surface fields
+- **AND** nullable `cover_url` may appear as a lightweight card or marker preview field without exposing external media ownership or attribution metadata
+- **AND** list and marker payloads remain bounded to their public surface fields
 
 ### Requirement: Public place detail SHALL expose cover source metadata when needed
 The system SHALL expose enough source metadata for clients to attribute externally sourced cover images on public detail surfaces.
@@ -127,3 +129,24 @@ The system SHALL expose enough source metadata for clients to attribute external
 - **WHEN** a published place uses an owned or manually maintained cover image with no external provider metadata
 - **THEN** `GET /places/:id` remains valid
 - **AND** the detail payload does not require external cover attribution fields to be present
+
+### Requirement: Public places contracts tolerate imported real-data gaps
+The system SHALL keep public places list, marker, and detail responses valid when published real-data records lack optional gallery, tags, recommendation state, or complete address content.
+
+#### Scenario: Return published place without optional fields
+- **WHEN** a published place has no gallery media, no tags, and no recommendation state
+- **THEN** public list and detail responses remain schema-valid
+- **AND** optional collections are returned as empty arrays or nullable values according to the existing contract
+
+#### Scenario: Exclude place without usable marker data
+- **WHEN** a published place lacks usable coordinates
+- **THEN** it can still be returned by public list and detail if otherwise valid
+- **AND** it is excluded from `GET /places/map-markers`
+
+### Requirement: Public places contracts exclude import-only metadata
+The system SHALL keep import source metadata and volunteer review evidence out of public places contracts.
+
+#### Scenario: Read imported and published place
+- **WHEN** a client reads public data for a place that originated from volunteer import
+- **THEN** the response contains only canonical public fields
+- **AND** it does not include spreadsheet row identifiers, position proof, collector notes, contact details, or internal review status
