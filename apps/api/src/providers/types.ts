@@ -5,6 +5,7 @@ import type {
   Event,
   EventAdminListItem,
   EventAdminRegistrationRow,
+  DeleteEventResponse,
   EventRegistration,
   EventTicket,
   FileAsset,
@@ -59,6 +60,7 @@ export interface ApiProvider {
     ): Promise<EventTicket | null>;
     create(input: Partial<Event>, actorId?: string): Promise<Event>;
     update(id: string, input: Partial<Event>): Promise<Event | null>;
+    delete(id: string): Promise<DeleteEventResponse | null>;
     uploadCoverFile(
       id: string | null,
       input: {

@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import type {
+  DeleteEventResponseSchema,
   EventAdminListItemSchema,
   EventAdminRegistrationRowSchema
 } from "../schemas/events";
@@ -43,6 +44,7 @@ export type EventAdminListItem = z.infer<typeof EventAdminListItemSchema>;
 export type EventAdminRegistrationRow = z.infer<
   typeof EventAdminRegistrationRowSchema
 >;
+export type DeleteEventResponse = z.infer<typeof DeleteEventResponseSchema>;
 export type Place = z.infer<typeof PlaceSchema>;
 export type PlaceExternalMedia = z.infer<typeof PlaceExternalMediaSchema>;
 export type PlaceCoverSource = z.infer<typeof PlaceCoverSourceSchema>;

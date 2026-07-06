@@ -602,6 +602,16 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         Object.assign(existing, input);
         return existing;
       },
+      delete(id: string) {
+        const index = state.events.findIndex((event) => event._id === id);
+
+        if (index === -1) {
+          return null;
+        }
+
+        state.events.splice(index, 1);
+        return { deleted_id: id };
+      },
       review(
         id: string,
         input: {

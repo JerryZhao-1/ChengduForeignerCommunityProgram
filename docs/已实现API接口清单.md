@@ -9,9 +9,9 @@
 - `packages/shared/src/contracts/*.ts`：共享契约定义
 - `apps/api/src/providers/*` 与 `packages/shared/src/mock/service.ts`：当前业务实现入口
 
-截至当前版本，`apps/api` 一共注册了 34 个接口：
+截至当前版本，`apps/api` 一共注册了 35 个接口：
 
-- 业务接口 33 个
+- 业务接口 34 个
 - 健康检查接口 1 个：`GET /health`
 
 ## 2. 总入口与核心文件
@@ -36,7 +36,7 @@
 | 运行模式    | 文件                                        | 说明                                                                                                                                                                                                                                           |
 | ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mock`      | `apps/api/src/providers/mock/index.ts`      | 当前默认模式，大多数接口都可用                                                                                                                                                                                                                 |
-| `cloudbase` | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；live mode 已覆盖 places public list、map markers、detail、admin places create/list/update/delete，events/discover/files/notifications/auth 只完成 handler fallback parity，非 places live providers 和生产部署仍未完成 |
+| `cloudbase` | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；live mode 已覆盖 places public list、map markers、detail、admin places create/list/update/delete，并覆盖 events list/detail/registration/admin create/list/update/delete/review/check-in/cover upload 等路径；discover/files/notifications/auth 仍以 fallback parity 为主，完整生产部署仍未完成 |
 
 ## 4. 接口清单
 
@@ -60,12 +60,13 @@
 | `POST`  | `/admin/events`                    | 管理端创建活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.create`                  |
 | `POST`  | `/admin/events/cover-file`         | 管理端创建前上传活动封面 | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/files.ts`  | `packages/shared/src/mock/service.ts` 中 `events.uploadCoverFile`         |
 | `PATCH` | `/admin/events/:id`                | 管理端更新活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.update`                  |
+| `DELETE` | `/admin/events/:id`               | 管理端删除活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.delete`                  |
 | `POST`  | `/admin/events/:id/cover-file`     | 管理端上传已有活动封面 | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/files.ts`  | `packages/shared/src/mock/service.ts` 中 `events.uploadCoverFile`         |
 | `POST`  | `/admin/events/:id/review`         | 管理端审核活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.review`                  |
 | `GET`   | `/admin/events/:id/registrations`  | 管理端查看活动报名     | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.listRegistrationsForAdmin` |
 | `POST`  | `/admin/events/:id/checkin`        | 管理端核销活动票据     | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.checkin`                 |
 
-Events public reads 只返回 `review_status="approved"` 且 `publish_status="published"` 的目标社区活动；`GET /admin/events` 返回 draft、pending_review、approved、rejected 与 draft/published/offline/ended 管理态记录，并附带 active registration count、confirmed attendee count、remaining capacity 和 full state；`POST /admin/events/cover-file` 与 `POST /admin/events/:id/cover-file` 支持 Admin multipart 本地图片上传并返回 `event_cover` 文件资产和封面字段，编辑已有活动时上传不会立即改活动记录，需随 `PATCH /admin/events/:id` 保存；活动封面也支持复用已发布地点图片：地点自有图集提交 `file_id` / `cloud_path` / 当前 URL，地点托管封面提交 `cover_file_id` / 当前 URL 且 `cover_cloud_path` 可为 `null`，Amap 外部图以 URL-only 保存并将 `cover_file_id` / `cover_cloud_path` 置为 `null`；CloudBase live 读取活动时会刷新 `public/events/` 与 `public/places/` 文件封面临时 URL；`GET /admin/events/:id/registrations` 返回联系人、人数、来源和 linked ticket state；报名会拒绝重复报名、不可见活动、容量满、报名截止；票据读取校验 owner/admin；核销校验活动-票据归属和票据状态。报名导出当前明确延后，尚未实现。
+Events public reads 只返回 `review_status="approved"` 且 `publish_status="published"` 的目标社区活动；`GET /admin/events` 返回 draft、pending_review、approved、rejected 与 draft/published/offline/ended 管理态记录，并附带 active registration count、confirmed attendee count、remaining capacity 和 full state；`DELETE /admin/events/:id` 执行活动记录 hard delete，成功返回 `{ deleted_id }`，后续 admin/public event reads 不再返回该活动，但本 slice 不级联删除既有报名或票据；`POST /admin/events/cover-file` 与 `POST /admin/events/:id/cover-file` 支持 Admin multipart 本地图片上传并返回 `event_cover` 文件资产和封面字段，编辑已有活动时上传不会立即改活动记录，需随 `PATCH /admin/events/:id` 保存；活动封面也支持复用已发布地点图片：地点自有图集提交 `file_id` / `cloud_path` / 当前 URL，地点托管封面提交 `cover_file_id` / 当前 URL 且 `cover_cloud_path` 可为 `null`，Amap 外部图以 URL-only 保存并将 `cover_file_id` / `cover_cloud_path` 置为 `null`；CloudBase live 读取活动时会刷新 `public/events/` 与 `public/places/` 文件封面临时 URL；`GET /admin/events/:id/registrations` 返回联系人、人数、来源和 linked ticket state；报名会拒绝重复报名、不可见活动、容量满、报名截止；票据读取校验 owner/admin；核销校验活动-票据归属和票据状态。报名导出当前明确延后，尚未实现。
 
 ### 4.3 社区发现 Discover
 

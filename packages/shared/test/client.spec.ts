@@ -420,6 +420,39 @@ describe("shared api clients", () => {
     );
   });
 
+  it("keeps mock and http client signatures aligned for admin event delete", async () => {
+    const mockClient = createMockClient({ actorId: "user_001" });
+    const requester = vi.fn(async () => ({
+      success: true,
+      requestId: "req_http_delete_event",
+      data: {
+        deleted_id: "event_http_001"
+      }
+    }));
+    const httpClient = createHttpClient({
+      actorId: "user_001",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    const mockResult = await mockClient.admin.deleteEvent("event_pending");
+    const httpResult = await httpClient.admin.deleteEvent("event_http_001");
+
+    expect(apiPaths.admin.deleteEvent("event_http_001")).toBe(
+      "/admin/events/event_http_001"
+    );
+    expect(mockResult.success).toBe(true);
+    expect(mockResult.data.deleted_id).toBe("event_pending");
+    expect(httpResult.success).toBe(true);
+    expect(httpResult.data.deleted_id).toBe("event_http_001");
+    expect(requester).toHaveBeenCalledWith(
+      "DELETE",
+      "http://localhost:8787/admin/events/event_http_001",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+  });
+
   it("serializes admin place POI search through shared client", async () => {
     const mockClient = createMockClient({ actorId: "user_001" });
     const requester = vi.fn(async () => ({

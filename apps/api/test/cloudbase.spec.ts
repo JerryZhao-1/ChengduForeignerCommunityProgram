@@ -83,6 +83,66 @@ describe("cloudbase event handler", () => {
 
     expect(forbiddenResponse.statusCode).toBe(403);
     expect(forbiddenBody.error.code).toBe("FORBIDDEN");
+
+    const createResponse = await main(
+      {
+        title_zh: "CloudBase 删除测试活动",
+        title_en: "CloudBase Delete Test Event",
+        summary_zh: "简介",
+        summary_en: "Summary",
+        content_zh: "正文",
+        content_en: "Body",
+        address_text: "桐梓林",
+        location: { latitude: 30.615, longitude: 104.062 },
+        start_time: "2027-04-02T10:00:00+08:00",
+        end_time: "2027-04-02T12:00:00+08:00",
+        signup_deadline: "2027-04-01T18:00:00+08:00",
+        capacity: 10
+      },
+      {
+        eventID: "req_cloud_admin_event_delete_create",
+        httpContext: {
+          url: "http://localhost/api/admin/events",
+          httpMethod: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          }
+        }
+      } as any
+    );
+    const createBody = createResponse.body as any;
+
+    expect(createResponse.statusCode).toBe(201);
+
+    const deleteResponse = await main({}, {
+      eventID: "req_cloud_admin_event_delete",
+      httpContext: {
+        url: `http://localhost/api/admin/events/${createBody.data._id}`,
+        httpMethod: "DELETE",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      }
+    } as any);
+    const deleteBody = deleteResponse.body as any;
+
+    expect(deleteResponse.statusCode).toBe(200);
+    expect(deleteBody.data).toEqual({ deleted_id: createBody.data._id });
+
+    const missingDeleteResponse = await main({}, {
+      eventID: "req_cloud_admin_event_delete_missing",
+      httpContext: {
+        url: "http://localhost/api/admin/events/event_missing_delete",
+        httpMethod: "DELETE",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      }
+    } as any);
+    const missingDeleteBody = missingDeleteResponse.body as any;
+
+    expect(missingDeleteResponse.statusCode).toBe(404);
+    expect(missingDeleteBody.error.code).toBe("NOT_FOUND");
   });
 
   it("accepts mini program cloud function style routing metadata", async () => {

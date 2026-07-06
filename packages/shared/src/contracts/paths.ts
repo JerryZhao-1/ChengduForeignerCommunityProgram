@@ -39,6 +39,7 @@ export const apiPaths = {
     listEvents: "/admin/events",
     createEvent: "/admin/events",
     updateEvent: (id: string) => `/admin/events/${id}`,
+    deleteEvent: (id: string) => `/admin/events/${id}`,
     reviewEvent: (id: string) => `/admin/events/${id}/review`,
     eventRegistrations: (id: string) => `/admin/events/${id}/registrations`,
     checkinEvent: (id: string) => `/admin/events/${id}/checkin`,

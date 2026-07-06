@@ -400,3 +400,62 @@ Boundary:
 
 - This smoke did not create or update a live event record.
 - Browser-level interaction was not repeated after the review fixes; static typechecks, build, unit tests, hosted route, and API health were verified.
+
+## 2026-07-06 Admin Places and Events Ops Deployment Evidence
+
+Target environment:
+
+```text
+cloud1-d7gxdk8t43bd639c0
+```
+
+Changes included:
+
+- Fixed secondary place category tabs in Admin place forms.
+- Event row action wording changed from signup to check-in.
+- Event check-in drawer copy updated to check-in, with used-ticket ordering/marking support.
+- Admin event local sorting controls added.
+- Admin event delete API and row action added.
+
+Deployed backend:
+
+- Cloud function: `community-map-api`
+- Build command: `corepack pnpm --filter @community-map/api build:cloudbase-http`
+- Deploy method: CloudBase MCP `manageFunctions(action="updateFunctionCode")`
+- Function code update RequestId: `b92a1622-9c1a-46e3-9d5d-020b2077bde9`
+- Function detail after deploy: `Status=Active`, `AvailableStatus=Available`, `Type=HTTP`, runtime `Nodejs18.15`, timeout `30s`
+- Function code size after deploy: `651586`
+- Function modification time after deploy: `2026-07-06 20:23:52`
+- Function detail RequestId after deploy: `97f9b631-5249-4bb4-9e48-34039e3cddf6`
+- Function environment variables verified present by key only: `API_PROVIDER`, `CLOUDBASE_PROVIDER_MODE`, `CLOUDBASE_ENV_ID`, `TENCENT_MAP_KEY`, `TENCENT_MAP_SECRET_KEY`, `AMAP_WEB_SERVICE_KEY`
+- Secret values were not written to repository files.
+
+Deployed Admin hosting:
+
+- Build command: `VITE_API_MODE=http VITE_API_BASE_URL=https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api corepack pnpm --filter @community-map/admin build`
+- Deploy method: CloudBase MCP `manageHosting(action="upload")`
+- Hosting domain: `https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com`
+- Uploaded files:
+  - `/index.html`
+  - `/assets/index-B0mylaeN.js`
+  - `/assets/index-D5yTzY3D.css`
+
+Online smoke, using CloudBase `/api` and hosting only:
+
+| Check | Result |
+| --- | --- |
+| API health | `GET /api/health` returned HTTP 200 and `{"ok":true}` |
+| Admin events API | `GET /api/admin/events` with admin mock actor header returned HTTP 200 and an admin events page payload |
+| Event delete API missing record | `DELETE /api/admin/events/__codex_missing_event__` with admin mock actor header returned HTTP 404 and `NOT_FOUND` without mutating live data |
+| Admin SPA route | Hosted `/events?deploy=20260706-2024` returned HTTP 200 |
+| Admin index | Hosted `/` referenced `/assets/index-B0mylaeN.js` and `/assets/index-D5yTzY3D.css` |
+| Admin asset | Hosted `/assets/index-B0mylaeN.js` returned HTTP 200 |
+| Browser events page | `/events?deploy=20260706-2024` loaded after the CloudBase test-domain warning and showed sorting controls, `核销`, and `删除` row actions |
+| Browser check-in drawer | Opening `核销` showed `周末国际邻里早午餐 · 核销`, the ticket input, the `核销` button, and valid tickets with `填入` |
+| Browser places page | `/places?deploy=20260706-2024` loaded after the CloudBase test-domain warning and showed secondary category segmented options for `public-service`: `community-center`, `service-desk`, `government-service`, `public-facility` |
+
+Boundary:
+
+- Browser smoke did not create, update, check in, or delete a live event/place record.
+- The event delete endpoint was verified with a guaranteed missing id only, to avoid destructive live-data changes.
+- CloudBase default test domain still shows the Tencent CloudBase risk/intermediate page before first access; this remains expected for the current dev hosting domain.

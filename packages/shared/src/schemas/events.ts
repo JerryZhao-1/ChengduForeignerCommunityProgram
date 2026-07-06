@@ -71,3 +71,7 @@ export const EventAdminRegistrationRowSchema = EventRegistrationSchema.extend({
   ticket_status: EventTicketSchema.shape.status.nullable(),
   ticket_used_at: z.string().nullable()
 });
+
+export const DeleteEventResponseSchema = z.object({
+  deleted_id: z.string()
+});

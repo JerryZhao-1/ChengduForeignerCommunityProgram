@@ -1,6 +1,7 @@
 import { defineContract } from "./define-contract";
 import {
   CreateEventInputSchema,
+  DeleteEventResponseSchema,
   CreateEventRegistrationInputSchema,
   EventAdminListItemSchema,
   EventAdminRegistrationRowSchema,
@@ -60,6 +61,11 @@ export const eventContracts = {
     path: "/admin/events/:id",
     request: UpdateEventInputSchema,
     response: EventSchema
+  }),
+  adminDelete: defineContract({
+    method: "DELETE",
+    path: "/admin/events/:id",
+    response: DeleteEventResponseSchema
   }),
   adminReview: defineContract({
     method: "POST",

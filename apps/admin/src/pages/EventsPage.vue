@@ -41,6 +41,15 @@ type EventFormState = {
 };
 
 type AddressTabName = "tencent" | "place";
+type EventSortField =
+  | "default"
+  | "name"
+  | "start_time"
+  | "end_time"
+  | "signup_deadline"
+  | "capacity"
+  | "remaining_capacity";
+type SortOrder = "asc" | "desc";
 
 type PlaceCoverCandidate = {
   key: string;
@@ -64,6 +73,7 @@ const submittingError = ref("");
 const dialogVisible = ref(false);
 const editingEvent = ref<EventAdminListItem | null>(null);
 const pendingAction = ref("");
+const deletingEventId = ref("");
 const registrationDrawerVisible = ref(false);
 const selectedEvent = ref<EventAdminListItem | null>(null);
 const registrationLoading = ref(false);
@@ -96,7 +106,9 @@ const filters = reactive({
   review_status: "",
   publish_status: "",
   drafts_only: false,
-  published_only: false
+  published_only: false,
+  sort_field: "default" as EventSortField,
+  sort_order: "asc" as SortOrder
 });
 
 const createEmptyForm = (): EventFormState => ({
@@ -166,6 +178,21 @@ const publishOptions = EVENT_PUBLISH_STATUSES.map((value) => ({
   value,
   label: publishStatusLabels[value]
 }));
+
+const sortFieldOptions: Array<{ value: EventSortField; label: string }> = [
+  { value: "default", label: "默认排序" },
+  { value: "name", label: "按名字" },
+  { value: "start_time", label: "按开始时间" },
+  { value: "end_time", label: "按结束时间" },
+  { value: "signup_deadline", label: "按报名截止" },
+  { value: "capacity", label: "按容量" },
+  { value: "remaining_capacity", label: "按剩余名额" }
+];
+
+const sortOrderOptions: Array<{ value: SortOrder; label: string }> = [
+  { value: "asc", label: "升序" },
+  { value: "desc", label: "降序" }
+];
 
 const getReviewStatusLabel = (status: Event["review_status"]) =>
   reviewStatusLabels[status];
@@ -247,7 +274,7 @@ const placeCoverCandidates = computed<PlaceCoverCandidate[]>(() => {
 const filteredEvents = computed(() => {
   const keyword = filters.keyword.trim().toLowerCase();
 
-  return events.value.filter((event) => {
+  const filtered = events.value.filter((event) => {
     if (
       filters.review_status &&
       event.review_status !== filters.review_status
@@ -282,7 +309,34 @@ const filteredEvents = computed(() => {
       event.address_text
     ].some((value) => value.toLowerCase().includes(keyword));
   });
+
+  if (filters.sort_field === "default") {
+    return filtered;
+  }
+
+  const direction = filters.sort_order === "asc" ? 1 : -1;
+
+  return [...filtered].sort((left, right) => {
+    const result = compareEvents(left, right, filters.sort_field);
+    return result * direction;
+  });
 });
+
+const sortedRegistrations = computed(() =>
+  [...registrations.value].sort((left, right) => {
+    const leftUsed = isTicketUsed(left);
+    const rightUsed = isTicketUsed(right);
+
+    if (leftUsed !== rightUsed) {
+      return leftUsed ? 1 : -1;
+    }
+
+    return (
+      left.contact_name.localeCompare(right.contact_name, "zh-Hans-CN") ||
+      left._id.localeCompare(right._id)
+    );
+  })
+);
 
 const issueMessage = (issue: {
   path: Array<string | number>;
@@ -315,6 +369,69 @@ const formatDate = (value: string) => {
     minute: "2-digit"
   });
 };
+
+const compareTime = (left: string, right: string) => {
+  const leftTime = new Date(left).getTime();
+  const rightTime = new Date(right).getTime();
+
+  if (Number.isNaN(leftTime) && Number.isNaN(rightTime)) {
+    return left.localeCompare(right);
+  }
+
+  if (Number.isNaN(leftTime)) {
+    return 1;
+  }
+
+  if (Number.isNaN(rightTime)) {
+    return -1;
+  }
+
+  return leftTime - rightTime;
+};
+
+const compareEvents = (
+  left: EventAdminListItem,
+  right: EventAdminListItem,
+  field: EventSortField
+) => {
+  if (field === "name") {
+    return (
+      left.title_zh.localeCompare(right.title_zh, "zh-Hans-CN") ||
+      left.title_en.localeCompare(right.title_en)
+    );
+  }
+
+  if (field === "start_time") {
+    return compareTime(left.start_time, right.start_time);
+  }
+
+  if (field === "end_time") {
+    return compareTime(left.end_time, right.end_time);
+  }
+
+  if (field === "signup_deadline") {
+    return compareTime(left.signup_deadline, right.signup_deadline);
+  }
+
+  if (field === "capacity") {
+    return left.capacity - right.capacity;
+  }
+
+  if (field === "remaining_capacity") {
+    return left.remaining_capacity - right.remaining_capacity;
+  }
+
+  return 0;
+};
+
+const isTicketUsed = (row: EventAdminRegistrationRow) =>
+  row.ticket_status === "used";
+
+const getRegistrationRowClass = ({
+  row
+}: {
+  row: EventAdminRegistrationRow;
+}) => (isTicketUsed(row) ? "is-checked-in-row" : "");
 
 function placeGalleryMediaToCoverCandidate(
   place: Place,
@@ -845,6 +962,39 @@ const canTakeOffline = (event: EventAdminListItem) =>
 const canEnd = (event: EventAdminListItem) =>
   event.publish_status === "published" || event.publish_status === "offline";
 
+const deleteEvent = async (event: EventAdminListItem) => {
+  try {
+    await ElMessageBox.confirm(
+      `删除活动「${event.title_zh}」后，活动列表和公开活动页将不再显示该活动。已有报名和票据记录不会在本次操作中级联删除。`,
+      "删除活动",
+      {
+        confirmButtonText: "删除",
+        cancelButtonText: "取消",
+        type: "warning"
+      }
+    );
+  } catch {
+    return;
+  }
+
+  deletingEventId.value = event._id;
+
+  try {
+    await adminApi.admin.deleteEvent(event._id);
+    if (selectedEvent.value?._id === event._id) {
+      registrationDrawerVisible.value = false;
+      selectedEvent.value = null;
+      registrations.value = [];
+    }
+    await load();
+    ElMessage.success("活动已删除。");
+  } catch (error) {
+    showOperationError(error, "删除活动失败。");
+  } finally {
+    deletingEventId.value = "";
+  }
+};
+
 const loadRegistrations = async (event: EventAdminListItem) => {
   registrationLoading.value = true;
   registrationError.value = "";
@@ -902,6 +1052,8 @@ const resetFilters = () => {
   filters.publish_status = "";
   filters.drafts_only = false;
   filters.published_only = false;
+  filters.sort_field = "default";
+  filters.sort_order = "asc";
 };
 
 onMounted(load);
@@ -949,6 +1101,26 @@ onMounted(load);
       </el-select>
       <el-switch v-model="filters.drafts_only" active-text="只看草稿" />
       <el-switch v-model="filters.published_only" active-text="只看已发布" />
+      <el-select v-model="filters.sort_field" placeholder="排序字段">
+        <el-option
+          v-for="option in sortFieldOptions"
+          :key="option.value"
+          :label="option.label"
+          :value="option.value"
+        />
+      </el-select>
+      <el-select
+        v-model="filters.sort_order"
+        placeholder="排序方向"
+        :disabled="filters.sort_field === 'default'"
+      >
+        <el-option
+          v-for="option in sortOrderOptions"
+          :key="option.value"
+          :label="option.label"
+          :value="option.value"
+        />
+      </el-select>
       <el-button @click="resetFilters">重置筛选</el-button>
     </div>
 
@@ -1020,14 +1192,14 @@ onMounted(load);
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="330" fixed="right">
+      <el-table-column label="操作" width="380" fixed="right">
         <template #default="{ row }">
           <div class="row-actions">
             <el-button link size="small" type="primary" @click="startEdit(row)">
               编辑
             </el-button>
             <el-button link size="small" @click="openRegistrations(row)">
-              报名
+              核销
             </el-button>
             <el-button
               v-if="canSubmitForReview(row)"
@@ -1067,6 +1239,15 @@ onMounted(load);
               @click="endEvent(row)"
             >
               结束
+            </el-button>
+            <el-button
+              link
+              size="small"
+              type="danger"
+              :loading="deletingEventId === row._id"
+              @click="deleteEvent(row)"
+            >
+              删除
             </el-button>
           </div>
         </template>
@@ -1455,7 +1636,7 @@ onMounted(load);
 
     <el-drawer
       v-model="registrationDrawerVisible"
-      :title="selectedEvent ? `${selectedEvent.title_zh} · 报名` : '报名'"
+      :title="selectedEvent ? `${selectedEvent.title_zh} · 核销` : '核销'"
       size="680px"
     >
       <div class="checkin-panel">
@@ -1483,15 +1664,20 @@ onMounted(load);
       />
 
       <el-table
-        :data="registrations"
+        :data="sortedRegistrations"
         v-loading="registrationLoading"
         empty-text="暂无报名"
+        row-key="_id"
+        :row-class-name="getRegistrationRowClass"
       >
         <el-table-column label="联系人" min-width="150">
           <template #default="{ row }">
             <div class="event-title-cell">
               <strong>{{ row.contact_name }}</strong>
               <span>{{ row.contact_phone }}</span>
+              <el-tag v-if="isTicketUsed(row)" type="success" size="small">
+                已核销
+              </el-tag>
             </div>
           </template>
         </el-table-column>
@@ -1518,7 +1704,12 @@ onMounted(load);
         </el-table-column>
         <el-table-column label="操作" width="90">
           <template #default="{ row }">
-            <el-button link size="small" @click="fillCheckinTicket(row)">
+            <el-button
+              link
+              size="small"
+              :disabled="isTicketUsed(row)"
+              @click="fillCheckinTicket(row)"
+            >
               填入
             </el-button>
           </template>
@@ -1540,7 +1731,7 @@ onMounted(load);
 
 .filter-panel {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 150px 150px auto auto auto;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
   align-items: center;
   margin-bottom: 18px;
@@ -1552,6 +1743,10 @@ onMounted(load);
 
 .events-table {
   width: 100%;
+}
+
+.events-table :deep(.is-checked-in-row) {
+  background: #f0fdf4;
 }
 
 .event-title-cell,

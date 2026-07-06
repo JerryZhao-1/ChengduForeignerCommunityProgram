@@ -730,6 +730,17 @@ const createLiveEventsProvider = (
 
     return nextEvent;
   },
+  async delete(id) {
+    const events = await readEvents(context);
+    const existing = events.find((event) => event._id === id);
+
+    if (!existing) {
+      return null;
+    }
+
+    await context.events.doc(id).remove();
+    return { deleted_id: id };
+  },
   async uploadCoverFile(id, input, actorId = "user_001") {
     const events = id ? await readEvents(context) : [];
     const existing = id ? events.find((event) => event._id === id) : null;

@@ -97,6 +97,18 @@ export const registerEventRoutes = (router: Router) => {
     }
   );
 
+  router.delete(
+    "/admin/events/:id",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const result = await ctx.state.provider.events.delete(ctx.params.id);
+      if (!result) {
+        throw apiError("NOT_FOUND", "Event not found.", 404);
+      }
+      sendSuccess(ctx, result);
+    }
+  );
+
   router.post(
     "/admin/events/cover-file",
     requireRole("community_admin", "system_admin"),

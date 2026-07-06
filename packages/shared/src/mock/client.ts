@@ -5,6 +5,7 @@ import type {
   Event,
   EventAdminListItem,
   EventAdminRegistrationRow,
+  DeleteEventResponse,
   EventRegistration,
   EventTicket,
   FileAsset,
@@ -128,6 +129,7 @@ export interface CommunityMapApiClient {
     listPlaces(): Promise<ApiResult<PageResult<Place>>>;
     createEvent(input: Partial<Event>): Promise<ApiResult<Event>>;
     updateEvent(id: string, input: Partial<Event>): Promise<ApiResult<Event>>;
+    deleteEvent(id: string): Promise<ApiResult<DeleteEventResponse>>;
     reviewEvent(
       id: string,
       input: {
@@ -298,6 +300,9 @@ export const createMockClient = (
       },
       async updateEvent(id, input) {
         return ok(service.events.update(id, input) as Event);
+      },
+      async deleteEvent(id) {
+        return ok(service.events.delete(id) as DeleteEventResponse);
       },
       async reviewEvent(id, input) {
         return ok(service.events.review(id, input) as Event);

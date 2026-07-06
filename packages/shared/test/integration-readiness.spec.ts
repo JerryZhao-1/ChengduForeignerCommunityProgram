@@ -199,4 +199,39 @@ describe("launch-readiness shared mock fixtures", () => {
       service.events.listRegistrationsForAdmin("event_missing")
     ).toBeNull();
   });
+
+  it("hard deletes events without cascading registrations or tickets", () => {
+    const service = createMockService();
+
+    expect(
+      service.events
+        .list({ communityId: "tongzilin", pageSize: 20 })
+        .items.map((event) => event._id)
+    ).toContain("event_001");
+    expect(service.events.delete("event_missing")).toBeNull();
+
+    const result = service.events.delete("event_001");
+
+    expect(result).toEqual({ deleted_id: "event_001" });
+    expect(service.events.detail("event_001")).toBeNull();
+    expect(
+      service.events
+        .listAdmin()
+        .items.map((event) => event._id)
+    ).not.toContain("event_001");
+    expect(
+      service.events
+        .list({ communityId: "tongzilin", pageSize: 20 })
+        .items.map((event) => event._id)
+    ).not.toContain("event_001");
+    expect(service.events.listRegistrationsForAdmin("event_001")).toBeNull();
+    expect(
+      service.events
+        .listMyRegistrations("user_001")
+        .map((registration) => registration._id)
+    ).toContain("reg_001");
+    expect(
+      service.events.getTicketByRegistration("reg_001", "user_001")?._id
+    ).toBe("ticket_001");
+  });
 });

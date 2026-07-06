@@ -190,9 +190,12 @@ POST {{baseUrl}}/notifications/:id/read
 需要 `community_admin` 或 `system_admin` actor，默认用 `user_001`：
 
 ```text
+GET {{baseUrl}}/admin/events
 POST {{baseUrl}}/admin/events
 PATCH {{baseUrl}}/admin/events/:id
+DELETE {{baseUrl}}/admin/events/:id
 POST {{baseUrl}}/admin/events/:id/review
+GET {{baseUrl}}/admin/events/:id/registrations
 POST {{baseUrl}}/admin/events/:id/checkin
 POST {{baseUrl}}/admin/discover/posts/:id/moderation
 GET {{baseUrl}}/admin/places

@@ -203,6 +203,7 @@ export const createHttpClient = (
         request("POST", apiPaths.admin.createEvent, input),
       updateEvent: (id, input) =>
         request("PATCH", apiPaths.admin.updateEvent(id), input),
+      deleteEvent: (id) => request("DELETE", apiPaths.admin.deleteEvent(id)),
       reviewEvent: (id, input) =>
         request("POST", apiPaths.admin.reviewEvent(id), input),
       checkinEvent: (id, input) =>

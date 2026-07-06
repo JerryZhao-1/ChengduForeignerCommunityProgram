@@ -378,6 +378,49 @@ describe("api routes", () => {
       const missingData = await missingResponse.json();
       expect(missingResponse.status).toBe(404);
       expect(missingData.error.code).toBe("NOT_FOUND");
+
+      const missingDeleteResponse = await fetch(
+        `${baseUrl}/admin/events/event_missing_delete`,
+        {
+          method: "DELETE",
+          headers: {
+            "x-mock-user-id": "user_001"
+          }
+        }
+      );
+      const missingDeleteData = await missingDeleteResponse.json();
+      expect(missingDeleteResponse.status).toBe(404);
+      expect(missingDeleteData.error.code).toBe("NOT_FOUND");
+
+      const deleteResponse = await fetch(`${baseUrl}/admin/events/event_001`, {
+        method: "DELETE",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      });
+      const deleteData = await deleteResponse.json();
+      expect(deleteResponse.status).toBe(200);
+      expect(deleteData.data).toEqual({ deleted_id: "event_001" });
+
+      const adminAfterDeleteResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      });
+      const adminAfterDeleteData = await adminAfterDeleteResponse.json();
+      expect(
+        adminAfterDeleteData.data.items.map(
+          (event: { _id: string }) => event._id
+        )
+      ).not.toContain("event_001");
+
+      const publicAfterDeleteResponse = await fetch(`${baseUrl}/events`);
+      const publicAfterDeleteData = await publicAfterDeleteResponse.json();
+      expect(
+        publicAfterDeleteData.data.items.map(
+          (event: { _id: string }) => event._id
+        )
+      ).not.toContain("event_001");
     } finally {
       await close();
     }
@@ -740,6 +783,20 @@ describe("api routes", () => {
 
       expect(adminListResponse.status).toBe(403);
       expect(adminListBody.error.code).toBe("FORBIDDEN");
+
+      const deleteEventResponse = await fetch(
+        `${baseUrl}/admin/events/event_001`,
+        {
+          method: "DELETE",
+          headers: {
+            "x-mock-user-id": "user_002"
+          }
+        }
+      );
+      const deleteEventBody = await deleteEventResponse.json();
+
+      expect(deleteEventResponse.status).toBe(403);
+      expect(deleteEventBody.error.code).toBe("FORBIDDEN");
 
       const placeGalleryResponse = await fetch(
         `${baseUrl}/admin/places/place_001`,

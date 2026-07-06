@@ -473,6 +473,20 @@ export const main: CloudbaseEventHandler = async (event, context) => {
 
         return ok(item, requestId);
       }
+
+      if (method === "DELETE" && match.matched) {
+        await requireRole(provider, { eventID: requestId, httpContext }, [
+          "community_admin",
+          "system_admin"
+        ]);
+        const item = await provider.events.delete(match.params.id);
+
+        if (!item) {
+          throw apiError("NOT_FOUND", "Event not found.", 404);
+        }
+
+        return ok(item, requestId);
+      }
     }
 
     {

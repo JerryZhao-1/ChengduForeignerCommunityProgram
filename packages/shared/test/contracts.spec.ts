@@ -2,6 +2,7 @@ import {
   API_ERROR_CODES,
   apiPaths,
   CreateApiSuccessSchema,
+  DeleteEventResponseSchema,
   DeletePlaceResponseSchema,
   DirectEventCoverUploadResponseSchema,
   EventAdminListItemSchema,
@@ -12,6 +13,8 @@ import {
   FileAssetSchema,
   LocaleSchema,
   PageResultSchema,
+  PLACE_SECONDARY_CATEGORY_OPTIONS,
+  PLACE_TOP_LEVEL_CATEGORIES,
   PlaceAmapImageCandidateSchema,
   PlaceAmapMediaSearchItemSchema,
   PlaceAmapMediaSearchQuerySchema,
@@ -34,6 +37,25 @@ import {
 import { describe, expect, it } from "vitest";
 
 describe("shared contracts", () => {
+  it("exposes fixed place secondary category options without enum-locking stored values", () => {
+    expect(Object.keys(PLACE_SECONDARY_CATEGORY_OPTIONS).sort()).toEqual(
+      [...PLACE_TOP_LEVEL_CATEGORIES].sort()
+    );
+    expect(PLACE_SECONDARY_CATEGORY_OPTIONS["public-service"]).toEqual(
+      expect.arrayContaining(["community-center", "service-desk"])
+    );
+    expect(PLACE_SECONDARY_CATEGORY_OPTIONS["food-drink"]).toContain("cafe");
+    expect(PLACE_SECONDARY_CATEGORY_OPTIONS["health-wellness"]).toContain(
+      "clinic"
+    );
+    expect(PLACE_SECONDARY_CATEGORY_OPTIONS.transport).toContain(
+      "metro-station"
+    );
+    expect(
+      PlaceSchema.shape.category_level_2.safeParse("legacy-free-text").success
+    ).toBe(true);
+  });
+
   it("accepts a valid bilingual place payload", () => {
     const place = PlaceSchema.parse({
       _id: "place_001",
@@ -265,6 +287,15 @@ describe("shared contracts", () => {
   });
 
   it("exposes admin event list and registration contracts through shared paths", () => {
+    const deleteEnvelope = CreateApiSuccessSchema(
+      DeleteEventResponseSchema
+    ).parse({
+      success: true,
+      requestId: "req_delete_event",
+      data: {
+        deleted_id: "event_admin_001"
+      }
+    });
     const adminListEnvelope = CreateApiSuccessSchema(
       PageResultSchema(EventAdminListItemSchema)
     ).parse({
@@ -335,10 +366,18 @@ describe("shared contracts", () => {
       method: "GET",
       path: "/admin/events/:id/registrations"
     });
+    expect(eventContracts.adminDelete).toMatchObject({
+      method: "DELETE",
+      path: "/admin/events/:id"
+    });
     expect(apiPaths.admin.listEvents).toBe("/admin/events");
+    expect(apiPaths.admin.deleteEvent("event_admin_001")).toBe(
+      "/admin/events/event_admin_001"
+    );
     expect(apiPaths.admin.eventRegistrations("event_admin_001")).toBe(
       "/admin/events/event_admin_001/registrations"
     );
+    expect(deleteEnvelope.data.deleted_id).toBe("event_admin_001");
     expect(adminListEnvelope.data.items[0].remaining_capacity).toBe(10);
     expect(registrationsEnvelope.data[0].ticket_code).toBe("TZL-001");
     expect(

@@ -74,6 +74,9 @@ export const createMockProvider = (): ApiProvider => {
       async update(id, input) {
         return withMockErrors(() => service.events.update(id, input));
       },
+      async delete(id) {
+        return withMockErrors(() => service.events.delete(id));
+      },
       async uploadCoverFile(id, input, actorId) {
         return withMockErrors(() =>
           service.events.uploadCoverFile(id, input, actorId)
