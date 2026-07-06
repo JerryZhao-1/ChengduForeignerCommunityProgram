@@ -9,6 +9,10 @@ import {
   type Event,
   type EventAdminListItem,
   type EventAdminRegistrationRow,
+  type Place,
+  type PlaceDetail,
+  type PlaceExternalMedia,
+  type PlaceGalleryMedia,
   type PlacePoiSearchItem
 } from "@community-map/shared";
 
@@ -28,13 +32,29 @@ type EventFormState = {
   end_time: string;
   signup_deadline: string;
   capacity: number;
-  cover_file_id: string;
-  cover_cloud_path: string;
+  cover_file_id: string | null;
+  cover_cloud_path: string | null;
   cover_url: string;
   place_id: string;
   review_status: Event["review_status"];
   publish_status: Event["publish_status"];
 };
+
+type AddressTabName = "tencent" | "place";
+
+type PlaceCoverCandidate = {
+  key: string;
+  typeLabel: string;
+  title: string;
+  subtitle: string;
+  url: string;
+  cover_file_id: string | null;
+  cover_cloud_path: string | null;
+};
+
+const DEFAULT_EVENT_ADDRESS = "成都市武侯区桐梓林国际社区";
+const DEFAULT_EVENT_COVER_URL =
+  "https://example.com/public/events/placeholder/cover.jpg";
 
 const loading = ref(false);
 const loadError = ref("");
@@ -58,6 +78,15 @@ const poiKeyword = ref("");
 const poiSearching = ref(false);
 const poiResults = ref<PlacePoiSearchItem[]>([]);
 const poiError = ref("");
+const addressTab = ref<AddressTabName>("tencent");
+const placeKeyword = ref("");
+const placesLoading = ref(false);
+const placesError = ref("");
+const adminPlaces = ref<Place[]>([]);
+const selectedPlace = ref<Place | null>(null);
+const selectedPlaceDetail = ref<PlaceDetail | null>(null);
+const placeDetailLoading = ref(false);
+const placeCoverDialogVisible = ref(false);
 
 const dateTimeDisplayFormat = "YYYY-MM-DD HH:mm";
 const dateTimeValueFormat = "YYYY-MM-DDTHH:mm:ss[+08:00]";
@@ -77,16 +106,16 @@ const createEmptyForm = (): EventFormState => ({
   summary_en: "Summary pending",
   content_zh: "待补充正文",
   content_en: "Content pending",
-  address_text: "桐梓林社区中心",
-  latitude: 30.615,
-  longitude: 104.062,
+  address_text: DEFAULT_EVENT_ADDRESS,
+  latitude: 30.618887,
+  longitude: 104.065468,
   start_time: "2027-04-10T10:00:00+08:00",
   end_time: "2027-04-10T12:00:00+08:00",
   signup_deadline: "2027-04-09T18:00:00+08:00",
   capacity: 30,
-  cover_file_id: "",
-  cover_cloud_path: "",
-  cover_url: "https://example.com/public/events/placeholder/cover.jpg",
+  cover_file_id: null,
+  cover_cloud_path: null,
+  cover_url: DEFAULT_EVENT_COVER_URL,
   place_id: "",
   review_status: "draft",
   publish_status: "draft"
@@ -153,6 +182,67 @@ const getPublishTagType = (status: Event["publish_status"]) =>
 const dialogTitle = computed(() =>
   editingEvent.value ? "编辑活动" : "新建活动"
 );
+
+const publishedPlaces = computed(() =>
+  adminPlaces.value.filter((place) => place.status === "published")
+);
+
+const filteredPublishedPlaces = computed(() => {
+  const keyword = placeKeyword.value.trim().toLowerCase();
+
+  if (!keyword) {
+    return publishedPlaces.value;
+  }
+
+  return publishedPlaces.value.filter((place) =>
+    [
+      place.name_zh,
+      place.name_en,
+      place.address_zh,
+      place.address_en,
+      place.category_level_2
+    ].some((value) => value.toLowerCase().includes(keyword))
+  );
+});
+
+const hasSelectedPlace = computed(() => selectedPlace.value !== null);
+
+const hasCustomCover = computed(
+  () => form.cover_url !== DEFAULT_EVENT_COVER_URL || Boolean(form.cover_file_id)
+);
+
+const placeCoverCandidates = computed<PlaceCoverCandidate[]>(() => {
+  const place = selectedPlace.value;
+  const detail = selectedPlaceDetail.value;
+
+  if (!place) {
+    return [];
+  }
+
+  const candidates: PlaceCoverCandidate[] = [];
+
+  if (place.cover_url) {
+    candidates.push({
+      key: `${place._id}:cover`,
+      typeLabel: "地点封面",
+      title: place.name_zh,
+      subtitle: place.address_zh,
+      url: place.cover_url,
+      cover_file_id: place.cover_file_id,
+      cover_cloud_path: null
+    });
+  }
+
+  for (const media of detail?.gallery_media ?? []) {
+    candidates.push(placeGalleryMediaToCoverCandidate(place, media));
+  }
+
+  for (const media of detail?.external_gallery_media ?? []) {
+    candidates.push(placeExternalMediaToCoverCandidate(place, media));
+  }
+
+  return candidates;
+});
 
 const filteredEvents = computed(() => {
   const keyword = filters.keyword.trim().toLowerCase();
@@ -226,10 +316,49 @@ const formatDate = (value: string) => {
   });
 };
 
+function placeGalleryMediaToCoverCandidate(
+  place: Place,
+  media: PlaceGalleryMedia
+): PlaceCoverCandidate {
+  return {
+    key: `${place._id}:gallery:${media.file_id}`,
+    typeLabel: "自有图集",
+    title: media.alt_zh,
+    subtitle: media.cloud_path,
+    url: media.url,
+    cover_file_id: media.file_id,
+    cover_cloud_path: media.cloud_path
+  };
+}
+
+function placeExternalMediaToCoverCandidate(
+  place: Place,
+  media: PlaceExternalMedia
+): PlaceCoverCandidate {
+  return {
+    key: `${place._id}:external:${media.image_url}`,
+    typeLabel: "Amap 图片",
+    title: media.image_title ?? place.name_zh,
+    subtitle: media.attribution.label,
+    url: media.image_url,
+    cover_file_id: null,
+    cover_cloud_path: null
+  };
+}
+
 const resetPoiState = (address = "") => {
   poiKeyword.value = address;
   poiResults.value = [];
   poiError.value = "";
+};
+
+const resetPlaceState = () => {
+  addressTab.value = "tencent";
+  placeKeyword.value = "";
+  placesError.value = "";
+  selectedPlace.value = null;
+  selectedPlaceDetail.value = null;
+  placeCoverDialogVisible.value = false;
 };
 
 const assignForm = (event?: EventAdminListItem) => {
@@ -237,6 +366,7 @@ const assignForm = (event?: EventAdminListItem) => {
   submittingError.value = "";
   coverUploadError.value = "";
   resetPoiState(form.address_text);
+  resetPlaceState();
 
   if (!event) {
     editingEvent.value = null;
@@ -284,8 +414,8 @@ const buildPayload = () => ({
   end_time: form.end_time,
   signup_deadline: form.signup_deadline,
   capacity: Number(form.capacity),
-  ...(form.cover_file_id ? { cover_file_id: form.cover_file_id } : {}),
-  ...(form.cover_cloud_path ? { cover_cloud_path: form.cover_cloud_path } : {}),
+  cover_file_id: form.cover_file_id,
+  cover_cloud_path: form.cover_cloud_path,
   ...(form.cover_url ? { cover_url: form.cover_url } : {}),
   ...(form.place_id ? { place_id: form.place_id } : {})
 });
@@ -346,14 +476,105 @@ const load = async () => {
   }
 };
 
-const startCreate = () => {
-  assignForm();
-  dialogVisible.value = true;
+const loadPublishedPlaces = async (force = false) => {
+  if ((!force && adminPlaces.value.length > 0) || placesLoading.value) {
+    return;
+  }
+
+  placesLoading.value = true;
+  placesError.value = "";
+
+  try {
+    const result = await adminApi.admin.listPlaces();
+    adminPlaces.value = result.data.items;
+  } catch (error) {
+    placesError.value = toErrorMessage(error, "已有地点加载失败。");
+  } finally {
+    placesLoading.value = false;
+  }
 };
 
-const startEdit = (event: EventAdminListItem) => {
+const clearSelectedPlace = () => {
+  selectedPlace.value = null;
+  selectedPlaceDetail.value = null;
+  form.place_id = "";
+};
+
+const loadPlaceDetail = async (place: Place) => {
+  selectedPlace.value = place;
+  selectedPlaceDetail.value = null;
+  placeDetailLoading.value = true;
+
+  try {
+    const result = await adminApi.places.detail(place._id);
+    selectedPlaceDetail.value = result.data;
+  } catch (error) {
+    ElMessage.warning(
+      toErrorMessage(error, "地点详情加载失败，暂只能使用地点封面。")
+    );
+  } finally {
+    placeDetailLoading.value = false;
+  }
+};
+
+const applyPoiToForm = (item: PlacePoiSearchItem) => {
+  form.address_text = item.address || item.title;
+  form.latitude = item.location.latitude;
+  form.longitude = item.location.longitude;
+  poiKeyword.value = item.title;
+  poiResults.value = [];
+  poiError.value = "";
+};
+
+const applyDefaultAddressFromTencentMap = async () => {
+  poiKeyword.value = DEFAULT_EVENT_ADDRESS;
+  poiSearching.value = true;
+  poiError.value = "";
+
+  try {
+    const result = await adminApi.admin.searchPlacePoi({
+      keyword: DEFAULT_EVENT_ADDRESS
+    });
+    const [firstCandidate] = result.data;
+
+    if (firstCandidate) {
+      applyPoiToForm(firstCandidate);
+      return;
+    }
+
+    poiError.value = "未找到默认地址匹配结果，可手动搜索。";
+  } catch (error) {
+    poiError.value = toErrorMessage(error, "默认地址识别失败，可手动搜索。");
+  } finally {
+    poiSearching.value = false;
+  }
+};
+
+const restoreSelectedPlaceFromEvent = async () => {
+  if (!form.place_id) {
+    return;
+  }
+
+  await loadPublishedPlaces();
+  const place = publishedPlaces.value.find((item) => item._id === form.place_id);
+
+  if (place) {
+    selectedPlace.value = place;
+    placeKeyword.value = place.name_zh;
+    await loadPlaceDetail(place);
+  }
+};
+
+const startCreate = async () => {
+  assignForm();
+  dialogVisible.value = true;
+  await Promise.all([loadPublishedPlaces(), applyDefaultAddressFromTencentMap()]);
+};
+
+const startEdit = async (event: EventAdminListItem) => {
   assignForm(event);
   dialogVisible.value = true;
+  await restoreSelectedPlaceFromEvent();
 };
 
 const chooseCoverFile = () => {
@@ -431,15 +652,19 @@ const hasManualEventLookupFields = () => {
     editingEvent.value !== null ||
     form.address_text !== emptyForm.address_text ||
     Number(form.latitude) !== emptyForm.latitude ||
-    Number(form.longitude) !== emptyForm.longitude
+    Number(form.longitude) !== emptyForm.longitude ||
+    Boolean(form.place_id)
   );
 };
+
+const shouldConfirmPlaceSelection = () =>
+  editingEvent.value !== null || Boolean(form.place_id);
 
 const selectPoi = async (item: PlacePoiSearchItem) => {
   if (hasManualEventLookupFields()) {
     try {
       await ElMessageBox.confirm(
-        "选中地标会覆盖当前地址、纬度和经度。",
+        "选中腾讯地图结果会覆盖当前地址、纬度和经度，并清除已关联地点。",
         "填充活动地址",
         {
           confirmButtonText: "填充",
@@ -452,13 +677,64 @@ const selectPoi = async (item: PlacePoiSearchItem) => {
     }
   }
 
-  form.address_text = item.address || item.title;
-  form.latitude = item.location.latitude;
-  form.longitude = item.location.longitude;
-  poiKeyword.value = item.title;
-  poiResults.value = [];
-  poiError.value = "";
+  clearSelectedPlace();
+  applyPoiToForm(item);
   ElMessage.success("已填充腾讯地图地址和经纬度。");
+};
+
+const selectExistingPlace = async (place: Place) => {
+  if (shouldConfirmPlaceSelection()) {
+    try {
+      await ElMessageBox.confirm(
+        "选择已有地点会覆盖当前活动地址、纬度、经度和关联地点 ID。",
+        "关联已有地点",
+        {
+          confirmButtonText: "关联",
+          cancelButtonText: "取消",
+          type: "warning"
+        }
+      );
+    } catch {
+      return;
+    }
+  }
+
+  form.place_id = place._id;
+  form.address_text = place.address_zh || place.name_zh;
+  form.latitude = place.location.latitude;
+  form.longitude = place.location.longitude;
+  placeKeyword.value = place.name_zh;
+  addressTab.value = "place";
+  await loadPlaceDetail(place);
+  ElMessage.success("已关联已有地点并填充地址。");
+};
+
+const clearPlaceAssociation = () => {
+  clearSelectedPlace();
+  placeKeyword.value = "";
+  ElMessage.success("已清除关联地点。");
+};
+
+const openPlaceCoverDialog = async () => {
+  const place = selectedPlace.value;
+
+  if (!place) {
+    return;
+  }
+
+  if (!selectedPlaceDetail.value) {
+    await loadPlaceDetail(place);
+  }
+
+  placeCoverDialogVisible.value = true;
+};
+
+const applyPlaceCoverCandidate = (candidate: PlaceCoverCandidate) => {
+  form.cover_file_id = candidate.cover_file_id;
+  form.cover_cloud_path = candidate.cover_cloud_path;
+  form.cover_url = candidate.url;
+  placeCoverDialogVisible.value = false;
+  ElMessage.success("已设置地点图片为活动封面，保存活动后生效。");
 };
 
 const submit = async () => {
@@ -836,17 +1112,34 @@ onMounted(load);
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 @change="uploadCoverFile"
               />
-              <el-button
-                type="primary"
-                :loading="coverUploading"
-                @click="chooseCoverFile"
-              >
-                {{ form.cover_file_id ? "更换封面" : "选择并上传封面" }}
-              </el-button>
+              <div class="cover-actions">
+                <el-button
+                  type="primary"
+                  :loading="coverUploading"
+                  @click="chooseCoverFile"
+                >
+                  {{ hasCustomCover ? "更换封面" : "选择并上传封面" }}
+                </el-button>
+                <el-tooltip
+                  :disabled="hasSelectedPlace"
+                  content="请先在地址与定位中选择已有地标"
+                  placement="top"
+                >
+                  <span>
+                    <el-button
+                      :disabled="!hasSelectedPlace"
+                      :loading="placeDetailLoading"
+                      @click="openPlaceCoverDialog"
+                    >
+                      使用地点图片
+                    </el-button>
+                  </span>
+                </el-tooltip>
+              </div>
               <span class="hint-text">
                 支持 JPG、PNG、WebP、GIF，单张不超过 5 MB。
               </span>
-              <span v-if="form.cover_file_id" class="hint-text">
+              <span v-if="hasCustomCover" class="hint-text">
                 当前封面将在保存活动后生效。
               </span>
             </div>
@@ -862,51 +1155,130 @@ onMounted(load);
 
         <section class="form-section">
           <div class="section-title">地址与定位</div>
-          <div class="poi-search-panel">
-            <div class="poi-search-row">
-              <el-input
-                v-model="poiKeyword"
-                placeholder="搜索地标或地址，例如 桐梓林社区中心"
-                clearable
-                @keyup.enter="searchPoi"
-              />
-              <el-button
-                type="primary"
-                :loading="poiSearching"
-                @click="searchPoi"
-              >
-                搜索地址
-              </el-button>
+          <el-tabs
+            v-model="addressTab"
+            class="address-tabs"
+            @tab-change="() => loadPublishedPlaces()"
+          >
+            <el-tab-pane label="腾讯地图搜索" name="tencent">
+              <div class="poi-search-panel">
+                <div class="poi-search-row">
+                  <el-input
+                    v-model="poiKeyword"
+                    placeholder="搜索地标或地址，例如 桐梓林国际社区"
+                    clearable
+                    @keyup.enter="searchPoi"
+                  />
+                  <el-button
+                    type="primary"
+                    :loading="poiSearching"
+                    @click="searchPoi"
+                  >
+                    搜索地址
+                  </el-button>
+                </div>
+                <div v-if="poiError" class="hint-text">{{ poiError }}</div>
+                <div v-if="poiResults.length" class="poi-result-list">
+                  <button
+                    v-for="item in poiResults"
+                    :key="item.id"
+                    type="button"
+                    class="poi-result-item"
+                    @click="selectPoi(item)"
+                  >
+                    <span class="poi-result-title">{{ item.title }}</span>
+                    <span class="poi-result-address">
+                      {{ item.address || "暂无地址" }}
+                    </span>
+                    <span class="poi-result-meta">
+                      {{ item.district || item.city || "成都" }} ·
+                      {{ item.location.latitude.toFixed(6) }},
+                      {{ item.location.longitude.toFixed(6) }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </el-tab-pane>
+            <el-tab-pane label="选择已有地点" name="place">
+              <div class="place-picker-panel">
+                <div class="place-search-row">
+                  <el-input
+                    v-model="placeKeyword"
+                    placeholder="按地点名称、地址或分类搜索已发布地点"
+                    clearable
+                    @focus="() => loadPublishedPlaces()"
+                  />
+                  <el-button
+                    :loading="placesLoading"
+                    @click="() => loadPublishedPlaces(true)"
+                  >
+                    刷新地点
+                  </el-button>
+                </div>
+                <el-alert
+                  v-if="placesError"
+                  :title="placesError"
+                  type="error"
+                  show-icon
+                  class="mt-12"
+                />
+                <div
+                  v-loading="placesLoading"
+                  class="place-result-list"
+                  :class="{ 'is-empty': filteredPublishedPlaces.length === 0 }"
+                >
+                  <el-empty
+                    v-if="!placesLoading && filteredPublishedPlaces.length === 0"
+                    description="暂无可选已发布地点"
+                  />
+                  <button
+                    v-for="place in filteredPublishedPlaces"
+                    :key="place._id"
+                    type="button"
+                    class="place-result-item"
+                    :class="{ 'is-selected': form.place_id === place._id }"
+                    @click="selectExistingPlace(place)"
+                  >
+                    <span class="place-result-thumb">
+                      <img
+                        v-if="place.cover_url"
+                        :src="place.cover_url"
+                        :alt="place.name_zh"
+                      />
+                    </span>
+                    <span class="place-result-body">
+                      <strong>{{ place.name_zh }}</strong>
+                      <span>{{ place.address_zh }}</span>
+                      <small>
+                        {{ place.category_level_2 }} ·
+                        {{ place.location.latitude.toFixed(6) }},
+                        {{ place.location.longitude.toFixed(6) }}
+                      </small>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
+
+          <div v-if="selectedPlace" class="selected-place-summary">
+            <div>
+              <strong>已关联地点：{{ selectedPlace.name_zh }}</strong>
+              <span>{{ selectedPlace._id }}</span>
             </div>
-            <div v-if="poiError" class="hint-text">{{ poiError }}</div>
-            <div v-if="poiResults.length" class="poi-result-list">
-              <button
-                v-for="item in poiResults"
-                :key="item.id"
-                type="button"
-                class="poi-result-item"
-                @click="selectPoi(item)"
-              >
-                <span class="poi-result-title">{{ item.title }}</span>
-                <span class="poi-result-address">
-                  {{ item.address || "暂无地址" }}
-                </span>
-                <span class="poi-result-meta">
-                  {{ item.district || item.city || "成都" }} ·
-                  {{ item.location.latitude.toFixed(6) }},
-                  {{ item.location.longitude.toFixed(6) }}
-                </span>
-              </button>
-            </div>
+            <el-button link type="danger" @click="clearPlaceAssociation">
+              清除关联
+            </el-button>
           </div>
+
           <div class="form-grid">
             <el-form-item label="活动地址">
               <el-input v-model="form.address_text" placeholder="活动地址" />
             </el-form-item>
-            <el-form-item label="关联地点 ID（可选）">
+            <el-form-item label="关联地点 ID（由已有地点自动填充，可留空）">
               <el-input
-                v-model="form.place_id"
-                placeholder="已有地点 ID，可留空"
+                :model-value="form.place_id || '未关联已有地点'"
+                readonly
               />
             </el-form-item>
             <el-form-item label="纬度（搜索后自动填充，可微调）">
@@ -1032,6 +1404,52 @@ onMounted(load);
         <el-button type="primary" :loading="saving" @click="submit">
           {{ editingEvent ? "保存修改" : "创建活动" }}
         </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="placeCoverDialogVisible"
+      title="选择地点图片"
+      width="780px"
+      append-to-body
+    >
+      <el-alert
+        v-if="!selectedPlace"
+        title="请先选择已有地标。"
+        type="warning"
+        show-icon
+      />
+      <template v-else>
+        <div class="place-cover-heading">
+          <strong>{{ selectedPlace.name_zh }}</strong>
+          <span>{{ selectedPlace.address_zh }}</span>
+        </div>
+        <div
+          v-loading="placeDetailLoading"
+          class="place-cover-grid"
+          :class="{ 'is-empty': placeCoverCandidates.length === 0 }"
+        >
+          <el-empty
+            v-if="!placeDetailLoading && placeCoverCandidates.length === 0"
+            description="该地点暂无可复用图片"
+          />
+          <button
+            v-for="candidate in placeCoverCandidates"
+            :key="candidate.key"
+            type="button"
+            class="place-cover-card"
+            @click="applyPlaceCoverCandidate(candidate)"
+          >
+            <span class="place-cover-thumb">
+              <img :src="candidate.url" :alt="candidate.title" />
+            </span>
+            <span class="place-cover-meta">
+              <el-tag size="small">{{ candidate.typeLabel }}</el-tag>
+              <strong>{{ candidate.title }}</strong>
+              <small>{{ candidate.subtitle }}</small>
+            </span>
+          </button>
+        </div>
       </template>
     </el-dialog>
 
@@ -1261,6 +1679,13 @@ onMounted(load);
   justify-items: start;
 }
 
+.cover-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1270,10 +1695,13 @@ onMounted(load);
   white-space: nowrap;
 }
 
+.address-tabs {
+  margin-bottom: 12px;
+}
+
 .poi-search-panel {
   display: grid;
   gap: 10px;
-  margin-bottom: 12px;
 }
 
 .poi-search-row {
@@ -1282,9 +1710,30 @@ onMounted(load);
   gap: 10px;
 }
 
-.poi-result-list {
+.poi-result-list,
+.place-result-list {
   display: grid;
   gap: 8px;
+}
+
+.place-picker-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.place-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.place-result-list {
+  min-height: 76px;
+}
+
+.place-result-list.is-empty,
+.place-cover-grid.is-empty {
+  place-items: center;
 }
 
 .poi-result-item {
@@ -1299,7 +1748,9 @@ onMounted(load);
   cursor: pointer;
 }
 
-.poi-result-item:hover {
+.poi-result-item:hover,
+.place-result-item:hover,
+.place-result-item.is-selected {
   border-color: #409eff;
   background: #f8fafc;
 }
@@ -1313,6 +1764,111 @@ onMounted(load);
 .poi-result-meta {
   color: #6b7280;
   font-size: 12px;
+}
+
+.place-result-item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.place-result-thumb {
+  overflow: hidden;
+  width: 72px;
+  aspect-ratio: 4 / 3;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f3f4f6;
+}
+
+.place-result-thumb img,
+.place-cover-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.place-result-body,
+.selected-place-summary div,
+.place-cover-heading,
+.place-cover-meta {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.place-result-body strong,
+.selected-place-summary strong,
+.place-cover-heading strong,
+.place-cover-meta strong {
+  overflow-wrap: anywhere;
+  color: #1f2937;
+}
+
+.place-result-body span,
+.place-result-body small,
+.selected-place-summary span,
+.place-cover-heading span,
+.place-cover-meta small {
+  overflow-wrap: anywhere;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.selected-place-summary {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  background: #eff6ff;
+}
+
+.place-cover-heading {
+  margin-bottom: 12px;
+}
+
+.place-cover-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  min-height: 160px;
+}
+
+.place-cover-card {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.place-cover-card:hover {
+  border-color: #409eff;
+  background: #f8fafc;
+}
+
+.place-cover-thumb {
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 5px;
+  background: #f3f4f6;
 }
 
 .checkin-panel {

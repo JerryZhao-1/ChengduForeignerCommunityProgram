@@ -29,8 +29,8 @@ export const CreateEventInputSchema = EventSchema.pick({
   capacity: true
 }).extend({
   place_id: z.string().optional(),
-  cover_file_id: z.string().optional(),
-  cover_cloud_path: z.string().optional(),
+  cover_file_id: z.string().nullable().optional(),
+  cover_cloud_path: z.string().nullable().optional(),
   cover_url: z.string().url().optional()
 });
 

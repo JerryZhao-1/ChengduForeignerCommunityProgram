@@ -349,15 +349,23 @@ export const createMockClient = (
         return ok(service.places.delete(id) as DeletePlaceResponse);
       },
       async searchPlacePoi(input) {
+        const isTongzilinInternationalCommunity = input.keyword.includes(
+          "桐梓林国际社区"
+        );
+
         return ok([
           {
             id: `mock_poi_${encodeURIComponent(input.keyword)}`,
             title: input.keyword,
-            address: "四川省成都市武侯区桐梓林路",
+            address: isTongzilinInternationalCommunity
+              ? "四川省成都市武侯区人民南路四段辅路与桐凤路交叉口正西方向131米左右"
+              : "四川省成都市武侯区桐梓林路",
             category: "生活服务",
             location: {
-              latitude: 30.615,
-              longitude: 104.062
+              latitude: isTongzilinInternationalCommunity ? 30.618887 : 30.615,
+              longitude: isTongzilinInternationalCommunity
+                ? 104.065468
+                : 104.062
             },
             province: "四川省",
             city: "成都市",

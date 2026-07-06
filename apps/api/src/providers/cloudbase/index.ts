@@ -183,9 +183,8 @@ const createEventFromInput = (
     summary_en: input.summary_en ?? "",
     content_zh: input.content_zh ?? "",
     content_en: input.content_en ?? "",
-    cover_file_id: input.cover_file_id ?? "cloud://placeholder-cover",
-    cover_cloud_path:
-      input.cover_cloud_path ?? "public/events/placeholder/cover.jpg",
+    cover_file_id: input.cover_file_id ?? null,
+    cover_cloud_path: input.cover_cloud_path ?? null,
     cover_url:
       input.cover_url ??
       "https://example.com/public/events/placeholder/cover.jpg",
@@ -312,8 +311,17 @@ const getCloudbaseTempFileUrls = async (
   );
 };
 
-const isManagedEventCoverFileId = (fileId: string) =>
-  cloudPathFromFileId(fileId).startsWith(FILE_PATH_RULES.eventCovers);
+const isManagedEventCoverFileId = (fileId: string | null) => {
+  if (!fileId) {
+    return false;
+  }
+
+  const cloudPath = cloudPathFromFileId(fileId);
+  return (
+    cloudPath.startsWith(FILE_PATH_RULES.eventCovers) ||
+    cloudPath.startsWith(FILE_PATH_RULES.placeGallery)
+  );
+};
 
 const resolveEventCoverUrls = async (
   context: LiveCloudbaseContext,
@@ -323,13 +331,15 @@ const resolveEventCoverUrls = async (
     ...new Set(
       events
         .map((event) => event.cover_file_id)
-        .filter((fileId) => isManagedEventCoverFileId(fileId))
+        .filter((fileId): fileId is string => isManagedEventCoverFileId(fileId))
     )
   ];
   const urlsByFileId = await getCloudbaseTempFileUrls(context, coverFileIds);
 
   return events.map((event) => {
-    const coverUrl = urlsByFileId.get(event.cover_file_id);
+    const coverUrl = event.cover_file_id
+      ? urlsByFileId.get(event.cover_file_id)
+      : undefined;
     return coverUrl ? { ...event, cover_url: coverUrl } : event;
   });
 };
@@ -929,7 +939,7 @@ const rebindPendingGalleryAssets = async (
 const rebindPendingEventCoverAsset = async (
   context: LiveCloudbaseContext,
   eventId: string,
-  coverFileId: string
+  coverFileId: string | null
 ) => {
   if (!coverFileId) {
     return;

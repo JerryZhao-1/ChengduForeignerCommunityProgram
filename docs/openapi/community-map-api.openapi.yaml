@@ -190,9 +190,13 @@ components:
         content_en:
           type: string
         cover_file_id:
-          type: string
+          type:
+            - string
+            - "null"
         cover_cloud_path:
-          type: string
+          type:
+            - string
+            - "null"
         cover_url:
           type: string
           format: uri
@@ -263,9 +267,13 @@ components:
         place_id:
           type: string
         cover_file_id:
-          type: string
+          type:
+            - string
+            - "null"
         cover_cloud_path:
-          type: string
+          type:
+            - string
+            - "null"
         cover_url:
           type: string
           format: uri
@@ -301,9 +309,13 @@ components:
         place_id:
           type: string
         cover_file_id:
-          type: string
+          type:
+            - string
+            - "null"
         cover_cloud_path:
-          type: string
+          type:
+            - string
+            - "null"
         cover_url:
           type: string
           format: uri

@@ -561,9 +561,8 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           summary_en: input.summary_en ?? "",
           content_zh: input.content_zh ?? "",
           content_en: input.content_en ?? "",
-          cover_file_id: input.cover_file_id ?? "cloud://placeholder-cover",
-          cover_cloud_path:
-            input.cover_cloud_path ?? "public/events/placeholder/cover.jpg",
+          cover_file_id: input.cover_file_id ?? null,
+          cover_cloud_path: input.cover_cloud_path ?? null,
           cover_url:
             input.cover_url ??
             "https://example.com/public/events/placeholder/cover.jpg",

@@ -498,13 +498,13 @@ Body：
 | `signup_deadline`           | string      | 是   | 报名截止        |
 | `capacity`                  | number      | 是   | 正整数          |
 | `place_id`                  | string      | 否   | 关联地点        |
-| `cover_file_id`             | string      | 否   | 封面文件 ID；后台表单通常由封面上传接口返回 |
-| `cover_cloud_path`          | string      | 否   | 封面 cloud path；后台表单通常由封面上传接口返回 |
-| `cover_url`                 | URL string  | 否   | 封面 URL；后台表单通常由封面上传接口返回 |
+| `cover_file_id`             | string/null | 否   | 封面文件 ID；本地上传、复用地点自有图集或地点托管封面时提交，外部 URL-only 封面提交 `null` |
+| `cover_cloud_path`          | string/null | 否   | 封面 cloud path；本地上传或复用地点自有图集时提交，地点托管封面可为 `null`，外部 URL-only 封面提交 `null` |
+| `cover_url`                 | URL string  | 否   | 封面 URL；可来自本地上传、地点封面、地点自有图集当前 URL 或 Amap 外部图片 URL |
 
 响应 data：`Event`
 
-说明：创建接口默认产生后台可见草稿；如需公开端可见，应随后调用 `POST /admin/events/:id/review` 设置 `review_status="approved"` 且 `publish_status="published"`。Admin 后台运营表单不要求手填封面 file id、cloud path 或 URL，应优先通过 `POST /admin/events/cover-file` 或 `POST /admin/events/:id/cover-file` 直接上传本地图片后，把响应中的封面字段随创建或保存提交。
+说明：创建接口默认产生后台可见草稿；如需公开端可见，应随后调用 `POST /admin/events/:id/review` 设置 `review_status="approved"` 且 `publish_status="published"`。Admin 后台运营表单不要求手填封面 file id、cloud path 或 URL，可通过 `POST /admin/events/cover-file` 或 `POST /admin/events/:id/cover-file` 直接上传本地图片后，把响应中的封面字段随创建或保存提交。也可复用已发布地点图片：选择地点自有图集时提交该图片的 `file_id`、`cloud_path` 和当前 URL；选择地点托管封面时提交地点的 `cover_file_id` 和当前 URL，`cover_cloud_path` 可为 `null`；选择 Amap 外部图等外部 URL-only 图片时仅提交 `cover_url`，并将 `cover_file_id` / `cover_cloud_path` 置为 `null`。
 
 示例：
 
@@ -530,7 +530,7 @@ curl -X POST http://127.0.0.1:8787/admin/events \
 
 ### POST `/admin/events/cover-file`
 
-用途：管理端在创建活动前直接上传本地活动封面。成功后后端创建 completed active `FileAsset`，先以 pending 归属记录；创建活动时提交返回的 `cover_file_id`、`cover_cloud_path`、`cover_url` 后会绑定到新活动。
+用途：管理端在创建活动前直接上传本地活动封面。成功后后端创建 completed active `FileAsset`，先以 pending 归属记录；创建活动时提交返回的 `cover_file_id`、`cover_cloud_path`、`cover_url` 后会绑定到新活动。上传响应中的 `cover_file_id` / `cover_cloud_path` 始终为字符串；只有复用外部 URL-only 封面时才提交 `null`。
 
 权限：`community_admin` 或 `system_admin`。
 

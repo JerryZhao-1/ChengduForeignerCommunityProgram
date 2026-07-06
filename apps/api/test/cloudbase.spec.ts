@@ -929,6 +929,89 @@ describe("cloudbase event handler", () => {
     }
   });
 
+  it("resolves live CloudBase event covers from place gallery file ids", async () => {
+    const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+    const previousEnvId = process.env.CLOUDBASE_ENV_ID;
+    const placeGalleryFileId =
+      "cloud://test-env/public/places/place_live_001/gallery-cover.jpg";
+    const tempCoverUrl = `https://cdn.example.com/${encodeURIComponent(placeGalleryFileId)}`;
+    const liveEvent = {
+      ...createMockDataset().events[0],
+      _id: "event_place_gallery_cover_001",
+      cover_file_id: placeGalleryFileId,
+      cover_cloud_path: "public/places/place_live_001/gallery-cover.jpg",
+      cover_url: "https://stale.example.com/event-cover.jpg",
+      review_status: "approved" as const,
+      publish_status: "published" as const
+    };
+    const getTempFileURL = vi.fn(async (input: { fileList: string[] }) => ({
+      fileList: input.fileList.map((fileID) => ({
+        code: "SUCCESS",
+        fileID,
+        tempFileURL: `https://cdn.example.com/${encodeURIComponent(fileID)}`
+      })),
+      requestId: "req_event_cover_temp_url"
+    }));
+    const eventsCollection = {
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({
+          data: [liveEvent]
+        }))
+      }))
+    };
+    const emptyCollection = {
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({
+          data: []
+        }))
+      }))
+    };
+    const initCloudbase = vi.fn(() => ({
+      database: () => ({
+        collection: (name: string) =>
+          name === "events" ? eventsCollection : emptyCollection
+      }),
+      getTempFileURL
+    }));
+
+    try {
+      vi.resetModules();
+      vi.doMock("@cloudbase/node-sdk", () => ({
+        default: {
+          init: initCloudbase
+        }
+      }));
+      process.env.CLOUDBASE_PROVIDER_MODE = "live";
+      process.env.CLOUDBASE_ENV_ID = "test-env";
+
+      const { createCloudbaseProvider: createLiveProvider } =
+        await import("../src/providers/cloudbase");
+      const provider = createLiveProvider();
+      const detail = await provider.events.detail(liveEvent._id);
+
+      expect(getTempFileURL).toHaveBeenCalledWith({
+        fileList: [placeGalleryFileId]
+      });
+      expect(detail?.cover_url).toBe(tempCoverUrl);
+      expect(detail?.cover_file_id).toBe(placeGalleryFileId);
+    } finally {
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+
+      if (previousEnvId === undefined) {
+        delete process.env.CLOUDBASE_ENV_ID;
+      } else {
+        process.env.CLOUDBASE_ENV_ID = previousEnvId;
+      }
+
+      vi.doUnmock("@cloudbase/node-sdk");
+      vi.resetModules();
+    }
+  });
+
   it("resolves live CloudBase gallery file ids into detail media", async () => {
     const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
     const previousEnvId = process.env.CLOUDBASE_ENV_ID;

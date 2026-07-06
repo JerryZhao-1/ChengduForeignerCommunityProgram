@@ -612,6 +612,68 @@ describe("api routes", () => {
     }
   });
 
+  it("keeps URL-only event covers when file fields are null", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+    const externalCoverUrl =
+      "https://store.is.autonavi.com/showpic/event-external-cover.jpg";
+
+    try {
+      const createResponse = await fetch(`${baseUrl}/admin/events`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          title_zh: "外链封面活动",
+          title_en: "External Cover Event",
+          summary_zh: "简介",
+          summary_en: "Summary",
+          content_zh: "正文",
+          content_en: "Body",
+          address_text: "成都市武侯区桐梓林国际社区",
+          location: { latitude: 30.618887, longitude: 104.065468 },
+          start_time: "2027-04-10T10:00:00+08:00",
+          end_time: "2027-04-10T12:00:00+08:00",
+          signup_deadline: "2027-04-09T18:00:00+08:00",
+          capacity: 30,
+          cover_file_id: null,
+          cover_cloud_path: null,
+          cover_url: externalCoverUrl
+        })
+      });
+      const createBody = await createResponse.json();
+      const eventId = createBody.data._id;
+
+      expect(createResponse.status).toBe(201);
+      expect(createBody.data.cover_file_id).toBeNull();
+      expect(createBody.data.cover_cloud_path).toBeNull();
+      expect(createBody.data.cover_url).toBe(externalCoverUrl);
+
+      await fetch(`${baseUrl}/admin/events/${eventId}/review`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          review_status: "approved",
+          publish_status: "published"
+        })
+      });
+
+      const publicDetailResponse = await fetch(`${baseUrl}/events/${eventId}`);
+      const publicDetailBody = await publicDetailResponse.json();
+
+      expect(publicDetailResponse.status).toBe(200);
+      expect(publicDetailBody.data.cover_file_id).toBeNull();
+      expect(publicDetailBody.data.cover_cloud_path).toBeNull();
+      expect(publicDetailBody.data.cover_url).toBe(externalCoverUrl);
+    } finally {
+      await close();
+    }
+  });
+
   it("serves health and places routes with the CloudBase /api prefix", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 

@@ -6,6 +6,7 @@ import {
   DirectEventCoverUploadResponseSchema,
   EventAdminListItemSchema,
   EventAdminRegistrationRowSchema,
+  EventSchema,
   EVENT_REGISTRATION_STATUSES,
   FILE_PATH_RULES,
   FileAssetSchema,
@@ -22,6 +23,7 @@ import {
   PlacePoiSearchItemSchema,
   PlacePoiSearchQuerySchema,
   PlaceSchema,
+  CreateEventInputSchema,
   eventContracts,
   fileContracts,
   placeContracts,
@@ -350,6 +352,38 @@ describe("shared contracts", () => {
         event_id: "event_admin_001"
       }).success
     ).toBe(false);
+  });
+
+  it("accepts URL-only event cover fields", () => {
+    const createInput = CreateEventInputSchema.parse({
+      title_zh: "外链封面活动",
+      title_en: "External Cover Event",
+      summary_zh: "简介",
+      summary_en: "Summary",
+      content_zh: "正文",
+      content_en: "Body",
+      address_text: "成都市武侯区桐梓林国际社区",
+      location: { latitude: 30.618887, longitude: 104.065468 },
+      start_time: "2027-04-10T10:00:00+08:00",
+      end_time: "2027-04-10T12:00:00+08:00",
+      signup_deadline: "2027-04-09T18:00:00+08:00",
+      capacity: 30,
+      cover_file_id: null,
+      cover_cloud_path: null,
+      cover_url: "https://store.is.autonavi.com/showpic/event-cover.jpg"
+    });
+    const event = EventSchema.parse({
+      _id: "event_url_cover_001",
+      community_id: "tongzilin",
+      ...createInput,
+      organizer_user_id: "user_001",
+      review_status: "draft",
+      publish_status: "draft"
+    });
+
+    expect(createInput.cover_file_id).toBeNull();
+    expect(event.cover_cloud_path).toBeNull();
+    expect(event.cover_url).toContain("store.is.autonavi.com");
   });
 
   it("normalizes admin place POI search contracts", () => {
