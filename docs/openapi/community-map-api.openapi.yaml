@@ -219,10 +219,33 @@ components:
           type: string
         review_status:
           type: string
-          enum: [pending_review, approved, rejected]
+          enum: [draft, pending_review, approved, rejected]
         publish_status:
           type: string
-          enum: [draft, published, offline]
+          enum: [draft, published, offline, ended]
+    EventAdminListItem:
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            [
+              active_registration_count,
+              confirmed_attendee_count,
+              remaining_capacity,
+              is_full
+            ]
+          properties:
+            active_registration_count:
+              type: integer
+              minimum: 0
+            confirmed_attendee_count:
+              type: integer
+              minimum: 0
+            remaining_capacity:
+              type: integer
+              minimum: 0
+            is_full:
+              type: boolean
     CreateEventInput:
       type: object
       required:
@@ -325,10 +348,10 @@ components:
       properties:
         review_status:
           type: string
-          enum: [approved, rejected, pending_review]
+          enum: [draft, pending_review, approved, rejected]
         publish_status:
           type: string
-          enum: [draft, published, offline]
+          enum: [draft, published, offline, ended]
         reason:
           type: string
     CreateEventRegistrationInput:
@@ -381,6 +404,25 @@ components:
           type: string
         source_channel:
           type: string
+    EventAdminRegistrationRow:
+      allOf:
+        - $ref: "#/components/schemas/EventRegistration"
+        - type: object
+          required: [ticket_code, ticket_status, ticket_used_at]
+          properties:
+            ticket_code:
+              type:
+                - string
+                - "null"
+            ticket_status:
+              type:
+                - string
+                - "null"
+              enum: [valid, used, invalid, null]
+            ticket_used_at:
+              type:
+                - string
+                - "null"
     EventTicket:
       type: object
       required:
@@ -1065,6 +1107,12 @@ components:
       properties:
         deleted_id:
           type: string
+    DeleteEventResponse:
+      type: object
+      required: [deleted_id]
+      properties:
+        deleted_id:
+          type: string
     Announcement:
       type: object
       required:
@@ -1467,6 +1515,38 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
   /admin/events:
+    get:
+      tags: [Admin, Events]
+      operationId: adminListEvents
+      summary: List admin events
+      security:
+        - MockActorHeader: []
+      responses:
+        "200":
+          description: Admin event page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, page, pageSize, total]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/EventAdminListItem"
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
+        "403":
+          $ref: "#/components/responses/Forbidden"
     post:
       tags: [Admin, Events]
       operationId: adminCreateEvent
@@ -1562,6 +1642,31 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Admin, Events]
+      operationId: adminDeleteEvent
+      summary: Delete event
+      description: Admin hard delete. The deleted event is removed from admin reads and from public event reads.
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Deleted event id
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/DeleteEventResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /admin/events/{id}/cover-file:
     post:
       tags: [Admin, Events, Files]
@@ -1629,6 +1734,33 @@ paths:
                     properties:
                       data:
                         $ref: "#/components/schemas/Event"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/events/{id}/registrations:
+    get:
+      tags: [Admin, Events]
+      operationId: adminListEventRegistrations
+      summary: List event registrations for admin
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Event registration rows
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/EventAdminRegistrationRow"
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
