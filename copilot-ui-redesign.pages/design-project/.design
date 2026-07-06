@@ -1,0 +1,231 @@
+{
+  "data": [
+    {
+      "id": "page-home-redesign",
+      "type": "page",
+      "title": "首页",
+      "version": 1,
+      "createdAt": 1783340500000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/home-redesign.html",
+        "interactions": [
+          {
+            "domId": "cta-life-guide",
+            "targetPageId": "page-life-guide",
+            "transitionLabel": "Open Life Guide"
+          },
+          {
+            "domId": "tab-home",
+            "targetPageId": "page-home-redesign",
+            "hideEdge": true,
+            "transitionLabel": "Home"
+          },
+          {
+            "domId": "tab-life-guide",
+            "targetPageId": "page-life-guide",
+            "hideEdge": true,
+            "transitionLabel": "Life Guide"
+          },
+          {
+            "domId": "tab-map",
+            "targetPageId": "page-life-guide",
+            "hideEdge": true,
+            "transitionLabel": "Map"
+          },
+          {
+            "domId": "tab-more",
+            "targetPageId": "page-volunteer-tasks",
+            "hideEdge": true,
+            "transitionLabel": "More"
+          },
+          {
+            "domId": "link-emergency",
+            "targetPageId": "page-emergency-cards",
+            "hideEdge": true,
+            "transitionLabel": "Emergency"
+          },
+          {
+            "domId": "link-demo-flow",
+            "targetPageId": "page-demo-flow",
+            "hideEdge": true,
+            "transitionLabel": "Demo Flow"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-life-guide",
+      "type": "page",
+      "title": "Life Guide",
+      "version": 1,
+      "createdAt": 1783340500000,
+      "canvasData": {
+        "x": 420,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/life-guide.html",
+        "interactions": [
+          {
+            "domId": "cta-place-detail",
+            "targetPageId": "page-place-detail-enhanced",
+            "transitionLabel": "View Place Detail"
+          },
+          {
+            "domId": "back-home",
+            "targetPageId": "page-home-redesign",
+            "hideEdge": true,
+            "transitionLabel": "Back to Home"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-place-detail-enhanced",
+      "type": "page",
+      "title": "地点详情增强",
+      "version": 1,
+      "createdAt": 1783340500000,
+      "canvasData": {
+        "x": 840,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/place-detail-enhanced.html",
+        "interactions": [
+          {
+            "domId": "cta-volunteer",
+            "targetPageId": "page-volunteer-tasks",
+            "transitionLabel": "Suggest Edit"
+          },
+          {
+            "domId": "back-life-guide",
+            "targetPageId": "page-life-guide",
+            "hideEdge": true,
+            "transitionLabel": "Back to Life Guide"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-volunteer-tasks",
+      "type": "page",
+      "title": "志愿者任务",
+      "version": 1,
+      "createdAt": 1783340500000,
+      "canvasData": {
+        "x": 1260,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/volunteer-tasks.html",
+        "interactions": [
+          {
+            "domId": "cta-emergency",
+            "targetPageId": "page-emergency-cards",
+            "transitionLabel": "View Emergency"
+          },
+          {
+            "domId": "back-place-detail",
+            "targetPageId": "page-place-detail-enhanced",
+            "hideEdge": true,
+            "transitionLabel": "Back to Place Detail"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-emergency-cards",
+      "type": "page",
+      "title": "应急便民服务",
+      "version": 1,
+      "createdAt": 1783340500000,
+      "canvasData": {
+        "x": 1680,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/emergency-cards.html",
+        "interactions": [
+          {
+            "domId": "cta-demo-flow",
+            "targetPageId": "page-demo-flow",
+            "transitionLabel": "View Demo Flow"
+          },
+          {
+            "domId": "back-volunteer",
+            "targetPageId": "page-volunteer-tasks",
+            "hideEdge": true,
+            "transitionLabel": "Back to Volunteer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-demo-flow",
+      "type": "page",
+      "title": "演示链路",
+      "version": 1,
+      "createdAt": 1783340500000,
+      "canvasData": {
+        "x": 2100,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/demo-flow.html",
+        "interactions": [
+          {
+            "domId": "link-home",
+            "targetPageId": "page-home-redesign",
+            "hideEdge": true,
+            "transitionLabel": "Go to Home"
+          },
+          {
+            "domId": "link-life-guide",
+            "targetPageId": "page-life-guide",
+            "hideEdge": true,
+            "transitionLabel": "View Life Guide"
+          },
+          {
+            "domId": "link-place-detail",
+            "targetPageId": "page-place-detail-enhanced",
+            "hideEdge": true,
+            "transitionLabel": "See Detail Page"
+          },
+          {
+            "domId": "link-volunteer",
+            "targetPageId": "page-volunteer-tasks",
+            "hideEdge": true,
+            "transitionLabel": "View Tasks"
+          },
+          {
+            "domId": "back-emergency",
+            "targetPageId": "page-emergency-cards",
+            "hideEdge": true,
+            "transitionLabel": "Back to Emergency"
+          }
+        ]
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "mobile",
+    "projectName": "桐梓林生活导航 Copilot",
+    "windowSize": {
+      "width": 800,
+      "height": 600
+    },
+    "showEdge": false
+  }
+}

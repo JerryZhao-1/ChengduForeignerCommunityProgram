@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Guide</title>
+    <style id="theme-vars">
+/*
+ * Tongzilin Life Copilot — Brand Design Tokens
+ * Derived from existing mobile app teal color scheme
+ * Prefix: tzl (TongZiLin)
+ */
+
+:root {
+  /* ── Brand Primary ── */
+  --tzl-color-primary: #0f766e;
+  --tzl-color-primary-light: #14b8a6;
+  --tzl-color-primary-dark: #115e59;
+  --tzl-color-primary-bg: #f0fdfa;
+  --tzl-color-primary-bg-subtle: #ccfbf1;
+  --tzl-color-primary-bg-hover: #99f6e4;
+
+  /* ── Neutral Palette ── */
+  --tzl-color-bg-page: #f8fafc;
+  --tzl-color-bg-surface: #ffffff;
+  --tzl-color-bg-elevated: #ffffff;
+  --tzl-color-bg-muted: #f1f5f9;
+
+  --tzl-color-text-primary: #0f172a;
+  --tzl-color-text-secondary: #475569;
+  --tzl-color-text-tertiary: #94a3b8;
+  --tzl-color-text-inverse: #ffffff;
+
+  --tzl-color-border: #e2e8f0;
+  --tzl-color-border-subtle: #f1f5f9;
+
+  /* ── Semantic State Colors ── */
+  --tzl-state-success: #16a34a;
+  --tzl-state-success-bg: #dcfce7;
+  --tzl-state-warning: #d97706;
+  --tzl-state-warning-bg: #fef3c7;
+  --tzl-state-error: #dc2626;
+  --tzl-state-error-bg: #fef2f2;
+  --tzl-state-info: #0284c7;
+  --tzl-state-info-bg: #e0f2fe;
+  --tzl-overlay-dark: rgba(0, 0, 0, 0.35);
+  --tzl-overlay-light: rgba(255, 255, 255, 0.15);
+  --tzl-overlay-lighter: rgba(255, 255, 255, 0.2);
+  --tzl-text-on-primary-80: rgba(255, 255, 255, 0.8);
+  --tzl-text-on-primary-60: rgba(255, 255, 255, 0.6);
+  --tzl-text-on-primary-70: rgba(255, 255, 255, 0.7);
+  --tzl-text-on-primary-85: rgba(255, 255, 255, 0.85);
+  --tzl-overlay-subtle: rgba(0, 0, 0, 0.04);
+
+
+
+  /* ── Typography ── */
+  --tzl-font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tzl-font-family-display: 'Inter', 'Noto Sans SC', sans-serif;
+
+  --tzl-font-size-xs: 10px;
+  --tzl-font-size-sm: 12px;
+  --tzl-font-size-base: 14px;
+  --tzl-font-size-md: 15px;
+  --tzl-font-size-lg: 17px;
+  --tzl-font-size-xl: 20px;
+  --tzl-font-size-2xl: 24px;
+  --tzl-font-size-3xl: 28px;
+  --tzl-font-size-4xl: 34px;
+
+  --tzl-font-weight-normal: 400;
+  --tzl-font-weight-medium: 500;
+  --tzl-font-weight-semibold: 600;
+  --tzl-font-weight-bold: 700;
+
+  --tzl-line-height-tight: 1.25;
+  --tzl-line-height-snug: 1.375;
+  --tzl-line-height-normal: 1.5;
+  --tzl-line-height-relaxed: 1.625;
+
+  --tzl-letter-spacing-tight: -0.01em;
+  --tzl-letter-spacing-normal: 0;
+  --tzl-letter-spacing-wide: 0.02em;
+
+  /* ── Radius ── */
+  --tzl-radius-xs: 2px;
+  --tzl-radius-sm: 4px;
+  --tzl-radius-md: 8px;
+  --tzl-radius-lg: 12px;
+  --tzl-radius-xl: 16px;
+  --tzl-radius-full: 9999px;
+
+  /* ── Spacing ── */
+  --tzl-spacing-1: 4px;
+  --tzl-spacing-2: 8px;
+  --tzl-spacing-3: 12px;
+  --tzl-spacing-4: 16px;
+  --tzl-spacing-5: 20px;
+  --tzl-spacing-6: 24px;
+  --tzl-spacing-8: 32px;
+  --tzl-spacing-10: 40px;
+  --tzl-spacing-12: 48px;
+
+  /* ── Shadows ── */
+  --tzl-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --tzl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --tzl-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Typography Classes ── */
+.tzl-h1 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-4xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  letter-spacing: var(--tzl-letter-spacing-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h2 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-3xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h3 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-2xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h4 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-body {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-base);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-body-lg {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-md);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-caption {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-sm);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+}
+
+.tzl-label {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-xs);
+  font-weight: var(--tzl-font-weight-medium);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+  letter-spacing: var(--tzl-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  
+  @layer base {
+    body { background: var(--tzl-background); color: var(--tzl-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+  <style type="text/tailwindcss">
+@theme inline {
+  --color-primary: var(--tzl-color-primary);
+  --color-primary-light: var(--tzl-color-primary-light);
+  --color-primary-dark: var(--tzl-color-primary-dark);
+  --color-primary-foreground: var(--tzl-color-text-inverse);
+  --color-background: var(--tzl-color-bg-page);
+  --color-foreground: var(--tzl-color-text-primary);
+  --color-card: var(--tzl-color-bg-surface);
+  --color-card-foreground: var(--tzl-color-text-primary);
+  --color-muted: var(--tzl-color-bg-muted);
+  --color-muted-foreground: var(--tzl-color-text-tertiary);
+  --color-border: var(--tzl-color-border);
+  --color-destructive: var(--tzl-color-text-inverse);
+  --radius-sm: var(--tzl-radius-sm);
+  --radius-md: var(--tzl-radius-md);
+  --radius-lg: var(--tzl-radius-lg);
+  --radius-xl: var(--tzl-radius-xl);
+}
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased" style="background: var(--tzl-color-bg-page); color: var(--tzl-color-text-primary);">
+
+    <!-- Status Bar Safe Area -->
+    <div class="status-bar-safe-area" style="padding-top: env(safe-area-inset-top, 0px);"></div>
+
+    <main style="padding-bottom: 80px;">
+
+      <!-- ═══════════════════════════════════════
+           Navigation Header
+           ═══════════════════════════════════════ -->
+      <header style="
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--tzl-color-bg-surface);
+        border-bottom: 1px solid var(--tzl-color-border);
+      ">
+        <div style="
+          display: flex;
+          align-items: center;
+          padding: var(--tzl-spacing-3) var(--tzl-spacing-4);
+          gap: var(--tzl-spacing-3);
+        ">
+          <a href="#" data-dom-id="back-home" aria-label="Back" style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--tzl-radius-full);
+            text-decoration: none;
+            color: var(--tzl-color-text-primary);
+            transition: background 120ms ease;
+          ">
+            <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+          </a>
+          <div style="flex: 1; min-width: 0;">
+            <h1 style="
+              font-family: var(--tzl-font-family-display);
+              font-size: var(--tzl-font-size-lg);
+              font-weight: var(--tzl-font-weight-semibold);
+              line-height: var(--tzl-line-height-tight);
+              color: var(--tzl-color-text-primary);
+              text-align: center;
+              margin: 0;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            ">Life Guide</h1>
+            <p style="
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-text-tertiary);
+              text-align: center;
+              margin: 2px 0 0 0;
+              line-height: var(--tzl-line-height-normal);
+            ">New in Tongzilin / 刚搬来桐梓林</p>
+          </div>
+          <!-- Spacer to balance the back button -->
+          <div style="width: 36px;"></div>
+        </div>
+        <div style="
+          padding: 0 var(--tzl-spacing-4) var(--tzl-spacing-3) var(--tzl-spacing-4);
+          text-align: center;
+        ">
+          <p style="
+            font-family: var(--tzl-font-family);
+            font-size: var(--tzl-font-size-sm);
+            color: var(--tzl-color-text-secondary);
+            margin: 0;
+            line-height: var(--tzl-line-height-normal);
+          ">Everything you need to get started in your new neighborhood</p>
+        </div>
+      </header>
+
+      <!-- ═══════════════════════════════════════
+           Route Timeline
+           ═══════════════════════════════════════ -->
+      <section style="padding: var(--tzl-spacing-5) var(--tzl-spacing-4);">
+        <div style="position: relative;">
+
+          <!-- Timeline vertical line -->
+          <div class="timeline-line"></div>
+
+          <!-- Stop 1: Register at Community Center -->
+          <div class="timeline-stop">
+            <div class="timeline-marker">1</div>
+            <div class="timeline-line-stop"></div>
+            <div style="
+              background: var(--tzl-color-bg-surface);
+              border: 1px solid var(--tzl-color-border);
+              border-radius: var(--tzl-radius-lg);
+              padding: var(--tzl-spacing-4);
+              box-shadow: var(--tzl-shadow-xs);
+            ">
+              <div style="display: flex; gap: var(--tzl-spacing-3); align-items: flex-start;">
+                <div class="placeholder-img">
+                  <i data-lucide="building-2"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: var(--tzl-font-size-md);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    line-height: var(--tzl-line-height-snug);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    word-wrap: balance;
+                  ">Register at Community Center</h3>
+                  <p style="
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    color: var(--tzl-color-text-tertiary);
+                    margin: 0 0 var(--tzl-spacing-2) 0;
+                    line-height: var(--tzl-line-height-normal);
+                  ">社区中心登记</p>
+                  <p style="
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    color: var(--tzl-color-text-secondary);
+                    margin: 0 0 var(--tzl-spacing-3) 0;
+                    line-height: var(--tzl-line-height-relaxed);
+                  ">Essential first step for all new residents</p>
+                  <a href="#" data-dom-id="cta-place-detail" style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: var(--tzl-spacing-1);
+                    padding: 6px 12px;
+                    border-radius: var(--tzl-radius-full);
+                    background: var(--tzl-color-primary-bg-subtle);
+                    color: var(--tzl-color-primary);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-xs);
+                    font-weight: var(--tzl-font-weight-medium);
+                    text-decoration: none;
+                    transition: background 120ms ease;
+                  ">
+                    <span>Show in Chinese</span>
+                    <i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stop 2: Open a Bank Account -->
+          <div class="timeline-stop">
+            <div class="timeline-marker">2</div>
+            <div class="timeline-line-stop"></div>
+            <div style="
+              background: var(--tzl-color-bg-surface);
+              border: 1px solid var(--tzl-color-border);
+              border-radius: var(--tzl-radius-lg);
+              padding: var(--tzl-spacing-4);
+              box-shadow: var(--tzl-shadow-xs);
+            ">
+              <div style="display: flex; gap: var(--tzl-spacing-3); align-items: flex-start;">
+                <div class="placeholder-img">
+                  <i data-lucide="landmark"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: var(--tzl-font-size-md);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    line-height: var(--tzl-line-height-snug);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    word-wrap: balance;
+                  ">Open a Bank Account</h3>
+                  <p style="
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    color: var(--tzl-color-text-tertiary);
+                    margin: 0 0 var(--tzl-spacing-2) 0;
+                    line-height: var(--tzl-line-height-normal);
+                  ">银行开户</p>
+                  <p style="
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    color: var(--tzl-color-text-secondary);
+                    margin: 0 0 var(--tzl-spacing-3) 0;
+                    line-height: var(--tzl-line-height-relaxed);
+                  ">ICBC and Bank of China branches nearby</p>
+                  <a href="#" data-dom-id="cta-place-detail" style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: var(--tzl-spacing-1);
+                    padding: 6px 12px;
+                    border-radius: var(--tzl-radius-full);
+                    background: var(--tzl-color-primary-bg-subtle);
+                    color: var(--tzl-color-primary);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-xs);
+                    font-weight: var(--tzl-font-weight-medium);
+                    text-decoration: none;
+                    transition: background 120ms ease;
+                  ">
+                    <span>Show in Chinese</span>
+                    <i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stop 3: Get a SIM Card -->
+          <div class="timeline-stop">
+            <div class="timeline-marker">3</div>
+            <div class="timeline-line-stop"></div>
+            <div style="
+              background: var(--tzl-color-bg-surface);
+              border: 1px solid var(--tzl-color-border);
+              border-radius: var(--tzl-radius-lg);
+              padding: var(--tzl-spacing-4);
+              box-shadow: var(--tzl-shadow-xs);
+            ">
+              <div style="display: flex; gap: var(--tzl-spacing-3); align-items: flex-start;">
+                <div class="placeholder-img">
+                  <i data-lucide="smartphone"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: var(--tzl-font-size-md);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    line-height: var(--tzl-line-height-snug);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    word-wrap: balance;
+                  ">Get a SIM Card</h3>
+                  <p style="
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    color: var(--tzl-color-text-tertiary);
+                    margin: 0 0 var(--tzl-spacing-2) 0;
+                    line-height: var(--tzl-line-height-normal);
+                  ">办手机卡</p>
+                  <p style="
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    color: var(--tzl-color-text-secondary);
+                    margin: 0 0 var(--tzl-spacing-3) 0;
+                    line-height: var(--tzl-line-height-relaxed);
+                  ">China Mobile and China Unicom within walking distance</p>
+                  <a href="#" data-dom-id="cta-place-detail" style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: var(--tzl-spacing-1);
+                    padding: 6px 12px;
+                    border-radius: var(--tzl-radius-full);
+                    background: var(--tzl-color-primary-bg-subtle);
+                    color: var(--tzl-color-primary);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-xs);
+                    font-weight: var(--tzl-font-weight-medium);
+                    text-decoration: none;
+                    transition: background 120ms ease;
+                  ">
+                    <span>Show in Chinese</span>
+                    <i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stop 4: Explore Daily Essentials -->
+          <div class="timeline-stop">
+            <div class="timeline-marker">4</div>
+            <div style="
+              background: var(--tzl-color-bg-surface);
+              border: 1px solid var(--tzl-color-border);
+              border-radius: var(--tzl-radius-lg);
+              padding: var(--tzl-spacing-4);
+              box-shadow: var(--tzl-shadow-xs);
+            ">
+              <div style="display: flex; gap: var(--tzl-spacing-3); align-items: flex-start;">
+                <div class="placeholder-img">
+                  <i data-lucide="shopping-bag"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: var(--tzl-font-size-md);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    line-height: var(--tzl-line-height-snug);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    word-wrap: balance;
+                  ">Explore Daily Essentials</h3>
+                  <p style="
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    color: var(--tzl-color-text-tertiary);
+                    margin: 0 0 var(--tzl-spacing-2) 0;
+                    line-height: var(--tzl-line-height-normal);
+                  ">探索日常所需</p>
+                  <p style="
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    color: var(--tzl-color-text-secondary);
+                    margin: 0 0 var(--tzl-spacing-3) 0;
+                    line-height: var(--tzl-line-height-relaxed);
+                  ">Supermarkets, pharmacies, and restaurants on this route</p>
+                  <a href="#" data-dom-id="cta-place-detail" style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: var(--tzl-spacing-1);
+                    padding: 6px 12px;
+                    border-radius: var(--tzl-radius-full);
+                    background: var(--tzl-color-primary-bg-subtle);
+                    color: var(--tzl-color-primary);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-xs);
+                    font-weight: var(--tzl-font-weight-medium);
+                    text-decoration: none;
+                    transition: background 120ms ease;
+                  ">
+                    <span>Show in Chinese</span>
+                    <i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════
+           Related Event
+           ═══════════════════════════════════════ -->
+      <section style="padding: 0 var(--tzl-spacing-4) var(--tzl-spacing-5) var(--tzl-spacing-4);">
+        <div style="
+          background: var(--tzl-color-bg-surface);
+          border: 1px solid var(--tzl-color-border);
+          border-left: 3px solid var(--tzl-color-primary);
+          border-radius: var(--tzl-radius-lg);
+          padding: var(--tzl-spacing-4);
+          box-shadow: var(--tzl-shadow-xs);
+        ">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--tzl-spacing-3); margin-bottom: var(--tzl-spacing-3);">
+            <div>
+              <h3 style="
+                font-family: var(--tzl-font-family-display);
+                font-size: var(--tzl-font-size-md);
+                font-weight: var(--tzl-font-weight-semibold);
+                line-height: var(--tzl-line-height-snug);
+                color: var(--tzl-color-text-primary);
+                margin: 0 0 2px 0;
+              ">Community Welcome Coffee</h3>
+              <p style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-sm);
+                color: var(--tzl-color-text-tertiary);
+                margin: 0;
+                line-height: var(--tzl-line-height-normal);
+              ">社区迎新咖啡</p>
+            </div>
+            <span style="
+              display: inline-flex;
+              align-items: center;
+              padding: 3px 10px;
+              border-radius: var(--tzl-radius-full);
+              background: var(--tzl-color-primary-bg-subtle);
+              color: var(--tzl-color-primary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              white-space: nowrap;
+              flex-shrink: 0;
+            ">Open for Registration</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: var(--tzl-spacing-2); margin-bottom: var(--tzl-spacing-3);">
+            <div style="display: flex; align-items: center; gap: var(--tzl-spacing-2);">
+              <i data-lucide="calendar" style="width: 14px; height: 14px; color: var(--tzl-color-text-tertiary); flex-shrink: 0;"></i>
+              <span style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-sm);
+                color: var(--tzl-color-text-secondary);
+                line-height: var(--tzl-line-height-normal);
+              ">This Saturday, 10:00 AM</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--tzl-spacing-2);">
+              <i data-lucide="map-pin" style="width: 14px; height: 14px; color: var(--tzl-color-text-tertiary); flex-shrink: 0;"></i>
+              <span style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-sm);
+                color: var(--tzl-color-text-secondary);
+                line-height: var(--tzl-line-height-normal);
+              ">Community Center, 2nd Floor</span>
+            </div>
+          </div>
+          <button style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 8px var(--tzl-spacing-4);
+            border-radius: var(--tzl-radius-md);
+            background: var(--tzl-color-primary);
+            color: var(--tzl-color-text-inverse);
+            border: none;
+            font-family: var(--tzl-font-family);
+            font-size: var(--tzl-font-size-sm);
+            font-weight: var(--tzl-font-weight-semibold);
+            cursor: pointer;
+            transition: opacity 120ms ease;
+          ">Sign Up</button>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════
+           Community Tips
+           ═══════════════════════════════════════ -->
+      <section style="padding: 0 var(--tzl-spacing-4) var(--tzl-spacing-5) var(--tzl-spacing-4);">
+        <h2 style="
+          font-family: var(--tzl-font-family-display);
+          font-size: var(--tzl-font-size-lg);
+          font-weight: var(--tzl-font-weight-semibold);
+          line-height: var(--tzl-line-height-snug);
+          color: var(--tzl-color-text-primary);
+          margin: 0 0 var(--tzl-spacing-3) 0;
+        ">Community Tips</h2>
+
+        <!-- Post Card 1 -->
+        <div style="
+          background: var(--tzl-color-bg-surface);
+          border: 1px solid var(--tzl-color-border);
+          border-radius: var(--tzl-radius-lg);
+          padding: var(--tzl-spacing-4);
+          box-shadow: var(--tzl-shadow-xs);
+        ">
+          <div style="display: flex; gap: var(--tzl-spacing-3); align-items: flex-start; margin-bottom: var(--tzl-spacing-3);">
+            <div style="
+              width: 36px;
+              height: 36px;
+              border-radius: var(--tzl-radius-full);
+              background: var(--tzl-color-primary-bg-subtle);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+            ">
+              <span style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-sm);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-primary);
+              ">SM</span>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <p style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-sm);
+                font-weight: var(--tzl-font-weight-medium);
+                color: var(--tzl-color-text-primary);
+                margin: 0 0 1px 0;
+                line-height: var(--tzl-line-height-normal);
+              ">My first week tips for newcomers</p>
+              <p style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+                margin: 0;
+                line-height: var(--tzl-line-height-normal);
+              ">by Sarah M.</p>
+            </div>
+          </div>
+          <p style="
+            font-family: var(--tzl-font-family);
+            font-size: var(--tzl-font-size-sm);
+            color: var(--tzl-color-text-secondary);
+            margin: 0 0 var(--tzl-spacing-3) 0;
+            line-height: var(--tzl-line-height-relaxed);
+          ">Don't worry about the language barrier at first. The community center staff are incredibly helpful and several speak basic English. Start with registration there and they'll guide you through the rest.</p>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: var(--tzl-spacing-1);">
+              <i data-lucide="heart" style="width: 14px; height: 14px; color: var(--tzl-color-text-tertiary);"></i>
+              <span style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+              ">24</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--tzl-spacing-1);">
+              <i data-lucide="map-pin" style="width: 12px; height: 12px; color: var(--tzl-color-text-tertiary);"></i>
+              <span style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+              ">Tongzilin Community</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════
+           Mini Map Preview
+           ═══════════════════════════════════════ -->
+      <section style="padding: 0 var(--tzl-spacing-4) var(--tzl-spacing-5) var(--tzl-spacing-4);">
+        <div class="map-placeholder">
+          <!-- Map pin markers for the 4 stops -->
+          <div class="map-pin" style="top: 25%; left: 30%;">
+            <i data-lucide="map-pin"></i>
+          </div>
+          <div class="map-pin" style="top: 35%; left: 55%;">
+            <i data-lucide="map-pin"></i>
+          </div>
+          <div class="map-pin" style="top: 55%; left: 40%;">
+            <i data-lucide="map-pin"></i>
+          </div>
+          <div class="map-pin" style="top: 65%; left: 70%;">
+            <i data-lucide="map-pin"></i>
+          </div>
+          <!-- Centered label -->
+          <span style="
+            font-family: var(--tzl-font-family);
+            font-size: var(--tzl-font-size-sm);
+            color: var(--tzl-color-text-tertiary);
+            z-index: 1;
+          ">Route Preview</span>
+        </div>
+        <button style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: var(--tzl-spacing-2);
+          width: 100%;
+          margin-top: var(--tzl-spacing-3);
+          padding: 10px var(--tzl-spacing-4);
+          border-radius: var(--tzl-radius-md);
+          background: transparent;
+          color: var(--tzl-color-primary);
+          border: 1px solid var(--tzl-color-primary);
+          font-family: var(--tzl-font-family);
+          font-size: var(--tzl-font-size-sm);
+          font-weight: var(--tzl-font-weight-medium);
+          cursor: pointer;
+          transition: background 120ms ease, color 120ms ease;
+        ">
+          <i data-lucide="map" style="width: 16px; height: 16px;"></i>
+          <span>Open Full Map</span>
+        </button>
+      </section>
+
+      <!-- ═══════════════════════════════════════
+           Bottom Actions
+           ═══════════════════════════════════════ -->
+      <section style="padding: 0 var(--tzl-spacing-4) var(--tzl-spacing-5) var(--tzl-spacing-4);">
+        <div style="display: flex; flex-direction: column; gap: var(--tzl-spacing-2);">
+          <button style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--tzl-spacing-2);
+            width: 100%;
+            padding: var(--tzl-spacing-3) var(--tzl-spacing-4);
+            border-radius: var(--tzl-radius-md);
+            background: var(--tzl-color-primary);
+            color: var(--tzl-color-text-inverse);
+            border: none;
+            font-family: var(--tzl-font-family);
+            font-size: var(--tzl-font-size-base);
+            font-weight: var(--tzl-font-weight-semibold);
+            cursor: pointer;
+            transition: opacity 120ms ease;
+          ">
+            <i data-lucide="share-2" style="width: 16px; height: 16px;"></i>
+            <span>Share This Route</span>
+          </button>
+          <button style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--tzl-spacing-2);
+            width: 100%;
+            padding: var(--tzl-spacing-3) var(--tzl-spacing-4);
+            border-radius: var(--tzl-radius-md);
+            background: transparent;
+            color: var(--tzl-color-text-secondary);
+            border: 1px solid var(--tzl-color-border);
+            font-family: var(--tzl-font-family);
+            font-size: var(--tzl-font-size-base);
+            font-weight: var(--tzl-font-weight-medium);
+            cursor: pointer;
+            transition: background 120ms ease;
+          ">
+            <i data-lucide="bookmark" style="width: 16px; height: 16px;"></i>
+            <span>Save to Favorites</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ── Shared Bottom TabBar ── -->
+    <nav class="tab-bar"
+         data-nav-region="sharedRegions"
+         style="
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 56px;
+            background: var(--tzl-color-bg-surface);
+            border-top: 1px solid var(--tzl-color-border);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-shadow: 0 -1px 4px var(--tzl-overlay-subtle);
+         ">
+
+        <!-- Home -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="home"
+           data-dom-id="tab-home"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <i data-lucide="home" style="font-size: 22px; line-height: 1; width: 22px; height: 22px;"></i>
+            <span class="tab-label">Home</span>
+        </a>
+
+        <!-- Life Guide (Active) -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="life-guide"
+           data-dom-id="tab-life-guide"
+           data-active="true"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <i data-lucide="compass" style="font-size: 22px; line-height: 1; width: 22px; height: 22px;"></i>
+            <span class="tab-label">Life Guide</span>
+        </a>
+
+        <!-- Map -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="map"
+           data-dom-id="tab-map"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <i data-lucide="map" style="font-size: 22px; line-height: 1; width: 22px; height: 22px;"></i>
+            <span class="tab-label">Map</span>
+        </a>
+
+        <!-- More -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="more"
+           data-dom-id="tab-more"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <i data-lucide="grid-2x2" style="font-size: 22px; line-height: 1; width: 22px; height: 22px;"></i>
+            <span class="tab-label">More</span>
+        </a>
+    </nav>
+
+    <script>lucide.createIcons();</script>
+
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+
+      /* ── Page-specific styles ── */
+
+      /* Timeline connector line */
+      .timeline-line {
+        position: absolute;
+        left: 19px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--tzl-color-border);
+      }
+
+      .timeline-stop {
+        position: relative;
+        padding-left: 48px;
+        padding-bottom: var(--tzl-spacing-6);
+      }
+
+      .timeline-stop:last-child {
+        padding-bottom: 0;
+      }
+
+      .timeline-stop:last-child .timeline-line-stop {
+        display: none;
+      }
+
+      .timeline-marker {
+        position: absolute;
+        left: 8px;
+        top: 6px;
+        width: 24px;
+        height: 24px;
+        border-radius: var(--tzl-radius-full);
+        background: var(--tzl-color-primary);
+        color: var(--tzl-color-text-inverse);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-bold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+      }
+
+      .timeline-line-stop {
+        position: absolute;
+        left: 19px;
+        top: 30px;
+        bottom: 0;
+        width: 2px;
+        background: var(--tzl-color-border);
+      }
+
+      /* Placeholder images */
+      .placeholder-img {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--tzl-radius-md);
+        background: var(--tzl-color-primary-bg-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .placeholder-img i {
+        color: var(--tzl-color-primary);
+        width: 24px;
+        height: 24px;
+      }
+
+      /* Map placeholder */
+      .map-placeholder {
+        background: var(--tzl-color-bg-muted);
+        border-radius: var(--tzl-radius-lg);
+        height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .map-pin {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .map-pin i {
+        color: var(--tzl-color-primary);
+        width: 18px;
+        height: 18px;
+      }
+
+      /* TabBar active styling */
+      .tab-bar .tab-item[data-active="true"] {
+        color: var(--tzl-color-primary) !important;
+      }
+      .tab-bar .tab-item[data-active="true"] .tab-icon {
+        transform: scale(1.1);
+      }
+      .tab-bar .tab-item[data-active="true"] .tab-label {
+        font-weight: var(--tzl-font-weight-semibold);
+      }
+    </style>
+</body>
+</html>

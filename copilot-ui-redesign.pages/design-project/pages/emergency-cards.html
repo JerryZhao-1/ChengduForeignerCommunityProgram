@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency &amp; Services</title>
+    <style id="theme-vars">
+/*
+ * Tongzilin Life Copilot — Brand Design Tokens
+ * Derived from existing mobile app teal color scheme
+ * Prefix: tzl (TongZiLin)
+ */
+
+:root {
+  /* ── Brand Primary ── */
+  --tzl-color-primary: #0f766e;
+  --tzl-color-primary-light: #14b8a6;
+  --tzl-color-primary-dark: #115e59;
+  --tzl-color-primary-bg: #f0fdfa;
+  --tzl-color-primary-bg-subtle: #ccfbf1;
+  --tzl-color-primary-bg-hover: #99f6e4;
+
+  /* ── Neutral Palette ── */
+  --tzl-color-bg-page: #f8fafc;
+  --tzl-color-bg-surface: #ffffff;
+  --tzl-color-bg-elevated: #ffffff;
+  --tzl-color-bg-muted: #f1f5f9;
+
+  --tzl-color-text-primary: #0f172a;
+  --tzl-color-text-secondary: #475569;
+  --tzl-color-text-tertiary: #94a3b8;
+  --tzl-color-text-inverse: #ffffff;
+
+  --tzl-color-border: #e2e8f0;
+  --tzl-color-border-subtle: #f1f5f9;
+
+  /* ── Semantic State Colors ── */
+  --tzl-state-success: #16a34a;
+  --tzl-state-success-bg: #dcfce7;
+  --tzl-state-warning: #d97706;
+  --tzl-state-warning-bg: #fef3c7;
+  --tzl-state-error: #dc2626;
+  --tzl-state-error-bg: #fef2f2;
+  --tzl-state-info: #0284c7;
+  --tzl-state-info-bg: #e0f2fe;
+  --tzl-overlay-dark: rgba(0, 0, 0, 0.35);
+  --tzl-overlay-light: rgba(255, 255, 255, 0.15);
+  --tzl-overlay-lighter: rgba(255, 255, 255, 0.2);
+  --tzl-text-on-primary-80: rgba(255, 255, 255, 0.8);
+  --tzl-text-on-primary-60: rgba(255, 255, 255, 0.6);
+  --tzl-text-on-primary-70: rgba(255, 255, 255, 0.7);
+  --tzl-text-on-primary-85: rgba(255, 255, 255, 0.85);
+  --tzl-overlay-subtle: rgba(0, 0, 0, 0.04);
+
+
+
+  /* ── Typography ── */
+  --tzl-font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tzl-font-family-display: 'Inter', 'Noto Sans SC', sans-serif;
+
+  --tzl-font-size-xs: 10px;
+  --tzl-font-size-sm: 12px;
+  --tzl-font-size-base: 14px;
+  --tzl-font-size-md: 15px;
+  --tzl-font-size-lg: 17px;
+  --tzl-font-size-xl: 20px;
+  --tzl-font-size-2xl: 24px;
+  --tzl-font-size-3xl: 28px;
+  --tzl-font-size-4xl: 34px;
+
+  --tzl-font-weight-normal: 400;
+  --tzl-font-weight-medium: 500;
+  --tzl-font-weight-semibold: 600;
+  --tzl-font-weight-bold: 700;
+
+  --tzl-line-height-tight: 1.25;
+  --tzl-line-height-snug: 1.375;
+  --tzl-line-height-normal: 1.5;
+  --tzl-line-height-relaxed: 1.625;
+
+  --tzl-letter-spacing-tight: -0.01em;
+  --tzl-letter-spacing-normal: 0;
+  --tzl-letter-spacing-wide: 0.02em;
+
+  /* ── Radius ── */
+  --tzl-radius-xs: 2px;
+  --tzl-radius-sm: 4px;
+  --tzl-radius-md: 8px;
+  --tzl-radius-lg: 12px;
+  --tzl-radius-xl: 16px;
+  --tzl-radius-full: 9999px;
+
+  /* ── Spacing ── */
+  --tzl-spacing-1: 4px;
+  --tzl-spacing-2: 8px;
+  --tzl-spacing-3: 12px;
+  --tzl-spacing-4: 16px;
+  --tzl-spacing-5: 20px;
+  --tzl-spacing-6: 24px;
+  --tzl-spacing-8: 32px;
+  --tzl-spacing-10: 40px;
+  --tzl-spacing-12: 48px;
+
+  /* ── Shadows ── */
+  --tzl-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --tzl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --tzl-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Typography Classes ── */
+.tzl-h1 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-4xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  letter-spacing: var(--tzl-letter-spacing-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h2 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-3xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h3 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-2xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h4 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-body {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-base);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-body-lg {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-md);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-caption {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-sm);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+}
+
+.tzl-label {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-xs);
+  font-weight: var(--tzl-font-weight-medium);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+  letter-spacing: var(--tzl-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  
+  @layer base {
+    body { background: var(--tzl-background); color: var(--tzl-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+  <style type="text/tailwindcss">
+@theme inline {
+  --color-primary: var(--tzl-color-primary);
+  --color-primary-light: var(--tzl-color-primary-light);
+  --color-primary-dark: var(--tzl-color-primary-dark);
+  --color-primary-foreground: var(--tzl-color-text-inverse);
+  --color-background: var(--tzl-color-bg-page);
+  --color-foreground: var(--tzl-color-text-primary);
+  --color-card: var(--tzl-color-bg-surface);
+  --color-card-foreground: var(--tzl-color-text-primary);
+  --color-muted: var(--tzl-color-bg-muted);
+  --color-muted-foreground: var(--tzl-color-text-tertiary);
+  --color-border: var(--tzl-color-border);
+  --color-destructive: var(--tzl-color-text-inverse);
+  --radius-sm: var(--tzl-radius-sm);
+  --radius-md: var(--tzl-radius-md);
+  --radius-lg: var(--tzl-radius-lg);
+  --radius-xl: var(--tzl-radius-xl);
+}
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased" style="background: var(--tzl-color-bg-page); color: var(--tzl-color-text-primary);">
+
+    <!-- Status Bar Safe Area -->
+    <div style="padding-top: env(safe-area-inset-top, 0px);"></div>
+
+    <!-- Top Navigation Bar -->
+    <nav style="
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        height: 56px;
+        padding: 0 var(--tzl-spacing-4);
+        background: var(--tzl-color-bg-surface);
+        border-bottom: 1px solid var(--tzl-color-border);
+    ">
+        <button data-dom-id="back-volunteer" aria-label="Go back" style="
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: transparent;
+            color: var(--tzl-color-text-primary);
+            cursor: pointer;
+            border-radius: var(--tzl-radius-md);
+            transition: background 120ms cubic-bezier(.2,.8,.2,1);
+        ">
+            <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+        </button>
+        <h1 style="
+            flex: 1;
+            text-align: center;
+            font-family: var(--tzl-font-family-display);
+            font-size: var(--tzl-font-size-lg);
+            font-weight: var(--tzl-font-weight-semibold);
+            color: var(--tzl-color-text-primary);
+            line-height: var(--tzl-line-height-snug);
+            margin: 0;
+            padding-right: 36px;
+        ">Emergency &amp; Services</h1>
+    </nav>
+
+    <main style="padding: 0 var(--tzl-spacing-4) var(--tzl-spacing-12);">
+
+        <!-- Emergency Banner -->
+        <section style="
+            margin-top: var(--tzl-spacing-4);
+            padding: var(--tzl-spacing-5) var(--tzl-spacing-4);
+            border-radius: var(--tzl-radius-lg);
+            background: linear-gradient(135deg, var(--tzl-state-error-bg) 0%, #fff5f5 100%);
+            border: 1px solid #fecaca;
+        ">
+            <div style="display: flex; align-items: flex-start; gap: var(--tzl-spacing-3);">
+                <span style="font-size: 28px; line-height: 1; flex-shrink: 0; margin-top: 2px;" aria-hidden="true">&#x1F198;</span>
+                <div>
+                    <h2 style="
+                        font-family: var(--tzl-font-family-display);
+                        font-size: var(--tzl-font-size-lg);
+                        font-weight: var(--tzl-font-weight-bold);
+                        color: var(--tzl-state-error);
+                        margin: 0 0 4px 0;
+                        line-height: var(--tzl-line-height-snug);
+                        text-wrap: balance;
+                        word-break: keep-all;
+                    ">Emergency &amp; Essential Services</h2>
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-md);
+                        color: var(--tzl-state-error);
+                        opacity: 0.8;
+                        margin: 0 0 6px 0;
+                        line-height: var(--tzl-line-height-normal);
+                    ">应急与便民服务</p>
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-sm);
+                        color: var(--tzl-color-text-secondary);
+                        margin: 0;
+                        line-height: var(--tzl-line-height-relaxed);
+                    ">Important numbers and addresses. Show these cards to taxi drivers or staff.</p>
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-sm);
+                        color: var(--tzl-color-text-secondary);
+                        margin: 0;
+                        line-height: var(--tzl-line-height-normal);
+                    ">重要电话和地址。可以将这些卡片出示给司机或工作人员。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Service Cards Grid -->
+        <div style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--tzl-spacing-3);
+            margin-top: var(--tzl-spacing-5);
+        ">
+
+            <!-- Card 1 — Hospital -->
+            <article style="
+                background: var(--tzl-color-bg-surface);
+                border-radius: var(--tzl-radius-lg);
+                border: 1px solid var(--tzl-color-border);
+                padding: var(--tzl-spacing-4);
+                display: flex;
+                flex-direction: column;
+            ">
+                <span style="font-size: 28px; line-height: 1; margin-bottom: var(--tzl-spacing-2);" aria-hidden="true">&#x1F3E5;</span>
+                <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: 18px;
+                    font-weight: var(--tzl-font-weight-bold);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    line-height: var(--tzl-line-height-snug);
+                    word-break: keep-all;
+                    text-wrap: balance;
+                ">四川大学华西医院</h3>
+                <p class="tzl-caption" style="margin: 0 0 var(--tzl-spacing-3) 0; font-size: var(--tzl-font-size-sm);">West China Hospital, Sichuan University</p>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: var(--tzl-spacing-2);">
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-sm);
+                        color: var(--tzl-color-text-secondary);
+                        margin: 0;
+                        line-height: var(--tzl-line-height-normal);
+                    ">武侯区国学巷37号</p>
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-xs);
+                        color: var(--tzl-color-text-tertiary);
+                        margin: 0 0 var(--tzl-spacing-3) 0;
+                        line-height: var(--tzl-line-height-normal);
+                    ">No. 37, Guoxue Alley, Wuhou District</p>
+                </div>
+                <a href="tel:028-8542-2835" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: var(--tzl-spacing-2);
+                    padding: var(--tzl-spacing-2) var(--tzl-spacing-3);
+                    background: var(--tzl-color-primary);
+                    color: var(--tzl-color-text-inverse);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    border-radius: var(--tzl-radius-md);
+                    text-decoration: none;
+                    min-height: 40px;
+                    transition: background 120ms cubic-bezier(.2,.8,.2,1);
+                    box-shadow: var(--tzl-shadow-xs);
+                " aria-label="Call West China Hospital">
+                    <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+                    <span>028-8542-2835</span>
+                </a>
+            </article>
+
+            <!-- Card 2 — Police -->
+            <article style="
+                background: var(--tzl-color-bg-surface);
+                border-radius: var(--tzl-radius-lg);
+                border: 1px solid var(--tzl-color-border);
+                padding: var(--tzl-spacing-4);
+                display: flex;
+                flex-direction: column;
+            ">
+                <span style="font-size: 28px; line-height: 1; margin-bottom: var(--tzl-spacing-2);" aria-hidden="true">&#x1F693;</span>
+                <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: 18px;
+                    font-weight: var(--tzl-font-weight-bold);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    line-height: var(--tzl-line-height-snug);
+                    word-break: keep-all;
+                    text-wrap: balance;
+                ">桐梓林派出所</h3>
+                <p class="tzl-caption" style="margin: 0 0 var(--tzl-spacing-3) 0; font-size: var(--tzl-font-size-sm);">Tongzilin Police Station</p>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: var(--tzl-spacing-2);">
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-sm);
+                        color: var(--tzl-color-text-secondary);
+                        margin: 0;
+                        line-height: var(--tzl-line-height-normal);
+                    ">武侯区桐梓林路</p>
+                </div>
+                <a href="tel:028-8555-1234" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: var(--tzl-spacing-2);
+                    padding: var(--tzl-spacing-2) var(--tzl-spacing-3);
+                    background: var(--tzl-color-primary);
+                    color: var(--tzl-color-text-inverse);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    border-radius: var(--tzl-radius-md);
+                    text-decoration: none;
+                    min-height: 40px;
+                    transition: background 120ms cubic-bezier(.2,.8,.2,1);
+                    box-shadow: var(--tzl-shadow-xs);
+                " aria-label="Call Tongzilin Police Station">
+                    <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+                    <span>028-8555-1234</span>
+                </a>
+            </article>
+
+            <!-- Card 3 — Community Center -->
+            <article style="
+                background: var(--tzl-color-bg-surface);
+                border-radius: var(--tzl-radius-lg);
+                border: 1px solid var(--tzl-color-border);
+                padding: var(--tzl-spacing-4);
+                display: flex;
+                flex-direction: column;
+            ">
+                <span style="font-size: 28px; line-height: 1; margin-bottom: var(--tzl-spacing-2);" aria-hidden="true">&#x1F3DB;&#xFE0F;</span>
+                <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: 18px;
+                    font-weight: var(--tzl-font-weight-bold);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    line-height: var(--tzl-line-height-snug);
+                    word-break: keep-all;
+                    text-wrap: balance;
+                ">桐梓林社区服务中心</h3>
+                <p class="tzl-caption" style="margin: 0 0 var(--tzl-spacing-3) 0; font-size: var(--tzl-font-size-sm);">Tongzilin Community Service Center</p>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: var(--tzl-spacing-2);">
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-sm);
+                        color: var(--tzl-color-text-secondary);
+                        margin: 0;
+                        line-height: var(--tzl-line-height-normal);
+                    ">武侯区桐梓林北路88号</p>
+                </div>
+                <a href="tel:028-8512-3456" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: var(--tzl-spacing-2);
+                    padding: var(--tzl-spacing-2) var(--tzl-spacing-3);
+                    background: var(--tzl-color-primary);
+                    color: var(--tzl-color-text-inverse);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    border-radius: var(--tzl-radius-md);
+                    text-decoration: none;
+                    min-height: 40px;
+                    transition: background 120ms cubic-bezier(.2,.8,.2,1);
+                    box-shadow: var(--tzl-shadow-xs);
+                " aria-label="Call Tongzilin Community Service Center">
+                    <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+                    <span>028-8512-3456</span>
+                </a>
+            </article>
+
+            <!-- Card 4 — Property Management -->
+            <article style="
+                background: var(--tzl-color-bg-surface);
+                border-radius: var(--tzl-radius-lg);
+                border: 1px solid var(--tzl-color-border);
+                padding: var(--tzl-spacing-4);
+                display: flex;
+                flex-direction: column;
+            ">
+                <span style="font-size: 28px; line-height: 1; margin-bottom: var(--tzl-spacing-2);" aria-hidden="true">&#x1F3E2;</span>
+                <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: 18px;
+                    font-weight: var(--tzl-font-weight-bold);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    line-height: var(--tzl-line-height-snug);
+                    word-break: keep-all;
+                    text-wrap: balance;
+                ">桐梓林物业服务中心</h3>
+                <p class="tzl-caption" style="margin: 0 0 var(--tzl-spacing-3) 0; font-size: var(--tzl-font-size-sm);">Tongzilin Property Management</p>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: var(--tzl-spacing-2);">
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-sm);
+                        color: var(--tzl-color-text-secondary);
+                        margin: 0;
+                        line-height: var(--tzl-line-height-normal);
+                    ">桐梓林北路1号</p>
+                </div>
+                <a href="tel:028-8511-5678" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: var(--tzl-spacing-2);
+                    padding: var(--tzl-spacing-2) var(--tzl-spacing-3);
+                    background: var(--tzl-color-primary);
+                    color: var(--tzl-color-text-inverse);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    border-radius: var(--tzl-radius-md);
+                    text-decoration: none;
+                    min-height: 40px;
+                    transition: background 120ms cubic-bezier(.2,.8,.2,1);
+                    box-shadow: var(--tzl-shadow-xs);
+                " aria-label="Call Tongzilin Property Management">
+                    <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+                    <span>028-8511-5678</span>
+                </a>
+            </article>
+
+            <!-- Card 5 — Pharmacy -->
+            <article style="
+                background: var(--tzl-color-bg-surface);
+                border-radius: var(--tzl-radius-lg);
+                border: 1px solid var(--tzl-color-border);
+                padding: var(--tzl-spacing-4);
+                display: flex;
+                flex-direction: column;
+            ">
+                <span style="font-size: 28px; line-height: 1; margin-bottom: var(--tzl-spacing-2);" aria-hidden="true">&#x1F48A;</span>
+                <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: 18px;
+                    font-weight: var(--tzl-font-weight-bold);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    line-height: var(--tzl-line-height-snug);
+                    word-break: keep-all;
+                    text-wrap: balance;
+                ">桐梓林大药房</h3>
+                <p class="tzl-caption" style="margin: 0 0 var(--tzl-spacing-3) 0; font-size: var(--tzl-font-size-sm);">Tongzilin Pharmacy</p>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: var(--tzl-spacing-2);">
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-sm);
+                        color: var(--tzl-color-text-secondary);
+                        margin: 0;
+                        line-height: var(--tzl-line-height-normal);
+                    ">桐梓林南路12号</p>
+                </div>
+                <a href="tel:028-8513-9012" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: var(--tzl-spacing-2);
+                    padding: var(--tzl-spacing-2) var(--tzl-spacing-3);
+                    background: var(--tzl-color-primary);
+                    color: var(--tzl-color-text-inverse);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    border-radius: var(--tzl-radius-md);
+                    text-decoration: none;
+                    min-height: 40px;
+                    transition: background 120ms cubic-bezier(.2,.8,.2,1);
+                    box-shadow: var(--tzl-shadow-xs);
+                " aria-label="Call Tongzilin Pharmacy">
+                    <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+                    <span>028-8513-9012</span>
+                </a>
+            </article>
+
+            <!-- Card 6 — Bank -->
+            <article style="
+                background: var(--tzl-color-bg-surface);
+                border-radius: var(--tzl-radius-lg);
+                border: 1px solid var(--tzl-color-border);
+                padding: var(--tzl-spacing-4);
+                display: flex;
+                flex-direction: column;
+            ">
+                <span style="font-size: 28px; line-height: 1; margin-bottom: var(--tzl-spacing-2);" aria-hidden="true">&#x1F3E6;</span>
+                <h3 style="
+                    font-family: var(--tzl-font-family-display);
+                    font-size: 18px;
+                    font-weight: var(--tzl-font-weight-bold);
+                    color: var(--tzl-color-text-primary);
+                    margin: 0 0 2px 0;
+                    line-height: var(--tzl-line-height-snug);
+                    word-break: keep-all;
+                    text-wrap: balance;
+                ">中国工商银行桐梓林支行</h3>
+                <p class="tzl-caption" style="margin: 0 0 var(--tzl-spacing-3) 0; font-size: var(--tzl-font-size-sm);">ICBC Tongzilin Branch</p>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: var(--tzl-spacing-2);">
+                    <p style="
+                        font-family: var(--tzl-font-family);
+                        font-size: var(--tzl-font-size-sm);
+                        color: var(--tzl-color-text-secondary);
+                        margin: 0;
+                        line-height: var(--tzl-line-height-normal);
+                    ">桐梓林北路56号</p>
+                </div>
+                <a href="tel:028-8514-3456" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: var(--tzl-spacing-2);
+                    padding: var(--tzl-spacing-2) var(--tzl-spacing-3);
+                    background: var(--tzl-color-primary);
+                    color: var(--tzl-color-text-inverse);
+                    font-family: var(--tzl-font-family);
+                    font-size: var(--tzl-font-size-sm);
+                    font-weight: var(--tzl-font-weight-semibold);
+                    border-radius: var(--tzl-radius-md);
+                    text-decoration: none;
+                    min-height: 40px;
+                    transition: background 120ms cubic-bezier(.2,.8,.2,1);
+                    box-shadow: var(--tzl-shadow-xs);
+                " aria-label="Call ICBC Tongzilin Branch">
+                    <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+                    <span>028-8514-3456</span>
+                </a>
+            </article>
+
+        </div>
+
+        <!-- Footer Disclaimer -->
+        <footer style="
+            margin-top: var(--tzl-spacing-8);
+            text-align: center;
+            padding: 0 var(--tzl-spacing-3);
+        ">
+            <p style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+                line-height: var(--tzl-line-height-relaxed);
+                margin: 0 0 var(--tzl-spacing-1) 0;
+            ">Information maintained by community volunteers. If you find any errors, please submit an update.</p>
+            <p style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+                line-height: var(--tzl-line-height-normal);
+                margin: 0;
+            ">以上信息由社区志愿者维护，如有错误请提交更新。</p>
+        </footer>
+        <a href="#" data-dom-id="cta-demo-flow" style="display:none;" aria-hidden="true"></a>
+
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+{
+  "root": {
+    "nodeId": "gen-project-shell",
+    "kind": "project-shell",
+    "pageIds": ["page-home-redesign", "page-life-guide", "page-place-detail-enhanced", "page-volunteer-tasks", "page-emergency-cards", "page-demo-flow"],
+    "output": "partials/project-shell.html",
+    "sharedRegions": ["bottom-tab-bar", "status-bar-safe-area"],
+    "privateRegions": [],
+    "mutableSlots": ["activeTabKey", "pageTitle"],
+    "status": "generated",
+    "children": [
+      {
+        "nodeId": "gen-page-home-redesign",
+        "kind": "page-leaf",
+        "pageIds": ["page-home-redesign"],
+        "output": "pages/home-redesign.html",
+        "sharedRegions": [],
+        "privateRegions": ["hero section", "scene cards grid", "events carousel", "places carousel"],
+        "mutableSlots": ["activeTabKey"],
+        "status": "planned",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-life-guide",
+        "kind": "page-leaf",
+        "pageIds": ["page-life-guide"],
+        "output": "pages/life-guide.html",
+        "sharedRegions": [],
+        "privateRegions": ["guide header", "route timeline", "related event", "community posts", "map preview", "share actions"],
+        "mutableSlots": ["activeTabKey"],
+        "status": "planned",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-place-detail-enhanced",
+        "kind": "page-leaf",
+        "pageIds": ["page-place-detail-enhanced"],
+        "output": "pages/place-detail-enhanced.html",
+        "sharedRegions": [],
+        "privateRegions": ["place hero image", "place info", "show-in-chinese cards", "action buttons", "suggest-edit FAB"],
+        "mutableSlots": [],
+        "status": "planned",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-volunteer-tasks",
+        "kind": "page-leaf",
+        "pageIds": ["page-volunteer-tasks"],
+        "output": "pages/volunteer-tasks.html",
+        "sharedRegions": [],
+        "privateRegions": ["volunteer header", "task type tabs", "task list", "leaderboard"],
+        "mutableSlots": ["activeTabKey"],
+        "status": "planned",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-emergency-cards",
+        "kind": "page-leaf",
+        "pageIds": ["page-emergency-cards"],
+        "output": "pages/emergency-cards.html",
+        "sharedRegions": [],
+        "privateRegions": ["emergency header", "service cards grid", "footer disclaimer"],
+        "mutableSlots": [],
+        "status": "planned",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-demo-flow",
+        "kind": "page-leaf",
+        "pageIds": ["page-demo-flow"],
+        "output": "pages/demo-flow.html",
+        "sharedRegions": [],
+        "privateRegions": ["step progress bar", "step cards"],
+        "mutableSlots": [],
+        "status": "planned",
+        "children": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Untitled</title>
+    <style id="theme-vars">
+/*
+ * Tongzilin Life Copilot — Brand Design Tokens
+ * Derived from existing mobile app teal color scheme
+ * Prefix: tzl (TongZiLin)
+ */
+
+:root {
+  /* ── Brand Primary ── */
+  --tzl-color-primary: #0f766e;
+  --tzl-color-primary-light: #14b8a6;
+  --tzl-color-primary-dark: #115e59;
+  --tzl-color-primary-bg: #f0fdfa;
+  --tzl-color-primary-bg-subtle: #ccfbf1;
+  --tzl-color-primary-bg-hover: #99f6e4;
+
+  /* ── Neutral Palette ── */
+  --tzl-color-bg-page: #f8fafc;
+  --tzl-color-bg-surface: #ffffff;
+  --tzl-color-bg-elevated: #ffffff;
+  --tzl-color-bg-muted: #f1f5f9;
+
+  --tzl-color-text-primary: #0f172a;
+  --tzl-color-text-secondary: #475569;
+  --tzl-color-text-tertiary: #94a3b8;
+  --tzl-color-text-inverse: #ffffff;
+
+  --tzl-color-border: #e2e8f0;
+  --tzl-color-border-subtle: #f1f5f9;
+
+  /* ── Semantic State Colors ── */
+  --tzl-state-success: #16a34a;
+  --tzl-state-success-bg: #dcfce7;
+  --tzl-state-warning: #d97706;
+  --tzl-state-warning-bg: #fef3c7;
+  --tzl-state-error: #dc2626;
+  --tzl-state-error-bg: #fef2f2;
+  --tzl-state-info: #0284c7;
+  --tzl-state-info-bg: #e0f2fe;
+
+  /* ── Accent (limited use: badges, tags only) ── */
+  --tzl-color-accent-warm: #f59e0b;
+  --tzl-color-accent-warm-bg: #fffbeb;
+  --tzl-color-accent-rose: #e11d48;
+  --tzl-color-accent-rose-bg: #fff1f2;
+
+  /* ── Typography ── */
+  --tzl-font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tzl-font-family-display: 'Inter', 'Noto Sans SC', sans-serif;
+
+  --tzl-font-size-xs: 10px;
+  --tzl-font-size-sm: 12px;
+  --tzl-font-size-base: 14px;
+  --tzl-font-size-md: 15px;
+  --tzl-font-size-lg: 17px;
+  --tzl-font-size-xl: 20px;
+  --tzl-font-size-2xl: 24px;
+  --tzl-font-size-3xl: 28px;
+  --tzl-font-size-4xl: 34px;
+
+  --tzl-font-weight-normal: 400;
+  --tzl-font-weight-medium: 500;
+  --tzl-font-weight-semibold: 600;
+  --tzl-font-weight-bold: 700;
+
+  --tzl-line-height-tight: 1.25;
+  --tzl-line-height-snug: 1.375;
+  --tzl-line-height-normal: 1.5;
+  --tzl-line-height-relaxed: 1.625;
+
+  --tzl-letter-spacing-tight: -0.01em;
+  --tzl-letter-spacing-normal: 0;
+  --tzl-letter-spacing-wide: 0.02em;
+
+  /* ── Radius ── */
+  --tzl-radius-xs: 2px;
+  --tzl-radius-sm: 4px;
+  --tzl-radius-md: 8px;
+  --tzl-radius-lg: 12px;
+  --tzl-radius-xl: 16px;
+  --tzl-radius-full: 9999px;
+
+  /* ── Spacing ── */
+  --tzl-spacing-1: 4px;
+  --tzl-spacing-2: 8px;
+  --tzl-spacing-3: 12px;
+  --tzl-spacing-4: 16px;
+  --tzl-spacing-5: 20px;
+  --tzl-spacing-6: 24px;
+  --tzl-spacing-8: 32px;
+  --tzl-spacing-10: 40px;
+  --tzl-spacing-12: 48px;
+
+  /* ── Shadows ── */
+  --tzl-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --tzl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --tzl-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Typography Classes ── */
+.tzl-h1 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-4xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  letter-spacing: var(--tzl-letter-spacing-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h2 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-3xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h3 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-2xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h4 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-body {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-base);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-body-lg {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-md);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-caption {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-sm);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+}
+
+.tzl-label {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-xs);
+  font-weight: var(--tzl-font-weight-medium);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+  letter-spacing: var(--tzl-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  
+  @layer base {
+    body { background: var(--tzl-background); color: var(--tzl-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased" style="background: var(--tzl-color-bg-page); color: var(--tzl-color-text-primary);">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         Shared Shell Partial — project-shell.html
+         MutableSlot: activeTabKey
+         Leaf pages include this fragment and set data-active="true"
+         on the matching <a> inside .tab-bar to mark the active tab.
+         ════════════════════════════════════════════════════════════════ -->
+
+    <!-- Status Bar Safe Area (top padding for notched devices) -->
+    <div class="status-bar-safe-area" style="padding-top: env(safe-area-inset-top, 0px);"></div>
+
+    <!-- Leaf page content is rendered between the safe-area div and the TabBar.
+         The <main> slot lives here. Leaf pages inject their own <main>. -->
+
+    <!-- ── Shared Bottom TabBar ── -->
+    <nav class="tab-bar"
+         data-nav-region="sharedRegions"
+         style="
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 56px;
+            background: var(--tzl-color-bg-surface);
+            border-top: 1px solid var(--tzl-color-border);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.04);
+         ">
+
+        <!-- Home -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="home"
+           data-dom-id="tab-home"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F3E0;</span>
+            <span class="tab-label">Home</span>
+        </a>
+
+        <!-- Life Guide -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="life-guide"
+           data-dom-id="tab-life-guide"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F9ED;</span>
+            <span class="tab-label">Life Guide</span>
+        </a>
+
+        <!-- Map -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="map"
+           data-dom-id="tab-map"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F5FA;&#xFE0F;</span>
+            <span class="tab-label">Map</span>
+        </a>
+
+        <!-- More -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="more"
+           data-dom-id="tab-more"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F532;</span>
+            <span class="tab-label">More</span>
+        </a>
+    </nav>
+
+    <!-- Active Tab Styling (applied when leaf page sets data-active="true") -->
+    <style>
+        .tab-bar .tab-item[data-active="true"] {
+            color: var(--tzl-color-primary) !important;
+        }
+        .tab-bar .tab-item[data-active="true"] .tab-icon {
+            transform: scale(1.1);
+        }
+        .tab-bar .tab-item[data-active="true"] .tab-label {
+            font-weight: var(--tzl-font-weight-semibold);
+        }
+    </style>
+
+    <script>lucide.createIcons();</script>

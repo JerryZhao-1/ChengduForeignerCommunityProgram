@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteer Tasks — Help Improve This Map</title>
+    <style id="theme-vars">
+/*
+ * Tongzilin Life Copilot — Brand Design Tokens
+ * Derived from existing mobile app teal color scheme
+ * Prefix: tzl (TongZiLin)
+ */
+
+:root {
+  /* ── Brand Primary ── */
+  --tzl-color-primary: #0f766e;
+  --tzl-color-primary-light: #14b8a6;
+  --tzl-color-primary-dark: #115e59;
+  --tzl-color-primary-bg: #f0fdfa;
+  --tzl-color-primary-bg-subtle: #ccfbf1;
+  --tzl-color-primary-bg-hover: #99f6e4;
+
+  /* ── Neutral Palette ── */
+  --tzl-color-bg-page: #f8fafc;
+  --tzl-color-bg-surface: #ffffff;
+  --tzl-color-bg-elevated: #ffffff;
+  --tzl-color-bg-muted: #f1f5f9;
+
+  --tzl-color-text-primary: #0f172a;
+  --tzl-color-text-secondary: #475569;
+  --tzl-color-text-tertiary: #94a3b8;
+  --tzl-color-text-inverse: #ffffff;
+
+  --tzl-color-border: #e2e8f0;
+  --tzl-color-border-subtle: #f1f5f9;
+
+  /* ── Semantic State Colors ── */
+  --tzl-state-success: #16a34a;
+  --tzl-state-success-bg: #dcfce7;
+  --tzl-state-warning: #d97706;
+  --tzl-state-warning-bg: #fef3c7;
+  --tzl-state-error: #dc2626;
+  --tzl-state-error-bg: #fef2f2;
+  --tzl-state-info: #0284c7;
+  --tzl-state-info-bg: #e0f2fe;
+  --tzl-text-on-warning-bg: #92400e;
+  --tzl-text-on-info-bg: #075985;
+  --tzl-text-on-success-bg: #166534;
+  --tzl-overlay-dark: rgba(0, 0, 0, 0.35);
+  --tzl-overlay-light: rgba(255, 255, 255, 0.15);
+  --tzl-overlay-lighter: rgba(255, 255, 255, 0.2);
+  --tzl-text-on-primary-80: rgba(255, 255, 255, 0.8);
+  --tzl-text-on-primary-60: rgba(255, 255, 255, 0.6);
+  --tzl-text-on-primary-70: rgba(255, 255, 255, 0.7);
+  --tzl-text-on-primary-85: rgba(255, 255, 255, 0.85);
+  --tzl-overlay-subtle: rgba(0, 0, 0, 0.04);
+
+
+
+  /* ── Typography ── */
+  --tzl-font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tzl-font-family-display: 'Inter', 'Noto Sans SC', sans-serif;
+
+  --tzl-font-size-xs: 10px;
+  --tzl-font-size-sm: 12px;
+  --tzl-font-size-base: 14px;
+  --tzl-font-size-md: 15px;
+  --tzl-font-size-lg: 17px;
+  --tzl-font-size-xl: 20px;
+  --tzl-font-size-2xl: 24px;
+  --tzl-font-size-3xl: 28px;
+  --tzl-font-size-4xl: 34px;
+
+  --tzl-font-weight-normal: 400;
+  --tzl-font-weight-medium: 500;
+  --tzl-font-weight-semibold: 600;
+  --tzl-font-weight-bold: 700;
+
+  --tzl-line-height-tight: 1.25;
+  --tzl-line-height-snug: 1.375;
+  --tzl-line-height-normal: 1.5;
+  --tzl-line-height-relaxed: 1.625;
+
+  --tzl-letter-spacing-tight: -0.01em;
+  --tzl-letter-spacing-normal: 0;
+  --tzl-letter-spacing-wide: 0.02em;
+
+  /* ── Radius ── */
+  --tzl-radius-xs: 2px;
+  --tzl-radius-sm: 4px;
+  --tzl-radius-md: 8px;
+  --tzl-radius-lg: 12px;
+  --tzl-radius-xl: 16px;
+  --tzl-radius-full: 9999px;
+
+  /* ── Spacing ── */
+  --tzl-spacing-1: 4px;
+  --tzl-spacing-2: 8px;
+  --tzl-spacing-3: 12px;
+  --tzl-spacing-4: 16px;
+  --tzl-spacing-5: 20px;
+  --tzl-spacing-6: 24px;
+  --tzl-spacing-8: 32px;
+  --tzl-spacing-10: 40px;
+  --tzl-spacing-12: 48px;
+
+  /* ── Shadows ── */
+  --tzl-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --tzl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --tzl-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Typography Classes ── */
+.tzl-h1 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-4xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  letter-spacing: var(--tzl-letter-spacing-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h2 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-3xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h3 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-2xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h4 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-body {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-base);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-body-lg {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-md);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-caption {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-sm);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+}
+
+.tzl-label {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-xs);
+  font-weight: var(--tzl-font-weight-medium);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+  letter-spacing: var(--tzl-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  
+  @layer base {
+    body { background: var(--tzl-background); color: var(--tzl-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+  <style type="text/tailwindcss">
+@theme inline {
+  --color-primary: var(--tzl-color-primary);
+  --color-primary-light: var(--tzl-color-primary-light);
+  --color-primary-dark: var(--tzl-color-primary-dark);
+  --color-primary-foreground: var(--tzl-color-text-inverse);
+  --color-background: var(--tzl-color-bg-page);
+  --color-foreground: var(--tzl-color-text-primary);
+  --color-card: var(--tzl-color-bg-surface);
+  --color-card-foreground: var(--tzl-color-text-primary);
+  --color-muted: var(--tzl-color-bg-muted);
+  --color-muted-foreground: var(--tzl-color-text-tertiary);
+  --color-border: var(--tzl-color-border);
+  --color-destructive: var(--tzl-color-text-inverse);
+  --radius-sm: var(--tzl-radius-sm);
+  --radius-md: var(--tzl-radius-md);
+  --radius-lg: var(--tzl-radius-lg);
+  --radius-xl: var(--tzl-radius-xl);
+}
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased" style="background: var(--tzl-color-bg-page); color: var(--tzl-color-text-primary);">
+
+    <!-- Status Bar Safe Area -->
+    <div class="status-bar-safe-area" style="padding-top: env(safe-area-inset-top, 0px);"></div>
+
+    <main style="padding-bottom: 72px;">
+
+        <!-- ════════════════════════════════════════════
+             HEADER — Teal Gradient Card
+             ════════════════════════════════════════════ -->
+        <div class="vt-header">
+            <!-- Back button (hidden wiring) -->
+            <a href="#" class="vt-back-btn" data-dom-id="back-place-detail" aria-label="Back">
+                <i data-lucide="chevron-left" style="width:20px; height:20px;"></i>
+                <span>Back</span>
+            </a>
+
+            <!-- Title -->
+            <h1 class="tzl-h2" style="color: var(--tzl-color-text-inverse); margin-top: var(--tzl-spacing-4); margin-bottom: var(--tzl-spacing-1); word-break: keep-all; text-wrap: balance;">
+                Help Improve This Map
+            </h1>
+            <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-md); font-weight: var(--tzl-font-weight-normal); color: var(--tzl-text-on-primary-85); line-height: var(--tzl-line-height-normal); margin-bottom: var(--tzl-spacing-5);">
+                帮助完善地图
+            </p>
+            <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-sm); color: var(--tzl-text-on-primary-70); line-height: var(--tzl-line-height-normal); margin-bottom: var(--tzl-spacing-5);">
+                Join 12 volunteers who contributed 28 updates
+            </p>
+            <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-sm); color: var(--tzl-text-on-primary-60); line-height: var(--tzl-line-height-normal); margin-bottom: var(--tzl-spacing-5);">
+                已有12位志愿者贡献了28条信息
+            </p>
+
+            <!-- Stats Row -->
+            <div style="display: flex; gap: var(--tzl-spacing-3);">
+                <div class="vt-stat-box">
+                    <div class="stat-value">15</div>
+                    <div class="stat-label">Tasks Available</div>
+                </div>
+                <div class="vt-stat-box">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Completed Today</div>
+                </div>
+                <div class="vt-stat-box">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Your Contributions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════
+             TASK TYPE TABS — Horizontal Scroll
+             ════════════════════════════════════════════ -->
+        <div class="vt-tabs no-scrollbar" role="tablist">
+            <button class="vt-tab active" role="tab" aria-selected="true">All</button>
+            <button class="vt-tab" role="tab" aria-selected="false">纠错<br><span style="font-weight: var(--tzl-font-weight-normal); opacity: 0.7;">Corrections</span></button>
+            <button class="vt-tab" role="tab" aria-selected="false">补照片<br><span style="font-weight: var(--tzl-font-weight-normal); opacity: 0.7;">Photos</span></button>
+            <button class="vt-tab" role="tab" aria-selected="false">补英文名<br><span style="font-weight: var(--tzl-font-weight-normal); opacity: 0.7;">English Names</span></button>
+            <button class="vt-tab" role="tab" aria-selected="false">补时间<br><span style="font-weight: var(--tzl-font-weight-normal); opacity: 0.7;">Hours</span></button>
+        </div>
+
+        <!-- ════════════════════════════════════════════
+             TASK LIST
+             ════════════════════════════════════════════ -->
+
+        <!-- Task 1: Tongzilin Bakery -->
+        <div class="vt-card">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--tzl-spacing-2); margin-bottom: var(--tzl-spacing-2);">
+                <div>
+                    <h3 style="font-family: var(--tzl-font-family-display); font-size: var(--tzl-font-size-md); font-weight: var(--tzl-font-weight-semibold); color: var(--tzl-color-text-primary); line-height: var(--tzl-line-height-snug); margin-bottom: 2px;">
+                        Tongzilin Bakery
+                    </h3>
+                    <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-sm); color: var(--tzl-color-text-tertiary); line-height: var(--tzl-line-height-normal);">
+                        桐梓林面包房
+                    </p>
+                </div>
+                <span class="vt-badge vt-badge--open"><span class="vt-badge-dot"></span>Open</span>
+            </div>
+            <span class="vt-tag vt-tag--warm" style="margin-bottom: var(--tzl-spacing-2);">Missing English Name</span>
+            <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-md); color: var(--tzl-color-text-secondary); line-height: var(--tzl-line-height-relaxed); margin-bottom: var(--tzl-spacing-4);">
+                This bakery has no English name. Can you help?
+            </p>
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="vt-btn vt-btn--primary" data-dom-id="claim-task-1">Claim Task</button>
+            </div>
+        </div>
+
+        <!-- Task 2: Wuhou District Police Station -->
+        <div class="vt-card">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--tzl-spacing-2); margin-bottom: var(--tzl-spacing-2);">
+                <div>
+                    <h3 style="font-family: var(--tzl-font-family-display); font-size: var(--tzl-font-size-md); font-weight: var(--tzl-font-weight-semibold); color: var(--tzl-color-text-primary); line-height: var(--tzl-line-height-snug); margin-bottom: 2px;">
+                        Wuhou District Police Station
+                    </h3>
+                    <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-sm); color: var(--tzl-color-text-tertiary); line-height: var(--tzl-line-height-normal);">
+                        武侯区派出所
+                    </p>
+                </div>
+                <span class="vt-badge vt-badge--progress"><span class="vt-badge-dot"></span>In Progress</span>
+            </div>
+            <span class="vt-tag vt-tag--info" style="margin-bottom: var(--tzl-spacing-2);">Missing Photo</span>
+            <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-md); color: var(--tzl-color-text-secondary); line-height: var(--tzl-line-height-relaxed); margin-bottom: var(--tzl-spacing-4);">
+                No exterior photo available. Upload one if you visit.
+            </p>
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="vt-btn vt-btn--secondary">View Details</button>
+            </div>
+        </div>
+
+        <!-- Task 3: Hema Fresh -->
+        <div class="vt-card">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--tzl-spacing-2); margin-bottom: var(--tzl-spacing-2);">
+                <div>
+                    <h3 style="font-family: var(--tzl-font-family-display); font-size: var(--tzl-font-size-md); font-weight: var(--tzl-font-weight-semibold); color: var(--tzl-color-text-primary); line-height: var(--tzl-line-height-snug); margin-bottom: 2px;">
+                        Hema Fresh
+                    </h3>
+                    <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-sm); color: var(--tzl-color-text-tertiary); line-height: var(--tzl-line-height-normal);">
+                        盒马鲜生
+                    </p>
+                </div>
+                <span class="vt-badge vt-badge--open"><span class="vt-badge-dot"></span>Open</span>
+            </div>
+            <span class="vt-tag vt-tag--teal" style="margin-bottom: var(--tzl-spacing-2);">Verify Hours</span>
+            <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-md); color: var(--tzl-color-text-secondary); line-height: var(--tzl-line-height-relaxed); margin-bottom: var(--tzl-spacing-4);">
+                Business hours may have changed. Can you verify?
+            </p>
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="vt-btn vt-btn--primary">Claim Task</button>
+            </div>
+        </div>
+
+        <!-- Task 4: Community Clinic -->
+        <div class="vt-card">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--tzl-spacing-2); margin-bottom: var(--tzl-spacing-2);">
+                <div>
+                    <h3 style="font-family: var(--tzl-font-family-display); font-size: var(--tzl-font-size-md); font-weight: var(--tzl-font-weight-semibold); color: var(--tzl-color-text-primary); line-height: var(--tzl-line-height-snug); margin-bottom: 2px;">
+                        Community Clinic
+                    </h3>
+                    <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-sm); color: var(--tzl-color-text-tertiary); line-height: var(--tzl-line-height-normal);">
+                        社区卫生服务站
+                    </p>
+                </div>
+                <span class="vt-badge vt-badge--open"><span class="vt-badge-dot"></span>Open</span>
+            </div>
+            <span class="vt-tag vt-tag--rose" style="margin-bottom: var(--tzl-spacing-2);">Correction Needed</span>
+            <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-md); color: var(--tzl-color-text-secondary); line-height: var(--tzl-line-height-relaxed); margin-bottom: var(--tzl-spacing-4);">
+                Phone number may be incorrect: 028-8512-XXXX
+            </p>
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="vt-btn vt-btn--primary">Claim Task</button>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════
+             COMMUNITY LEADERBOARD
+             ════════════════════════════════════════════ -->
+        <div class="vt-leaderboard">
+            <h2 style="font-family: var(--tzl-font-family-display); font-size: var(--tzl-font-size-lg); font-weight: var(--tzl-font-weight-semibold); color: var(--tzl-color-text-primary); margin-bottom: var(--tzl-spacing-1);">
+                Top Contributors
+            </h2>
+            <p style="font-family: var(--tzl-font-family); font-size: var(--tzl-font-size-sm); color: var(--tzl-color-text-tertiary); margin-bottom: var(--tzl-spacing-2);">
+                贡献排行榜
+            </p>
+
+            <!-- Row 1: Sarah M. -->
+            <div class="vt-leader-row">
+                <span class="vt-leader-rank" aria-label="1st place">&#x1F947;</span>
+                <div class="vt-leader-avatar">SM</div>
+                <div style="flex: 1;">
+                    <div class="vt-leader-name">Sarah M.</div>
+                    <div class="vt-leader-count">12 contributions</div>
+                </div>
+            </div>
+
+            <!-- Row 2: Chen Wei -->
+            <div class="vt-leader-row">
+                <span class="vt-leader-rank" aria-label="2nd place">&#x1F948;</span>
+                <div class="vt-leader-avatar">CW</div>
+                <div style="flex: 1;">
+                    <div class="vt-leader-name">Chen Wei</div>
+                    <div class="vt-leader-count">8 contributions</div>
+                </div>
+            </div>
+
+            <!-- Row 3: Alex K. -->
+            <div class="vt-leader-row">
+                <span class="vt-leader-rank" aria-label="3rd place">&#x1F949;</span>
+                <div class="vt-leader-avatar">AK</div>
+                <div style="flex: 1;">
+                    <div class="vt-leader-name">Alex K.</div>
+                    <div class="vt-leader-count">5 contributions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════
+             HIDDEN LINK — Emergency Services
+             ════════════════════════════════════════════ -->
+        <a href="#" class="vt-hidden-link" data-dom-id="cta-emergency">View Emergency Services</a>
+
+    </main>
+
+    <!-- ── Shared Bottom TabBar ── -->
+    <nav class="tab-bar"
+         data-nav-region="sharedRegions"
+         style="
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 56px;
+            background: var(--tzl-color-bg-surface);
+            border-top: 1px solid var(--tzl-color-border);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-shadow: 0 -1px 4px var(--tzl-overlay-subtle);
+         ">
+
+        <!-- Home -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="home"
+           data-dom-id="tab-home"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F3E0;</span>
+            <span class="tab-label">Home</span>
+        </a>
+
+        <!-- Life Guide (ACTIVE) -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="life-guide"
+           data-dom-id="tab-life-guide"
+           data-active="true"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F9ED;</span>
+            <span class="tab-label">Life Guide</span>
+        </a>
+
+        <!-- Map -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="map"
+           data-dom-id="tab-map"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F5FA;&#xFE0F;</span>
+            <span class="tab-label">Map</span>
+        </a>
+
+        <!-- More -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="more"
+           data-dom-id="tab-more"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F532;</span>
+            <span class="tab-label">More</span>
+        </a>
+    </nav>
+
+    <script>lucide.createIcons();</script>
+
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+
+      /* ── Volunteer Tasks Page Styles ── */
+
+      /* Header gradient card */
+      .vt-header {
+        background: linear-gradient(135deg, var(--tzl-color-primary-dark) 0%, var(--tzl-color-primary) 50%, var(--tzl-color-primary-light) 100%);
+        border-radius: 0 0 var(--tzl-radius-xl) var(--tzl-radius-xl);
+        padding: var(--tzl-spacing-6) var(--tzl-spacing-4) var(--tzl-spacing-8);
+        color: var(--tzl-color-text-inverse);
+      }
+
+      /* Stats row inside header */
+      .vt-stat-box {
+        flex: 1;
+        background: var(--tzl-overlay-light);
+        backdrop-filter: blur(4px);
+        border-radius: var(--tzl-radius-md);
+        padding: var(--tzl-spacing-3) var(--tzl-spacing-2);
+        text-align: center;
+      }
+      .vt-stat-box .stat-value {
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-xl);
+        font-weight: var(--tzl-font-weight-bold);
+        line-height: 1.2;
+        color: var(--tzl-color-text-inverse);
+        font-variant-numeric: tabular-nums;
+      }
+      .vt-stat-box .stat-label {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-medium);
+        color: var(--tzl-text-on-primary-80);
+        margin-top: 2px;
+      }
+
+      /* Task type tabs */
+      .vt-tabs {
+        display: flex;
+        gap: var(--tzl-spacing-2);
+        overflow-x: auto;
+        padding: var(--tzl-spacing-4) var(--tzl-spacing-4) var(--tzl-spacing-3);
+        -webkit-overflow-scrolling: touch;
+      }
+      .vt-tabs::-webkit-scrollbar { display: none; }
+      .vt-tab {
+        flex-shrink: 0;
+        padding: var(--tzl-spacing-2) var(--tzl-spacing-4);
+        border-radius: var(--tzl-radius-full);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        font-weight: var(--tzl-font-weight-medium);
+        line-height: 1;
+        white-space: nowrap;
+        cursor: pointer;
+        border: none;
+        background: var(--tzl-color-bg-muted);
+        color: var(--tzl-color-text-secondary);
+        transition: background 0.16s cubic-bezier(.2,.8,.2,1), color 0.16s cubic-bezier(.2,.8,.2,1);
+      }
+      .vt-tab:hover {
+        background: var(--tzl-color-border);
+        color: var(--tzl-color-text-primary);
+      }
+      .vt-tab:active {
+        transform: scale(0.97);
+      }
+      .vt-tab.active {
+        background: var(--tzl-color-primary);
+        color: var(--tzl-color-text-inverse);
+      }
+
+      /* Task cards */
+      .vt-card {
+        background: var(--tzl-color-bg-surface);
+        border-radius: var(--tzl-radius-lg);
+        padding: var(--tzl-spacing-4);
+        margin: 0 var(--tzl-spacing-4) var(--tzl-spacing-3);
+        box-shadow: var(--tzl-shadow-sm);
+      }
+
+      /* Task type tags */
+      .vt-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px var(--tzl-spacing-2);
+        border-radius: var(--tzl-radius-sm);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-medium);
+        line-height: 1.4;
+        white-space: nowrap;
+      }
+      .vt-tag--warm {
+        background: var(--tzl-state-warning-bg);
+        color: var(--tzl-text-on-warning-bg);
+      }
+      .vt-tag--info {
+        background: var(--tzl-state-info-bg);
+        color: var(--tzl-text-on-info-bg);
+      }
+      .vt-tag--teal {
+        background: var(--tzl-color-primary-bg);
+        color: var(--tzl-color-primary-dark);
+      }
+      .vt-tag--rose {
+        background: var(--tzl-state-error-bg);
+        color: var(--tzl-state-error);
+      }
+
+      /* Status badges */
+      .vt-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px var(--tzl-spacing-2);
+        border-radius: var(--tzl-radius-full);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-medium);
+        line-height: 1.4;
+        white-space: nowrap;
+      }
+      .vt-badge--open {
+        background: var(--tzl-state-success-bg);
+        color: var(--tzl-text-on-success-bg);
+      }
+      .vt-badge--progress {
+        background: var(--tzl-state-warning-bg);
+        color: var(--tzl-text-on-warning-bg);
+      }
+      .vt-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .vt-badge--open .vt-badge-dot { background: var(--tzl-state-success); }
+      .vt-badge--progress .vt-badge-dot { background: var(--tzl-state-warning); }
+
+      /* Task action buttons */
+      .vt-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--tzl-spacing-2) var(--tzl-spacing-4);
+        border-radius: var(--tzl-radius-md);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        font-weight: var(--tzl-font-weight-semibold);
+        line-height: 1;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.12s cubic-bezier(.2,.8,.2,1), opacity 0.12s cubic-bezier(.2,.8,.2,1);
+      }
+      .vt-btn:active {
+        transform: scale(0.96);
+      }
+      .vt-btn--primary {
+        background: var(--tzl-color-primary);
+        color: var(--tzl-color-text-inverse);
+      }
+      .vt-btn--primary:hover {
+        background: var(--tzl-color-primary-dark);
+      }
+      .vt-btn--secondary {
+        background: var(--tzl-color-bg-muted);
+        color: var(--tzl-color-text-secondary);
+      }
+      .vt-btn--secondary:hover {
+        background: var(--tzl-color-border);
+      }
+
+      /* Leaderboard section */
+      .vt-leaderboard {
+        margin: var(--tzl-spacing-4);
+        padding: var(--tzl-spacing-4);
+        background: var(--tzl-color-bg-surface);
+        border-radius: var(--tzl-radius-lg);
+        box-shadow: var(--tzl-shadow-sm);
+      }
+      .vt-leader-row {
+        display: flex;
+        align-items: center;
+        gap: var(--tzl-spacing-3);
+        padding: var(--tzl-spacing-3) 0;
+      }
+      .vt-leader-row + .vt-leader-row {
+        border-top: 1px solid var(--tzl-color-border-subtle);
+      }
+      .vt-leader-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--tzl-color-bg-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-sm);
+        font-weight: var(--tzl-font-weight-semibold);
+        color: var(--tzl-color-text-tertiary);
+        flex-shrink: 0;
+      }
+      .vt-leader-name {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-md);
+        font-weight: var(--tzl-font-weight-medium);
+        color: var(--tzl-color-text-primary);
+        flex: 1;
+      }
+      .vt-leader-count {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        color: var(--tzl-color-text-tertiary);
+        font-variant-numeric: tabular-nums;
+      }
+      .vt-leader-rank {
+        font-size: 18px;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+
+      /* Tab bar active state */
+      .tab-bar .tab-item[data-active="true"] {
+        color: var(--tzl-color-primary) !important;
+      }
+      .tab-bar .tab-item[data-active="true"] .tab-icon {
+        transform: scale(1.1);
+      }
+      .tab-bar .tab-item[data-active="true"] .tab-label {
+        font-weight: var(--tzl-font-weight-semibold);
+      }
+
+      /* Back button */
+      .vt-back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-md);
+        font-weight: var(--tzl-font-weight-medium);
+        color: var(--tzl-color-text-inverse);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: var(--tzl-spacing-1) 0;
+        transition: opacity 0.12s ease;
+      }
+      .vt-back-btn:hover { opacity: 0.8; }
+      .vt-back-btn:active { opacity: 0.6; }
+
+      /* Hidden emergency link */
+      .vt-hidden-link {
+        display: block;
+        text-align: center;
+        padding: var(--tzl-spacing-4);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        color: var(--tzl-color-text-tertiary);
+        text-decoration: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+</body>
+</html>

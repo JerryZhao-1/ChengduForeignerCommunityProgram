@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home — Tongzilin Community</title>
+    <style id="theme-vars">
+/*
+ * Tongzilin Life Copilot — Brand Design Tokens
+ * Derived from existing mobile app teal color scheme
+ * Prefix: tzl (TongZiLin)
+ */
+
+:root {
+  /* ── Brand Primary ── */
+  --tzl-color-primary: #0f766e;
+  --tzl-color-primary-light: #14b8a6;
+  --tzl-color-primary-dark: #115e59;
+  --tzl-color-primary-bg: #f0fdfa;
+  --tzl-color-primary-bg-subtle: #ccfbf1;
+  --tzl-color-primary-bg-hover: #99f6e4;
+
+  /* ── Neutral Palette ── */
+  --tzl-color-bg-page: #f8fafc;
+  --tzl-color-bg-surface: #ffffff;
+  --tzl-color-bg-elevated: #ffffff;
+  --tzl-color-bg-muted: #f1f5f9;
+
+  --tzl-color-text-primary: #0f172a;
+  --tzl-color-text-secondary: #475569;
+  --tzl-color-text-tertiary: #94a3b8;
+  --tzl-color-text-inverse: #ffffff;
+
+  --tzl-color-border: #e2e8f0;
+  --tzl-color-border-subtle: #f1f5f9;
+
+  /* ── Semantic State Colors ── */
+  --tzl-state-success: #16a34a;
+  --tzl-state-success-bg: #dcfce7;
+  --tzl-state-warning: #d97706;
+  --tzl-state-warning-bg: #fef3c7;
+  --tzl-state-error: #dc2626;
+  --tzl-state-error-bg: #fef2f2;
+  --tzl-state-info: #0284c7;
+  --tzl-state-info-bg: #e0f2fe;
+  --tzl-overlay-dark: rgba(0, 0, 0, 0.35);
+  --tzl-overlay-light: rgba(255, 255, 255, 0.15);
+  --tzl-overlay-lighter: rgba(255, 255, 255, 0.2);
+  --tzl-text-on-primary-80: rgba(255, 255, 255, 0.8);
+  --tzl-text-on-primary-60: rgba(255, 255, 255, 0.6);
+  --tzl-text-on-primary-70: rgba(255, 255, 255, 0.7);
+  --tzl-text-on-primary-85: rgba(255, 255, 255, 0.85);
+  --tzl-overlay-subtle: rgba(0, 0, 0, 0.04);
+
+
+
+  /* ── Typography ── */
+  --tzl-font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tzl-font-family-display: 'Inter', 'Noto Sans SC', sans-serif;
+
+  --tzl-font-size-xs: 10px;
+  --tzl-font-size-sm: 12px;
+  --tzl-font-size-base: 14px;
+  --tzl-font-size-md: 15px;
+  --tzl-font-size-lg: 17px;
+  --tzl-font-size-xl: 20px;
+  --tzl-font-size-2xl: 24px;
+  --tzl-font-size-3xl: 28px;
+  --tzl-font-size-4xl: 34px;
+
+  --tzl-font-weight-normal: 400;
+  --tzl-font-weight-medium: 500;
+  --tzl-font-weight-semibold: 600;
+  --tzl-font-weight-bold: 700;
+
+  --tzl-line-height-tight: 1.25;
+  --tzl-line-height-snug: 1.375;
+  --tzl-line-height-normal: 1.5;
+  --tzl-line-height-relaxed: 1.625;
+
+  --tzl-letter-spacing-tight: -0.01em;
+  --tzl-letter-spacing-normal: 0;
+  --tzl-letter-spacing-wide: 0.02em;
+
+  /* ── Radius ── */
+  --tzl-radius-xs: 2px;
+  --tzl-radius-sm: 4px;
+  --tzl-radius-md: 8px;
+  --tzl-radius-lg: 12px;
+  --tzl-radius-xl: 16px;
+  --tzl-radius-full: 9999px;
+
+  /* ── Spacing ── */
+  --tzl-spacing-1: 4px;
+  --tzl-spacing-2: 8px;
+  --tzl-spacing-3: 12px;
+  --tzl-spacing-4: 16px;
+  --tzl-spacing-5: 20px;
+  --tzl-spacing-6: 24px;
+  --tzl-spacing-8: 32px;
+  --tzl-spacing-10: 40px;
+  --tzl-spacing-12: 48px;
+
+  /* ── Shadows ── */
+  --tzl-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --tzl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --tzl-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Typography Classes ── */
+.tzl-h1 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-4xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  letter-spacing: var(--tzl-letter-spacing-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h2 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-3xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h3 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-2xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h4 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-body {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-base);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-body-lg {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-md);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-caption {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-sm);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+}
+
+.tzl-label {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-xs);
+  font-weight: var(--tzl-font-weight-medium);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+  letter-spacing: var(--tzl-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  
+  @layer base {
+    body { background: var(--tzl-background); color: var(--tzl-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+  <style type="text/tailwindcss">
+@theme inline {
+  --color-primary: var(--tzl-color-primary);
+  --color-primary-light: var(--tzl-color-primary-light);
+  --color-primary-dark: var(--tzl-color-primary-dark);
+  --color-primary-foreground: var(--tzl-color-text-inverse);
+  --color-background: var(--tzl-color-bg-page);
+  --color-foreground: var(--tzl-color-text-primary);
+  --color-card: var(--tzl-color-bg-surface);
+  --color-card-foreground: var(--tzl-color-text-primary);
+  --color-muted: var(--tzl-color-bg-muted);
+  --color-muted-foreground: var(--tzl-color-text-tertiary);
+  --color-border: var(--tzl-color-border);
+  --color-destructive: var(--tzl-color-text-inverse);
+  --radius-sm: var(--tzl-radius-sm);
+  --radius-md: var(--tzl-radius-md);
+  --radius-lg: var(--tzl-radius-lg);
+  --radius-xl: var(--tzl-radius-xl);
+}
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased" style="background: var(--tzl-color-bg-page); color: var(--tzl-color-text-primary);">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         Status Bar Safe Area
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="status-bar-safe-area" style="padding-top: env(safe-area-inset-top, 0px);"></div>
+
+    <!-- ── Mini Program Navigation Bar ── -->
+    <nav class="mp-nav-bar" aria-label="Mini program navigation bar">
+      <span>社区导览</span>
+      <div class="absolute right-4 top-1/2 -translate-y-1/2 w-[87px] h-8 flex items-center rounded-full overflow-hidden" style="background: rgba(255,255,255,0.18);">
+        <span class="flex-1 flex items-center justify-center h-full" aria-label="More"><i data-lucide="more-horizontal" class="text-white" style="width:14px;height:14px;"></i></span><span class="w-px h-4" style="background: rgba(255,255,255,0.25);"></span><span class="flex-1 flex items-center justify-center h-full" aria-label="Close"><i data-lucide="x" class="text-white" style="width:14px;height:14px;"></i></span>
+      </div>
+    </nav>
+
+    <main style="padding-bottom: 80px;">
+
+      <!-- ════════════════════════════════════════════════════════════
+           HERO SECTION
+           ════════════════════════════════════════════════════════════ -->
+      <section class="hero-gradient" style="padding: var(--tzl-spacing-6) var(--tzl-spacing-4) var(--tzl-spacing-8);">
+
+        <!-- Community Name -->
+        <div style="text-align: center; margin-bottom: var(--tzl-spacing-4);">
+          <h1 style="
+            font-family: var(--tzl-font-family-display);
+            font-size: var(--tzl-font-size-2xl);
+            font-weight: var(--tzl-font-weight-bold);
+            color: var(--tzl-color-text-inverse);
+            line-height: var(--tzl-line-height-tight);
+            text-wrap: balance;
+            margin: 0 0 var(--tzl-spacing-1) 0;
+          ">Tongzilin Community</h1>
+          <p style="
+            font-family: var(--tzl-font-family);
+            font-size: var(--tzl-font-size-sm);
+            color: rgba(255,255,255,0.75);
+            margin: 0;
+          ">桐梓林社区导览</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div style="
+          background: var(--tzl-color-bg-surface);
+          border-radius: var(--tzl-radius-full);
+          display: flex;
+          align-items: center;
+          padding: 0 var(--tzl-spacing-4);
+          height: 40px;
+          gap: var(--tzl-spacing-2);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tzl-color-text-tertiary)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search places, events..."
+            style="
+              border: none;
+              outline: none;
+              background: transparent;
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-base);
+              color: var(--tzl-color-text-primary);
+              width: 100%;
+              height: 100%;
+            " readonly />
+        </div>
+
+        <!-- Emergency Shortcut (hidden interaction) -->
+        <a href="#" data-dom-id="link-emergency" aria-label="Emergency help"
+          style="
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+          ">Emergency</a>
+      </section>
+
+      <!-- ════════════════════════════════════════════════════════════
+           "WHAT DO YOU NEED TODAY?"
+           ════════════════════════════════════════════════════════════ -->
+      <section style="padding: var(--tzl-spacing-6) var(--tzl-spacing-4) 0;">
+        <h2 style="
+          font-family: var(--tzl-font-family-display);
+          font-size: var(--tzl-font-size-xl);
+          font-weight: var(--tzl-font-weight-bold);
+          color: var(--tzl-color-text-primary);
+          margin: 0 0 var(--tzl-spacing-4) 0;
+          text-wrap: balance;
+        ">What do you need today?</h2>
+
+        <!-- Scene Entry Cards: 2x2 grid + 1 full-width -->
+        <div style="
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: var(--tzl-spacing-3);
+        ">
+
+          <!-- Card 1: New in Tongzilin (CTA → Life Guide) -->
+          <a href="#"
+            class="scene-card"
+            data-dom-id="cta-life-guide"
+            style="
+              background: var(--tzl-color-primary-bg);
+              border-radius: var(--tzl-radius-lg);
+              padding: var(--tzl-spacing-4);
+              display: flex;
+              flex-direction: column;
+              gap: var(--tzl-spacing-2);
+              min-height: 140px;
+            ">
+            <span style="font-size: 32px; line-height: 1;">&#x1F3E0;</span>
+            <div>
+              <div style="
+                font-family: var(--tzl-font-family-display);
+                font-size: var(--tzl-font-size-base);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+                margin-bottom: 2px;
+              ">New in Tongzilin</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-secondary);
+              ">刚搬来桐梓林</div>
+            </div>
+            <p style="
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-text-tertiary);
+              margin: 0;
+              line-height: var(--tzl-line-height-normal);
+            ">Get your essential starter route</p>
+          </a>
+
+          <!-- Card 2: Family Weekend -->
+          <a href="#"
+            class="scene-card"
+            style="
+              background: var(--tzl-color-bg-surface);
+              border-radius: var(--tzl-radius-lg);
+              padding: var(--tzl-spacing-4);
+              display: flex;
+              flex-direction: column;
+              gap: var(--tzl-spacing-2);
+              min-height: 140px;
+              border: 1px solid var(--tzl-color-border);
+            ">
+            <span style="font-size: 32px; line-height: 1;">&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F467;</span>
+            <div>
+              <div style="
+                font-family: var(--tzl-font-family-display);
+                font-size: var(--tzl-font-size-base);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+                margin-bottom: 2px;
+              ">Family Weekend</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-secondary);
+              ">亲子周末</div>
+            </div>
+            <p style="
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-text-tertiary);
+              margin: 0;
+              line-height: var(--tzl-line-height-normal);
+            ">Kid-friendly places &amp; activities</p>
+          </a>
+
+          <!-- Card 3: Need Help -->
+          <a href="#"
+            class="scene-card"
+            style="
+              background: var(--tzl-color-bg-surface);
+              border-radius: var(--tzl-radius-lg);
+              padding: var(--tzl-spacing-4);
+              display: flex;
+              flex-direction: column;
+              gap: var(--tzl-spacing-2);
+              min-height: 140px;
+              border: 1px solid var(--tzl-color-border);
+            ">
+            <span style="font-size: 32px; line-height: 1;">&#x1F198;</span>
+            <div>
+              <div style="
+                font-family: var(--tzl-font-family-display);
+                font-size: var(--tzl-font-size-base);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+                margin-bottom: 2px;
+              ">Need Help</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-secondary);
+              ">需要帮助</div>
+            </div>
+            <p style="
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-text-tertiary);
+              margin: 0;
+              line-height: var(--tzl-line-height-normal);
+            ">Medical, police, community services</p>
+          </a>
+
+          <!-- Card 4: Meet People -->
+          <a href="#"
+            class="scene-card"
+            style="
+              background: var(--tzl-color-primary-bg);
+              border-radius: var(--tzl-radius-lg);
+              padding: var(--tzl-spacing-4);
+              display: flex;
+              flex-direction: column;
+              gap: var(--tzl-spacing-2);
+              min-height: 140px;
+            ">
+            <span style="font-size: 32px; line-height: 1;">&#x1F91D;</span>
+            <div>
+              <div style="
+                font-family: var(--tzl-font-family-display);
+                font-size: var(--tzl-font-size-base);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+                margin-bottom: 2px;
+              ">Meet People</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-secondary);
+              ">认识新朋友</div>
+            </div>
+            <p style="
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-text-tertiary);
+              margin: 0;
+              line-height: var(--tzl-line-height-normal);
+            ">Events &amp; community gatherings</p>
+          </a>
+        </div>
+
+        <!-- Card 5: Food & Daily Life (full-width) -->
+        <div style="margin-top: var(--tzl-spacing-3);">
+          <a href="#"
+            class="scene-card"
+            style="
+              background: var(--tzl-color-bg-surface);
+              border-radius: var(--tzl-radius-lg);
+              padding: var(--tzl-spacing-4) var(--tzl-spacing-5);
+              display: flex;
+              align-items: center;
+              gap: var(--tzl-spacing-4);
+              border: 1px solid var(--tzl-color-border);
+              min-height: 80px;
+            ">
+            <span style="font-size: 36px; line-height: 1; flex-shrink: 0;">&#x1F35C;</span>
+            <div style="flex: 1;">
+              <div style="
+                font-family: var(--tzl-font-family-display);
+                font-size: var(--tzl-font-size-base);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+                margin-bottom: 2px;
+              ">Food &amp; Daily Life</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-secondary);
+              ">美食日常</div>
+            </div>
+            <p style="
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-text-tertiary);
+              margin: 0;
+              line-height: var(--tzl-line-height-normal);
+              white-space: nowrap;
+            ">Restaurants, markets, daily essentials</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- ════════════════════════════════════════════════════════════
+           THIS WEEK'S EVENTS
+           ════════════════════════════════════════════════════════════ -->
+      <section style="padding: var(--tzl-spacing-8) 0 0;">
+        <!-- Section Header -->
+        <div style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 var(--tzl-spacing-4);
+          margin-bottom: var(--tzl-spacing-4);
+        ">
+          <h3 style="
+            font-family: var(--tzl-font-family-display);
+            font-size: var(--tzl-font-size-lg);
+            font-weight: var(--tzl-font-weight-semibold);
+            color: var(--tzl-color-text-primary);
+            margin: 0;
+          ">This Week</h3>
+          <a href="#" style="
+            font-family: var(--tzl-font-family);
+            font-size: var(--tzl-font-size-sm);
+            color: var(--tzl-color-primary);
+            font-weight: var(--tzl-font-weight-medium);
+            text-decoration: none;
+            white-space: nowrap;
+          ">View All</a>
+        </div>
+
+        <!-- Horizontal Scroll Cards -->
+        <div class="h-scroll" style="padding-left: var(--tzl-spacing-4);">
+
+          <!-- Event 1 -->
+          <a href="#" class="event-card" style="
+            width: 220px;
+            background: var(--tzl-color-bg-surface);
+            border-radius: var(--tzl-radius-lg);
+            overflow: hidden;
+            text-decoration: none;
+            border: 1px solid var(--tzl-color-border);
+          ">
+            <div style="
+              height: 100px;
+              background: linear-gradient(135deg, var(--tzl-color-primary) 0%, var(--tzl-color-primary-dark) 100%);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--tzl-text-on-primary-70)" stroke-width="1.5" stroke-linecap="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+            </div>
+            <div style="padding: var(--tzl-spacing-3);">
+              <div style="
+                font-family: var(--tzl-font-family-display);
+                font-size: var(--tzl-font-size-sm);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+                margin-bottom: var(--tzl-spacing-1);
+              ">Community Welcome Coffee</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+              ">Sat, Jul 11 &middot; 10:00 AM</div>
+            </div>
+          </a>
+
+          <!-- Event 2 -->
+          <a href="#" class="event-card" style="
+            width: 220px;
+            background: var(--tzl-color-bg-surface);
+            border-radius: var(--tzl-radius-lg);
+            overflow: hidden;
+            text-decoration: none;
+            border: 1px solid var(--tzl-color-border);
+          ">
+            <div style="
+              height: 100px;
+              background: linear-gradient(135deg, var(--tzl-color-primary-light) 0%, var(--tzl-color-primary) 100%);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--tzl-text-on-primary-70)" stroke-width="1.5" stroke-linecap="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+            </div>
+            <div style="padding: var(--tzl-spacing-3);">
+              <div style="
+                font-family: var(--tzl-font-family-display);
+                font-size: var(--tzl-font-size-sm);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+                margin-bottom: var(--tzl-spacing-1);
+              ">Chinese Language Exchange</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+              ">Sun, Jul 12 &middot; 2:00 PM</div>
+            </div>
+          </a>
+
+          <!-- Event 3 -->
+          <a href="#" class="event-card" style="
+            width: 220px;
+            background: var(--tzl-color-bg-surface);
+            border-radius: var(--tzl-radius-lg);
+            overflow: hidden;
+            text-decoration: none;
+            border: 1px solid var(--tzl-color-border);
+          ">
+            <div style="
+              height: 100px;
+              background: linear-gradient(135deg, var(--tzl-color-primary-dark) 0%, var(--tzl-color-primary) 100%);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--tzl-text-on-primary-70)" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            </div>
+            <div style="padding: var(--tzl-spacing-3);">
+              <div style="
+                font-family: var(--tzl-font-family-display);
+                font-size: var(--tzl-font-size-sm);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+                margin-bottom: var(--tzl-spacing-1);
+              ">Weekend Market Tour</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+              ">Sat, Jul 11 &middot; 8:30 AM</div>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+      <!-- ════════════════════════════════════════════════════════════
+           NEARBY POPULAR PLACES
+           ════════════════════════════════════════════════════════════ -->
+      <section style="padding: var(--tzl-spacing-8) 0 var(--tzl-spacing-6);">
+        <!-- Section Header -->
+        <div style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 var(--tzl-spacing-4);
+          margin-bottom: var(--tzl-spacing-4);
+        ">
+          <h3 style="
+            font-family: var(--tzl-font-family-display);
+            font-size: var(--tzl-font-size-lg);
+            font-weight: var(--tzl-font-weight-semibold);
+            color: var(--tzl-color-text-primary);
+            margin: 0;
+          ">Popular Near You</h3>
+          <a href="#" style="
+            font-family: var(--tzl-font-family);
+            font-size: var(--tzl-font-size-sm);
+            color: var(--tzl-color-primary);
+            font-weight: var(--tzl-font-weight-medium);
+            text-decoration: none;
+            white-space: nowrap;
+          ">View Map</a>
+        </div>
+
+        <!-- Horizontal Scroll Cards -->
+        <div class="h-scroll" style="padding-left: var(--tzl-spacing-4);">
+
+          <!-- Place 1 -->
+          <a href="#" class="place-card" style="
+            width: 140px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--tzl-spacing-2);
+          ">
+            <div style="
+              width: 140px;
+              height: 100px;
+              border-radius: var(--tzl-radius-md);
+              background: var(--tzl-color-primary-bg);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid var(--tzl-color-border);
+            ">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tzl-color-primary)" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-sm);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+              ">Tongzilin Park</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+              ">桐梓林公园</div>
+            </div>
+            <span style="
+              display: inline-block;
+              width: fit-content;
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-primary);
+              background: var(--tzl-color-primary-bg);
+              padding: 2px 8px;
+              border-radius: var(--tzl-radius-full);
+              font-weight: var(--tzl-font-weight-medium);
+            ">Park</span>
+          </a>
+
+          <!-- Place 2 -->
+          <a href="#" class="place-card" style="
+            width: 140px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--tzl-spacing-2);
+          ">
+            <div style="
+              width: 140px;
+              height: 100px;
+              border-radius: var(--tzl-radius-md);
+              background: var(--tzl-color-primary-bg);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid var(--tzl-color-border);
+            ">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tzl-color-primary)" stroke-width="1.5" stroke-linecap="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-sm);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+              ">Carrefour</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+              ">家乐福</div>
+            </div>
+            <span style="
+              display: inline-block;
+              width: fit-content;
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-primary);
+              background: var(--tzl-color-primary-bg);
+              padding: 2px 8px;
+              border-radius: var(--tzl-radius-full);
+              font-weight: var(--tzl-font-weight-medium);
+            ">Shopping</span>
+          </a>
+
+          <!-- Place 3 -->
+          <a href="#" class="place-card" style="
+            width: 140px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--tzl-spacing-2);
+          ">
+            <div style="
+              width: 140px;
+              height: 100px;
+              border-radius: var(--tzl-radius-md);
+              background: var(--tzl-color-primary-bg);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid var(--tzl-color-border);
+            ">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tzl-color-primary)" stroke-width="1.5" stroke-linecap="round"><path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-sm);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+              ">Community Center</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+              ">社区中心</div>
+            </div>
+            <span style="
+              display: inline-block;
+              width: fit-content;
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-primary);
+              background: var(--tzl-color-primary-bg);
+              padding: 2px 8px;
+              border-radius: var(--tzl-radius-full);
+              font-weight: var(--tzl-font-weight-medium);
+            ">Services</span>
+          </a>
+
+          <!-- Place 4 -->
+          <a href="#" class="place-card" style="
+            width: 140px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--tzl-spacing-2);
+          ">
+            <div style="
+              width: 140px;
+              height: 100px;
+              border-radius: var(--tzl-radius-md);
+              background: var(--tzl-color-primary-bg);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid var(--tzl-color-border);
+            ">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tzl-color-primary)" stroke-width="1.5" stroke-linecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            </div>
+            <div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-sm);
+                font-weight: var(--tzl-font-weight-semibold);
+                color: var(--tzl-color-text-primary);
+                line-height: var(--tzl-line-height-snug);
+              ">Peter's Cafe</div>
+              <div style="
+                font-family: var(--tzl-font-family);
+                font-size: var(--tzl-font-size-xs);
+                color: var(--tzl-color-text-tertiary);
+              ">彼得咖啡</div>
+            </div>
+            <span style="
+              display: inline-block;
+              width: fit-content;
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              color: var(--tzl-color-primary);
+              background: var(--tzl-color-primary-bg);
+              padding: 2px 8px;
+              border-radius: var(--tzl-radius-full);
+              font-weight: var(--tzl-font-weight-medium);
+            ">Cafe</span>
+          </a>
+
+        </div>
+      </section>
+
+      <!-- ── Hidden Demo Flow Link ── -->
+      <a href="#" data-dom-id="link-demo-flow" aria-label="Demo flow"
+        style="
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          white-space: nowrap;
+          border: 0;
+        ">Demo Flow</a>
+
+    </main>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         Shared Bottom TabBar
+         ════════════════════════════════════════════════════════════════ -->
+    <nav class="tab-bar"
+         data-nav-region="sharedRegions"
+         style="
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 56px;
+            background: var(--tzl-color-bg-surface);
+            border-top: 1px solid var(--tzl-color-border);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-shadow: 0 -1px 4px var(--tzl-overlay-subtle);
+         ">
+
+        <!-- Home (active) -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="home"
+           data-dom-id="tab-home"
+           data-active="true"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-primary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-semibold);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F3E0;</span>
+            <span class="tab-label">Home</span>
+        </a>
+
+        <!-- Life Guide -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="life-guide"
+           data-dom-id="tab-life-guide"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F9ED;</span>
+            <span class="tab-label">Life Guide</span>
+        </a>
+
+        <!-- Map -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="map"
+           data-dom-id="tab-map"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F5FA;&#xFE0F;</span>
+            <span class="tab-label">Map</span>
+        </a>
+
+        <!-- More -->
+        <a href="#"
+           class="tab-item"
+           data-nav-key="more"
+           data-dom-id="tab-more"
+           style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              flex: 1;
+              text-decoration: none;
+              color: var(--tzl-color-text-tertiary);
+              font-family: var(--tzl-font-family);
+              font-size: var(--tzl-font-size-xs);
+              font-weight: var(--tzl-font-weight-medium);
+              padding: 4px 0;
+              transition: color 0.2s ease;
+           ">
+            <span class="tab-icon" style="font-size: 22px; line-height: 1;">&#x1F532;</span>
+            <span class="tab-label">More</span>
+        </a>
+    </nav>
+
+    <script>lucide.createIcons();</script>
+
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+
+      /* ── Mini Program Navigation Bar ── */
+      .mp-nav-bar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        background: var(--tzl-color-primary);
+        color: var(--tzl-color-text-inverse);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-medium);
+        padding: 0 var(--tzl-spacing-4);
+      }
+      .mp-nav-bar::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 0.5px;
+        background: var(--tzl-overlay-light);
+      }
+
+      /* ── Hero Gradient ── */
+      .hero-gradient {
+        background: linear-gradient(
+          165deg,
+          var(--tzl-color-primary) 0%,
+          var(--tzl-color-primary-dark) 100%
+        );
+      }
+
+      /* ── Scene Card States ── */
+      .scene-card {
+        transition: transform 0.16s cubic-bezier(.2,.8,.2,1),
+                    box-shadow 0.16s cubic-bezier(.2,.8,.2,1);
+        text-decoration: none;
+        display: block;
+      }
+      .scene-card:active {
+        transform: scale(0.98);
+      }
+
+      /* ── Horizontal Scroll ── */
+      .h-scroll {
+        display: flex;
+        overflow-x: auto;
+        gap: var(--tzl-spacing-4);
+        scroll-snap-type: x mandatory;
+        padding-right: var(--tzl-spacing-4);
+      }
+      .h-scroll::-webkit-scrollbar { display: none; }
+      .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+      .h-scroll > * {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+      }
+
+      /* ── Tab Bar Active ── */
+      .tab-bar .tab-item[data-active="true"] {
+        color: var(--tzl-color-primary) !important;
+      }
+      .tab-bar .tab-item[data-active="true"] .tab-icon {
+        transform: scale(1.1);
+      }
+      .tab-bar .tab-item[data-active="true"] .tab-label {
+        font-weight: var(--tzl-font-weight-semibold);
+      }
+
+      /* ── Event / Place Cards ── */
+      .event-card {
+        transition: transform 0.16s cubic-bezier(.2,.8,.2,1);
+      }
+      .event-card:active {
+        transform: scale(0.98);
+      }
+      .place-card {
+        transition: transform 0.16s cubic-bezier(.2,.8,.2,1);
+      }
+      .place-card:active {
+        transform: scale(0.98);
+      }
+    </style>
+</body>
+</html>

@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Detail - Tongzilin Community Center</title>
+    <style id="theme-vars">
+/*
+ * Tongzilin Life Copilot — Brand Design Tokens
+ * Derived from existing mobile app teal color scheme
+ * Prefix: tzl (TongZiLin)
+ */
+
+:root {
+  /* ── Brand Primary ── */
+  --tzl-color-primary: #0f766e;
+  --tzl-color-primary-light: #14b8a6;
+  --tzl-color-primary-dark: #115e59;
+  --tzl-color-primary-bg: #f0fdfa;
+  --tzl-color-primary-bg-subtle: #ccfbf1;
+  --tzl-color-primary-bg-hover: #99f6e4;
+
+  /* ── Neutral Palette ── */
+  --tzl-color-bg-page: #f8fafc;
+  --tzl-color-bg-surface: #ffffff;
+  --tzl-color-bg-elevated: #ffffff;
+  --tzl-color-bg-muted: #f1f5f9;
+
+  --tzl-color-text-primary: #0f172a;
+  --tzl-color-text-secondary: #475569;
+  --tzl-color-text-tertiary: #94a3b8;
+  --tzl-color-text-inverse: #ffffff;
+
+  --tzl-color-border: #e2e8f0;
+  --tzl-color-border-subtle: #f1f5f9;
+
+  /* ── Semantic State Colors ── */
+  --tzl-state-success: #16a34a;
+  --tzl-state-success-bg: #dcfce7;
+  --tzl-state-warning: #d97706;
+  --tzl-state-warning-bg: #fef3c7;
+  --tzl-state-error: #dc2626;
+  --tzl-state-error-bg: #fef2f2;
+  --tzl-state-info: #0284c7;
+  --tzl-state-info-bg: #e0f2fe;
+  --tzl-text-on-warning-bg: #92400e;
+  --tzl-text-on-info-bg: #075985;
+  --tzl-text-on-success-bg: #166534;
+  --tzl-overlay-dark: rgba(0, 0, 0, 0.35);
+  --tzl-overlay-light: rgba(255, 255, 255, 0.15);
+  --tzl-overlay-lighter: rgba(255, 255, 255, 0.2);
+  --tzl-text-on-primary-80: rgba(255, 255, 255, 0.8);
+  --tzl-text-on-primary-60: rgba(255, 255, 255, 0.6);
+  --tzl-text-on-primary-70: rgba(255, 255, 255, 0.7);
+  --tzl-text-on-primary-85: rgba(255, 255, 255, 0.85);
+  --tzl-overlay-subtle: rgba(0, 0, 0, 0.04);
+
+
+
+  /* ── Typography ── */
+  --tzl-font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tzl-font-family-display: 'Inter', 'Noto Sans SC', sans-serif;
+
+  --tzl-font-size-xs: 10px;
+  --tzl-font-size-sm: 12px;
+  --tzl-font-size-base: 14px;
+  --tzl-font-size-md: 15px;
+  --tzl-font-size-lg: 17px;
+  --tzl-font-size-xl: 20px;
+  --tzl-font-size-2xl: 24px;
+  --tzl-font-size-3xl: 28px;
+  --tzl-font-size-4xl: 34px;
+
+  --tzl-font-weight-normal: 400;
+  --tzl-font-weight-medium: 500;
+  --tzl-font-weight-semibold: 600;
+  --tzl-font-weight-bold: 700;
+
+  --tzl-line-height-tight: 1.25;
+  --tzl-line-height-snug: 1.375;
+  --tzl-line-height-normal: 1.5;
+  --tzl-line-height-relaxed: 1.625;
+
+  --tzl-letter-spacing-tight: -0.01em;
+  --tzl-letter-spacing-normal: 0;
+  --tzl-letter-spacing-wide: 0.02em;
+
+  /* ── Radius ── */
+  --tzl-radius-xs: 2px;
+  --tzl-radius-sm: 4px;
+  --tzl-radius-md: 8px;
+  --tzl-radius-lg: 12px;
+  --tzl-radius-xl: 16px;
+  --tzl-radius-full: 9999px;
+
+  /* ── Spacing ── */
+  --tzl-spacing-1: 4px;
+  --tzl-spacing-2: 8px;
+  --tzl-spacing-3: 12px;
+  --tzl-spacing-4: 16px;
+  --tzl-spacing-5: 20px;
+  --tzl-spacing-6: 24px;
+  --tzl-spacing-8: 32px;
+  --tzl-spacing-10: 40px;
+  --tzl-spacing-12: 48px;
+
+  /* ── Shadows ── */
+  --tzl-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --tzl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --tzl-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Typography Classes ── */
+.tzl-h1 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-4xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  letter-spacing: var(--tzl-letter-spacing-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h2 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-3xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h3 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-2xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h4 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-body {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-base);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-body-lg {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-md);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-caption {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-sm);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+}
+
+.tzl-label {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-xs);
+  font-weight: var(--tzl-font-weight-medium);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+  letter-spacing: var(--tzl-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  
+  @layer base {
+    body { background: var(--tzl-background); color: var(--tzl-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+  <style type="text/tailwindcss">
+@theme inline {
+  --color-primary: var(--tzl-color-primary);
+  --color-primary-light: var(--tzl-color-primary-light);
+  --color-primary-dark: var(--tzl-color-primary-dark);
+  --color-primary-foreground: var(--tzl-color-text-inverse);
+  --color-background: var(--tzl-color-bg-page);
+  --color-foreground: var(--tzl-color-text-primary);
+  --color-card: var(--tzl-color-bg-surface);
+  --color-card-foreground: var(--tzl-color-text-primary);
+  --color-muted: var(--tzl-color-bg-muted);
+  --color-muted-foreground: var(--tzl-color-text-tertiary);
+  --color-border: var(--tzl-color-border);
+  --color-destructive: var(--tzl-color-text-inverse);
+  --radius-sm: var(--tzl-radius-sm);
+  --radius-md: var(--tzl-radius-md);
+  --radius-lg: var(--tzl-radius-lg);
+  --radius-xl: var(--tzl-radius-xl);
+}
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+
+<div class="page-wrap">
+
+    <!-- Status Bar Safe Area -->
+    <div style="padding-top: env(safe-area-inset-top, 0px);"></div>
+
+    <!-- Top Navigation Bar (simulated mini program nav) -->
+    <nav class="top-nav">
+        <a href="#" class="back-btn" data-dom-id="back-life-guide" aria-label="Go back">
+            <i data-lucide="chevron-left" style="width:22px;height:22px;"></i>
+        </a>
+        <span class="nav-title">Place Detail</span>
+    </nav>
+
+    <!-- Hero Image -->
+    <div class="hero-image" role="img" aria-label="Tongzilin Community Center building">
+        <i data-lucide="building-2" style="width:64px;height:64px;" class="hero-icon"></i>
+        <span class="hero-label">Community Center</span>
+    </div>
+
+    <!-- Place Info Section -->
+    <section class="info-card" aria-label="Place information">
+        <h1 class="place-name">Tongzilin Community Center</h1>
+        <p class="place-name-zh">桐梓林社区服务中心</p>
+        <span class="badge">Community Services</span>
+
+        <div class="info-row">
+            <i data-lucide="map-pin" class="info-icon"></i>
+            <div class="info-content">
+                <div class="info-label">Address</div>
+                <div class="info-value">No. 88, Tongzilin North Road, Wuhou District</div>
+                <div class="info-value-zh">武侯区桐梓林北路88号</div>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <i data-lucide="clock" class="info-icon"></i>
+            <div class="info-content">
+                <div class="info-label">Hours</div>
+                <div class="info-value">Mon-Fri 9:00-17:00, Sat 9:00-12:00</div>
+                <div class="info-value-zh">周一至周五 9:00-17:00，周六 9:00-12:00</div>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <i data-lucide="phone" class="info-icon"></i>
+            <div class="info-content">
+                <div class="info-label">Phone</div>
+                <div class="info-value">028-8512-3456</div>
+            </div>
+        </div>
+
+        <p class="info-intro">Official community service center for foreign residents. Handles registration, residence permits, and community activities.</p>
+    </section>
+
+    <!-- Show This in Chinese Section -->
+    <section class="show-chinese-section" aria-label="Show this in Chinese">
+        <div class="show-chinese-header" onclick="toggleChinese()" role="button" tabindex="0" aria-expanded="true" aria-controls="chinese-body">
+            <div class="header-left">
+                <span class="header-title">Show This in Chinese / 中文展示</span>
+                <span class="header-subtitle">Tap to show bilingual cards you can show to taxi drivers, shop staff, or community workers</span>
+            </div>
+            <i data-lucide="chevron-down" class="chevron-icon" id="chevron-icon"></i>
+        </div>
+        <div class="show-chinese-body" id="chinese-body">
+
+            <!-- Card 1: Show to Taxi Driver -->
+            <div class="action-card">
+                <div class="card-header">
+                    <span class="card-emoji" role="img" aria-label="taxi">🚕</span>
+                    <span class="card-title">Show to Taxi Driver</span>
+                    <span class="card-title-zh">给司机看</span>
+                </div>
+                <div class="chinese-large">请送我到桐梓林社区服务中心</div>
+                <div class="pinyin">Qǐng sòng wǒ dào Tóngzǐlín shèqū fúwù zhōngxīn</div>
+                <div class="english-translation">Please take me to Tongzilin Community Service Center</div>
+                <div class="chinese-address" style="margin-top: var(--tzl-spacing-3);">武侯区桐梓林北路88号</div>
+                <button class="copy-btn" aria-label="Copy text">
+                    <i data-lucide="copy" style="width:12px;height:12px;"></i>
+                    <span>Copy</span>
+                </button>
+            </div>
+
+            <!-- Card 2: Show to Staff -->
+            <div class="action-card">
+                <div class="card-header">
+                    <span class="card-emoji" role="img" aria-label="store">🏪</span>
+                    <span class="card-title">Show to Staff</span>
+                    <span class="card-title-zh">给工作人员看</span>
+                </div>
+                <div class="chinese-large">你好，我是外籍居民，需要办理居住登记</div>
+                <div class="pinyin">Nǐ hǎo, wǒ shì wàijí jūmín, xūyào bànlǐ jūzhù dēngjì</div>
+                <div class="english-translation">Hello, I'm a foreign resident. I need to register my residence.</div>
+                <button class="copy-btn" aria-label="Copy text">
+                    <i data-lucide="copy" style="width:12px;height:12px;"></i>
+                    <span>Copy</span>
+                </button>
+            </div>
+
+            <!-- Card 3: Ask About Services -->
+            <div class="action-card">
+                <div class="card-header">
+                    <span class="card-emoji" role="img" aria-label="office building">🏢</span>
+                    <span class="card-title">Ask About Services</span>
+                    <span class="card-title-zh">询问服务</span>
+                </div>
+                <div class="chinese-large">请问这里可以办理什么业务？</div>
+                <div class="pinyin">Qǐng wèn zhèlǐ kěyǐ bànlǐ shénme yèwù?</div>
+                <div class="english-translation">What services are available here?</div>
+                <button class="copy-btn" aria-label="Copy text">
+                    <i data-lucide="copy" style="width:12px;height:12px;"></i>
+                    <span>Copy</span>
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Action Buttons Row -->
+    <div class="action-buttons">
+        <button class="btn-primary" aria-label="Start navigation">
+            <i data-lucide="navigation" style="width:18px;height:18px;"></i>
+            <span>Start Navigation</span>
+        </button>
+        <button class="btn-ghost" aria-label="Share location">
+            <i data-lucide="share-2" style="width:18px;height:18px;"></i>
+            <span>Share</span>
+        </button>
+        <button class="btn-taxi" aria-label="Show to taxi driver">
+            <i data-lucide="car" style="width:18px;height:18px;"></i>
+            <span>Taxi</span>
+        </button>
+    </div>
+
+    <!-- Gallery Section -->
+    <section class="gallery-section" aria-label="Photos">
+        <h2 class="gallery-title">Photos</h2>
+        <div class="gallery-scroll">
+            <div class="gallery-item" role="img" aria-label="Photo 1">
+                <i data-lucide="image" style="width:32px;height:32px;"></i>
+            </div>
+            <div class="gallery-item" role="img" aria-label="Photo 2">
+                <i data-lucide="image" style="width:32px;height:32px;"></i>
+            </div>
+            <div class="gallery-item" role="img" aria-label="Photo 3">
+                <i data-lucide="image" style="width:32px;height:32px;"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Suggest an Edit FAB -->
+    <a href="#" class="fab" data-dom-id="cta-volunteer" aria-label="Suggest an edit">
+        <i data-lucide="pencil" style="width:16px;height:16px;"></i>
+        <span>Suggest Edit</span>
+    </a>
+
+</div>
+
+<script>
+    lucide.createIcons();
+
+    function toggleChinese() {
+        const body = document.getElementById('chinese-body');
+        const chevron = document.getElementById('chevron-icon');
+        const header = body.previousElementSibling;
+
+        if (body.classList.contains('hidden')) {
+            body.classList.remove('hidden');
+            chevron.classList.remove('collapsed');
+            header.setAttribute('aria-expanded', 'true');
+        } else {
+            body.classList.add('hidden');
+            chevron.classList.add('collapsed');
+            header.setAttribute('aria-expanded', 'false');
+        }
+    }
+</script>
+
+
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+      .page-wrap {
+        max-width: 375px;
+        margin: 0 auto;
+        min-height: 100vh;
+        background: var(--tzl-color-bg-page);
+        position: relative;
+        padding-bottom: 80px;
+      }
+
+      /* Top Nav Bar */
+      .top-nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        height: 48px;
+        padding: 0 var(--tzl-spacing-4);
+        background: var(--tzl-color-bg-surface);
+        border-bottom: 1px solid var(--tzl-color-border);
+      }
+      .top-nav .back-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: var(--tzl-radius-md);
+        color: var(--tzl-color-text-primary);
+        text-decoration: none;
+        transition: background 120ms cubic-bezier(.2,.8,.2,1);
+      }
+      .top-nav .back-btn:hover {
+        background: var(--tzl-color-bg-muted);
+      }
+      .top-nav .nav-title {
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-md);
+        font-weight: var(--tzl-font-weight-semibold);
+        color: var(--tzl-color-text-primary);
+        margin-left: var(--tzl-spacing-2);
+      }
+
+      /* Hero Image */
+      .hero-image {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        background: linear-gradient(135deg, #115e59 0%, #0f766e 50%, #14b8a6 100%);
+        overflow: hidden;
+      }
+      .hero-image .hero-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--tzl-overlay-light);
+      }
+      .hero-image .hero-label {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        background: var(--tzl-overlay-dark);
+        backdrop-filter: blur(4px);
+        padding: 6px 14px;
+        border-radius: var(--tzl-radius-md);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        font-weight: var(--tzl-font-weight-medium);
+        color: var(--tzl-color-text-inverse);
+      }
+
+      /* Info Card */
+      .info-card {
+        background: var(--tzl-color-bg-surface);
+        margin: var(--tzl-spacing-4) var(--tzl-spacing-4) 0;
+        padding: var(--tzl-spacing-5);
+        border-radius: var(--tzl-radius-lg);
+        box-shadow: var(--tzl-shadow-sm);
+      }
+      .info-card .place-name {
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-xl);
+        font-weight: var(--tzl-font-weight-bold);
+        color: var(--tzl-color-text-primary);
+        line-height: var(--tzl-line-height-snug);
+        margin-bottom: var(--tzl-spacing-1);
+      }
+      .info-card .place-name-zh {
+        font-family: 'Noto Sans SC', sans-serif;
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-normal);
+        color: var(--tzl-color-text-secondary);
+        margin-bottom: var(--tzl-spacing-3);
+      }
+      .info-card .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: var(--tzl-radius-md);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-medium);
+        background: var(--tzl-color-primary-bg-subtle);
+        color: var(--tzl-color-primary);
+        margin-bottom: var(--tzl-spacing-4);
+      }
+      .info-row {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--tzl-spacing-3);
+        padding: var(--tzl-spacing-3) 0;
+        border-top: 1px solid var(--tzl-color-border-subtle);
+      }
+      .info-row:first-of-type {
+        border-top: none;
+        padding-top: 0;
+      }
+      .info-row .info-icon {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        color: var(--tzl-color-text-tertiary);
+        margin-top: 1px;
+      }
+      .info-row .info-content {
+        flex: 1;
+        min-width: 0;
+      }
+      .info-row .info-label {
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-medium);
+        color: var(--tzl-color-text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: var(--tzl-letter-spacing-wide);
+        margin-bottom: 2px;
+      }
+      .info-row .info-value {
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-normal);
+        color: var(--tzl-color-text-primary);
+        line-height: var(--tzl-line-height-normal);
+      }
+      .info-row .info-value-zh {
+        font-family: 'Noto Sans SC', sans-serif;
+        font-size: var(--tzl-font-size-sm);
+        color: var(--tzl-color-text-secondary);
+        margin-top: 1px;
+      }
+      .info-intro {
+        font-size: var(--tzl-font-size-base);
+        color: var(--tzl-color-text-secondary);
+        line-height: var(--tzl-line-height-relaxed);
+        margin-top: var(--tzl-spacing-4);
+        padding-top: var(--tzl-spacing-3);
+        border-top: 1px solid var(--tzl-color-border-subtle);
+      }
+
+      /* Show in Chinese Section */
+      .show-chinese-section {
+        margin: var(--tzl-spacing-4);
+        border: 1.5px solid var(--tzl-color-primary);
+        border-radius: var(--tzl-radius-lg);
+        overflow: hidden;
+        background: var(--tzl-color-bg-surface);
+      }
+      .show-chinese-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--tzl-spacing-4);
+        cursor: pointer;
+        user-select: none;
+        background: var(--tzl-color-primary-bg);
+        transition: background 120ms cubic-bezier(.2,.8,.2,1);
+      }
+      .show-chinese-header:hover {
+        background: var(--tzl-color-primary-bg-subtle);
+      }
+      .show-chinese-header .header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .show-chinese-header .header-title {
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-md);
+        font-weight: var(--tzl-font-weight-semibold);
+        color: var(--tzl-color-primary-dark);
+      }
+      .show-chinese-header .header-subtitle {
+        font-size: var(--tzl-font-size-sm);
+        color: var(--tzl-color-primary);
+      }
+      .show-chinese-header .chevron-icon {
+        color: var(--tzl-color-primary);
+        transition: transform 240ms cubic-bezier(.3,0,0,1);
+      }
+      .show-chinese-header .chevron-icon.collapsed {
+        transform: rotate(-90deg);
+      }
+      .show-chinese-body {
+        padding: var(--tzl-spacing-4);
+        display: flex;
+        flex-direction: column;
+        gap: var(--tzl-spacing-4);
+        transition: opacity 240ms cubic-bezier(.3,0,0,1);
+      }
+      .show-chinese-body.hidden {
+        display: none;
+      }
+
+      /* Action Card */
+      .action-card {
+        background: var(--tzl-color-bg-surface);
+        border: 1px solid var(--tzl-color-border);
+        border-radius: var(--tzl-radius-lg);
+        padding: var(--tzl-spacing-5);
+        position: relative;
+      }
+      .action-card .card-header {
+        display: flex;
+        align-items: center;
+        gap: var(--tzl-spacing-2);
+        margin-bottom: var(--tzl-spacing-4);
+      }
+      .action-card .card-emoji {
+        font-size: 22px;
+        line-height: 1;
+      }
+      .action-card .card-title {
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-semibold);
+        color: var(--tzl-color-text-primary);
+      }
+      .action-card .card-title-zh {
+        font-family: 'Noto Sans SC', sans-serif;
+        font-size: var(--tzl-font-size-sm);
+        color: var(--tzl-color-text-secondary);
+        font-weight: var(--tzl-font-weight-normal);
+      }
+      .action-card .chinese-large {
+        font-family: 'Noto Sans SC', sans-serif;
+        font-size: var(--tzl-font-size-2xl);
+        font-weight: var(--tzl-font-weight-bold);
+        color: var(--tzl-color-text-primary);
+        line-height: 1.4;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        margin-bottom: var(--tzl-spacing-3);
+      }
+      .action-card .pinyin {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        font-style: italic;
+        color: var(--tzl-color-text-tertiary);
+        line-height: var(--tzl-line-height-normal);
+        margin-bottom: var(--tzl-spacing-2);
+      }
+      .action-card .english-translation {
+        font-size: var(--tzl-font-size-sm);
+        color: var(--tzl-color-text-secondary);
+        line-height: var(--tzl-line-height-normal);
+        margin-bottom: var(--tzl-spacing-2);
+      }
+      .action-card .chinese-address {
+        font-family: 'Noto Sans SC', sans-serif;
+        font-size: var(--tzl-font-size-lg);
+        font-weight: var(--tzl-font-weight-semibold);
+        color: var(--tzl-color-text-primary);
+        line-height: 1.4;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+      }
+      .action-card .copy-btn {
+        position: absolute;
+        bottom: var(--tzl-spacing-4);
+        right: var(--tzl-spacing-4);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border: 1px solid var(--tzl-color-border);
+        border-radius: var(--tzl-radius-md);
+        background: var(--tzl-color-bg-muted);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-medium);
+        color: var(--tzl-color-text-secondary);
+        cursor: pointer;
+        transition: background 120ms cubic-bezier(.2,.8,.2,1);
+      }
+      .action-card .copy-btn:hover {
+        background: var(--tzl-color-border);
+      }
+
+      /* Action Buttons Row */
+      .action-buttons {
+        display: flex;
+        gap: var(--tzl-spacing-3);
+        margin: 0 var(--tzl-spacing-4);
+        padding: var(--tzl-spacing-4) 0;
+      }
+      .btn-primary {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--tzl-spacing-2);
+        height: 48px;
+        background: var(--tzl-color-primary);
+        color: var(--tzl-color-text-inverse);
+        border: none;
+        border-radius: var(--tzl-radius-md);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-semibold);
+        cursor: pointer;
+        transition: background 120ms cubic-bezier(.2,.8,.2,1), transform 120ms cubic-bezier(.2,.8,.2,1);
+      }
+      .btn-primary:hover {
+        background: var(--tzl-color-primary-dark);
+      }
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+      .btn-ghost {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--tzl-spacing-2);
+        height: 48px;
+        padding: 0 var(--tzl-spacing-5);
+        background: transparent;
+        color: var(--tzl-color-primary);
+        border: 1.5px solid var(--tzl-color-primary);
+        border-radius: var(--tzl-radius-md);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-semibold);
+        cursor: pointer;
+        transition: background 120ms cubic-bezier(.2,.8,.2,1);
+      }
+      .btn-ghost:hover {
+        background: var(--tzl-color-primary-bg);
+      }
+      .btn-taxi {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--tzl-spacing-2);
+        height: 48px;
+        padding: 0 var(--tzl-spacing-4);
+        background: transparent;
+        color: var(--tzl-color-primary);
+        border: 1.5px solid var(--tzl-color-primary);
+        border-radius: var(--tzl-radius-md);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-medium);
+        cursor: pointer;
+        transition: background 120ms cubic-bezier(.2,.8,.2,1);
+      }
+      .btn-taxi:hover {
+        background: var(--tzl-color-primary-bg);
+      }
+
+      /* Gallery Section */
+      .gallery-section {
+        margin: 0 var(--tzl-spacing-4);
+        padding: var(--tzl-spacing-4) 0 var(--tzl-spacing-8);
+      }
+      .gallery-title {
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-md);
+        font-weight: var(--tzl-font-weight-semibold);
+        color: var(--tzl-color-text-primary);
+        margin-bottom: var(--tzl-spacing-4);
+      }
+      .gallery-scroll {
+        display: flex;
+        gap: var(--tzl-spacing-3);
+        overflow-x: auto;
+        padding-right: var(--tzl-spacing-4);
+      }
+      .gallery-scroll::-webkit-scrollbar { display: none; }
+      .gallery-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+      .gallery-item {
+        flex-shrink: 0;
+        width: 180px;
+        height: 120px;
+        border-radius: var(--tzl-radius-lg);
+        overflow: hidden;
+        background: linear-gradient(135deg, #115e59, #14b8a6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .gallery-item .gallery-icon {
+        color: var(--tzl-overlay-lighter);
+      }
+
+      /* FAB */
+      .fab {
+        position: fixed;
+        bottom: 24px;
+        right: calc(50% - 375px / 2 + 16px);
+        display: flex;
+        align-items: center;
+        gap: var(--tzl-spacing-2);
+        background: var(--tzl-color-primary);
+        color: var(--tzl-color-text-inverse);
+        padding: 10px 16px;
+        border-radius: var(--tzl-radius-full);
+        box-shadow: var(--tzl-shadow-lg);
+        text-decoration: none;
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        font-weight: var(--tzl-font-weight-semibold);
+        cursor: pointer;
+        transition: background 120ms cubic-bezier(.2,.8,.2,1), box-shadow 120ms cubic-bezier(.2,.8,.2,1);
+        z-index: 40;
+      }
+      .fab:hover {
+        background: var(--tzl-color-primary-dark);
+        box-shadow: var(--tzl-shadow-xl);
+      }
+
+      @media (max-width: 375px) {
+        .fab {
+          right: 16px;
+        }
+        .page-wrap {
+          max-width: 100%;
+        }
+      }
+      @media (min-width: 376px) {
+        .fab {
+          right: calc(50% - 375px / 2 + 16px);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+</body>
+</html>

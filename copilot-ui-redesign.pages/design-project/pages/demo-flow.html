@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Flow — Tongzilin Life Copilot</title>
+    <style id="theme-vars">
+/*
+ * Tongzilin Life Copilot — Brand Design Tokens
+ * Derived from existing mobile app teal color scheme
+ * Prefix: tzl (TongZiLin)
+ */
+
+:root {
+  /* ── Brand Primary ── */
+  --tzl-color-primary: #0f766e;
+  --tzl-color-primary-light: #14b8a6;
+  --tzl-color-primary-dark: #115e59;
+  --tzl-color-primary-bg: #f0fdfa;
+  --tzl-color-primary-bg-subtle: #ccfbf1;
+  --tzl-color-primary-bg-hover: #99f6e4;
+
+  /* ── Neutral Palette ── */
+  --tzl-color-bg-page: #f8fafc;
+  --tzl-color-bg-surface: #ffffff;
+  --tzl-color-bg-elevated: #ffffff;
+  --tzl-color-bg-muted: #f1f5f9;
+
+  --tzl-color-text-primary: #0f172a;
+  --tzl-color-text-secondary: #475569;
+  --tzl-color-text-tertiary: #94a3b8;
+  --tzl-color-text-inverse: #ffffff;
+
+  --tzl-color-border: #e2e8f0;
+  --tzl-color-border-subtle: #f1f5f9;
+
+  /* ── Semantic State Colors ── */
+  --tzl-state-success: #16a34a;
+  --tzl-state-success-bg: #dcfce7;
+  --tzl-state-warning: #d97706;
+  --tzl-state-warning-bg: #fef3c7;
+  --tzl-state-error: #dc2626;
+  --tzl-state-error-bg: #fef2f2;
+  --tzl-state-info: #0284c7;
+  --tzl-state-info-bg: #e0f2fe;
+  --tzl-overlay-dark: rgba(0, 0, 0, 0.35);
+  --tzl-overlay-light: rgba(255, 255, 255, 0.15);
+  --tzl-overlay-lighter: rgba(255, 255, 255, 0.2);
+  --tzl-text-on-primary-80: rgba(255, 255, 255, 0.8);
+  --tzl-text-on-primary-60: rgba(255, 255, 255, 0.6);
+  --tzl-text-on-primary-70: rgba(255, 255, 255, 0.7);
+  --tzl-text-on-primary-85: rgba(255, 255, 255, 0.85);
+  --tzl-overlay-subtle: rgba(0, 0, 0, 0.04);
+
+
+
+  /* ── Typography ── */
+  --tzl-font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tzl-font-family-display: 'Inter', 'Noto Sans SC', sans-serif;
+
+  --tzl-font-size-xs: 10px;
+  --tzl-font-size-sm: 12px;
+  --tzl-font-size-base: 14px;
+  --tzl-font-size-md: 15px;
+  --tzl-font-size-lg: 17px;
+  --tzl-font-size-xl: 20px;
+  --tzl-font-size-2xl: 24px;
+  --tzl-font-size-3xl: 28px;
+  --tzl-font-size-4xl: 34px;
+
+  --tzl-font-weight-normal: 400;
+  --tzl-font-weight-medium: 500;
+  --tzl-font-weight-semibold: 600;
+  --tzl-font-weight-bold: 700;
+
+  --tzl-line-height-tight: 1.25;
+  --tzl-line-height-snug: 1.375;
+  --tzl-line-height-normal: 1.5;
+  --tzl-line-height-relaxed: 1.625;
+
+  --tzl-letter-spacing-tight: -0.01em;
+  --tzl-letter-spacing-normal: 0;
+  --tzl-letter-spacing-wide: 0.02em;
+
+  /* ── Radius ── */
+  --tzl-radius-xs: 2px;
+  --tzl-radius-sm: 4px;
+  --tzl-radius-md: 8px;
+  --tzl-radius-lg: 12px;
+  --tzl-radius-xl: 16px;
+  --tzl-radius-full: 9999px;
+
+  /* ── Spacing ── */
+  --tzl-spacing-1: 4px;
+  --tzl-spacing-2: 8px;
+  --tzl-spacing-3: 12px;
+  --tzl-spacing-4: 16px;
+  --tzl-spacing-5: 20px;
+  --tzl-spacing-6: 24px;
+  --tzl-spacing-8: 32px;
+  --tzl-spacing-10: 40px;
+  --tzl-spacing-12: 48px;
+
+  /* ── Shadows ── */
+  --tzl-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --tzl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --tzl-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --tzl-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Typography Classes ── */
+.tzl-h1 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-4xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  letter-spacing: var(--tzl-letter-spacing-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h2 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-3xl);
+  font-weight: var(--tzl-font-weight-bold);
+  line-height: var(--tzl-line-height-tight);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h3 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-2xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-h4 {
+  font-family: var(--tzl-font-family-display);
+  font-size: var(--tzl-font-size-xl);
+  font-weight: var(--tzl-font-weight-semibold);
+  line-height: var(--tzl-line-height-snug);
+  color: var(--tzl-color-text-primary);
+}
+
+.tzl-body {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-base);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-body-lg {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-md);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-secondary);
+}
+
+.tzl-caption {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-sm);
+  font-weight: var(--tzl-font-weight-normal);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+}
+
+.tzl-label {
+  font-family: var(--tzl-font-family);
+  font-size: var(--tzl-font-size-xs);
+  font-weight: var(--tzl-font-weight-medium);
+  line-height: var(--tzl-line-height-normal);
+  color: var(--tzl-color-text-tertiary);
+  letter-spacing: var(--tzl-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  
+  @layer base {
+    body { background: var(--tzl-background); color: var(--tzl-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+  <style type="text/tailwindcss">
+@theme inline {
+  --color-primary: var(--tzl-color-primary);
+  --color-primary-light: var(--tzl-color-primary-light);
+  --color-primary-dark: var(--tzl-color-primary-dark);
+  --color-primary-foreground: var(--tzl-color-text-inverse);
+  --color-background: var(--tzl-color-bg-page);
+  --color-foreground: var(--tzl-color-text-primary);
+  --color-card: var(--tzl-color-bg-surface);
+  --color-card-foreground: var(--tzl-color-text-primary);
+  --color-muted: var(--tzl-color-bg-muted);
+  --color-muted-foreground: var(--tzl-color-text-tertiary);
+  --color-border: var(--tzl-color-border);
+  --color-destructive: var(--tzl-color-text-inverse);
+  --radius-sm: var(--tzl-radius-sm);
+  --radius-md: var(--tzl-radius-md);
+  --radius-lg: var(--tzl-radius-lg);
+  --radius-xl: var(--tzl-radius-xl);
+}
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased" style="background: var(--tzl-color-bg-page); color: var(--tzl-color-text-primary);">
+
+    <!-- Status Bar Safe Area -->
+    <div style="padding-top: env(safe-area-inset-top, 0px);"></div>
+
+    <main style="padding-bottom: env(safe-area-inset-bottom, 0px);">
+
+        <!-- ── Header Section ── -->
+        <section class="demo-header">
+            <p class="demo-eyebrow">Competition Demo &middot; 参赛演示</p>
+            <h1 class="demo-title">Tongzilin Life Copilot</h1>
+            <p class="demo-subtitle-en">A scene-driven community navigator for expat residents</p>
+            <p class="demo-subtitle-zh">面向外籍居民的场景化社区生活导航</p>
+            <div class="demo-divider"></div>
+        </section>
+
+        <!-- ── Progress Indicator ── -->
+        <div class="progress-track no-scrollbar">
+            <div class="progress-bar-inner">
+                <span class="progress-dot">1</span><span class="progress-line"></span>
+                <span class="progress-dot">2</span><span class="progress-line"></span>
+                <span class="progress-dot">3</span><span class="progress-line"></span>
+                <span class="progress-dot">4</span><span class="progress-line"></span>
+                <span class="progress-dot">5</span><span class="progress-line"></span>
+                <span class="progress-dot">6</span><span class="progress-line"></span>
+                <span class="progress-dot">7</span><span class="progress-line"></span>
+                <span class="progress-dot">8</span>
+            </div>
+        </div>
+
+        <!-- ── Step Cards ── -->
+        <div class="step-list">
+
+            <!-- Step 1 -->
+            <article class="step-card">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-titles">
+                        <div class="step-emoji">&#x1F3E0;</div>
+                        <div class="step-title-en">Choose Your Scenario</div>
+                        <div class="step-title-zh">选择场景</div>
+                    </div>
+                </div>
+                <p class="step-desc">Newcomers select "New in Tongzilin" to get a personalized life route.</p>
+                <div class="step-footer">
+                    <span class="step-badge">Entry Point</span>
+                    <a class="step-link" href="#" data-dom-id="link-home">Go to Home <span class="step-link-arrow">&rarr;</span></a>
+                </div>
+            </article>
+
+            <!-- Step 2 -->
+            <article class="step-card">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-titles">
+                        <div class="step-emoji">&#x1F5FA;&#xFE0F;</div>
+                        <div class="step-title-en">Get Your Life Route</div>
+                        <div class="step-title-zh">获取生活路线</div>
+                    </div>
+                </div>
+                <p class="step-desc">Receive a step-by-step guide with 4 essential stops for settling in.</p>
+                <div class="step-footer">
+                    <span class="step-badge">Core Feature</span>
+                    <a class="step-link" href="#" data-dom-id="link-life-guide">View Life Guide <span class="step-link-arrow">&rarr;</span></a>
+                </div>
+            </article>
+
+            <!-- Step 3 -->
+            <article class="step-card">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-titles">
+                        <div class="step-emoji">&#x1F4CD;</div>
+                        <div class="step-title-en">Open Place Details</div>
+                        <div class="step-title-zh">查看地点详情</div>
+                    </div>
+                </div>
+                <p class="step-desc">Each stop has bilingual info, photos, and navigation for easy access.</p>
+                <div class="step-footer">
+                    <span class="step-badge">Enhanced UX</span>
+                    <a class="step-link" href="#" data-dom-id="link-place-detail">See Detail Page <span class="step-link-arrow">&rarr;</span></a>
+                </div>
+            </article>
+
+            <!-- Step 4 -->
+            <article class="step-card">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div class="step-titles">
+                        <div class="step-emoji">&#x1F691;</div>
+                        <div class="step-title-en">Navigate &amp; Share</div>
+                        <div class="step-title-zh">导航与分享</div>
+                    </div>
+                </div>
+                <p class="step-desc">One-tap navigation, share cards, and "Show to Driver" Chinese cards.</p>
+                <div class="step-footer">
+                    <span class="step-badge">Practical Value</span>
+                </div>
+            </article>
+
+            <!-- Step 5 -->
+            <article class="step-card">
+                <div class="step-header">
+                    <div class="step-number">5</div>
+                    <div class="step-titles">
+                        <div class="step-emoji">&#x1F3AB;</div>
+                        <div class="step-title-en">Join Community Events</div>
+                        <div class="step-title-zh">参加社区活动</div>
+                    </div>
+                </div>
+                <p class="step-desc">Sign up for welcome coffee, language exchange, and weekend tours.</p>
+                <div class="step-footer">
+                    <span class="step-badge">Engagement</span>
+                </div>
+            </article>
+
+            <!-- Step 6 -->
+            <article class="step-card">
+                <div class="step-header">
+                    <div class="step-number">6</div>
+                    <div class="step-titles">
+                        <div class="step-emoji">&#x1F4AC;</div>
+                        <div class="step-title-en">Share Your Experience</div>
+                        <div class="step-title-zh">分享经验</div>
+                    </div>
+                </div>
+                <p class="step-desc">Post tips and reviews to help other newcomers settle in faster.</p>
+                <div class="step-footer">
+                    <span class="step-badge">Community Building</span>
+                </div>
+            </article>
+
+            <!-- Step 7 -->
+            <article class="step-card">
+                <div class="step-header">
+                    <div class="step-number">7</div>
+                    <div class="step-titles">
+                        <div class="step-emoji">&#x270B;</div>
+                        <div class="step-title-en">Volunteer to Improve</div>
+                        <div class="step-title-zh">志愿者贡献</div>
+                    </div>
+                </div>
+                <p class="step-desc">Submit corrections, photos, and English names to improve the map.</p>
+                <div class="step-footer">
+                    <span class="step-badge">Participation Loop</span>
+                    <a class="step-link" href="#" data-dom-id="link-volunteer">View Tasks <span class="step-link-arrow">&rarr;</span></a>
+                </div>
+            </article>
+
+            <!-- Step 8 -->
+            <article class="step-card">
+                <div class="step-header">
+                    <div class="step-number">8</div>
+                    <div class="step-titles">
+                        <div class="step-emoji">&#x2705;</div>
+                        <div class="step-title-en">Admin Review &amp; Publish</div>
+                        <div class="step-title-zh">管理端审核发布</div>
+                    </div>
+                </div>
+                <p class="step-desc">Community managers review and publish volunteer contributions.</p>
+                <div class="step-footer">
+                    <span class="step-badge">Closed Loop</span>
+                </div>
+            </article>
+
+        </div>
+
+        <!-- ── Bottom Summary Card ── -->
+        <div class="summary-card">
+            <p class="summary-title-en">Complete Community Empowerment Cycle</p>
+            <p class="summary-title-zh">完整的社区共建闭环</p>
+            <div class="summary-flow">
+                <span class="summary-step">Discover Needs</span>
+                <span class="summary-arrow">&rsaquo;</span>
+                <span class="summary-step">Get Help</span>
+                <span class="summary-arrow">&rsaquo;</span>
+                <span class="summary-step">Give Back</span>
+            </div>
+        </div>
+
+        <!-- ── Back to Home ── -->
+        <div class="back-btn-wrap">
+            <a class="back-btn" href="#" data-dom-id="link-home">
+                <span>&larr;</span>
+                Back to Home
+            </a>
+        </div>
+        <a href="#" data-dom-id="back-emergency" style="display:none;" aria-hidden="true"></a>
+
+    </main>
+
+    <script>lucide.createIcons();</script>
+
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+
+      /* ── Demo Flow Page Styles ── */
+      .demo-header {
+        padding: var(--tzl-spacing-8) var(--tzl-spacing-6) var(--tzl-spacing-6);
+        text-align: center;
+      }
+      .demo-eyebrow {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-semibold);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--tzl-color-primary);
+        margin-bottom: var(--tzl-spacing-3);
+      }
+      .demo-title {
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-3xl);
+        font-weight: var(--tzl-font-weight-bold);
+        line-height: 1.2;
+        color: var(--tzl-color-text-primary);
+        text-wrap: balance;
+        margin-bottom: var(--tzl-spacing-2);
+      }
+      .demo-subtitle-en {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-normal);
+        color: var(--tzl-color-text-secondary);
+        line-height: var(--tzl-line-height-normal);
+        margin-bottom: var(--tzl-spacing-1);
+      }
+      .demo-subtitle-zh {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        font-weight: var(--tzl-font-weight-normal);
+        color: var(--tzl-color-text-tertiary);
+        line-height: var(--tzl-line-height-normal);
+      }
+      .demo-divider {
+        width: 40px;
+        height: 3px;
+        background: var(--tzl-color-primary);
+        border-radius: var(--tzl-radius-full);
+        margin: var(--tzl-spacing-5) auto 0;
+      }
+
+      /* ── Progress Bar ── */
+      .progress-track {
+        padding: var(--tzl-spacing-4) var(--tzl-spacing-6);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .progress-bar-inner {
+        display: flex;
+        align-items: center;
+        min-width: max-content;
+        padding: var(--tzl-spacing-2) 0;
+      }
+      .progress-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: var(--tzl-radius-full);
+        background: var(--tzl-color-primary);
+        color: var(--tzl-color-text-inverse);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-semibold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        position: relative;
+      }
+      .progress-line {
+        height: 2px;
+        background: var(--tzl-color-primary);
+        width: 20px;
+        flex-shrink: 0;
+      }
+      .progress-line:last-of-type {
+        display: none;
+      }
+
+      /* ── Step Cards ── */
+      .step-list {
+        padding: 0 var(--tzl-spacing-4);
+        display: flex;
+        flex-direction: column;
+        gap: var(--tzl-spacing-3);
+        padding-bottom: var(--tzl-spacing-6);
+      }
+      .step-card {
+        background: var(--tzl-color-bg-surface);
+        border-radius: var(--tzl-radius-lg);
+        padding: var(--tzl-spacing-5) var(--tzl-spacing-5);
+        box-shadow: var(--tzl-shadow-xs);
+        border: 1px solid var(--tzl-color-border-subtle);
+        position: relative;
+        transition: transform 0.2s cubic-bezier(.2,.8,.2,1), box-shadow 0.2s cubic-bezier(.2,.8,.2,1);
+      }
+      .step-card:active {
+        transform: scale(0.98);
+      }
+      .step-header {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--tzl-spacing-3);
+        margin-bottom: var(--tzl-spacing-2);
+      }
+      .step-number {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--tzl-radius-full);
+        background: var(--tzl-color-primary-bg);
+        color: var(--tzl-color-primary);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        font-weight: var(--tzl-font-weight-bold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .step-titles {
+        flex: 1;
+        min-width: 0;
+      }
+      .step-emoji {
+        font-size: 20px;
+        line-height: 1;
+        margin-bottom: 2px;
+      }
+      .step-title-en {
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-md);
+        font-weight: var(--tzl-font-weight-semibold);
+        color: var(--tzl-color-text-primary);
+        line-height: var(--tzl-line-height-snug);
+      }
+      .step-title-zh {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        color: var(--tzl-color-text-tertiary);
+        line-height: var(--tzl-line-height-normal);
+        margin-top: 1px;
+      }
+      .step-desc {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-normal);
+        color: var(--tzl-color-text-secondary);
+        line-height: var(--tzl-line-height-relaxed);
+        padding-left: 44px;
+        margin-bottom: var(--tzl-spacing-3);
+      }
+      .step-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 44px;
+      }
+      .step-badge {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 var(--tzl-spacing-2);
+        border-radius: var(--tzl-radius-full);
+        background: var(--tzl-color-primary-bg);
+        color: var(--tzl-color-primary);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-semibold);
+      }
+      .step-link {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        font-weight: var(--tzl-font-weight-medium);
+        color: var(--tzl-color-primary);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.15s ease;
+      }
+      .step-link:active {
+        opacity: 0.7;
+      }
+      .step-link-arrow {
+        font-size: 14px;
+        transition: transform 0.15s ease;
+      }
+
+      /* ── Summary Card ── */
+      .summary-card {
+        margin: var(--tzl-spacing-4) var(--tzl-spacing-4) 0;
+        background: var(--tzl-color-primary);
+        border-radius: var(--tzl-radius-lg);
+        padding: var(--tzl-spacing-6) var(--tzl-spacing-5);
+        text-align: center;
+        color: var(--tzl-color-text-inverse);
+      }
+      .summary-title-en {
+        font-family: var(--tzl-font-family-display);
+        font-size: var(--tzl-font-size-lg);
+        font-weight: var(--tzl-font-weight-bold);
+        line-height: var(--tzl-line-height-snug);
+        margin-bottom: var(--tzl-spacing-1);
+      }
+      .summary-title-zh {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-sm);
+        font-weight: var(--tzl-font-weight-normal);
+        opacity: 0.85;
+        margin-bottom: var(--tzl-spacing-3);
+      }
+      .summary-flow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--tzl-spacing-2);
+        flex-wrap: wrap;
+        margin-top: var(--tzl-spacing-3);
+      }
+      .summary-step {
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-xs);
+        font-weight: var(--tzl-font-weight-medium);
+        opacity: 0.9;
+      }
+      .summary-arrow {
+        color: var(--tzl-color-primary-light);
+        font-size: 12px;
+        opacity: 0.7;
+      }
+
+      /* ── Back Button ── */
+      .back-btn-wrap {
+        padding: var(--tzl-spacing-8) var(--tzl-spacing-6) var(--tzl-spacing-10);
+        text-align: center;
+      }
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--tzl-spacing-2);
+        padding: 12px 32px;
+        border-radius: var(--tzl-radius-md);
+        border: 1.5px solid var(--tzl-color-border);
+        background: transparent;
+        color: var(--tzl-color-text-secondary);
+        font-family: var(--tzl-font-family);
+        font-size: var(--tzl-font-size-base);
+        font-weight: var(--tzl-font-weight-medium);
+        text-decoration: none;
+        cursor: pointer;
+        transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+      }
+      .back-btn:active {
+        background: var(--tzl-color-bg-muted);
+        border-color: var(--tzl-color-primary);
+        color: var(--tzl-color-primary);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .step-card,
+        .step-link-arrow,
+        .back-btn {
+          transition-duration: 0.01ms;
+        }
+      }
+    </style>
+</body>
+</html>

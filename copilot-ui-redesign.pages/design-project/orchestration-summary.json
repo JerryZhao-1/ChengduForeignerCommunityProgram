@@ -1,0 +1,460 @@
+{
+  "project": {
+    "name": "桐梓林生活导航 Copilot",
+    "path": "/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/copilot-ui-redesign.pages/design-project",
+    "operation": "create",
+    "deviceType": "mobile",
+    "language": "zh-CN",
+    "dashboardMode": false,
+    "replicationMode": null,
+    "sourceUrl": null,
+    "visualSpecExcerpt": null,
+    "styleDefinitionBrief": "Community expat life navigator app, teal primary (#0f766e), warm & friendly tone, bilingual EN/ZH, mobile-first card layout, clean information hierarchy with scene-driven navigation.",
+    "designRead": "mobile app / expat residents / friendly community / medium density / avoid generic card walls",
+    "designDials": {
+      "layoutVariance": 3,
+      "motionIntensity": 2,
+      "visualDensity": 3
+    },
+    "styleContinuityAnchors": {
+      "colorSystem": {
+        "primaryColorRole": "teal hue #0f766e for primary CTA, active states, and scene card accents",
+        "brandHuePolicy": "single brand teal hue; no secondary/accent brand colors; warm badges use --tzl-color-accent-warm only for recommended tags",
+        "stateColors": "semantic success/warning/error/info tokens for status indicators"
+      },
+      "shapeSystem": "restrained radius: 8-12px for cards, 16px for large containers, full-round for pills/tags",
+      "typographySystem": "Inter + Noto Sans SC dual stack, 14px body, tight headings, bilingual EN primary + ZH secondary",
+      "spacingSystem": "4px base, 16-24px section gaps, 12px element gaps, 24px page padding",
+      "componentLanguage": "rounded cards with subtle borders, teal primary buttons, ghost secondary buttons, horizontal scroll carousels",
+      "surfaceAndDepth": "white cards on #f8fafc page, 1px #e2e8f0 borders, shadows only for floating layers",
+      "imageryAndIconography": "emoji icons for scene cards, SVG place markers, user-uploaded place photos",
+      "interactionTone": "friendly, helpful, warm; bilingual labels; clear hierarchy"
+    },
+    "sharedProjectShellContract": {
+      "navigationShell": "bottom TabBar with 4 tabs: Home, Life Guide, Map, More; teal active color; white background",
+      "primaryColorSystem": "teal #0f766e primary, no secondary brand hue",
+      "typographySystem": "Inter + Noto Sans SC, 14px body, 28-34px headings",
+      "radiusScale": "8px cards, 12px containers, 9999px pills",
+      "surfaceDepthModel": "white surface on #f8fafc, 1px border, no static shadows",
+      "ctaStyle": "teal filled primary, teal-bg ghost secondary, rounded-lg shape",
+      "alignmentRules": "left-aligned content, centered hero text, horizontal scroll for carousels"
+    },
+    "generationTree": {
+      "root": {
+        "nodeId": "gen-project-shell",
+        "kind": "project-shell",
+        "pageIds": ["page-home-redesign", "page-life-guide", "page-place-detail-enhanced", "page-volunteer-tasks", "page-emergency-cards", "page-demo-flow"],
+        "output": "partials/project-shell.html",
+        "sharedRegions": ["bottom-tab-bar", "status-bar-safe-area"],
+        "privateRegions": [],
+        "mutableSlots": ["activeTabKey", "pageTitle"],
+        "status": "planned",
+        "children": [
+          {
+            "nodeId": "gen-page-home-redesign",
+            "kind": "page-leaf",
+            "pageIds": ["page-home-redesign"],
+            "output": "pages/home-redesign.html",
+            "sharedRegions": [],
+            "privateRegions": ["hero section", "scene cards grid", "events carousel", "places carousel"],
+            "mutableSlots": ["activeTabKey"],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-life-guide",
+            "kind": "page-leaf",
+            "pageIds": ["page-life-guide"],
+            "output": "pages/life-guide.html",
+            "sharedRegions": [],
+            "privateRegions": ["guide header", "route timeline", "related event", "community posts", "map preview", "share actions"],
+            "mutableSlots": ["activeTabKey"],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-place-detail-enhanced",
+            "kind": "page-leaf",
+            "pageIds": ["page-place-detail-enhanced"],
+            "output": "pages/place-detail-enhanced.html",
+            "sharedRegions": [],
+            "privateRegions": ["place hero image", "place info", "show-in-chinese cards", "action buttons", "suggest-edit FAB"],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-volunteer-tasks",
+            "kind": "page-leaf",
+            "pageIds": ["page-volunteer-tasks"],
+            "output": "pages/volunteer-tasks.html",
+            "sharedRegions": [],
+            "privateRegions": ["volunteer header", "task type tabs", "task list", "leaderboard"],
+            "mutableSlots": ["activeTabKey"],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-emergency-cards",
+            "kind": "page-leaf",
+            "pageIds": ["page-emergency-cards"],
+            "output": "pages/emergency-cards.html",
+            "sharedRegions": [],
+            "privateRegions": ["emergency header", "service cards grid", "footer disclaimer"],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-demo-flow",
+            "kind": "page-leaf",
+            "pageIds": ["page-demo-flow"],
+            "output": "pages/demo-flow.html",
+            "sharedRegions": [],
+            "privateRegions": ["step progress bar", "step cards"],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          }
+        ]
+      }
+    }
+  },
+  "designSource": {
+    "operatingMode": "free-explore",
+    "libraryIdentity": null,
+    "libraryPath": null,
+    "cssFilePath": "/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/copilot-ui-redesign.pages/design-project/colors_and_type.css",
+    "brandPrefix": "tzl",
+    "themeMode": "light",
+    "designDecisionSummary": "Teal primary #0f766e, Inter+Noto Sans SC, friendly community app, bilingual EN/ZH, mobile 375pt, scene-driven navigation replacing module-based tabs",
+    "componentContractKind": null,
+    "forbiddenInventedComponents": [],
+    "allowedComponents": [],
+    "styleConstraints": {
+      "radiusMax": 16,
+      "spacingBase": 4,
+      "fontSizeBody": 14,
+      "fontSizeMin": 10,
+      "controlHeightDefault": 36,
+      "controlHeightLarge": 44
+    },
+    "productContext": {
+      "kitType": "community-mobile-app",
+      "productType": "Bilingual expat community life navigator"
+    },
+    "actualTokenNameReference": [
+      { "semanticPurpose": "Primary brand color", "tokenName": "tzl-color-primary" },
+      { "semanticPurpose": "Primary brand light", "tokenName": "tzl-color-primary-light" },
+      { "semanticPurpose": "Primary brand dark", "tokenName": "tzl-color-primary-dark" },
+      { "semanticPurpose": "Primary background tint", "tokenName": "tzl-color-primary-bg" },
+      { "semanticPurpose": "Page background", "tokenName": "tzl-color-bg-page" },
+      { "semanticPurpose": "Surface background", "tokenName": "tzl-color-bg-surface" },
+      { "semanticPurpose": "Primary text", "tokenName": "tzl-color-text-primary" },
+      { "semanticPurpose": "Secondary text", "tokenName": "tzl-color-text-secondary" },
+      { "semanticPurpose": "Tertiary text", "tokenName": "tzl-color-text-tertiary" },
+      { "semanticPurpose": "Inverse text", "tokenName": "tzl-color-text-inverse" },
+      { "semanticPurpose": "Border", "tokenName": "tzl-color-border" },
+      { "semanticPurpose": "Warm accent", "tokenName": "tzl-color-accent-warm" },
+      { "semanticPurpose": "Warm accent bg", "tokenName": "tzl-color-accent-warm-bg" }
+    ]
+  },
+  "pages": [
+    {
+      "nodeId": "page-home-redesign",
+      "slug": "home-redesign",
+      "title": "首页",
+      "htmlSrc": "pages/home-redesign.html",
+      "pageIndex": 1,
+      "stateGroupId": null,
+      "stateRole": null,
+      "baseStatePageId": null,
+      "sharedShellContract": [],
+      "mutableRegions": [],
+      "derivedFromHtmlSrc": null,
+      "derivationType": "original",
+      "sourcePageId": null,
+      "sourceHtmlSrc": null,
+      "pageType": "task-driven",
+      "businessScenario": "New home page with scene-driven entry cards replacing module-based tab navigation",
+      "visualNorthStar": "A warm, inviting gateway that immediately answers 'what do I need today?' with 5 bold scene cards in a friendly bilingual layout",
+      "compositionPattern": "Stacked sections: hero search → 2-col scene grid + full-width card → horizontal carousels → tab bar",
+      "continuityAnchors": ["teal primary buttons", "white card surfaces", "bottom tab bar", "bilingual labels"],
+      "libraryRestraintMode": false,
+      "uiKitPath": null,
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "miniProgramStyle": true,
+      "qualityRisks": ["dense first screen with 5 scene cards + 2 carousels"]
+    },
+    {
+      "nodeId": "page-life-guide",
+      "slug": "life-guide",
+      "title": "Life Guide",
+      "htmlSrc": "pages/life-guide.html",
+      "pageIndex": 2,
+      "stateGroupId": null,
+      "stateRole": null,
+      "baseStatePageId": null,
+      "sharedShellContract": [],
+      "mutableRegions": [],
+      "derivedFromHtmlSrc": null,
+      "derivationType": "original",
+      "sourcePageId": null,
+      "sourceHtmlSrc": null,
+      "pageType": "task-driven",
+      "businessScenario": "Scene-based life route with ordered place stops, event recommendation, community posts, and map preview",
+      "visualNorthStar": "A clear, step-by-step visual itinerary that makes a newcomer feel guided and confident",
+      "compositionPattern": "Vertical timeline with numbered stops, embedded event card, community post cards, mini map, share CTA",
+      "continuityAnchors": ["teal primary buttons", "white card surfaces", "numbered timeline markers", "bilingual labels"],
+      "libraryRestraintMode": false,
+      "uiKitPath": null,
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "miniProgramStyle": false,
+      "qualityRisks": ["long scrolling page with multiple content sections"]
+    },
+    {
+      "nodeId": "page-place-detail-enhanced",
+      "slug": "place-detail-enhanced",
+      "title": "地点详情增强",
+      "htmlSrc": "pages/place-detail-enhanced.html",
+      "pageIndex": 3,
+      "stateGroupId": null,
+      "stateRole": null,
+      "baseStatePageId": null,
+      "sharedShellContract": [],
+      "mutableRegions": [],
+      "derivedFromHtmlSrc": null,
+      "derivationType": "original",
+      "sourcePageId": null,
+      "sourceHtmlSrc": null,
+      "pageType": "task-driven",
+      "businessScenario": "Enhanced place detail with bilingual Show-this-in-Chinese action cards for taxi drivers, shop staff, property management",
+      "visualNorthStar": "A practical, empowering detail page where the 'show this in Chinese' cards make real-life interactions effortless",
+      "compositionPattern": "Hero image → info blocks → expandable Show-in-Chinese panel → action buttons → suggest-edit FAB",
+      "continuityAnchors": ["teal primary buttons", "white card surfaces", "bilingual action cards with large Chinese text"],
+      "libraryRestraintMode": false,
+      "uiKitPath": null,
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "miniProgramStyle": false,
+      "qualityRisks": ["expandable panel interaction", "large Chinese text in action cards"]
+    },
+    {
+      "nodeId": "page-volunteer-tasks",
+      "slug": "volunteer-tasks",
+      "title": "志愿者任务",
+      "htmlSrc": "pages/volunteer-tasks.html",
+      "pageIndex": 4,
+      "stateGroupId": null,
+      "stateRole": null,
+      "baseStatePageId": null,
+      "sharedShellContract": [],
+      "mutableRegions": [],
+      "derivedFromHtmlSrc": null,
+      "derivationType": "original",
+      "sourcePageId": null,
+      "sourceHtmlSrc": null,
+      "pageType": "task-driven",
+      "businessScenario": "Volunteer contribution page for map improvement: error correction, photo upload, English name补充, hours update",
+      "visualNorthStar": "A motivating community contribution hub that makes helping feel easy and rewarding",
+      "compositionPattern": "Stats header → task type tabs → task card list with claim buttons → leaderboard section",
+      "continuityAnchors": ["teal primary buttons", "white card surfaces", "tab bar pattern", "bilingual labels"],
+      "libraryRestraintMode": false,
+      "uiKitPath": null,
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "miniProgramStyle": false,
+      "qualityRisks": ["multiple tab states", "task card density"]
+    },
+    {
+      "nodeId": "page-emergency-cards",
+      "slug": "emergency-cards",
+      "title": "应急便民服务",
+      "htmlSrc": "pages/emergency-cards.html",
+      "pageIndex": 5,
+      "stateGroupId": null,
+      "stateRole": null,
+      "baseStatePageId": null,
+      "sharedShellContract": [],
+      "mutableRegions": [],
+      "derivedFromHtmlSrc": null,
+      "derivationType": "original",
+      "sourcePageId": null,
+      "sourceHtmlSrc": null,
+      "pageType": "task-driven",
+      "businessScenario": "Emergency and essential services reference cards with bilingual info for hospitals, police, community center, etc.",
+      "visualNorthStar": "A calm, reassuring emergency reference that puts critical info at fingertips with large bilingual text",
+      "compositionPattern": "Emergency header → 2-col service cards grid with call buttons → community disclaimer footer",
+      "continuityAnchors": ["teal accent for emergency", "white card surfaces", "large bilingual text", "call-to-action buttons"],
+      "libraryRestraintMode": false,
+      "uiKitPath": null,
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "miniProgramStyle": false,
+      "qualityRisks": ["bilingual text density in small cards"]
+    },
+    {
+      "nodeId": "page-demo-flow",
+      "slug": "demo-flow",
+      "title": "演示链路",
+      "htmlSrc": "pages/demo-flow.html",
+      "pageIndex": 6,
+      "stateGroupId": null,
+      "stateRole": null,
+      "baseStatePageId": null,
+      "sharedShellContract": [],
+      "mutableRegions": [],
+      "derivedFromHtmlSrc": null,
+      "derivationType": "original",
+      "sourcePageId": null,
+      "sourceHtmlSrc": null,
+      "pageType": "showcase",
+      "businessScenario": "Demo walkthrough showing complete user journey from scene selection to volunteer contribution for competition presentation",
+      "visualNorthStar": "A clear, compelling 8-step journey visualization that tells the story of community empowerment",
+      "compositionPattern": "Numbered horizontal step cards with icons, each clickable to the corresponding page",
+      "continuityAnchors": ["teal step numbers", "white card surfaces", "step progress indicators"],
+      "libraryRestraintMode": false,
+      "uiKitPath": null,
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "miniProgramStyle": false,
+      "qualityRisks": ["8 steps on mobile may require scrolling"]
+    }
+  ],
+  "assets": [],
+  "wiringPlan": [
+    {
+      "sourceNodeId": "page-home-redesign",
+      "domId": "cta-life-guide",
+      "targetPageId": "page-life-guide"
+    },
+    {
+      "sourceNodeId": "page-life-guide",
+      "domId": "cta-place-detail",
+      "targetPageId": "page-place-detail-enhanced"
+    },
+    {
+      "sourceNodeId": "page-place-detail-enhanced",
+      "domId": "cta-volunteer",
+      "targetPageId": "page-volunteer-tasks"
+    },
+    {
+      "sourceNodeId": "page-volunteer-tasks",
+      "domId": "cta-emergency",
+      "targetPageId": "page-emergency-cards"
+    },
+    {
+      "sourceNodeId": "page-emergency-cards",
+      "domId": "cta-demo-flow",
+      "targetPageId": "page-demo-flow"
+    }
+  ],
+  "hiddenInteractionPlan": [
+    {
+      "sourceNodeId": "page-home-redesign",
+      "domId": "nav-home",
+      "targetPageId": "page-home-redesign",
+      "hideEdge": true,
+      "reason": "tab bar active state"
+    },
+    {
+      "sourceNodeId": "page-home-redesign",
+      "domId": "nav-map",
+      "targetPageId": "page-life-guide",
+      "hideEdge": true,
+      "reason": "tab bar shortcut"
+    },
+    {
+      "sourceNodeId": "page-home-redesign",
+      "domId": "nav-more",
+      "targetPageId": "page-volunteer-tasks",
+      "hideEdge": true,
+      "reason": "tab bar shortcut"
+    },
+    {
+      "sourceNodeId": "page-home-redesign",
+      "domId": "link-emergency",
+      "targetPageId": "page-emergency-cards",
+      "hideEdge": true,
+      "reason": "shortcut from home"
+    },
+    {
+      "sourceNodeId": "page-home-redesign",
+      "domId": "link-demo-flow",
+      "targetPageId": "page-demo-flow",
+      "hideEdge": true,
+      "reason": "shortcut from home"
+    },
+    {
+      "sourceNodeId": "page-life-guide",
+      "domId": "back-home",
+      "targetPageId": "page-home-redesign",
+      "hideEdge": true,
+      "reason": "back navigation"
+    },
+    {
+      "sourceNodeId": "page-place-detail-enhanced",
+      "domId": "back-life-guide",
+      "targetPageId": "page-life-guide",
+      "hideEdge": true,
+      "reason": "back navigation"
+    },
+    {
+      "sourceNodeId": "page-volunteer-tasks",
+      "domId": "back-place-detail",
+      "targetPageId": "page-place-detail-enhanced",
+      "hideEdge": true,
+      "reason": "back navigation"
+    },
+    {
+      "sourceNodeId": "page-emergency-cards",
+      "domId": "back-volunteer",
+      "targetPageId": "page-volunteer-tasks",
+      "hideEdge": true,
+      "reason": "back navigation"
+    },
+    {
+      "sourceNodeId": "page-demo-flow",
+      "domId": "back-emergency",
+      "targetPageId": "page-emergency-cards",
+      "hideEdge": true,
+      "reason": "back navigation"
+    },
+    {
+      "sourceNodeId": "page-demo-flow",
+      "domId": "link-home",
+      "targetPageId": "page-home-redesign",
+      "hideEdge": true,
+      "reason": "shortcut to start"
+    },
+    {
+      "sourceNodeId": "page-demo-flow",
+      "domId": "link-life-guide",
+      "targetPageId": "page-life-guide",
+      "hideEdge": true,
+      "reason": "step link"
+    },
+    {
+      "sourceNodeId": "page-demo-flow",
+      "domId": "link-place-detail",
+      "targetPageId": "page-place-detail-enhanced",
+      "hideEdge": true,
+      "reason": "step link"
+    },
+    {
+      "sourceNodeId": "page-demo-flow",
+      "domId": "link-volunteer",
+      "targetPageId": "page-volunteer-tasks",
+      "hideEdge": true,
+      "reason": "step link"
+    }
+  ]
+}
