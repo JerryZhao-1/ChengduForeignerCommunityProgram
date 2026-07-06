@@ -61,7 +61,7 @@ const buildQuerySuffix = (query?: Record<string, unknown>) => {
     .join("&")}`;
 };
 
-const buildGalleryUploadFormData = (input: {
+const buildImageUploadFormData = (input: {
   file: Blob;
   file_name?: string;
   content_type?: string;
@@ -118,9 +118,12 @@ export const createFetchRequester = (
     }
 
     if (!response.ok) {
-      throw new ApiClientError(createHttpStatusError(response.status, payload), {
-        status: response.status
-      });
+      throw new ApiClientError(
+        createHttpStatusError(response.status, payload),
+        {
+          status: response.status
+        }
+      );
     }
 
     return payload as any;
@@ -194,15 +197,31 @@ export const createHttpClient = (
       privateUrl: (input) => request("POST", apiPaths.files.privateUrl, input)
     },
     admin: {
+      listEvents: () => request("GET", apiPaths.admin.listEvents),
       listPlaces: () => request("GET", apiPaths.admin.listPlaces),
       createEvent: (input) =>
         request("POST", apiPaths.admin.createEvent, input),
       updateEvent: (id, input) =>
         request("PATCH", apiPaths.admin.updateEvent(id), input),
+      deleteEvent: (id) => request("DELETE", apiPaths.admin.deleteEvent(id)),
       reviewEvent: (id, input) =>
         request("POST", apiPaths.admin.reviewEvent(id), input),
       checkinEvent: (id, input) =>
         request("POST", apiPaths.admin.checkinEvent(id), input),
+      listEventRegistrations: (id) =>
+        request("GET", apiPaths.admin.eventRegistrations(id)),
+      uploadEventCoverFile: (id, input) =>
+        request(
+          "POST",
+          apiPaths.admin.uploadEventCoverFile(id),
+          buildImageUploadFormData(input)
+        ),
+      uploadPendingEventCoverFile: (input) =>
+        request(
+          "POST",
+          apiPaths.admin.uploadPendingEventCoverFile,
+          buildImageUploadFormData(input)
+        ),
       moderatePost: (id, input) =>
         request("POST", apiPaths.admin.moderatePost(id), input),
       createPlace: (input) =>
@@ -225,14 +244,14 @@ export const createHttpClient = (
         return request(
           "POST",
           apiPaths.admin.uploadPlaceGalleryFile(id),
-          buildGalleryUploadFormData(input)
+          buildImageUploadFormData(input)
         );
       },
       uploadPendingPlaceGalleryFile: (input) => {
         return request(
           "POST",
           apiPaths.admin.uploadPendingPlaceGalleryFile,
-          buildGalleryUploadFormData(input)
+          buildImageUploadFormData(input)
         );
       }
     }

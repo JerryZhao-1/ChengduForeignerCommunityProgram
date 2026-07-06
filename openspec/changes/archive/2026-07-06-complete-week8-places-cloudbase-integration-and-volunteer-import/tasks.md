@@ -82,7 +82,7 @@
 
 ## 4. CloudBase Dev Deployment And Acceptance
 
-- [ ] 4.1 Deploy `community-map-api` as the formal CloudBase dev HTTP function [#R10]
+- [x] 4.1 Deploy `community-map-api` as the formal CloudBase dev HTTP function [#R10]
   - ACCEPT: `community-map-api` in CloudBase `dev` is verified as the formal HTTP function entry for `apps/api/src/cloudbase.ts`, with required environment variables documented and no longer treated as an Event placeholder.
   - TEST: SCOPE: MIXED
     - When done, generate validation bundle under:
@@ -100,7 +100,7 @@
     - CLI checks: capture route/API smoke checks where available.
     - GUI runbook: record HTTP access service route status, dev access domain, and deferred blocker if applicable.
 
-- [ ] 4.3 Run CloudBase dev places acceptance for list, map, detail, admin create/update, and gallery media [#R12]
+- [x] 4.3 Run CloudBase dev places acceptance for list, map, detail, admin create/update, and gallery media [#R12]
   - ACCEPT: CloudBase `dev` acceptance proves public list, map markers, detail, admin create/update, gallery media read, imported draft visibility, and published update visibility against the live dev environment.
   - TEST: SCOPE: MIXED
     - When done, generate validation bundle under:

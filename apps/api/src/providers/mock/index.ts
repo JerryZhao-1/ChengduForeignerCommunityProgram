@@ -42,8 +42,16 @@ export const createMockProvider = (): ApiProvider => {
       async list(input) {
         return withMockErrors(() => service.events.list(input));
       },
+      async listAdmin() {
+        return withMockErrors(() => service.events.listAdmin());
+      },
       async detail(id) {
         return withMockErrors(() => service.events.detail(id));
+      },
+      async listRegistrationsForAdmin(eventId) {
+        return withMockErrors(() =>
+          service.events.listRegistrationsForAdmin(eventId)
+        );
       },
       async createRegistration(eventId, input, actorId) {
         return withMockErrors(() =>
@@ -65,6 +73,14 @@ export const createMockProvider = (): ApiProvider => {
       },
       async update(id, input) {
         return withMockErrors(() => service.events.update(id, input));
+      },
+      async delete(id) {
+        return withMockErrors(() => service.events.delete(id));
+      },
+      async uploadCoverFile(id, input, actorId) {
+        return withMockErrors(() =>
+          service.events.uploadCoverFile(id, input, actorId)
+        );
       },
       async review(id, input) {
         return withMockErrors(() => service.events.review(id, input));

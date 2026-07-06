@@ -3,6 +3,9 @@ import type {
   AuthSession,
   Comment,
   Event,
+  EventAdminListItem,
+  EventAdminRegistrationRow,
+  DeleteEventResponse,
   EventRegistration,
   EventTicket,
   FileAsset,
@@ -10,6 +13,7 @@ import type {
   PageResult,
   Place,
   DirectPlaceGalleryUploadResponse,
+  DirectEventCoverUploadResponse,
   DeletePlaceResponse,
   PlaceDetail,
   PlaceListItem,
@@ -34,7 +38,11 @@ export interface ApiProvider {
       keyword?: string;
       communityId?: string;
     }): Promise<PageResult<Event>>;
+    listAdmin(): Promise<PageResult<EventAdminListItem>>;
     detail(id: string): Promise<Event | null>;
+    listRegistrationsForAdmin(
+      eventId: string
+    ): Promise<EventAdminRegistrationRow[] | null>;
     createRegistration(
       eventId: string,
       input: {
@@ -52,6 +60,16 @@ export interface ApiProvider {
     ): Promise<EventTicket | null>;
     create(input: Partial<Event>, actorId?: string): Promise<Event>;
     update(id: string, input: Partial<Event>): Promise<Event | null>;
+    delete(id: string): Promise<DeleteEventResponse | null>;
+    uploadCoverFile(
+      id: string | null,
+      input: {
+        file_name: string;
+        content_type: string;
+        buffer: Buffer;
+      },
+      actorId?: string
+    ): Promise<DirectEventCoverUploadResponse | null>;
     review(
       id: string,
       input: {

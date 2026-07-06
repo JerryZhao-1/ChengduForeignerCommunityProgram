@@ -31,14 +31,14 @@
 
 ## 5. Backend Foundation
 
-- [ ] 5.1 Review provider parity gaps across auth, events, posts/discover, files, and notifications
-- [ ] 5.2 Add missing route coverage for validation, permission, and not-found behavior in non-places modules
+- [x] 5.1 Review provider parity gaps across auth, events, posts/discover, files, and notifications
+- [x] 5.2 Add missing route coverage for validation, permission, and not-found behavior in non-places modules
 - [x] 5.3 Improve minimum admin support for events and posts workflows where backend gaps block integration
 - [x] 5.4 Keep shared contracts as the only source of truth for all affected payload changes
 
 ## 6. Verification
 
 - [x] 6.1 Run affected shared, API, and route tests
-- [ ] 6.2 Run `typecheck`, `test`, and `lint` for the affected scope
-- [ ] 6.3 Manually verify places list, map, detail, filtering, recommendation entry, and navigation flows
-- [ ] 6.4 Manually verify admin place maintenance and frontstage data refresh behavior
+- [x] 6.2 Run `typecheck`, `test`, and `lint` for the affected scope
+- [x] 6.3 Manually verify places list, map, detail, filtering, recommendation entry, and navigation flows
+- [x] 6.4 Manually verify admin place maintenance and frontstage data refresh behavior

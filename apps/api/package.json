@@ -7,6 +7,7 @@
     "dev": "tsx watch src/dev.ts",
     "dev:cloudbase": "tsx watch src/http-function.ts",
     "build:cloudbase-http": "node ../../scripts/prepare_cloudbase_api_function.mjs",
+    "seed:cloudbase-events": "tsx scripts/seed_cloudbase_events.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

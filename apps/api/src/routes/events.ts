@@ -11,6 +11,7 @@ import {
 import { requireRole } from "../lib/auth";
 import { apiError } from "../lib/errors";
 import { parseOrThrow, sendSuccess } from "../lib/http";
+import { parseMultipartImageUpload } from "../lib/multipart";
 
 export const registerEventRoutes = (router: Router) => {
   router.get("/events", async (ctx) => {
@@ -28,7 +29,10 @@ export const registerEventRoutes = (router: Router) => {
   });
 
   router.post("/events/:id/registrations", async (ctx) => {
-    const input = parseOrThrow(CreateEventRegistrationInputSchema, ctx.request.body);
+    const input = parseOrThrow(
+      CreateEventRegistrationInputSchema,
+      ctx.request.body
+    );
     const data = await ctx.state.provider.events.createRegistration(
       ctx.params.id,
       input,
@@ -38,7 +42,9 @@ export const registerEventRoutes = (router: Router) => {
   });
 
   router.get("/events/me/registrations", async (ctx) => {
-    const data = await ctx.state.provider.events.listMyRegistrations(ctx.state.actor._id);
+    const data = await ctx.state.provider.events.listMyRegistrations(
+      ctx.state.actor._id
+    );
     sendSuccess(ctx, data);
   });
 
@@ -53,22 +59,87 @@ export const registerEventRoutes = (router: Router) => {
     sendSuccess(ctx, ticket);
   });
 
-  router.post("/admin/events", requireRole("community_admin", "system_admin"), async (ctx) => {
-    const input = parseOrThrow(CreateEventInputSchema, ctx.request.body);
-    const event = await ctx.state.provider.events.create(input, ctx.state.actor._id);
-    sendSuccess(ctx, event, 201);
-  });
+  router.get(
+    "/admin/events",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const data = await ctx.state.provider.events.listAdmin();
+      sendSuccess(ctx, data);
+    }
+  );
+
+  router.post(
+    "/admin/events",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const input = parseOrThrow(CreateEventInputSchema, ctx.request.body);
+      const event = await ctx.state.provider.events.create(
+        input,
+        ctx.state.actor._id
+      );
+      sendSuccess(ctx, event, 201);
+    }
+  );
 
   router.patch(
     "/admin/events/:id",
     requireRole("community_admin", "system_admin"),
     async (ctx) => {
       const input = parseOrThrow(UpdateEventInputSchema, ctx.request.body);
-      const event = await ctx.state.provider.events.update(ctx.params.id, input);
+      const event = await ctx.state.provider.events.update(
+        ctx.params.id,
+        input
+      );
       if (!event) {
         throw apiError("NOT_FOUND", "Event not found.", 404);
       }
       sendSuccess(ctx, event);
+    }
+  );
+
+  router.delete(
+    "/admin/events/:id",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const result = await ctx.state.provider.events.delete(ctx.params.id);
+      if (!result) {
+        throw apiError("NOT_FOUND", "Event not found.", 404);
+      }
+      sendSuccess(ctx, result);
+    }
+  );
+
+  router.post(
+    "/admin/events/cover-file",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const file = await parseMultipartImageUpload(ctx);
+      const result = await ctx.state.provider.events.uploadCoverFile(
+        null,
+        file,
+        ctx.state.actor._id
+      );
+
+      sendSuccess(ctx, result, 201);
+    }
+  );
+
+  router.post(
+    "/admin/events/:id/cover-file",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const file = await parseMultipartImageUpload(ctx);
+      const result = await ctx.state.provider.events.uploadCoverFile(
+        ctx.params.id,
+        file,
+        ctx.state.actor._id
+      );
+
+      if (!result) {
+        throw apiError("NOT_FOUND", "Event not found.", 404);
+      }
+
+      sendSuccess(ctx, result, 201);
     }
   );
 
@@ -77,11 +148,29 @@ export const registerEventRoutes = (router: Router) => {
     requireRole("community_admin", "system_admin"),
     async (ctx) => {
       const input = parseOrThrow(ReviewEventInputSchema, ctx.request.body);
-      const event = await ctx.state.provider.events.review(ctx.params.id, input);
+      const event = await ctx.state.provider.events.review(
+        ctx.params.id,
+        input
+      );
       if (!event) {
         throw apiError("NOT_FOUND", "Event not found.", 404);
       }
       sendSuccess(ctx, event);
+    }
+  );
+
+  router.get(
+    "/admin/events/:id/registrations",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const registrations =
+        await ctx.state.provider.events.listRegistrationsForAdmin(
+          ctx.params.id
+        );
+      if (!registrations) {
+        throw apiError("NOT_FOUND", "Event not found.", 404);
+      }
+      sendSuccess(ctx, registrations);
     }
   );
 
@@ -90,7 +179,10 @@ export const registerEventRoutes = (router: Router) => {
     requireRole("community_admin", "system_admin"),
     async (ctx) => {
       const input = parseOrThrow(CheckinInputSchema, ctx.request.body);
-      const ticket = await ctx.state.provider.events.checkin(ctx.params.id, input.ticket_id);
+      const ticket = await ctx.state.provider.events.checkin(
+        ctx.params.id,
+        input.ticket_id
+      );
       if (!ticket) {
         throw apiError("NOT_FOUND", "Ticket not found.", 404);
       }

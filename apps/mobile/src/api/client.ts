@@ -39,7 +39,16 @@ const createUniRequester = (): HttpRequester => {
         method: uniMethod,
         data: body as Record<string, unknown> | undefined,
         header: headers,
-        success: (result) => resolve(result.data as any),
+        success: (result) => {
+          const statusCode = result.statusCode ?? 500;
+
+          if (statusCode < 200 || statusCode >= 300) {
+            reject(new Error(`HTTP ${statusCode}`));
+            return;
+          }
+
+          resolve(result.data as any);
+        },
         fail: reject
       });
     });
@@ -69,6 +78,10 @@ const createCloudbaseFunctionRequester = (): HttpRequester => {
         data: body as Record<string, unknown> | undefined,
         header: headers
       });
+
+      if (result.statusCode < 200 || result.statusCode >= 300) {
+        throw new Error(`HTTP ${result.statusCode}`);
+      }
 
       return result.data as any;
     }

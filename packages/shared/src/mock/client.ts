@@ -3,12 +3,16 @@ import type {
   AuthSession,
   Comment,
   Event,
+  EventAdminListItem,
+  EventAdminRegistrationRow,
+  DeleteEventResponse,
   EventRegistration,
   EventTicket,
   FileAsset,
   Notification,
   Place,
   DeletePlaceResponse,
+  DirectEventCoverUploadResponse,
   PlaceDetail,
   PlaceAmapMediaSearchItem,
   PlaceListItem,
@@ -121,9 +125,11 @@ export interface CommunityMapApiClient {
     }): Promise<ApiResult<{ temp_url: string; expires_at: string }>>;
   };
   admin: {
+    listEvents(): Promise<ApiResult<PageResult<EventAdminListItem>>>;
     listPlaces(): Promise<ApiResult<PageResult<Place>>>;
     createEvent(input: Partial<Event>): Promise<ApiResult<Event>>;
     updateEvent(id: string, input: Partial<Event>): Promise<ApiResult<Event>>;
+    deleteEvent(id: string): Promise<ApiResult<DeleteEventResponse>>;
     reviewEvent(
       id: string,
       input: {
@@ -135,6 +141,18 @@ export interface CommunityMapApiClient {
       id: string,
       input: { ticket_id: string }
     ): Promise<ApiResult<EventTicket>>;
+    listEventRegistrations(
+      eventId: string
+    ): Promise<ApiResult<EventAdminRegistrationRow[]>>;
+    uploadEventCoverFile(
+      id: string,
+      input: { file: Blob; file_name?: string; content_type?: string }
+    ): Promise<ApiResult<DirectEventCoverUploadResponse>>;
+    uploadPendingEventCoverFile(input: {
+      file: Blob;
+      file_name?: string;
+      content_type?: string;
+    }): Promise<ApiResult<DirectEventCoverUploadResponse>>;
     moderatePost(
       id: string,
       input: { review_status: Post["review_status"] }
@@ -271,6 +289,9 @@ export const createMockClient = (
       }
     },
     admin: {
+      async listEvents() {
+        return ok(service.events.listAdmin());
+      },
       async listPlaces() {
         return ok(service.places.listAdmin());
       },
@@ -280,11 +301,45 @@ export const createMockClient = (
       async updateEvent(id, input) {
         return ok(service.events.update(id, input) as Event);
       },
+      async deleteEvent(id) {
+        return ok(service.events.delete(id) as DeleteEventResponse);
+      },
       async reviewEvent(id, input) {
         return ok(service.events.review(id, input) as Event);
       },
       async checkinEvent(id, input) {
         return ok(service.events.checkin(id, input.ticket_id) as EventTicket);
+      },
+      async listEventRegistrations(eventId) {
+        return ok(
+          service.events.listRegistrationsForAdmin(
+            eventId
+          ) as EventAdminRegistrationRow[]
+        );
+      },
+      async uploadEventCoverFile(id, input) {
+        return ok(
+          service.events.uploadCoverFile(
+            id,
+            {
+              file_name: input.file_name ?? "event-cover-upload",
+              content_type: input.content_type ?? input.file.type
+            },
+            actorId
+          ) as DirectEventCoverUploadResponse
+        );
+      },
+      async uploadPendingEventCoverFile(input) {
+        return ok(
+          service.events.uploadCoverFile(
+            null,
+            {
+              file_name: input.file_name ?? "event-cover-upload",
+              content_type: input.content_type ?? input.file.type
+            },
+            actorId
+          ) as DirectEventCoverUploadResponse
+        );
       },
       async moderatePost(id, input) {
         return ok(service.posts.moderate(id, input) as Post);
@@ -299,15 +354,23 @@ export const createMockClient = (
         return ok(service.places.delete(id) as DeletePlaceResponse);
       },
       async searchPlacePoi(input) {
+        const isTongzilinInternationalCommunity = input.keyword.includes(
+          "桐梓林国际社区"
+        );
+
         return ok([
           {
             id: `mock_poi_${encodeURIComponent(input.keyword)}`,
             title: input.keyword,
-            address: "四川省成都市武侯区桐梓林路",
+            address: isTongzilinInternationalCommunity
+              ? "四川省成都市武侯区人民南路四段辅路与桐凤路交叉口正西方向131米左右"
+              : "四川省成都市武侯区桐梓林路",
             category: "生活服务",
             location: {
-              latitude: 30.615,
-              longitude: 104.062
+              latitude: isTongzilinInternationalCommunity ? 30.618887 : 30.615,
+              longitude: isTongzilinInternationalCommunity
+                ? 104.065468
+                : 104.062
             },
             province: "四川省",
             city: "成都市",

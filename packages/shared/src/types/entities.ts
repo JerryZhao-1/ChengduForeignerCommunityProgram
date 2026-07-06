@@ -1,6 +1,11 @@
 import type { z } from "zod";
 
 import type {
+  DeleteEventResponseSchema,
+  EventAdminListItemSchema,
+  EventAdminRegistrationRowSchema
+} from "../schemas/events";
+import type {
   AnnouncementSchema,
   AuthSessionSchema,
   CommentSchema,
@@ -15,7 +20,10 @@ import type {
   PostSchema,
   UserSchema
 } from "../schemas/entities";
-import type { DirectPlaceGalleryUploadResponseSchema } from "../schemas/files";
+import type {
+  DirectEventCoverUploadResponseSchema,
+  DirectPlaceGalleryUploadResponseSchema
+} from "../schemas/files";
 import type {
   PlaceDetailSchema,
   DeletePlaceResponseSchema,
@@ -32,6 +40,11 @@ export type AuthSession = z.infer<typeof AuthSessionSchema>;
 export type Event = z.infer<typeof EventSchema>;
 export type EventRegistration = z.infer<typeof EventRegistrationSchema>;
 export type EventTicket = z.infer<typeof EventTicketSchema>;
+export type EventAdminListItem = z.infer<typeof EventAdminListItemSchema>;
+export type EventAdminRegistrationRow = z.infer<
+  typeof EventAdminRegistrationRowSchema
+>;
+export type DeleteEventResponse = z.infer<typeof DeleteEventResponseSchema>;
 export type Place = z.infer<typeof PlaceSchema>;
 export type PlaceExternalMedia = z.infer<typeof PlaceExternalMediaSchema>;
 export type PlaceCoverSource = z.infer<typeof PlaceCoverSourceSchema>;
@@ -54,4 +67,7 @@ export type Notification = z.infer<typeof NotificationSchema>;
 export type FileAsset = z.infer<typeof FileAssetSchema>;
 export type DirectPlaceGalleryUploadResponse = z.infer<
   typeof DirectPlaceGalleryUploadResponseSchema
+>;
+export type DirectEventCoverUploadResponse = z.infer<
+  typeof DirectEventCoverUploadResponseSchema
 >;

@@ -2,12 +2,19 @@ import {
   API_ERROR_CODES,
   apiPaths,
   CreateApiSuccessSchema,
+  DeleteEventResponseSchema,
   DeletePlaceResponseSchema,
+  DirectEventCoverUploadResponseSchema,
+  EventAdminListItemSchema,
+  EventAdminRegistrationRowSchema,
+  EventSchema,
   EVENT_REGISTRATION_STATUSES,
   FILE_PATH_RULES,
   FileAssetSchema,
   LocaleSchema,
   PageResultSchema,
+  PLACE_SECONDARY_CATEGORY_OPTIONS,
+  PLACE_TOP_LEVEL_CATEGORIES,
   PlaceAmapImageCandidateSchema,
   PlaceAmapMediaSearchItemSchema,
   PlaceAmapMediaSearchQuerySchema,
@@ -19,6 +26,9 @@ import {
   PlacePoiSearchItemSchema,
   PlacePoiSearchQuerySchema,
   PlaceSchema,
+  CreateEventInputSchema,
+  eventContracts,
+  fileContracts,
   placeContracts,
   PostSchema,
   UpdatePlaceInputSchema,
@@ -27,6 +37,25 @@ import {
 import { describe, expect, it } from "vitest";
 
 describe("shared contracts", () => {
+  it("exposes fixed place secondary category options without enum-locking stored values", () => {
+    expect(Object.keys(PLACE_SECONDARY_CATEGORY_OPTIONS).sort()).toEqual(
+      [...PLACE_TOP_LEVEL_CATEGORIES].sort()
+    );
+    expect(PLACE_SECONDARY_CATEGORY_OPTIONS["public-service"]).toEqual(
+      expect.arrayContaining(["community-center", "service-desk"])
+    );
+    expect(PLACE_SECONDARY_CATEGORY_OPTIONS["food-drink"]).toContain("cafe");
+    expect(PLACE_SECONDARY_CATEGORY_OPTIONS["health-wellness"]).toContain(
+      "clinic"
+    );
+    expect(PLACE_SECONDARY_CATEGORY_OPTIONS.transport).toContain(
+      "metro-station"
+    );
+    expect(
+      PlaceSchema.shape.category_level_2.safeParse("legacy-free-text").success
+    ).toBe(true);
+  });
+
   it("accepts a valid bilingual place payload", () => {
     const place = PlaceSchema.parse({
       _id: "place_001",
@@ -257,6 +286,145 @@ describe("shared contracts", () => {
     expect(deleteEnvelope.data.deleted_id).toBe("place_001");
   });
 
+  it("exposes admin event list and registration contracts through shared paths", () => {
+    const deleteEnvelope = CreateApiSuccessSchema(
+      DeleteEventResponseSchema
+    ).parse({
+      success: true,
+      requestId: "req_delete_event",
+      data: {
+        deleted_id: "event_admin_001"
+      }
+    });
+    const adminListEnvelope = CreateApiSuccessSchema(
+      PageResultSchema(EventAdminListItemSchema)
+    ).parse({
+      success: true,
+      requestId: "req_admin_events",
+      data: {
+        items: [
+          {
+            _id: "event_admin_001",
+            community_id: "tongzilin",
+            title_zh: "后台活动",
+            title_en: "Admin Event",
+            summary_zh: "简介",
+            summary_en: "Summary",
+            content_zh: "正文",
+            content_en: "Body",
+            cover_file_id: "cloud://cover",
+            cover_cloud_path: "public/events/event_admin_001/cover.jpg",
+            cover_url: "https://example.com/event-admin.jpg",
+            address_text: "桐梓林",
+            location: { latitude: 30.615, longitude: 104.062 },
+            start_time: "2027-04-02T10:00:00+08:00",
+            end_time: "2027-04-02T12:00:00+08:00",
+            signup_deadline: "2027-04-01T18:00:00+08:00",
+            capacity: 10,
+            organizer_user_id: "user_001",
+            review_status: "draft",
+            publish_status: "draft",
+            active_registration_count: 0,
+            confirmed_attendee_count: 0,
+            remaining_capacity: 10,
+            is_full: false
+          }
+        ],
+        page: 1,
+        pageSize: 10,
+        total: 1
+      }
+    });
+    const registrationsEnvelope = CreateApiSuccessSchema(
+      EventAdminRegistrationRowSchema.array()
+    ).parse({
+      success: true,
+      requestId: "req_admin_event_registrations",
+      data: [
+        {
+          _id: "reg_001",
+          event_id: "event_admin_001",
+          user_id: "user_001",
+          contact_name: "Jerry",
+          contact_phone: "13800000000",
+          attendee_count: 2,
+          registration_status: "confirmed",
+          ticket_id: "ticket_001",
+          source_channel: "miniapp",
+          ticket_code: "TZL-001",
+          ticket_status: "valid",
+          ticket_used_at: null
+        }
+      ]
+    });
+
+    expect(eventContracts.adminList).toMatchObject({
+      method: "GET",
+      path: "/admin/events"
+    });
+    expect(eventContracts.adminRegistrations).toMatchObject({
+      method: "GET",
+      path: "/admin/events/:id/registrations"
+    });
+    expect(eventContracts.adminDelete).toMatchObject({
+      method: "DELETE",
+      path: "/admin/events/:id"
+    });
+    expect(apiPaths.admin.listEvents).toBe("/admin/events");
+    expect(apiPaths.admin.deleteEvent("event_admin_001")).toBe(
+      "/admin/events/event_admin_001"
+    );
+    expect(apiPaths.admin.eventRegistrations("event_admin_001")).toBe(
+      "/admin/events/event_admin_001/registrations"
+    );
+    expect(deleteEnvelope.data.deleted_id).toBe("event_admin_001");
+    expect(adminListEnvelope.data.items[0].remaining_capacity).toBe(10);
+    expect(registrationsEnvelope.data[0].ticket_code).toBe("TZL-001");
+    expect(
+      EventAdminListItemSchema.safeParse({
+        _id: "event_admin_001"
+      }).success
+    ).toBe(false);
+    expect(
+      EventAdminRegistrationRowSchema.safeParse({
+        _id: "reg_001",
+        event_id: "event_admin_001"
+      }).success
+    ).toBe(false);
+  });
+
+  it("accepts URL-only event cover fields", () => {
+    const createInput = CreateEventInputSchema.parse({
+      title_zh: "外链封面活动",
+      title_en: "External Cover Event",
+      summary_zh: "简介",
+      summary_en: "Summary",
+      content_zh: "正文",
+      content_en: "Body",
+      address_text: "成都市武侯区桐梓林国际社区",
+      location: { latitude: 30.618887, longitude: 104.065468 },
+      start_time: "2027-04-10T10:00:00+08:00",
+      end_time: "2027-04-10T12:00:00+08:00",
+      signup_deadline: "2027-04-09T18:00:00+08:00",
+      capacity: 30,
+      cover_file_id: null,
+      cover_cloud_path: null,
+      cover_url: "https://store.is.autonavi.com/showpic/event-cover.jpg"
+    });
+    const event = EventSchema.parse({
+      _id: "event_url_cover_001",
+      community_id: "tongzilin",
+      ...createInput,
+      organizer_user_id: "user_001",
+      review_status: "draft",
+      publish_status: "draft"
+    });
+
+    expect(createInput.cover_file_id).toBeNull();
+    expect(event.cover_cloud_path).toBeNull();
+    expect(event.cover_url).toContain("store.is.autonavi.com");
+  });
+
   it("normalizes admin place POI search contracts", () => {
     const query = PlacePoiSearchQuerySchema.parse({
       keyword: " 桐梓林 "
@@ -292,6 +460,40 @@ describe("shared contracts", () => {
         }
       })
     ).toThrow();
+  });
+
+  it("normalizes direct event cover upload contracts", () => {
+    const response = DirectEventCoverUploadResponseSchema.parse({
+      file_asset: {
+        _id: "file_event_cover_001",
+        file_id: "cloud://public/events/event_001/cover.jpg",
+        cloud_path: "public/events/event_001/cover.jpg",
+        visibility: "public",
+        biz_type: "event_cover",
+        biz_id: "event_001",
+        uploaded_by: "user_001",
+        status: "active"
+      },
+      cover_file_id: "cloud://public/events/event_001/cover.jpg",
+      cover_cloud_path: "public/events/event_001/cover.jpg",
+      cover_url: "https://example.com/public/events/event_001/cover.jpg"
+    });
+
+    expect(response.file_asset.biz_type).toBe("event_cover");
+    expect(fileContracts.directEventCoverUpload).toMatchObject({
+      method: "POST",
+      path: "/admin/events/:id/cover-file"
+    });
+    expect(fileContracts.directPendingEventCoverUpload).toMatchObject({
+      method: "POST",
+      path: "/admin/events/cover-file"
+    });
+    expect(apiPaths.admin.uploadPendingEventCoverFile).toBe(
+      "/admin/events/cover-file"
+    );
+    expect(apiPaths.admin.uploadEventCoverFile("event_001")).toBe(
+      "/admin/events/event_001/cover-file"
+    );
   });
 
   it("normalizes admin Amap media search contracts", () => {

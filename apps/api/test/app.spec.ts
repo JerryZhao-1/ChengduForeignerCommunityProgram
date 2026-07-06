@@ -306,6 +306,417 @@ describe("api routes", () => {
     }
   });
 
+  it("serves admin event list and registration inspection with envelopes", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const adminEventsResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      });
+      const adminEventsData = await adminEventsResponse.json();
+      expect(adminEventsResponse.status).toBe(200);
+      expect(adminEventsData.success).toBe(true);
+      expect(
+        adminEventsData.data.items.map((event: { _id: string }) => event._id)
+      ).toEqual(
+        expect.arrayContaining([
+          "event_001",
+          "event_draft",
+          "event_pending",
+          "event_offline",
+          "event_ended"
+        ])
+      );
+      expect(adminEventsData.data.items[0]).toHaveProperty(
+        "active_registration_count"
+      );
+      expect(adminEventsData.data.items[0]).toHaveProperty(
+        "confirmed_attendee_count"
+      );
+      expect(adminEventsData.data.items[0]).toHaveProperty(
+        "remaining_capacity"
+      );
+      expect(adminEventsData.data.items[0]).toHaveProperty("is_full");
+
+      const publicEventsResponse = await fetch(`${baseUrl}/events`);
+      const publicEventsData = await publicEventsResponse.json();
+      expect(
+        publicEventsData.data.items.map((event: { _id: string }) => event._id)
+      ).not.toEqual(
+        expect.arrayContaining(["event_draft", "event_offline", "event_ended"])
+      );
+
+      const registrationsResponse = await fetch(
+        `${baseUrl}/admin/events/event_001/registrations`,
+        {
+          headers: {
+            "x-mock-user-id": "user_001"
+          }
+        }
+      );
+      const registrationsData = await registrationsResponse.json();
+      expect(registrationsResponse.status).toBe(200);
+      expect(registrationsData.success).toBe(true);
+      expect(registrationsData.data[0]).toMatchObject({
+        _id: "reg_001",
+        ticket_id: "ticket_001",
+        ticket_code: "TZL-20260402-001",
+        ticket_status: "valid",
+        ticket_used_at: null
+      });
+
+      const missingResponse = await fetch(
+        `${baseUrl}/admin/events/event_missing/registrations`,
+        {
+          headers: {
+            "x-mock-user-id": "user_001"
+          }
+        }
+      );
+      const missingData = await missingResponse.json();
+      expect(missingResponse.status).toBe(404);
+      expect(missingData.error.code).toBe("NOT_FOUND");
+
+      const missingDeleteResponse = await fetch(
+        `${baseUrl}/admin/events/event_missing_delete`,
+        {
+          method: "DELETE",
+          headers: {
+            "x-mock-user-id": "user_001"
+          }
+        }
+      );
+      const missingDeleteData = await missingDeleteResponse.json();
+      expect(missingDeleteResponse.status).toBe(404);
+      expect(missingDeleteData.error.code).toBe("NOT_FOUND");
+
+      const deleteResponse = await fetch(`${baseUrl}/admin/events/event_001`, {
+        method: "DELETE",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      });
+      const deleteData = await deleteResponse.json();
+      expect(deleteResponse.status).toBe(200);
+      expect(deleteData.data).toEqual({ deleted_id: "event_001" });
+
+      const adminAfterDeleteResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      });
+      const adminAfterDeleteData = await adminAfterDeleteResponse.json();
+      expect(
+        adminAfterDeleteData.data.items.map(
+          (event: { _id: string }) => event._id
+        )
+      ).not.toContain("event_001");
+
+      const publicAfterDeleteResponse = await fetch(`${baseUrl}/events`);
+      const publicAfterDeleteData = await publicAfterDeleteResponse.json();
+      expect(
+        publicAfterDeleteData.data.items.map(
+          (event: { _id: string }) => event._id
+        )
+      ).not.toContain("event_001");
+    } finally {
+      await close();
+    }
+  });
+
+  it("supports direct admin event cover uploads without mutating until save", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const pendingForm = new FormData();
+      pendingForm.set(
+        "file",
+        new Blob(["pending-event-cover"], { type: "image/jpeg" }),
+        "pending-cover.jpg"
+      );
+
+      const pendingUploadResponse = await fetch(
+        `${baseUrl}/admin/events/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: pendingForm
+        }
+      );
+      const pendingUploadBody = await pendingUploadResponse.json();
+
+      expect(pendingUploadResponse.status).toBe(201);
+      expect(pendingUploadBody.data.file_asset).toMatchObject({
+        visibility: "public",
+        biz_type: "event_cover",
+        biz_id: "__pending_event_cover__",
+        uploaded_by: "user_001",
+        status: "active"
+      });
+      expect(pendingUploadBody.data.cover_cloud_path).toContain(
+        "public/events/_pending/"
+      );
+
+      const createResponse = await fetch(`${baseUrl}/admin/events`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          title_zh: "封面上传活动",
+          title_en: "Cover Upload Event",
+          summary_zh: "简介",
+          summary_en: "Summary",
+          content_zh: "正文",
+          content_en: "Body",
+          address_text: "Tongzilin",
+          location: { latitude: 30.615, longitude: 104.062 },
+          start_time: "2027-08-02T10:00:00+08:00",
+          end_time: "2027-08-02T12:00:00+08:00",
+          signup_deadline: "2027-08-01T18:00:00+08:00",
+          capacity: 20,
+          cover_file_id: pendingUploadBody.data.cover_file_id,
+          cover_cloud_path: pendingUploadBody.data.cover_cloud_path,
+          cover_url: pendingUploadBody.data.cover_url
+        })
+      });
+      const createBody = await createResponse.json();
+      const eventId = createBody.data._id;
+
+      expect(createResponse.status).toBe(201);
+      expect(createBody.data.cover_file_id).toBe(
+        pendingUploadBody.data.cover_file_id
+      );
+
+      const existingForm = new FormData();
+      existingForm.set(
+        "file",
+        new Blob(["existing-event-cover"], { type: "image/png" }),
+        "existing-cover.png"
+      );
+      const existingUploadResponse = await fetch(
+        `${baseUrl}/admin/events/${eventId}/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: existingForm
+        }
+      );
+      const existingUploadBody = await existingUploadResponse.json();
+
+      expect(existingUploadResponse.status).toBe(201);
+      expect(existingUploadBody.data.file_asset).toMatchObject({
+        visibility: "public",
+        biz_type: "event_cover",
+        biz_id: eventId,
+        uploaded_by: "user_001",
+        status: "active"
+      });
+
+      const adminBeforeSaveResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      });
+      const adminBeforeSaveBody = await adminBeforeSaveResponse.json();
+      const eventBeforeSave = adminBeforeSaveBody.data.items.find(
+        (item: { _id: string }) => item._id === eventId
+      );
+
+      expect(eventBeforeSave.cover_file_id).toBe(
+        pendingUploadBody.data.cover_file_id
+      );
+
+      const updateResponse = await fetch(`${baseUrl}/admin/events/${eventId}`, {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          cover_file_id: existingUploadBody.data.cover_file_id,
+          cover_cloud_path: existingUploadBody.data.cover_cloud_path,
+          cover_url: existingUploadBody.data.cover_url
+        })
+      });
+      const updateBody = await updateResponse.json();
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateBody.data.cover_file_id).toBe(
+        existingUploadBody.data.cover_file_id
+      );
+
+      await fetch(`${baseUrl}/admin/events/${eventId}/review`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          review_status: "approved",
+          publish_status: "published"
+        })
+      });
+
+      const publicDetailResponse = await fetch(`${baseUrl}/events/${eventId}`);
+      const publicDetailBody = await publicDetailResponse.json();
+
+      expect(publicDetailResponse.status).toBe(200);
+      expect(publicDetailBody.data.cover_url).toBe(
+        existingUploadBody.data.cover_url
+      );
+
+      const forbiddenForm = new FormData();
+      forbiddenForm.set(
+        "file",
+        new Blob(["forbidden-cover"], { type: "image/jpeg" }),
+        "forbidden.jpg"
+      );
+      const forbiddenResponse = await fetch(
+        `${baseUrl}/admin/events/${eventId}/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_002"
+          },
+          body: forbiddenForm
+        }
+      );
+      const forbiddenBody = await forbiddenResponse.json();
+
+      expect(forbiddenResponse.status).toBe(403);
+      expect(forbiddenBody.error.code).toBe("FORBIDDEN");
+
+      const missingEventForm = new FormData();
+      missingEventForm.set(
+        "file",
+        new Blob(["missing-cover"], { type: "image/jpeg" }),
+        "missing.jpg"
+      );
+      const missingEventResponse = await fetch(
+        `${baseUrl}/admin/events/event_missing_cover/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: missingEventForm
+        }
+      );
+      const missingEventBody = await missingEventResponse.json();
+
+      expect(missingEventResponse.status).toBe(404);
+      expect(missingEventBody.error.code).toBe("NOT_FOUND");
+
+      const invalidTypeForm = new FormData();
+      invalidTypeForm.set(
+        "file",
+        new Blob(["not an image"], { type: "text/plain" }),
+        "note.txt"
+      );
+      const invalidTypeResponse = await fetch(
+        `${baseUrl}/admin/events/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: invalidTypeForm
+        }
+      );
+      const invalidTypeBody = await invalidTypeResponse.json();
+
+      expect(invalidTypeResponse.status).toBe(400);
+      expect(invalidTypeBody.error.code).toBe("VALIDATION_ERROR");
+
+      const missingFileResponse = await fetch(
+        `${baseUrl}/admin/events/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: new FormData()
+        }
+      );
+      const missingFileBody = await missingFileResponse.json();
+
+      expect(missingFileResponse.status).toBe(400);
+      expect(missingFileBody.error.code).toBe("VALIDATION_ERROR");
+    } finally {
+      await close();
+    }
+  });
+
+  it("keeps URL-only event covers when file fields are null", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+    const externalCoverUrl =
+      "https://store.is.autonavi.com/showpic/event-external-cover.jpg";
+
+    try {
+      const createResponse = await fetch(`${baseUrl}/admin/events`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          title_zh: "外链封面活动",
+          title_en: "External Cover Event",
+          summary_zh: "简介",
+          summary_en: "Summary",
+          content_zh: "正文",
+          content_en: "Body",
+          address_text: "成都市武侯区桐梓林国际社区",
+          location: { latitude: 30.618887, longitude: 104.065468 },
+          start_time: "2027-04-10T10:00:00+08:00",
+          end_time: "2027-04-10T12:00:00+08:00",
+          signup_deadline: "2027-04-09T18:00:00+08:00",
+          capacity: 30,
+          cover_file_id: null,
+          cover_cloud_path: null,
+          cover_url: externalCoverUrl
+        })
+      });
+      const createBody = await createResponse.json();
+      const eventId = createBody.data._id;
+
+      expect(createResponse.status).toBe(201);
+      expect(createBody.data.cover_file_id).toBeNull();
+      expect(createBody.data.cover_cloud_path).toBeNull();
+      expect(createBody.data.cover_url).toBe(externalCoverUrl);
+
+      await fetch(`${baseUrl}/admin/events/${eventId}/review`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          review_status: "approved",
+          publish_status: "published"
+        })
+      });
+
+      const publicDetailResponse = await fetch(`${baseUrl}/events/${eventId}`);
+      const publicDetailBody = await publicDetailResponse.json();
+
+      expect(publicDetailResponse.status).toBe(200);
+      expect(publicDetailBody.data.cover_file_id).toBeNull();
+      expect(publicDetailBody.data.cover_cloud_path).toBeNull();
+      expect(publicDetailBody.data.cover_url).toBe(externalCoverUrl);
+    } finally {
+      await close();
+    }
+  });
+
   it("serves health and places routes with the CloudBase /api prefix", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 
@@ -362,6 +773,30 @@ describe("api routes", () => {
 
       expect(response.status).toBe(403);
       expect(body.error.code).toBe("FORBIDDEN");
+
+      const adminListResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          "x-mock-user-id": "user_002"
+        }
+      });
+      const adminListBody = await adminListResponse.json();
+
+      expect(adminListResponse.status).toBe(403);
+      expect(adminListBody.error.code).toBe("FORBIDDEN");
+
+      const deleteEventResponse = await fetch(
+        `${baseUrl}/admin/events/event_001`,
+        {
+          method: "DELETE",
+          headers: {
+            "x-mock-user-id": "user_002"
+          }
+        }
+      );
+      const deleteEventBody = await deleteEventResponse.json();
+
+      expect(deleteEventResponse.status).toBe(403);
+      expect(deleteEventBody.error.code).toBe("FORBIDDEN");
 
       const placeGalleryResponse = await fetch(
         `${baseUrl}/admin/places/place_001`,

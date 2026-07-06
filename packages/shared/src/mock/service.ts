@@ -2,6 +2,8 @@ import type {
   AuthSession,
   Comment,
   Event,
+  EventAdminListItem,
+  EventAdminRegistrationRow,
   EventRegistration,
   EventTicket,
   FileAsset,
@@ -148,6 +150,9 @@ const publicFileUrl = (cloudPath: string) =>
   mockPublicFileUrls[cloudPath] ??
   `https://example.com/${cloudPath.replace(/^\/+/, "")}`;
 
+const sanitizeFileName = (fileName: string, fallback: string) =>
+  fileName.replace(/[^\w.-]+/g, "-").replace(/^-+/, "") || fallback;
+
 export class MockServiceError extends Error {
   constructor(
     public readonly code: ApiErrorCode,
@@ -174,9 +179,49 @@ const isAdmin = (user: User) =>
   user.role_flags.includes("system_admin");
 
 export const PENDING_PLACE_GALLERY_BIZ_ID = "__pending_place_gallery__";
+export const PENDING_EVENT_COVER_BIZ_ID = "__pending_event_cover__";
 
 const isLaunchVisibleEvent = (event: Event) =>
   event.review_status === "approved" && event.publish_status === "published";
+
+const isActiveRegistration = (registration: EventRegistration) =>
+  !["cancelled", "closed"].includes(registration.registration_status);
+
+const toEventAdminListItem = (
+  event: Event,
+  registrations: EventRegistration[]
+): EventAdminListItem => {
+  const activeRegistrations = registrations.filter(
+    (registration) =>
+      registration.event_id === event._id && isActiveRegistration(registration)
+  );
+  const confirmed_attendee_count = activeRegistrations.reduce(
+    (sum, registration) => sum + registration.attendee_count,
+    0
+  );
+  const remaining_capacity = Math.max(
+    event.capacity - confirmed_attendee_count,
+    0
+  );
+
+  return {
+    ...event,
+    active_registration_count: activeRegistrations.length,
+    confirmed_attendee_count,
+    remaining_capacity,
+    is_full: remaining_capacity === 0
+  };
+};
+
+const toEventAdminRegistrationRow = (
+  registration: EventRegistration,
+  ticket: EventTicket | undefined
+): EventAdminRegistrationRow => ({
+  ...registration,
+  ticket_code: ticket?.ticket_code ?? null,
+  ticket_status: ticket?.status ?? null,
+  ticket_used_at: ticket?.used_at ?? null
+});
 
 const isLaunchVisiblePost = (post: Post) =>
   post.status === "visible" && post.review_status === "visible";
@@ -327,9 +372,34 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
 
         return paginate(events, params);
       },
+      listAdmin() {
+        return paginate(
+          state.events.map((event) =>
+            toEventAdminListItem(event, state.registrations)
+          ),
+          { pageSize: state.events.length || 20 }
+        );
+      },
       detail(id: string) {
         const event = state.events.find((item) => item._id === id);
         return event && isLaunchVisibleEvent(event) ? event : null;
+      },
+      listRegistrationsForAdmin(eventId: string) {
+        const event = state.events.find((item) => item._id === eventId);
+        if (!event) {
+          return null;
+        }
+
+        return state.registrations
+          .filter((registration) => registration.event_id === eventId)
+          .map((registration) =>
+            toEventAdminRegistrationRow(
+              registration,
+              state.tickets.find(
+                (ticket) => ticket._id === registration.ticket_id
+              )
+            )
+          );
       },
       createRegistration(
         eventId: string,
@@ -348,31 +418,46 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           throw mockError("NOT_FOUND", "Event not found.", 404);
         }
 
-        if (new Date(event.signup_deadline).getTime() <= Date.now()) {
-          throw mockError("CONFLICT", "Event signup is closed.", 409);
+        const now = Date.now();
+
+        if (new Date(event.end_time).getTime() <= now) {
+          throw mockError("CONFLICT", "Event has ended.", 409, {
+            reason: "event_ended"
+          });
+        }
+
+        if (new Date(event.signup_deadline).getTime() <= now) {
+          throw mockError("CONFLICT", "Event signup is closed.", 409, {
+            reason: "signup_deadline_passed"
+          });
         }
 
         const hasActiveRegistration = state.registrations.some(
           (registration) =>
             registration.event_id === eventId &&
             registration.user_id === actor._id &&
-            registration.registration_status !== "cancelled"
+            isActiveRegistration(registration)
         );
 
         if (hasActiveRegistration) {
-          throw mockError("CONFLICT", "Registration already exists.", 409);
+          throw mockError("CONFLICT", "Registration already exists.", 409, {
+            reason: "already_registered"
+          });
         }
 
         const confirmedAttendees = state.registrations
           .filter(
             (registration) =>
               registration.event_id === eventId &&
-              registration.registration_status === "confirmed"
+              isActiveRegistration(registration)
           )
           .reduce((sum, registration) => sum + registration.attendee_count, 0);
 
         if (confirmedAttendees + input.attendee_count > event.capacity) {
-          throw mockError("CONFLICT", "Event capacity is full.", 409);
+          throw mockError("CONFLICT", "Event capacity is full.", 409, {
+            reason: "capacity_exceeded",
+            remaining: Math.max(event.capacity - confirmedAttendees, 0)
+          });
         }
 
         const ticketId = idFrom("ticket");
@@ -430,6 +515,41 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           ) ?? null
         );
       },
+      uploadCoverFile(
+        id: string | null,
+        input: { file_name: string; content_type: string },
+        actorId?: string
+      ) {
+        const actor = requireUser(actorId);
+        const event = id ? state.events.find((item) => item._id === id) : null;
+
+        if (id && !event) {
+          return null;
+        }
+
+        const safeFileName = sanitizeFileName(input.file_name, "event-cover");
+        const targetPath = id ?? `_pending/${idFrom("event_cover")}`;
+        const cloudPath = `${FILE_PATH_RULES.eventCovers}${targetPath}/${idFrom("cover")}-${safeFileName}`;
+        const asset: FileAsset = {
+          _id: idFrom("file"),
+          file_id: `cloud://${cloudPath}`,
+          cloud_path: cloudPath,
+          visibility: "public",
+          biz_type: "event_cover",
+          biz_id: id ?? PENDING_EVENT_COVER_BIZ_ID,
+          uploaded_by: actor._id,
+          status: "active"
+        };
+
+        state.fileAssets.unshift(asset);
+
+        return {
+          file_asset: asset,
+          cover_file_id: asset.file_id,
+          cover_cloud_path: asset.cloud_path,
+          cover_url: publicFileUrl(asset.cloud_path)
+        };
+      },
       create(input: Partial<Event>, actorId?: string) {
         const actor = requireUser(actorId);
         const event: Event = {
@@ -441,9 +561,8 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           summary_en: input.summary_en ?? "",
           content_zh: input.content_zh ?? "",
           content_en: input.content_en ?? "",
-          cover_file_id: input.cover_file_id ?? "cloud://placeholder-cover",
-          cover_cloud_path:
-            input.cover_cloud_path ?? "public/events/placeholder/cover.jpg",
+          cover_file_id: input.cover_file_id ?? null,
+          cover_cloud_path: input.cover_cloud_path ?? null,
           cover_url:
             input.cover_url ??
             "https://example.com/public/events/placeholder/cover.jpg",
@@ -459,6 +578,19 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           publish_status: "draft"
         };
 
+        if (input.cover_file_id) {
+          const pendingCover = state.fileAssets.find(
+            (asset) =>
+              asset.file_id === input.cover_file_id &&
+              asset.biz_type === "event_cover" &&
+              asset.biz_id === PENDING_EVENT_COVER_BIZ_ID
+          );
+
+          if (pendingCover) {
+            pendingCover.biz_id = event._id;
+          }
+        }
+
         state.events.unshift(event);
         return event;
       },
@@ -469,6 +601,16 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         }
         Object.assign(existing, input);
         return existing;
+      },
+      delete(id: string) {
+        const index = state.events.findIndex((event) => event._id === id);
+
+        if (index === -1) {
+          return null;
+        }
+
+        state.events.splice(index, 1);
+        return { deleted_id: id };
       },
       review(
         id: string,
@@ -500,11 +642,21 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         );
 
         if (!registration || registration.event_id !== event._id) {
-          throw mockError("CONFLICT", "Ticket does not belong to event.", 409);
+          throw mockError("CONFLICT", "Ticket does not belong to event.", 409, {
+            reason: "ticket_event_mismatch"
+          });
         }
 
         if (ticket.status !== "valid") {
-          throw mockError("CONFLICT", "Ticket is not valid for check-in.", 409);
+          throw mockError(
+            "CONFLICT",
+            "Ticket is not valid for check-in.",
+            409,
+            {
+              reason: "ticket_not_valid",
+              ticket_status: ticket.status
+            }
+          );
         }
 
         ticket.status = "used";

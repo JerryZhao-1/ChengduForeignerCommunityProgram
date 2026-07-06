@@ -36,10 +36,15 @@ export const apiPaths = {
     privateUrl: "/files/private-url"
   },
   admin: {
+    listEvents: "/admin/events",
     createEvent: "/admin/events",
     updateEvent: (id: string) => `/admin/events/${id}`,
+    deleteEvent: (id: string) => `/admin/events/${id}`,
     reviewEvent: (id: string) => `/admin/events/${id}/review`,
+    eventRegistrations: (id: string) => `/admin/events/${id}/registrations`,
     checkinEvent: (id: string) => `/admin/events/${id}/checkin`,
+    uploadPendingEventCoverFile: "/admin/events/cover-file",
+    uploadEventCoverFile: (id: string) => `/admin/events/${id}/cover-file`,
     moderatePost: (id: string) => `/admin/discover/posts/${id}/moderation`,
     listPlaces: "/admin/places",
     searchPlacePoi: "/admin/places/poi-search",

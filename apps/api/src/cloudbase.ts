@@ -448,6 +448,14 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       return ok(await provider.events.create(input, actor._id), requestId, 201);
     }
 
+    if (method === "GET" && pathname === "/admin/events") {
+      await requireRole(provider, { eventID: requestId, httpContext }, [
+        "community_admin",
+        "system_admin"
+      ]);
+      return ok(await provider.events.listAdmin(), requestId);
+    }
+
     {
       const match = matchRoute("/admin/events/:id", pathname);
 
@@ -458,6 +466,20 @@ export const main: CloudbaseEventHandler = async (event, context) => {
         ]);
         const input = parseOrThrow(UpdateEventInputSchema, body);
         const item = await provider.events.update(match.params.id, input);
+
+        if (!item) {
+          throw apiError("NOT_FOUND", "Event not found.", 404);
+        }
+
+        return ok(item, requestId);
+      }
+
+      if (method === "DELETE" && match.matched) {
+        await requireRole(provider, { eventID: requestId, httpContext }, [
+          "community_admin",
+          "system_admin"
+        ]);
+        const item = await provider.events.delete(match.params.id);
 
         if (!item) {
           throw apiError("NOT_FOUND", "Event not found.", 404);
@@ -483,6 +505,26 @@ export const main: CloudbaseEventHandler = async (event, context) => {
         }
 
         return ok(item, requestId);
+      }
+    }
+
+    {
+      const match = matchRoute("/admin/events/:id/registrations", pathname);
+
+      if (method === "GET" && match.matched) {
+        await requireRole(provider, { eventID: requestId, httpContext }, [
+          "community_admin",
+          "system_admin"
+        ]);
+        const registrations = await provider.events.listRegistrationsForAdmin(
+          match.params.id
+        );
+
+        if (!registrations) {
+          throw apiError("NOT_FOUND", "Event not found.", 404);
+        }
+
+        return ok(registrations, requestId);
       }
     }
 

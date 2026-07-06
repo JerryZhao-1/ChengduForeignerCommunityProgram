@@ -2,6 +2,7 @@ import { defineContract } from "./define-contract";
 import {
   CompleteUploadInputSchema,
   CreateUploadRequestInputSchema,
+  DirectEventCoverUploadResponseSchema,
   FileCompletionResponseSchema,
   DirectPlaceGalleryUploadResponseSchema,
   PrivateUrlRequestInputSchema,
@@ -37,5 +38,15 @@ export const fileContracts = {
     method: "POST",
     path: "/admin/places/gallery-files",
     response: DirectPlaceGalleryUploadResponseSchema
+  }),
+  directEventCoverUpload: defineContract({
+    method: "POST",
+    path: "/admin/events/:id/cover-file",
+    response: DirectEventCoverUploadResponseSchema
+  }),
+  directPendingEventCoverUpload: defineContract({
+    method: "POST",
+    path: "/admin/events/cover-file",
+    response: DirectEventCoverUploadResponseSchema
   })
 };

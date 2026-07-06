@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { Event } from "@community-map/shared";
 import { computed, onMounted, ref } from "vue";
 
 import { mobileApi } from "@/api/client";
 import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
+import { isPublicEvent } from "@/pages/events/event-signup-state";
 import { placesPagePaths } from "@/pages/places/navigation";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 
@@ -20,7 +22,9 @@ const load = async () => {
     mobileApi.places.list()
   ]);
 
-  events.value = eventsResult.data.items.slice(0, 2);
+  events.value = (eventsResult.data.items as Event[])
+    .filter(isPublicEvent)
+    .slice(0, 2);
   announcements.value = announcementsResult.data.items.slice(0, 2);
   places.value = placesResult.data.items.slice(0, 2);
 };

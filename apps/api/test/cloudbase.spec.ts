@@ -27,6 +27,124 @@ describe("cloudbase event handler", () => {
     expect((response.body as any).data.items.length).toBeGreaterThan(0);
   });
 
+  it("supports admin event list and registrations with the /api prefix", async () => {
+    const listResponse = await main({}, {
+      eventID: "req_cloud_admin_events",
+      httpContext: {
+        url: "http://localhost/api/admin/events",
+        httpMethod: "GET",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      }
+    } as any);
+    const listBody = listResponse.body as any;
+
+    expect(listResponse.statusCode).toBe(200);
+    expect(listBody.success).toBe(true);
+    expect(
+      listBody.data.items.map((event: { _id: string }) => event._id)
+    ).toEqual(
+      expect.arrayContaining(["event_001", "event_draft", "event_offline"])
+    );
+    expect(listBody.data.items[0]).toHaveProperty("remaining_capacity");
+
+    const registrationsResponse = await main({}, {
+      eventID: "req_cloud_admin_event_registrations",
+      httpContext: {
+        url: "http://localhost/api/admin/events/event_001/registrations",
+        httpMethod: "GET",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      }
+    } as any);
+    const registrationsBody = registrationsResponse.body as any;
+
+    expect(registrationsResponse.statusCode).toBe(200);
+    expect(registrationsBody.success).toBe(true);
+    expect(registrationsBody.data[0]).toMatchObject({
+      ticket_id: "ticket_001",
+      ticket_code: "TZL-20260402-001",
+      ticket_status: "valid"
+    });
+
+    const forbiddenResponse = await main({}, {
+      eventID: "req_cloud_admin_events_forbidden",
+      httpContext: {
+        url: "http://localhost/api/admin/events",
+        httpMethod: "GET",
+        headers: {
+          "x-mock-user-id": "user_002"
+        }
+      }
+    } as any);
+    const forbiddenBody = forbiddenResponse.body as any;
+
+    expect(forbiddenResponse.statusCode).toBe(403);
+    expect(forbiddenBody.error.code).toBe("FORBIDDEN");
+
+    const createResponse = await main(
+      {
+        title_zh: "CloudBase 删除测试活动",
+        title_en: "CloudBase Delete Test Event",
+        summary_zh: "简介",
+        summary_en: "Summary",
+        content_zh: "正文",
+        content_en: "Body",
+        address_text: "桐梓林",
+        location: { latitude: 30.615, longitude: 104.062 },
+        start_time: "2027-04-02T10:00:00+08:00",
+        end_time: "2027-04-02T12:00:00+08:00",
+        signup_deadline: "2027-04-01T18:00:00+08:00",
+        capacity: 10
+      },
+      {
+        eventID: "req_cloud_admin_event_delete_create",
+        httpContext: {
+          url: "http://localhost/api/admin/events",
+          httpMethod: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          }
+        }
+      } as any
+    );
+    const createBody = createResponse.body as any;
+
+    expect(createResponse.statusCode).toBe(201);
+
+    const deleteResponse = await main({}, {
+      eventID: "req_cloud_admin_event_delete",
+      httpContext: {
+        url: `http://localhost/api/admin/events/${createBody.data._id}`,
+        httpMethod: "DELETE",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      }
+    } as any);
+    const deleteBody = deleteResponse.body as any;
+
+    expect(deleteResponse.statusCode).toBe(200);
+    expect(deleteBody.data).toEqual({ deleted_id: createBody.data._id });
+
+    const missingDeleteResponse = await main({}, {
+      eventID: "req_cloud_admin_event_delete_missing",
+      httpContext: {
+        url: "http://localhost/api/admin/events/event_missing_delete",
+        httpMethod: "DELETE",
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      }
+    } as any);
+    const missingDeleteBody = missingDeleteResponse.body as any;
+
+    expect(missingDeleteResponse.statusCode).toBe(404);
+    expect(missingDeleteBody.error.code).toBe("NOT_FOUND");
+  });
+
   it("accepts mini program cloud function style routing metadata", async () => {
     const response = await main(
       {
@@ -853,6 +971,89 @@ describe("cloudbase event handler", () => {
       expect(remove).toHaveBeenCalledTimes(1);
       expect(await provider.places.delete("place_live_missing")).toBeNull();
       expect(remove).toHaveBeenCalledTimes(1);
+    } finally {
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+
+      if (previousEnvId === undefined) {
+        delete process.env.CLOUDBASE_ENV_ID;
+      } else {
+        process.env.CLOUDBASE_ENV_ID = previousEnvId;
+      }
+
+      vi.doUnmock("@cloudbase/node-sdk");
+      vi.resetModules();
+    }
+  });
+
+  it("resolves live CloudBase event covers from place gallery file ids", async () => {
+    const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+    const previousEnvId = process.env.CLOUDBASE_ENV_ID;
+    const placeGalleryFileId =
+      "cloud://test-env/public/places/place_live_001/gallery-cover.jpg";
+    const tempCoverUrl = `https://cdn.example.com/${encodeURIComponent(placeGalleryFileId)}`;
+    const liveEvent = {
+      ...createMockDataset().events[0],
+      _id: "event_place_gallery_cover_001",
+      cover_file_id: placeGalleryFileId,
+      cover_cloud_path: "public/places/place_live_001/gallery-cover.jpg",
+      cover_url: "https://stale.example.com/event-cover.jpg",
+      review_status: "approved" as const,
+      publish_status: "published" as const
+    };
+    const getTempFileURL = vi.fn(async (input: { fileList: string[] }) => ({
+      fileList: input.fileList.map((fileID) => ({
+        code: "SUCCESS",
+        fileID,
+        tempFileURL: `https://cdn.example.com/${encodeURIComponent(fileID)}`
+      })),
+      requestId: "req_event_cover_temp_url"
+    }));
+    const eventsCollection = {
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({
+          data: [liveEvent]
+        }))
+      }))
+    };
+    const emptyCollection = {
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({
+          data: []
+        }))
+      }))
+    };
+    const initCloudbase = vi.fn(() => ({
+      database: () => ({
+        collection: (name: string) =>
+          name === "events" ? eventsCollection : emptyCollection
+      }),
+      getTempFileURL
+    }));
+
+    try {
+      vi.resetModules();
+      vi.doMock("@cloudbase/node-sdk", () => ({
+        default: {
+          init: initCloudbase
+        }
+      }));
+      process.env.CLOUDBASE_PROVIDER_MODE = "live";
+      process.env.CLOUDBASE_ENV_ID = "test-env";
+
+      const { createCloudbaseProvider: createLiveProvider } =
+        await import("../src/providers/cloudbase");
+      const provider = createLiveProvider();
+      const detail = await provider.events.detail(liveEvent._id);
+
+      expect(getTempFileURL).toHaveBeenCalledWith({
+        fileList: [placeGalleryFileId]
+      });
+      expect(detail?.cover_url).toBe(tempCoverUrl);
+      expect(detail?.cover_file_id).toBe(placeGalleryFileId);
     } finally {
       if (previousProviderMode === undefined) {
         delete process.env.CLOUDBASE_PROVIDER_MODE;

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   CreatePlaceInputSchema,
+  PLACE_SECONDARY_CATEGORY_OPTIONS,
   PLACE_STATUSES,
   PLACE_TOP_LEVEL_CATEGORIES,
   UpdatePlaceInputSchema,
@@ -10,7 +11,8 @@ import {
   type Place,
   type PlaceAmapMediaSearchItem,
   type PlaceExternalMedia,
-  type PlacePoiSearchItem
+  type PlacePoiSearchItem,
+  type PlaceTopLevelCategory
 } from "@community-map/shared";
 
 import { adminApi } from "@/api/client";
@@ -31,6 +33,7 @@ const amapSearching = ref(false);
 const amapResults = ref<PlaceAmapMediaSearchItem[]>([]);
 const amapError = ref("");
 const galleryFileInput = ref<HTMLInputElement | null>(null);
+const isAssigningForm = ref(false);
 
 const categoryOptions = PLACE_TOP_LEVEL_CATEGORIES.map((value) => ({
   value,
@@ -156,6 +159,41 @@ const createEmptyForm = () => ({
 
 const form = reactive(createEmptyForm());
 
+const secondaryCategoryOptions = computed(() => {
+  const topLevel = form.category_level_1 as PlaceTopLevelCategory;
+  const fixedOptions = [...PLACE_SECONDARY_CATEGORY_OPTIONS[topLevel]];
+
+  if (
+    form.category_level_2 &&
+    !fixedOptions.includes(form.category_level_2)
+  ) {
+    return [
+      {
+        value: form.category_level_2,
+        label: `${form.category_level_2}（当前值）`
+      },
+      ...fixedOptions.map((value) => ({ value, label: value }))
+    ];
+  }
+
+  return fixedOptions.map((value) => ({ value, label: value }));
+});
+
+watch(
+  () => form.category_level_1,
+  (category) => {
+    if (isAssigningForm.value) {
+      return;
+    }
+
+    const options = PLACE_SECONDARY_CATEGORY_OPTIONS[
+      category as PlaceTopLevelCategory
+    ];
+    form.category_level_2 = options[0] ?? "";
+  },
+  { flush: "sync" }
+);
+
 const issueMessage = (issue: {
   path: Array<string | number>;
   message: string;
@@ -183,11 +221,13 @@ const showOperationError = (error: unknown, fallback: string) => {
 };
 
 const fillForm = (place?: Place) => {
+  isAssigningForm.value = true;
   Object.assign(form, createEmptyForm());
   submittingError.value = "";
 
   if (!place) {
     editingId.value = null;
+    isAssigningForm.value = false;
     return;
   }
 
@@ -222,6 +262,7 @@ const fillForm = (place?: Place) => {
     supports_favorite: place.supports_favorite,
     supports_share: place.supports_share
   });
+  isAssigningForm.value = false;
 };
 
 const buildPayload = () => ({
@@ -727,7 +768,13 @@ onMounted(async () => {
               :value="option.value"
             />
           </el-select>
-          <el-input v-model="form.category_level_2" placeholder="二级分类" />
+          <div class="secondary-category-tabs">
+            <el-segmented
+              v-model="form.category_level_2"
+              :options="secondaryCategoryOptions"
+              block
+            />
+          </div>
           <el-input v-model="form.tag_ids_text" placeholder="标签，逗号分隔" />
           <el-select v-model="form.status" placeholder="状态">
             <el-option
@@ -1082,6 +1129,20 @@ onMounted(async () => {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.secondary-category-tabs {
+  min-width: 0;
+}
+
+.secondary-category-tabs :deep(.el-segmented) {
+  width: 100%;
+}
+
+.secondary-category-tabs :deep(.el-segmented__item-label) {
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .switch-row,
