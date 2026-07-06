@@ -19,7 +19,10 @@ import type {
   PostSchema,
   UserSchema
 } from "../schemas/entities";
-import type { DirectPlaceGalleryUploadResponseSchema } from "../schemas/files";
+import type {
+  DirectEventCoverUploadResponseSchema,
+  DirectPlaceGalleryUploadResponseSchema
+} from "../schemas/files";
 import type {
   PlaceDetailSchema,
   DeletePlaceResponseSchema,
@@ -62,4 +65,7 @@ export type Notification = z.infer<typeof NotificationSchema>;
 export type FileAsset = z.infer<typeof FileAssetSchema>;
 export type DirectPlaceGalleryUploadResponse = z.infer<
   typeof DirectPlaceGalleryUploadResponseSchema
+>;
+export type DirectEventCoverUploadResponse = z.infer<
+  typeof DirectEventCoverUploadResponseSchema
 >;

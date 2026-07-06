@@ -150,6 +150,9 @@ const publicFileUrl = (cloudPath: string) =>
   mockPublicFileUrls[cloudPath] ??
   `https://example.com/${cloudPath.replace(/^\/+/, "")}`;
 
+const sanitizeFileName = (fileName: string, fallback: string) =>
+  fileName.replace(/[^\w.-]+/g, "-").replace(/^-+/, "") || fallback;
+
 export class MockServiceError extends Error {
   constructor(
     public readonly code: ApiErrorCode,
@@ -176,6 +179,7 @@ const isAdmin = (user: User) =>
   user.role_flags.includes("system_admin");
 
 export const PENDING_PLACE_GALLERY_BIZ_ID = "__pending_place_gallery__";
+export const PENDING_EVENT_COVER_BIZ_ID = "__pending_event_cover__";
 
 const isLaunchVisibleEvent = (event: Event) =>
   event.review_status === "approved" && event.publish_status === "published";
@@ -511,6 +515,41 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           ) ?? null
         );
       },
+      uploadCoverFile(
+        id: string | null,
+        input: { file_name: string; content_type: string },
+        actorId?: string
+      ) {
+        const actor = requireUser(actorId);
+        const event = id ? state.events.find((item) => item._id === id) : null;
+
+        if (id && !event) {
+          return null;
+        }
+
+        const safeFileName = sanitizeFileName(input.file_name, "event-cover");
+        const targetPath = id ?? `_pending/${idFrom("event_cover")}`;
+        const cloudPath = `${FILE_PATH_RULES.eventCovers}${targetPath}/${idFrom("cover")}-${safeFileName}`;
+        const asset: FileAsset = {
+          _id: idFrom("file"),
+          file_id: `cloud://${cloudPath}`,
+          cloud_path: cloudPath,
+          visibility: "public",
+          biz_type: "event_cover",
+          biz_id: id ?? PENDING_EVENT_COVER_BIZ_ID,
+          uploaded_by: actor._id,
+          status: "active"
+        };
+
+        state.fileAssets.unshift(asset);
+
+        return {
+          file_asset: asset,
+          cover_file_id: asset.file_id,
+          cover_cloud_path: asset.cloud_path,
+          cover_url: publicFileUrl(asset.cloud_path)
+        };
+      },
       create(input: Partial<Event>, actorId?: string) {
         const actor = requireUser(actorId);
         const event: Event = {
@@ -539,6 +578,19 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           review_status: "draft",
           publish_status: "draft"
         };
+
+        if (input.cover_file_id) {
+          const pendingCover = state.fileAssets.find(
+            (asset) =>
+              asset.file_id === input.cover_file_id &&
+              asset.biz_type === "event_cover" &&
+              asset.biz_id === PENDING_EVENT_COVER_BIZ_ID
+          );
+
+          if (pendingCover) {
+            pendingCover.biz_id = event._id;
+          }
+        }
 
         state.events.unshift(event);
         return event;

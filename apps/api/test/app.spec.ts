@@ -383,6 +383,235 @@ describe("api routes", () => {
     }
   });
 
+  it("supports direct admin event cover uploads without mutating until save", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const pendingForm = new FormData();
+      pendingForm.set(
+        "file",
+        new Blob(["pending-event-cover"], { type: "image/jpeg" }),
+        "pending-cover.jpg"
+      );
+
+      const pendingUploadResponse = await fetch(
+        `${baseUrl}/admin/events/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: pendingForm
+        }
+      );
+      const pendingUploadBody = await pendingUploadResponse.json();
+
+      expect(pendingUploadResponse.status).toBe(201);
+      expect(pendingUploadBody.data.file_asset).toMatchObject({
+        visibility: "public",
+        biz_type: "event_cover",
+        biz_id: "__pending_event_cover__",
+        uploaded_by: "user_001",
+        status: "active"
+      });
+      expect(pendingUploadBody.data.cover_cloud_path).toContain(
+        "public/events/_pending/"
+      );
+
+      const createResponse = await fetch(`${baseUrl}/admin/events`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          title_zh: "封面上传活动",
+          title_en: "Cover Upload Event",
+          summary_zh: "简介",
+          summary_en: "Summary",
+          content_zh: "正文",
+          content_en: "Body",
+          address_text: "Tongzilin",
+          location: { latitude: 30.615, longitude: 104.062 },
+          start_time: "2027-08-02T10:00:00+08:00",
+          end_time: "2027-08-02T12:00:00+08:00",
+          signup_deadline: "2027-08-01T18:00:00+08:00",
+          capacity: 20,
+          cover_file_id: pendingUploadBody.data.cover_file_id,
+          cover_cloud_path: pendingUploadBody.data.cover_cloud_path,
+          cover_url: pendingUploadBody.data.cover_url
+        })
+      });
+      const createBody = await createResponse.json();
+      const eventId = createBody.data._id;
+
+      expect(createResponse.status).toBe(201);
+      expect(createBody.data.cover_file_id).toBe(
+        pendingUploadBody.data.cover_file_id
+      );
+
+      const existingForm = new FormData();
+      existingForm.set(
+        "file",
+        new Blob(["existing-event-cover"], { type: "image/png" }),
+        "existing-cover.png"
+      );
+      const existingUploadResponse = await fetch(
+        `${baseUrl}/admin/events/${eventId}/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: existingForm
+        }
+      );
+      const existingUploadBody = await existingUploadResponse.json();
+
+      expect(existingUploadResponse.status).toBe(201);
+      expect(existingUploadBody.data.file_asset).toMatchObject({
+        visibility: "public",
+        biz_type: "event_cover",
+        biz_id: eventId,
+        uploaded_by: "user_001",
+        status: "active"
+      });
+
+      const adminBeforeSaveResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          "x-mock-user-id": "user_001"
+        }
+      });
+      const adminBeforeSaveBody = await adminBeforeSaveResponse.json();
+      const eventBeforeSave = adminBeforeSaveBody.data.items.find(
+        (item: { _id: string }) => item._id === eventId
+      );
+
+      expect(eventBeforeSave.cover_file_id).toBe(
+        pendingUploadBody.data.cover_file_id
+      );
+
+      const updateResponse = await fetch(`${baseUrl}/admin/events/${eventId}`, {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          cover_file_id: existingUploadBody.data.cover_file_id,
+          cover_cloud_path: existingUploadBody.data.cover_cloud_path,
+          cover_url: existingUploadBody.data.cover_url
+        })
+      });
+      const updateBody = await updateResponse.json();
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateBody.data.cover_file_id).toBe(
+        existingUploadBody.data.cover_file_id
+      );
+
+      await fetch(`${baseUrl}/admin/events/${eventId}/review`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_001"
+        },
+        body: JSON.stringify({
+          review_status: "approved",
+          publish_status: "published"
+        })
+      });
+
+      const publicDetailResponse = await fetch(`${baseUrl}/events/${eventId}`);
+      const publicDetailBody = await publicDetailResponse.json();
+
+      expect(publicDetailResponse.status).toBe(200);
+      expect(publicDetailBody.data.cover_url).toBe(
+        existingUploadBody.data.cover_url
+      );
+
+      const forbiddenForm = new FormData();
+      forbiddenForm.set(
+        "file",
+        new Blob(["forbidden-cover"], { type: "image/jpeg" }),
+        "forbidden.jpg"
+      );
+      const forbiddenResponse = await fetch(
+        `${baseUrl}/admin/events/${eventId}/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_002"
+          },
+          body: forbiddenForm
+        }
+      );
+      const forbiddenBody = await forbiddenResponse.json();
+
+      expect(forbiddenResponse.status).toBe(403);
+      expect(forbiddenBody.error.code).toBe("FORBIDDEN");
+
+      const missingEventForm = new FormData();
+      missingEventForm.set(
+        "file",
+        new Blob(["missing-cover"], { type: "image/jpeg" }),
+        "missing.jpg"
+      );
+      const missingEventResponse = await fetch(
+        `${baseUrl}/admin/events/event_missing_cover/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: missingEventForm
+        }
+      );
+      const missingEventBody = await missingEventResponse.json();
+
+      expect(missingEventResponse.status).toBe(404);
+      expect(missingEventBody.error.code).toBe("NOT_FOUND");
+
+      const invalidTypeForm = new FormData();
+      invalidTypeForm.set(
+        "file",
+        new Blob(["not an image"], { type: "text/plain" }),
+        "note.txt"
+      );
+      const invalidTypeResponse = await fetch(
+        `${baseUrl}/admin/events/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: invalidTypeForm
+        }
+      );
+      const invalidTypeBody = await invalidTypeResponse.json();
+
+      expect(invalidTypeResponse.status).toBe(400);
+      expect(invalidTypeBody.error.code).toBe("VALIDATION_ERROR");
+
+      const missingFileResponse = await fetch(
+        `${baseUrl}/admin/events/cover-file`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_001"
+          },
+          body: new FormData()
+        }
+      );
+      const missingFileBody = await missingFileResponse.json();
+
+      expect(missingFileResponse.status).toBe(400);
+      expect(missingFileBody.error.code).toBe("VALIDATION_ERROR");
+    } finally {
+      await close();
+    }
+  });
+
   it("serves health and places routes with the CloudBase /api prefix", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 

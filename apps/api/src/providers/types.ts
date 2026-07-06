@@ -12,6 +12,7 @@ import type {
   PageResult,
   Place,
   DirectPlaceGalleryUploadResponse,
+  DirectEventCoverUploadResponse,
   DeletePlaceResponse,
   PlaceDetail,
   PlaceListItem,
@@ -58,6 +59,15 @@ export interface ApiProvider {
     ): Promise<EventTicket | null>;
     create(input: Partial<Event>, actorId?: string): Promise<Event>;
     update(id: string, input: Partial<Event>): Promise<Event | null>;
+    uploadCoverFile(
+      id: string | null,
+      input: {
+        file_name: string;
+        content_type: string;
+        buffer: Buffer;
+      },
+      actorId?: string
+    ): Promise<DirectEventCoverUploadResponse | null>;
     review(
       id: string,
       input: {

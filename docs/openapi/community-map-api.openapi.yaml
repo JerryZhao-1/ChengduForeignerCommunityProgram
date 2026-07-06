@@ -1143,6 +1143,19 @@ components:
           type: string
         status:
           type: string
+    DirectEventCoverUploadResponse:
+      type: object
+      required: [file_asset, cover_file_id, cover_cloud_path, cover_url]
+      properties:
+        file_asset:
+          $ref: "#/components/schemas/FileAsset"
+        cover_file_id:
+          type: string
+        cover_cloud_path:
+          type: string
+        cover_url:
+          type: string
+          format: uri
     CreateUploadRequestInput:
       type: object
       required: [biz_type, biz_id, file_name, visibility, target_prefix]
@@ -1470,6 +1483,42 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /admin/events/cover-file:
+    post:
+      tags: [Admin, Events, Files]
+      operationId: adminUploadPendingEventCoverFile
+      summary: Upload an event cover before event creation
+      description: Direct multipart upload for Admin event cover images. The response fields are submitted with `POST /admin/events`; the event DTO still keeps `cover_file_id`, `cover_cloud_path`, and `cover_url`.
+      security:
+        - MockActorHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: JPEG, PNG, WebP, or GIF image, maximum 5 MB.
+      responses:
+        "201":
+          description: Uploaded pending event cover
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/DirectEventCoverUploadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /admin/events/{id}:
     patch:
       tags: [Admin, Events]
@@ -1497,6 +1546,46 @@ paths:
                     properties:
                       data:
                         $ref: "#/components/schemas/Event"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/events/{id}/cover-file:
+    post:
+      tags: [Admin, Events, Files]
+      operationId: adminUploadEventCoverFile
+      summary: Upload an event cover for an existing event
+      description: Direct multipart upload for Admin event cover images. Uploading does not mutate the event record until the returned cover fields are submitted with `PATCH /admin/events/{id}`.
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: JPEG, PNG, WebP, or GIF image, maximum 5 MB.
+      responses:
+        "201":
+          description: Uploaded event cover
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/DirectEventCoverUploadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":

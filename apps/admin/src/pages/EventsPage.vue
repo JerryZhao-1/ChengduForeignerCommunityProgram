@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import {
   CreateEventInputSchema,
   EVENT_PUBLISH_STATUSES,
@@ -8,7 +8,8 @@ import {
   UpdateEventInputSchema,
   type Event,
   type EventAdminListItem,
-  type EventAdminRegistrationRow
+  type EventAdminRegistrationRow,
+  type PlacePoiSearchItem
 } from "@community-map/shared";
 
 import { adminApi } from "@/api/client";
@@ -50,6 +51,16 @@ const registrationError = ref("");
 const registrations = ref<EventAdminRegistrationRow[]>([]);
 const checkinTicketId = ref("");
 const checkinLoading = ref(false);
+const coverFileInput = ref<HTMLInputElement | null>(null);
+const coverUploading = ref(false);
+const coverUploadError = ref("");
+const poiKeyword = ref("");
+const poiSearching = ref(false);
+const poiResults = ref<PlacePoiSearchItem[]>([]);
+const poiError = ref("");
+
+const dateTimeDisplayFormat = "YYYY-MM-DD HH:mm";
+const dateTimeValueFormat = "YYYY-MM-DDTHH:mm:ss[+08:00]";
 
 const filters = reactive({
   keyword: "",
@@ -215,9 +226,17 @@ const formatDate = (value: string) => {
   });
 };
 
+const resetPoiState = (address = "") => {
+  poiKeyword.value = address;
+  poiResults.value = [];
+  poiError.value = "";
+};
+
 const assignForm = (event?: EventAdminListItem) => {
   Object.assign(form, createEmptyForm());
   submittingError.value = "";
+  coverUploadError.value = "";
+  resetPoiState(form.address_text);
 
   if (!event) {
     editingEvent.value = null;
@@ -246,6 +265,7 @@ const assignForm = (event?: EventAdminListItem) => {
     review_status: event.review_status,
     publish_status: event.publish_status
   });
+  resetPoiState(event.address_text);
 };
 
 const buildPayload = () => ({
@@ -334,6 +354,111 @@ const startCreate = () => {
 const startEdit = (event: EventAdminListItem) => {
   assignForm(event);
   dialogVisible.value = true;
+};
+
+const chooseCoverFile = () => {
+  coverFileInput.value?.click();
+};
+
+const uploadCoverFile = async (domEvent: globalThis.Event) => {
+  const target = domEvent.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (!file) {
+    return;
+  }
+
+  coverUploading.value = true;
+  coverUploadError.value = "";
+
+  try {
+    const uploadInput = {
+      file,
+      file_name: file.name,
+      content_type: file.type
+    };
+    const result = editingEvent.value
+      ? await adminApi.admin.uploadEventCoverFile(
+          editingEvent.value._id,
+          uploadInput
+        )
+      : await adminApi.admin.uploadPendingEventCoverFile(uploadInput);
+
+    form.cover_file_id = result.data.cover_file_id;
+    form.cover_cloud_path = result.data.cover_cloud_path;
+    form.cover_url = result.data.cover_url;
+    ElMessage.success("封面已上传，保存活动后生效。");
+  } catch (error) {
+    coverUploadError.value = showOperationError(error, "上传封面失败。");
+  } finally {
+    coverUploading.value = false;
+    target.value = "";
+  }
+};
+
+const searchPoi = async () => {
+  const keyword = poiKeyword.value.trim();
+
+  if (!keyword) {
+    ElMessage.warning("请输入地标或地址关键词。");
+    return;
+  }
+
+  poiSearching.value = true;
+  poiError.value = "";
+
+  try {
+    const result = await adminApi.admin.searchPlacePoi({ keyword });
+    poiResults.value = result.data;
+
+    if (result.data.length === 0) {
+      poiError.value = "未找到匹配地标。";
+    }
+  } catch (error) {
+    const message = toErrorMessage(error, "地标搜索失败。");
+    poiResults.value = [];
+    poiError.value = message;
+    ElMessage.error(message);
+  } finally {
+    poiSearching.value = false;
+  }
+};
+
+const hasManualEventLookupFields = () => {
+  const emptyForm = createEmptyForm();
+
+  return (
+    editingEvent.value !== null ||
+    form.address_text !== emptyForm.address_text ||
+    Number(form.latitude) !== emptyForm.latitude ||
+    Number(form.longitude) !== emptyForm.longitude
+  );
+};
+
+const selectPoi = async (item: PlacePoiSearchItem) => {
+  if (hasManualEventLookupFields()) {
+    try {
+      await ElMessageBox.confirm(
+        "选中地标会覆盖当前地址、纬度和经度。",
+        "填充活动地址",
+        {
+          confirmButtonText: "填充",
+          cancelButtonText: "取消",
+          type: "warning"
+        }
+      );
+    } catch {
+      return;
+    }
+  }
+
+  form.address_text = item.address || item.title;
+  form.latitude = item.location.latitude;
+  form.longitude = item.location.longitude;
+  poiKeyword.value = item.title;
+  poiResults.value = [];
+  poiError.value = "";
+  ElMessage.success("已填充腾讯地图地址和经纬度。");
 };
 
 const submit = async () => {
@@ -675,69 +800,226 @@ onMounted(load);
     <el-dialog
       v-model="dialogVisible"
       :title="dialogTitle"
-      width="840px"
+      width="960px"
       destroy-on-close
     >
-      <div class="form-grid">
-        <el-input v-model="form.title_zh" placeholder="中文标题" />
-        <el-input v-model="form.title_en" placeholder="英文标题" />
-        <el-input v-model="form.summary_zh" placeholder="中文简介" />
-        <el-input v-model="form.summary_en" placeholder="英文简介" />
-        <el-input v-model="form.address_text" placeholder="地址" />
-        <el-input v-model="form.place_id" placeholder="关联地点 ID（可选）" />
-        <el-input-number
-          v-model="form.latitude"
-          :step="0.0001"
-          placeholder="纬度"
-        />
-        <el-input-number
-          v-model="form.longitude"
-          :step="0.0001"
-          placeholder="经度"
-        />
-        <el-input v-model="form.start_time" placeholder="开始时间 ISO" />
-        <el-input v-model="form.end_time" placeholder="结束时间 ISO" />
-        <el-input
-          v-model="form.signup_deadline"
-          placeholder="报名截止时间 ISO"
-        />
-        <el-input-number v-model="form.capacity" :min="1" placeholder="容量" />
-        <el-input v-model="form.cover_url" placeholder="封面 URL" />
-        <el-input v-model="form.cover_file_id" placeholder="封面 file_id" />
-        <el-input
-          v-model="form.cover_cloud_path"
-          placeholder="封面 cloud path"
-        />
-        <el-select v-model="form.review_status" placeholder="审核状态">
-          <el-option
-            v-for="option in reviewOptions"
-            :key="option.value"
-            :label="option.label"
-            :value="option.value"
+      <el-form :model="form" label-position="top" class="event-form">
+        <section class="form-section">
+          <div class="section-title">基础信息</div>
+          <div class="form-grid">
+            <el-form-item label="中文标题">
+              <el-input v-model="form.title_zh" placeholder="中文标题" />
+            </el-form-item>
+            <el-form-item label="英文标题">
+              <el-input v-model="form.title_en" placeholder="英文标题" />
+            </el-form-item>
+            <el-form-item label="中文简介">
+              <el-input v-model="form.summary_zh" placeholder="中文简介" />
+            </el-form-item>
+            <el-form-item label="英文简介">
+              <el-input v-model="form.summary_en" placeholder="英文简介" />
+            </el-form-item>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title">活动封面</div>
+          <div class="cover-uploader">
+            <div class="cover-preview">
+              <img :src="form.cover_url" alt="活动封面预览" />
+            </div>
+            <div class="cover-controls">
+              <input
+                ref="coverFileInput"
+                class="visually-hidden"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                @change="uploadCoverFile"
+              />
+              <el-button
+                type="primary"
+                :loading="coverUploading"
+                @click="chooseCoverFile"
+              >
+                {{ form.cover_file_id ? "更换封面" : "选择并上传封面" }}
+              </el-button>
+              <span class="hint-text">
+                支持 JPG、PNG、WebP、GIF，单张不超过 5 MB。
+              </span>
+              <span v-if="form.cover_file_id" class="hint-text">
+                当前封面将在保存活动后生效。
+              </span>
+            </div>
+          </div>
+          <el-alert
+            v-if="coverUploadError"
+            :title="coverUploadError"
+            type="error"
+            show-icon
+            class="mt-12"
           />
-        </el-select>
-        <el-select v-model="form.publish_status" placeholder="发布状态">
-          <el-option
-            v-for="option in publishOptions"
-            :key="option.value"
-            :label="option.label"
-            :value="option.value"
-          />
-        </el-select>
-      </div>
-      <el-input
-        v-model="form.content_zh"
-        type="textarea"
-        :rows="4"
-        placeholder="中文正文"
-      />
-      <el-input
-        v-model="form.content_en"
-        type="textarea"
-        :rows="4"
-        placeholder="英文正文"
-        class="mt-12"
-      />
+        </section>
+
+        <section class="form-section">
+          <div class="section-title">地址与定位</div>
+          <div class="poi-search-panel">
+            <div class="poi-search-row">
+              <el-input
+                v-model="poiKeyword"
+                placeholder="搜索地标或地址，例如 桐梓林社区中心"
+                clearable
+                @keyup.enter="searchPoi"
+              />
+              <el-button
+                type="primary"
+                :loading="poiSearching"
+                @click="searchPoi"
+              >
+                搜索地址
+              </el-button>
+            </div>
+            <div v-if="poiError" class="hint-text">{{ poiError }}</div>
+            <div v-if="poiResults.length" class="poi-result-list">
+              <button
+                v-for="item in poiResults"
+                :key="item.id"
+                type="button"
+                class="poi-result-item"
+                @click="selectPoi(item)"
+              >
+                <span class="poi-result-title">{{ item.title }}</span>
+                <span class="poi-result-address">
+                  {{ item.address || "暂无地址" }}
+                </span>
+                <span class="poi-result-meta">
+                  {{ item.district || item.city || "成都" }} ·
+                  {{ item.location.latitude.toFixed(6) }},
+                  {{ item.location.longitude.toFixed(6) }}
+                </span>
+              </button>
+            </div>
+          </div>
+          <div class="form-grid">
+            <el-form-item label="活动地址">
+              <el-input v-model="form.address_text" placeholder="活动地址" />
+            </el-form-item>
+            <el-form-item label="关联地点 ID（可选）">
+              <el-input
+                v-model="form.place_id"
+                placeholder="已有地点 ID，可留空"
+              />
+            </el-form-item>
+            <el-form-item label="纬度（搜索后自动填充，可微调）">
+              <el-input-number
+                v-model="form.latitude"
+                :step="0.0001"
+                class="full-width"
+              />
+            </el-form-item>
+            <el-form-item label="经度（搜索后自动填充，可微调）">
+              <el-input-number
+                v-model="form.longitude"
+                :step="0.0001"
+                class="full-width"
+              />
+            </el-form-item>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title">时间与容量</div>
+          <div class="time-grid">
+            <el-form-item label="开始时间（成都时间 UTC+8）">
+              <el-date-picker
+                v-model="form.start_time"
+                type="datetime"
+                :format="dateTimeDisplayFormat"
+                :value-format="dateTimeValueFormat"
+                placeholder="选择开始时间"
+                class="full-width"
+              />
+            </el-form-item>
+            <el-form-item label="结束时间（成都时间 UTC+8）">
+              <el-date-picker
+                v-model="form.end_time"
+                type="datetime"
+                :format="dateTimeDisplayFormat"
+                :value-format="dateTimeValueFormat"
+                placeholder="选择结束时间"
+                class="full-width"
+              />
+            </el-form-item>
+            <el-form-item label="报名截止时间（成都时间 UTC+8）">
+              <el-date-picker
+                v-model="form.signup_deadline"
+                type="datetime"
+                :format="dateTimeDisplayFormat"
+                :value-format="dateTimeValueFormat"
+                placeholder="选择报名截止时间"
+                class="full-width"
+              />
+            </el-form-item>
+          </div>
+          <div class="form-grid capacity-grid">
+            <el-form-item label="参加人数上限">
+              <el-input-number
+                v-model="form.capacity"
+                :min="1"
+                class="full-width"
+              />
+            </el-form-item>
+            <div class="capacity-help">
+              报名人数达到此数后停止报名。
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title">状态</div>
+          <div class="form-grid">
+            <el-form-item label="审核状态">
+              <el-select v-model="form.review_status" class="full-width">
+                <el-option
+                  v-for="option in reviewOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="发布状态">
+              <el-select v-model="form.publish_status" class="full-width">
+                <el-option
+                  v-for="option in publishOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title">正文内容</div>
+          <el-form-item label="中文正文">
+            <el-input
+              v-model="form.content_zh"
+              type="textarea"
+              :rows="4"
+              placeholder="中文正文"
+            />
+          </el-form-item>
+          <el-form-item label="英文正文">
+            <el-input
+              v-model="form.content_en"
+              type="textarea"
+              :rows="4"
+              placeholder="英文正文"
+            />
+          </el-form-item>
+        </section>
+      </el-form>
       <el-alert
         v-if="submittingError"
         :title="submittingError"
@@ -891,11 +1173,146 @@ onMounted(load);
   flex-wrap: wrap;
 }
 
+.event-form {
+  display: grid;
+  gap: 18px;
+}
+
+.form-section {
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.form-section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.section-title {
+  margin-bottom: 12px;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.form-grid :deep(.el-form-item) {
+  margin-bottom: 0;
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.time-grid :deep(.el-form-item) {
+  margin-bottom: 0;
+}
+
+.capacity-grid {
+  grid-template-columns: minmax(180px, 240px) minmax(260px, 1fr);
+  align-items: end;
+  margin-top: 12px;
+}
+
+.capacity-help,
+.hint-text {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.cover-uploader {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.cover-preview {
+  overflow: hidden;
+  width: 220px;
+  aspect-ratio: 16 / 9;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.cover-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-controls {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.poi-search-panel {
+  display: grid;
+  gap: 10px;
   margin-bottom: 12px;
+}
+
+.poi-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.poi-result-list {
+  display: grid;
+  gap: 8px;
+}
+
+.poi-result-item {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.poi-result-item:hover {
+  border-color: #409eff;
+  background: #f8fafc;
+}
+
+.poi-result-title {
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.poi-result-address,
+.poi-result-meta {
+  color: #6b7280;
+  font-size: 12px;
 }
 
 .checkin-panel {

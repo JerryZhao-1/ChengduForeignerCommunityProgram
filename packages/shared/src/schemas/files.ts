@@ -58,3 +58,10 @@ export const DirectPlaceGalleryUploadResponseSchema = z.object({
   file_asset: FileAssetSchema,
   gallery_file_ids: z.array(z.string())
 });
+
+export const DirectEventCoverUploadResponseSchema = z.object({
+  file_asset: FileAssetSchema,
+  cover_file_id: z.string(),
+  cover_cloud_path: z.string(),
+  cover_url: z.string().url()
+});

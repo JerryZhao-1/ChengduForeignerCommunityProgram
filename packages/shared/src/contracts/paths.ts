@@ -42,6 +42,8 @@ export const apiPaths = {
     reviewEvent: (id: string) => `/admin/events/${id}/review`,
     eventRegistrations: (id: string) => `/admin/events/${id}/registrations`,
     checkinEvent: (id: string) => `/admin/events/${id}/checkin`,
+    uploadPendingEventCoverFile: "/admin/events/cover-file",
+    uploadEventCoverFile: (id: string) => `/admin/events/${id}/cover-file`,
     moderatePost: (id: string) => `/admin/discover/posts/${id}/moderation`,
     listPlaces: "/admin/places",
     searchPlacePoi: "/admin/places/poi-search",

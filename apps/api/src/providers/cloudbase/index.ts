@@ -4,6 +4,7 @@ import tcb from "@cloudbase/node-sdk";
 import {
   FILE_PATH_RULES,
   PLACE_TOP_LEVEL_CATEGORIES,
+  PENDING_EVENT_COVER_BIZ_ID,
   PENDING_PLACE_GALLERY_BIZ_ID,
   EventRegistrationSchema,
   EventSchema,
@@ -286,6 +287,53 @@ const cloudPathFromFileId = (fileId: string) => {
   return pathStart >= 0 ? withoutScheme.slice(pathStart + 1) : withoutScheme;
 };
 
+const getCloudbaseTempFileUrls = async (
+  context: LiveCloudbaseContext,
+  fileList: string[]
+) => {
+  if (fileList.length === 0) {
+    return new Map<string, string>();
+  }
+
+  const result = await (
+    context.app as unknown as {
+      getTempFileURL(input: {
+        fileList: string[];
+      }): Promise<{ fileList: Array<{ fileID: string; tempFileURL?: string }> }>;
+    }
+  ).getTempFileURL({
+    fileList
+  });
+
+  return new Map(
+    result.fileList
+      .filter((item) => item.tempFileURL)
+      .map((item) => [item.fileID, item.tempFileURL as string])
+  );
+};
+
+const isManagedEventCoverFileId = (fileId: string) =>
+  cloudPathFromFileId(fileId).startsWith(FILE_PATH_RULES.eventCovers);
+
+const resolveEventCoverUrls = async (
+  context: LiveCloudbaseContext,
+  events: Event[]
+): Promise<Event[]> => {
+  const coverFileIds = [
+    ...new Set(
+      events
+        .map((event) => event.cover_file_id)
+        .filter((fileId) => isManagedEventCoverFileId(fileId))
+    )
+  ];
+  const urlsByFileId = await getCloudbaseTempFileUrls(context, coverFileIds);
+
+  return events.map((event) => {
+    const coverUrl = urlsByFileId.get(event.cover_file_id);
+    return coverUrl ? { ...event, cover_url: coverUrl } : event;
+  });
+};
+
 const toCloudbaseGalleryMedia = async (
   context: LiveCloudbaseContext,
   place: Place
@@ -294,13 +342,9 @@ const toCloudbaseGalleryMedia = async (
     return [];
   }
 
-  const result = await context.app.getTempFileURL({
-    fileList: place.gallery_file_ids
-  });
-  const urlsByFileId = new Map(
-    result.fileList
-      .filter((item) => item.tempFileURL)
-      .map((item) => [item.fileID, item.tempFileURL])
+  const urlsByFileId = await getCloudbaseTempFileUrls(
+    context,
+    place.gallery_file_ids
   );
 
   return place.gallery_file_ids
@@ -420,9 +464,11 @@ const normalizePlace = (raw: unknown): Place | null => {
 
 const readEvents = async (context: LiveCloudbaseContext) => {
   const result = await context.events.limit(MAX_EVENTS_FETCH).get();
-  return result.data
+  const events = result.data
     .map(normalizeEvent)
     .filter((event): event is Event => !!event);
+
+  return resolveEventCoverUrls(context, events);
 };
 
 const readEventRegistrations = async (context: LiveCloudbaseContext) => {
@@ -651,6 +697,7 @@ const createLiveEventsProvider = (
     const actor = await fallbackAuth.resolveActor(actorId);
     const event = createEventFromInput(input, actor._id);
     await context.events.doc(event._id).set(toCloudbaseSetDocument(event));
+    await rebindPendingEventCoverAsset(context, event._id, event.cover_file_id);
     return event;
   },
   async update(id, input) {
@@ -672,6 +719,63 @@ const createLiveEventsProvider = (
     }
 
     return nextEvent;
+  },
+  async uploadCoverFile(id, input, actorId = "user_001") {
+    const events = id ? await readEvents(context) : [];
+    const existing = id ? events.find((event) => event._id === id) : null;
+
+    if (id && !existing) {
+      return null;
+    }
+
+    const targetPath = id ?? `_pending/${randomUUID()}`;
+    const cloudPath = `${FILE_PATH_RULES.eventCovers}${targetPath}/${randomUUID()}-${sanitizeFileName(input.file_name, "event-cover")}`;
+    const uploadResult = await (
+      context.app as unknown as {
+        uploadFile(input: {
+          cloudPath: string;
+          fileContent: Buffer;
+        }): Promise<{ fileID?: string; fileId?: string }>;
+      }
+    ).uploadFile({
+      cloudPath,
+      fileContent: input.buffer
+    });
+    const fileId =
+      uploadResult.fileID ??
+      uploadResult.fileId ??
+      `cloud://${getCloudbaseEnvId()}/${cloudPath}`;
+    const urlsByFileId = await getCloudbaseTempFileUrls(context, [fileId]);
+    const coverUrl =
+      urlsByFileId.get(fileId) ??
+      `https://example.com/${cloudPath.replace(/^\/+/, "")}`;
+    const asset = FileAssetSchema.parse({
+      _id: `file_${randomUUID()}`,
+      file_id: fileId,
+      cloud_path: cloudPath,
+      visibility: "public",
+      biz_type: "event_cover",
+      biz_id: id ?? PENDING_EVENT_COVER_BIZ_ID,
+      uploaded_by: actorId,
+      status: "active"
+    } satisfies FileAsset);
+
+    await context.fileAssets.doc(asset._id).set({
+      file_id: asset.file_id,
+      cloud_path: asset.cloud_path,
+      visibility: asset.visibility,
+      biz_type: asset.biz_type,
+      biz_id: asset.biz_id,
+      uploaded_by: asset.uploaded_by,
+      status: asset.status
+    });
+
+    return {
+      file_asset: asset,
+      cover_file_id: asset.file_id,
+      cover_cloud_path: asset.cloud_path,
+      cover_url: coverUrl
+    };
   },
   async review(id, input) {
     const events = await readEvents(context);
@@ -782,8 +886,8 @@ const createPlaceFromInput = (input: Partial<Place>): Place =>
     import_review: input.import_review ?? null
   });
 
-const sanitizeFileName = (fileName: string) =>
-  fileName.replace(/[^\w.-]+/g, "-").replace(/^-+/, "") || "gallery-upload";
+const sanitizeFileName = (fileName: string, fallback = "gallery-upload") =>
+  fileName.replace(/[^\w.-]+/g, "-").replace(/^-+/, "") || fallback;
 
 const rebindPendingGalleryAssets = async (
   context: LiveCloudbaseContext,
@@ -820,6 +924,42 @@ const rebindPendingGalleryAssets = async (
         })
       )
   );
+};
+
+const rebindPendingEventCoverAsset = async (
+  context: LiveCloudbaseContext,
+  eventId: string,
+  coverFileId: string
+) => {
+  if (!coverFileId) {
+    return;
+  }
+
+  const result = await (
+    context.fileAssets as unknown as {
+      where(query: Record<string, unknown>): {
+        limit(count: number): {
+          get(): Promise<{ data: Array<FileAsset & { _id: string }> }>;
+        };
+      };
+    }
+  )
+    .where({
+      file_id: coverFileId,
+      biz_type: "event_cover",
+      biz_id: PENDING_EVENT_COVER_BIZ_ID
+    })
+    .limit(1)
+    .get();
+  const [asset] = result.data;
+
+  if (!asset) {
+    return;
+  }
+
+  await context.fileAssets.doc(asset._id).update({
+    biz_id: eventId
+  });
 };
 
 const createLivePlacesProvider = (

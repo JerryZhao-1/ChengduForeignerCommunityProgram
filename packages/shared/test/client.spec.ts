@@ -534,6 +534,87 @@ describe("shared api clients", () => {
     );
   });
 
+  it("sends direct admin event cover uploads as FormData", async () => {
+    const requester = vi.fn(async () => ({
+      success: true,
+      requestId: "req_http_event_cover_upload",
+      data: {
+        file_asset: {
+          _id: "file_event_cover_001",
+          file_id: "cloud://public/events/event_001/cover.jpg",
+          cloud_path: "public/events/event_001/cover.jpg",
+          visibility: "public",
+          biz_type: "event_cover",
+          biz_id: "event_001",
+          uploaded_by: "user_001",
+          status: "active"
+        },
+        cover_file_id: "cloud://public/events/event_001/cover.jpg",
+        cover_cloud_path: "public/events/event_001/cover.jpg",
+        cover_url: "https://example.com/public/events/event_001/cover.jpg"
+      }
+    }));
+    const httpClient = createHttpClient({
+      actorId: "user_001",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    await httpClient.admin.uploadEventCoverFile("event_001", {
+      file: new Blob(["image-bytes"], { type: "image/jpeg" }),
+      file_name: "cover.jpg",
+      content_type: "image/jpeg"
+    });
+
+    expect(requester).toHaveBeenCalledWith(
+      "POST",
+      "http://localhost:8787/admin/events/event_001/cover-file",
+      expect.any(FormData),
+      { "x-mock-user-id": "user_001" }
+    );
+  });
+
+  it("sends pending admin event cover uploads as FormData", async () => {
+    const requester = vi.fn(async () => ({
+      success: true,
+      requestId: "req_http_pending_event_cover_upload",
+      data: {
+        file_asset: {
+          _id: "file_pending_event_cover_001",
+          file_id: "cloud://public/events/_pending/pending_001/cover.jpg",
+          cloud_path: "public/events/_pending/pending_001/cover.jpg",
+          visibility: "public",
+          biz_type: "event_cover",
+          biz_id: "__pending_event_cover__",
+          uploaded_by: "user_001",
+          status: "active"
+        },
+        cover_file_id: "cloud://public/events/_pending/pending_001/cover.jpg",
+        cover_cloud_path: "public/events/_pending/pending_001/cover.jpg",
+        cover_url:
+          "https://example.com/public/events/_pending/pending_001/cover.jpg"
+      }
+    }));
+    const httpClient = createHttpClient({
+      actorId: "user_001",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    await httpClient.admin.uploadPendingEventCoverFile({
+      file: new Blob(["image-bytes"], { type: "image/jpeg" }),
+      file_name: "cover.jpg",
+      content_type: "image/jpeg"
+    });
+
+    expect(requester).toHaveBeenCalledWith(
+      "POST",
+      "http://localhost:8787/admin/events/cover-file",
+      expect.any(FormData),
+      { "x-mock-user-id": "user_001" }
+    );
+  });
+
   it("sends pending admin place gallery uploads as FormData", async () => {
     const requester = vi.fn(async () => ({
       success: true,

@@ -3,6 +3,7 @@ import {
   apiPaths,
   CreateApiSuccessSchema,
   DeletePlaceResponseSchema,
+  DirectEventCoverUploadResponseSchema,
   EventAdminListItemSchema,
   EventAdminRegistrationRowSchema,
   EVENT_REGISTRATION_STATUSES,
@@ -22,6 +23,7 @@ import {
   PlacePoiSearchQuerySchema,
   PlaceSchema,
   eventContracts,
+  fileContracts,
   placeContracts,
   PostSchema,
   UpdatePlaceInputSchema,
@@ -385,6 +387,40 @@ describe("shared contracts", () => {
         }
       })
     ).toThrow();
+  });
+
+  it("normalizes direct event cover upload contracts", () => {
+    const response = DirectEventCoverUploadResponseSchema.parse({
+      file_asset: {
+        _id: "file_event_cover_001",
+        file_id: "cloud://public/events/event_001/cover.jpg",
+        cloud_path: "public/events/event_001/cover.jpg",
+        visibility: "public",
+        biz_type: "event_cover",
+        biz_id: "event_001",
+        uploaded_by: "user_001",
+        status: "active"
+      },
+      cover_file_id: "cloud://public/events/event_001/cover.jpg",
+      cover_cloud_path: "public/events/event_001/cover.jpg",
+      cover_url: "https://example.com/public/events/event_001/cover.jpg"
+    });
+
+    expect(response.file_asset.biz_type).toBe("event_cover");
+    expect(fileContracts.directEventCoverUpload).toMatchObject({
+      method: "POST",
+      path: "/admin/events/:id/cover-file"
+    });
+    expect(fileContracts.directPendingEventCoverUpload).toMatchObject({
+      method: "POST",
+      path: "/admin/events/cover-file"
+    });
+    expect(apiPaths.admin.uploadPendingEventCoverFile).toBe(
+      "/admin/events/cover-file"
+    );
+    expect(apiPaths.admin.uploadEventCoverFile("event_001")).toBe(
+      "/admin/events/event_001/cover-file"
+    );
   });
 
   it("normalizes admin Amap media search contracts", () => {

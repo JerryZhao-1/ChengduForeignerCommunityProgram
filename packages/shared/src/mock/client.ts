@@ -11,6 +11,7 @@ import type {
   Notification,
   Place,
   DeletePlaceResponse,
+  DirectEventCoverUploadResponse,
   PlaceDetail,
   PlaceAmapMediaSearchItem,
   PlaceListItem,
@@ -141,6 +142,15 @@ export interface CommunityMapApiClient {
     listEventRegistrations(
       eventId: string
     ): Promise<ApiResult<EventAdminRegistrationRow[]>>;
+    uploadEventCoverFile(
+      id: string,
+      input: { file: Blob; file_name?: string; content_type?: string }
+    ): Promise<ApiResult<DirectEventCoverUploadResponse>>;
+    uploadPendingEventCoverFile(input: {
+      file: Blob;
+      file_name?: string;
+      content_type?: string;
+    }): Promise<ApiResult<DirectEventCoverUploadResponse>>;
     moderatePost(
       id: string,
       input: { review_status: Post["review_status"] }
@@ -300,6 +310,30 @@ export const createMockClient = (
           service.events.listRegistrationsForAdmin(
             eventId
           ) as EventAdminRegistrationRow[]
+        );
+      },
+      async uploadEventCoverFile(id, input) {
+        return ok(
+          service.events.uploadCoverFile(
+            id,
+            {
+              file_name: input.file_name ?? "event-cover-upload",
+              content_type: input.content_type ?? input.file.type
+            },
+            actorId
+          ) as DirectEventCoverUploadResponse
+        );
+      },
+      async uploadPendingEventCoverFile(input) {
+        return ok(
+          service.events.uploadCoverFile(
+            null,
+            {
+              file_name: input.file_name ?? "event-cover-upload",
+              content_type: input.content_type ?? input.file.type
+            },
+            actorId
+          ) as DirectEventCoverUploadResponse
         );
       },
       async moderatePost(id, input) {

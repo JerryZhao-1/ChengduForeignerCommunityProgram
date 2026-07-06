@@ -58,12 +58,14 @@
 | `GET`   | `/events/registrations/:id/ticket` | 获取报名票据           | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.getTicketByRegistration` |
 | `GET`   | `/admin/events`                    | 管理端活动列表         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.listAdmin`               |
 | `POST`  | `/admin/events`                    | 管理端创建活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.create`                  |
+| `POST`  | `/admin/events/cover-file`         | 管理端创建前上传活动封面 | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/files.ts`  | `packages/shared/src/mock/service.ts` 中 `events.uploadCoverFile`         |
 | `PATCH` | `/admin/events/:id`                | 管理端更新活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.update`                  |
+| `POST`  | `/admin/events/:id/cover-file`     | 管理端上传已有活动封面 | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/files.ts`  | `packages/shared/src/mock/service.ts` 中 `events.uploadCoverFile`         |
 | `POST`  | `/admin/events/:id/review`         | 管理端审核活动         | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.review`                  |
 | `GET`   | `/admin/events/:id/registrations`  | 管理端查看活动报名     | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.listRegistrationsForAdmin` |
 | `POST`  | `/admin/events/:id/checkin`        | 管理端核销活动票据     | `apps/api/src/routes/events.ts` | `packages/shared/src/contracts/events.ts` | `packages/shared/src/mock/service.ts` 中 `events.checkin`                 |
 
-Events public reads 只返回 `review_status="approved"` 且 `publish_status="published"` 的目标社区活动；`GET /admin/events` 返回 draft、pending_review、approved、rejected 与 draft/published/offline/ended 管理态记录，并附带 active registration count、confirmed attendee count、remaining capacity 和 full state；`GET /admin/events/:id/registrations` 返回联系人、人数、来源和 linked ticket state；报名会拒绝重复报名、不可见活动、容量满、报名截止；票据读取校验 owner/admin；核销校验活动-票据归属和票据状态。报名导出当前明确延后，尚未实现。
+Events public reads 只返回 `review_status="approved"` 且 `publish_status="published"` 的目标社区活动；`GET /admin/events` 返回 draft、pending_review、approved、rejected 与 draft/published/offline/ended 管理态记录，并附带 active registration count、confirmed attendee count、remaining capacity 和 full state；`POST /admin/events/cover-file` 与 `POST /admin/events/:id/cover-file` 支持 Admin multipart 本地图片上传并返回 `event_cover` 文件资产和封面字段，编辑已有活动时上传不会立即改活动记录，需随 `PATCH /admin/events/:id` 保存；`GET /admin/events/:id/registrations` 返回联系人、人数、来源和 linked ticket state；报名会拒绝重复报名、不可见活动、容量满、报名截止；票据读取校验 owner/admin；核销校验活动-票据归属和票据状态。报名导出当前明确延后，尚未实现。
 
 ### 4.3 社区发现 Discover
 
@@ -141,7 +143,7 @@ Notifications list/read 只作用于当前 actor 自己的通知；跨用户 mar
 | `POST` | `/files/complete`        | 提交上传完成后的文件记录             | `apps/api/src/routes/files.ts` | `packages/shared/src/contracts/files.ts` | `packages/shared/src/mock/service.ts` 中 `files.complete`            |
 | `POST` | `/files/private-url`     | 获取私有文件临时访问地址             | `apps/api/src/routes/files.ts` | `packages/shared/src/contracts/files.ts` | `packages/shared/src/mock/service.ts` 中 `files.privateUrl`          |
 
-Files 当前允许 public upload request/complete；`public/places/`、`private/tickets/`、`private/exports/`、`private/admin/` 及对应 protected biz type 需要 admin；private URL 会校验文件存在和 owner/admin 权限。
+Files 当前允许 public upload request/complete；`public/places/`、`private/tickets/`、`private/exports/`、`private/admin/` 及对应 protected biz type 需要 admin；活动封面推荐走 `/admin/events/cover-file` 或 `/admin/events/:id/cover-file` 的直接 multipart 上传；private URL 会校验文件存在和 owner/admin 权限。
 
 ### 4.8 系统 System
 

@@ -117,3 +117,37 @@
     - Verify: capture exit codes/logs for `openspec validate complete-events-admin-backoffice-integration --strict --no-interactive`, `corepack pnpm test`, `corepack pnpm lint`, `corepack pnpm typecheck`, plus GUI MCP evidence for Admin and mobile smoke routes.
     - BUNDLE (RUN #11): Worker bundle ready. | VALIDATION_BUNDLE: auto_test_openspec/complete-events-admin-backoffice-integration/run-0011__task-5.2__ref-R11__20260703T100213Z | HOW_TO_RUN: run.sh/run.bat
     - EVIDENCE (RUN #n): Pending supervisor validation. | VALIDATED: TBD | RESULT: TBD | GUI_EVIDENCE: TBD
+
+## 6. Activity Creation Usability
+
+- [ ] 6.1 Add direct event cover upload contracts and providers [#R12]
+  - ACCEPT: Shared schemas, paths, contracts, clients, provider interfaces, Koa routes, mock provider, and CloudBase live provider support `POST /admin/events/cover-file` and `POST /admin/events/:id/cover-file`; responses include `file_asset`, `cover_file_id`, `cover_cloud_path`, and `cover_url`; event DTO fields remain unchanged; non-admin, missing event, missing file, unsupported type, and oversize image errors use the standard envelope.
+  - TEST: SCOPE: CLI
+    - When done, generate validation bundle under:
+      `auto_test_openspec/complete-events-admin-backoffice-integration/run-<RUN4>__task-6.1__ref-R12__<YYYYMMDDThhmmssZ>/`
+    - Run: `<run-folder>/run.sh` or `<run-folder>/run.bat`.
+    - Verify: shared client/contract tests prove FormData serialization and response schemas; API tests prove authorized upload, forbidden upload, missing target, invalid file, pending cover creation, save-on-submit binding, and public event `cover_url` behavior.
+
+- [ ] 6.2 Improve Admin event create/edit form usability [#R13]
+  - ACCEPT: `EventsPage.vue` uses an Element Plus top-label form with sections for basic info, cover, address, time/capacity, status, and body; cover uses local image upload and preview while hiding `cover_file_id`, `cover_cloud_path`, and `cover_url`; address search reuses the Tencent POI proxy and fills address/latitude/longitude; time fields use side-by-side datetime pickers labeled start/end/signup deadline with Chengdu UTC+8; capacity is labeled as attendee limit with explanatory text.
+  - TEST: SCOPE: MIXED
+    - When done, generate validation bundle under:
+      `auto_test_openspec/complete-events-admin-backoffice-integration/run-<RUN4>__task-6.2__ref-R13__<YYYYMMDDThhmmssZ>/`
+    - Run: `<run-folder>/run.sh` or `<run-folder>/run.bat` to start services only.
+    - Verify: Admin typecheck passes; GUI MCP runbook opens `/events`, creates an event with uploaded cover, fills location from search, edits time/capacity, saves, and confirms no visible technical cover fields or blocking console errors.
+
+- [ ] 6.3 Update API and operator documentation for event cover upload [#R14]
+  - ACCEPT: API usage docs, implemented endpoint inventory, and OpenAPI document describe event cover upload endpoints, multipart `file` field, image limits, authorization, response shape, save-on-submit semantics, Tencent POI proxy behavior, and API-side map key configuration.
+  - TEST: SCOPE: CLI
+    - When done, generate validation bundle under:
+      `auto_test_openspec/complete-events-admin-backoffice-integration/run-<RUN4>__task-6.3__ref-R14__<YYYYMMDDThhmmssZ>/`
+    - Run: `<run-folder>/run.sh` or `<run-folder>/run.bat`.
+    - Verify: grep assertions prove docs include `/admin/events/cover-file`, `/admin/events/:id/cover-file`, `event_cover`, multipart constraints, and Tencent Map API-side configuration notes.
+
+- [ ] 6.4 Run final regression validation for activity creation usability [#R15]
+  - ACCEPT: Final validation covers OpenSpec strict validation, full relevant TypeScript typechecks, Vitest suite, lint, and Admin browser smoke for create/edit with cover upload, POI fill, datetime picker labels, and attendee-limit copy.
+  - TEST: SCOPE: MIXED
+    - When done, generate validation bundle under:
+      `auto_test_openspec/complete-events-admin-backoffice-integration/run-<RUN4>__task-6.4__ref-R15__<YYYYMMDDThhmmssZ>/`
+    - Run: `<run-folder>/run.sh` or `<run-folder>/run.bat` to execute CLI checks and start services for GUI checks.
+    - Verify: capture exit codes/logs for `openspec validate complete-events-admin-backoffice-integration --strict --no-interactive`, `corepack pnpm test`, `corepack pnpm typecheck`, `corepack pnpm lint`, plus GUI evidence for Admin `/events` activity creation.

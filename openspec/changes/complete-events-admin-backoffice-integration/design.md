@@ -69,4 +69,4 @@ Rollback is straightforward while in mock/local development: remove the new admi
 ## Open Questions
 
 - Whether check-in UI must accept ticket code directly in v1 or only ticket id; the API remains canonical on ticket id unless implementation adds a safe code lookup.
-- Whether event cover upload should be integrated with cloud storage now or remain as URL/file-id fields in the event form.
+- Resolved 2026-07-06: event cover upload is integrated as direct Admin multipart upload. The event DTO keeps `cover_file_id`, `cover_cloud_path`, and `cover_url`; the Admin form hides those technical fields and fills them from upload responses.

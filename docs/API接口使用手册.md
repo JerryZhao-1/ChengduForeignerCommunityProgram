@@ -130,7 +130,7 @@ Protected file paths / business types:
 
 注意：discover、comments、files、notifications、auth/role 当前只完成 local/API readiness 和 CloudBase handler fallback parity；非 places/events live provider persistence 尚未验收。
 
-Admin 地点腾讯地图搜索由 API 端代理调用腾讯位置服务 WebServiceAPI：
+Admin 地点与活动地址搜索由 API 端代理调用腾讯位置服务 WebServiceAPI：
 
 - `TENCENT_MAP_KEY`：必填，腾讯位置服务 Key。
 - `TENCENT_MAP_SECRET_KEY`：可选，开启 SN 校验后填写 SecretKey/SK，API 会在服务端生成 `sig`。
@@ -498,13 +498,13 @@ Body：
 | `signup_deadline`           | string      | 是   | 报名截止        |
 | `capacity`                  | number      | 是   | 正整数          |
 | `place_id`                  | string      | 否   | 关联地点        |
-| `cover_file_id`             | string      | 否   | 封面文件 ID     |
-| `cover_cloud_path`          | string      | 否   | 封面 cloud path |
-| `cover_url`                 | URL string  | 否   | 封面 URL        |
+| `cover_file_id`             | string      | 否   | 封面文件 ID；后台表单通常由封面上传接口返回 |
+| `cover_cloud_path`          | string      | 否   | 封面 cloud path；后台表单通常由封面上传接口返回 |
+| `cover_url`                 | URL string  | 否   | 封面 URL；后台表单通常由封面上传接口返回 |
 
 响应 data：`Event`
 
-说明：创建接口默认产生后台可见草稿；如需公开端可见，应随后调用 `POST /admin/events/:id/review` 设置 `review_status="approved"` 且 `publish_status="published"`。
+说明：创建接口默认产生后台可见草稿；如需公开端可见，应随后调用 `POST /admin/events/:id/review` 设置 `review_status="approved"` 且 `publish_status="published"`。Admin 后台运营表单不要求手填封面 file id、cloud path 或 URL，应优先通过 `POST /admin/events/cover-file` 或 `POST /admin/events/:id/cover-file` 直接上传本地图片后，把响应中的封面字段随创建或保存提交。
 
 示例：
 
@@ -521,12 +521,85 @@ curl -X POST http://127.0.0.1:8787/admin/events \
     "content_en":"Event content",
     "address_text":"Tongzilin",
     "location":{"latitude":30.615,"longitude":104.062},
-    "start_time":"2026-06-20T10:00:00.000Z",
-    "end_time":"2026-06-20T12:00:00.000Z",
-    "signup_deadline":"2026-06-19T12:00:00.000Z",
+    "start_time":"2027-06-20T10:00:00+08:00",
+    "end_time":"2027-06-20T12:00:00+08:00",
+    "signup_deadline":"2027-06-19T12:00:00+08:00",
     "capacity":20
   }'
 ```
+
+### POST `/admin/events/cover-file`
+
+用途：管理端在创建活动前直接上传本地活动封面。成功后后端创建 completed active `FileAsset`，先以 pending 归属记录；创建活动时提交返回的 `cover_file_id`、`cover_cloud_path`、`cover_url` 后会绑定到新活动。
+
+权限：`community_admin` 或 `system_admin`。
+
+请求：`multipart/form-data`
+
+| 字段   | 类型 | 必填 | 说明                                                                     |
+| ------ | ---- | ---- | ------------------------------------------------------------------------ |
+| `file` | file | 是   | 支持 `image/jpeg`、`image/png`、`image/webp`、`image/gif`，当前上限 5 MB |
+
+响应 data：
+
+```json
+{
+  "file_asset": {
+    "_id": "file_001",
+    "file_id": "cloud://...",
+    "cloud_path": "public/events/_pending/upload/cover.jpg",
+    "visibility": "public",
+    "biz_type": "event_cover",
+    "biz_id": "__pending_event_cover__",
+    "uploaded_by": "user_001",
+    "status": "active"
+  },
+  "cover_file_id": "cloud://...",
+  "cover_cloud_path": "public/events/_pending/upload/cover.jpg",
+  "cover_url": "https://example.com/public/events/_pending/upload/cover.jpg"
+}
+```
+
+示例：
+
+```bash
+curl -X POST http://127.0.0.1:8787/admin/events/cover-file \
+  -H 'x-mock-user-id: user_001' \
+  -F 'file=@./cover.jpg;type=image/jpeg'
+```
+
+关键错误：
+
+- `400 VALIDATION_ERROR`：缺少文件、文件类型不支持或文件超过大小限制。
+- `403 FORBIDDEN`：actor 不是 `community_admin` / `system_admin`。
+
+### POST `/admin/events/:id/cover-file`
+
+用途：管理端为已存在活动直接上传本地活动封面。上传成功只返回封面字段，不会立即修改活动记录；需要随后调用 `PATCH /admin/events/:id` 提交返回的 `cover_file_id`、`cover_cloud_path`、`cover_url` 才会生效。
+
+权限：`community_admin` 或 `system_admin`。
+
+请求：`multipart/form-data`
+
+| 字段   | 类型 | 必填 | 说明                                                                     |
+| ------ | ---- | ---- | ------------------------------------------------------------------------ |
+| `file` | file | 是   | 支持 `image/jpeg`、`image/png`、`image/webp`、`image/gif`，当前上限 5 MB |
+
+响应 data：同 `POST /admin/events/cover-file`，其中 `file_asset.biz_id` 为目标活动 ID。
+
+示例：
+
+```bash
+curl -X POST http://127.0.0.1:8787/admin/events/event_001/cover-file \
+  -H 'x-mock-user-id: user_001' \
+  -F 'file=@./cover.jpg;type=image/jpeg'
+```
+
+关键错误：
+
+- `400 VALIDATION_ERROR`：缺少文件、文件类型不支持或文件超过大小限制。
+- `403 FORBIDDEN`：actor 不是 `community_admin` / `system_admin`。
+- `404 NOT_FOUND`：目标活动不存在。
 
 ### PATCH `/admin/events/:id`
 
