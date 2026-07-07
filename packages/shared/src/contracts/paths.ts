@@ -14,6 +14,8 @@ export const apiPaths = {
     listPosts: "/discover/posts",
     detailPost: (id: string) => `/discover/posts/${id}`,
     createPost: "/discover/posts",
+    myPosts: "/discover/me/posts",
+    listComments: (id: string) => `/discover/posts/${id}/comments`,
     createComment: (id: string) => `/discover/posts/${id}/comments`,
     reportPost: (id: string) => `/discover/posts/${id}/report`
   },
@@ -33,7 +35,8 @@ export const apiPaths = {
   files: {
     createUploadRequest: "/files/upload-requests",
     completeUpload: "/files/complete",
-    privateUrl: "/files/private-url"
+    privateUrl: "/files/private-url",
+    uploadPostMedia: "/files/post-media"
   },
   admin: {
     listEvents: "/admin/events",

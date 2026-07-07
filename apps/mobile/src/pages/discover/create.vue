@@ -2,6 +2,7 @@
 import { computed, reactive, ref } from "vue";
 
 import { mobileApi } from "@/api/client";
+import { uploadPostMedia } from "@/api/post-media-upload";
 import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
@@ -20,6 +21,19 @@ const form = reactive({
 });
 
 const isSubmitting = ref(false);
+const isPickingMedia = ref(false);
+
+interface SelectedMedia {
+  id: string;
+  url: string;
+  kind: "image" | "video";
+  fileName: string;
+  fileId: string | null;
+  isUploading: boolean;
+  error: string;
+}
+
+const selectedMedia = ref<SelectedMedia[]>([]);
 
 const parseTags = () =>
   form.tagsText
@@ -43,18 +57,94 @@ const hasInvalidImageUrl = (urls: string[]) =>
     }
   });
 
-const mediaPreviewItems = computed(() =>
-  parseImageUrls().map((url) => ({
+const mediaPreviewItems = computed(() => [
+  ...selectedMedia.value.map((item) => ({
+    id: item.id,
+    url: item.url,
+    kind: item.kind,
+    isUploading: item.isUploading,
+    error: item.error
+  })),
+  ...parseImageUrls().map((url) => ({
+    id: "",
     url,
-    kind: getMediaKind(url)
+    kind: getMediaKind(url),
+    isUploading: false,
+    error: ""
   }))
-);
+]);
 
 const showValidation = (title: string) => {
   uni.showToast({
     title,
     icon: "none"
   });
+};
+
+const fileNameFromPath = (path: string, kind: "image" | "video") => {
+  const raw = path.split("/").pop()?.split("?")[0] ?? "";
+  return (
+    raw || `post-${kind}-${Date.now()}.${kind === "video" ? "mp4" : "jpg"}`
+  );
+};
+
+const completeSelectedMedia = async (item: SelectedMedia) => {
+  item.isUploading = true;
+  item.error = "";
+
+  try {
+    const asset = await uploadPostMedia({
+      filePath: item.url,
+      fileName: item.fileName,
+      kind: item.kind
+    });
+    item.fileId = asset.file_id;
+  } catch {
+    item.error = copy.value.mediaUploadError;
+  } finally {
+    item.isUploading = false;
+  }
+};
+
+const chooseMedia = () => {
+  if (isPickingMedia.value) {
+    return;
+  }
+
+  isPickingMedia.value = true;
+  uni.chooseMedia({
+    count: Math.max(1, 9 - selectedMedia.value.length),
+    mediaType: ["image", "video"],
+    sourceType: ["album", "camera"],
+    success: async (result) => {
+      const tempFiles = (result.tempFiles ?? []) as Array<{
+        tempFilePath: string;
+        fileType?: "image" | "video";
+      }>;
+      const items = tempFiles.map((file) => {
+        const kind = file.fileType === "video" ? "video" : "image";
+        return {
+          id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          url: file.tempFilePath,
+          kind,
+          fileName: fileNameFromPath(file.tempFilePath, kind),
+          fileId: null,
+          isUploading: false,
+          error: ""
+        } satisfies SelectedMedia;
+      });
+
+      selectedMedia.value = [...selectedMedia.value, ...items].slice(0, 9);
+      await Promise.all(items.map(completeSelectedMedia));
+    },
+    complete: () => {
+      isPickingMedia.value = false;
+    }
+  });
+};
+
+const removeMedia = (id: string) => {
+  selectedMedia.value = selectedMedia.value.filter((item) => item.id !== id);
 };
 
 const submit = async () => {
@@ -66,6 +156,11 @@ const submit = async () => {
   const content = form.content.trim();
   const tagIds = parseTags();
   const imageUrls = parseImageUrls();
+  const isUploadingMedia = selectedMedia.value.some((item) => item.isUploading);
+  const failedMedia = selectedMedia.value.filter((item) => item.error);
+  const imageFileIds = selectedMedia.value
+    .map((item) => item.fileId)
+    .filter((fileId): fileId is string => !!fileId);
 
   if (!title) {
     showValidation(copy.value.titleRequired);
@@ -87,6 +182,16 @@ const submit = async () => {
     return;
   }
 
+  if (isUploadingMedia) {
+    showValidation(copy.value.mediaUploading);
+    return;
+  }
+
+  if (failedMedia.length) {
+    showValidation(copy.value.mediaUploadError);
+    return;
+  }
+
   isSubmitting.value = true;
   try {
     const result = await mobileApi.discover.createPost({
@@ -95,7 +200,7 @@ const submit = async () => {
       language: form.language,
       tag_ids: tagIds,
       location_text: form.location_text.trim() || null,
-      image_file_ids: [],
+      image_file_ids: imageFileIds,
       image_urls: imageUrls
     });
 
@@ -173,6 +278,17 @@ const submit = async () => {
       </view>
 
       <view class="field-group">
+        <view class="label">{{ copy.mediaPickerLabel }}</view>
+        <button
+          class="media-picker"
+          :disabled="isPickingMedia || selectedMedia.length >= 9"
+          @click="chooseMedia"
+        >
+          {{ isPickingMedia ? copy.mediaPicking : copy.mediaPickerButton }}
+        </button>
+      </view>
+
+      <view class="field-group">
         <view class="label">{{ copy.imageUrlsLabel }}</view>
         <textarea
           v-model="form.imageUrlsText"
@@ -200,6 +316,19 @@ const submit = async () => {
               <text class="preview-play">▶</text>
               <text>{{ copy.videoBadge }}</text>
             </view>
+            <view v-if="item.isUploading" class="preview-state">
+              {{ copy.mediaUploading }}
+            </view>
+            <view v-else-if="item.error" class="preview-state error">
+              {{ item.error }}
+            </view>
+            <button
+              v-if="item.id"
+              class="remove-media"
+              @click="removeMedia(item.id)"
+            >
+              ×
+            </button>
           </view>
         </view>
         <view v-else class="no-preview">{{ copy.noMediaPreview }}</view>
@@ -264,6 +393,7 @@ const submit = async () => {
 }
 
 .preview-item {
+  position: relative;
   overflow: hidden;
   border-radius: 14rpx;
   background: #e2e8f0;
@@ -287,6 +417,51 @@ const submit = async () => {
 
 .preview-play {
   font-size: 24rpx;
+}
+
+.media-picker {
+  margin: 0;
+  border-radius: 10rpx;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 26rpx;
+}
+
+.media-picker[disabled] {
+  opacity: 0.7;
+}
+
+.preview-state {
+  position: absolute;
+  left: 14rpx;
+  bottom: 14rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+  background: rgba(17, 24, 39, 0.76);
+  color: #ffffff;
+  font-size: 22rpx;
+}
+
+.preview-state.error {
+  background: rgba(185, 28, 28, 0.86);
+}
+
+.remove-media {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: rgba(17, 24, 39, 0.72);
+  color: #ffffff;
+  font-size: 34rpx;
+  line-height: 48rpx;
 }
 
 .no-preview {

@@ -28,11 +28,11 @@ dev collections:
 - file_assets: created
 - configs: created
 - operation_logs: created
+- posts: code-supported; collection/index live acceptance pending
+- comments: code-supported; collection/index live acceptance pending
 
 future collections recorded only:
 - events: pending
-- posts: pending
-- comments: pending
 - announcements: pending
 - notifications: pending
 
@@ -65,6 +65,7 @@ code integration:
 - mobile API modes: mock / http / cloudbase-function
 - cloudbase-function target: community-map-api
 - CloudBase provider live mode: available for places when CLOUDBASE_PROVIDER_MODE=live and CLOUDBASE_ENV_ID or TCB_ENV is set
+- CloudBase provider discover core mode: code path is available for posts/comments/owner posts/post media binding when live mode is set, but collection/index/security-rule smoke evidence is still required before production readiness is claimed
 - CloudBase provider fallback: mock provider when live mode is not explicitly enabled
 ```
 
@@ -75,7 +76,7 @@ code integration:
 - Static hosting was already enabled and online; no Admin build artifact was uploaded.
 - Cloud storage was reachable and empty at the root; path rules were recorded only because no real files should be uploaded in this phase.
 - Production CloudBase resources were not created or modified.
-- `apps/api/src/providers/cloudbase/index.ts` now has a live `places` provider path for CloudBase NoSQL, while events/discover/files/notifications still use the mock fallback until their collections and security rules are ready.
+- `apps/api/src/providers/cloudbase/index.ts` now has live provider paths for places, events, discover posts/comments and generic file completion. Discover live readiness remains evidence-gated until posts/comments/file_assets collections, indexes, security rules and online smoke responses are recorded.
 - Production CloudBase environment creation is moved to Week 11 full-chain integration.
 - `/api` route creation is moved to Week 8 and remains deferred until `community-map-api` is deployed as the formal HTTP function.
 

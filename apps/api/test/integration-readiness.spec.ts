@@ -79,6 +79,7 @@ interface CommentItem {
 
 interface FileAsset {
   file_id: string;
+  cloud_path: string;
   visibility: string;
   biz_type: string;
   biz_id: string;
@@ -126,7 +127,9 @@ const request = async <TBody>(
   const response = await fetch(`${baseUrl}${path}`, {
     method: options.method ?? "GET",
     headers: {
-      ...(options.body === undefined ? {} : { "content-type": "application/json" }),
+      ...(options.body === undefined
+        ? {}
+        : { "content-type": "application/json" }),
       ...(options.actorId ? { "x-mock-user-id": options.actorId } : {})
     },
     body: options.body === undefined ? undefined : JSON.stringify(options.body)
@@ -167,20 +170,34 @@ describe("events integration readiness", () => {
     const { baseUrl, close } = await createTestBaseUrl();
 
     try {
-      const list = await request<ApiSuccess<PageResult<EventItem>>>(baseUrl, "/events");
+      const list = await request<ApiSuccess<PageResult<EventItem>>>(
+        baseUrl,
+        "/events"
+      );
       expect(list.response.status).toBe(200);
-      expect(list.body.data.items.map((event) => event._id)).toContain("event_001");
-      expect(list.body.data.items.map((event) => event._id)).not.toContain("event_draft");
+      expect(list.body.data.items.map((event) => event._id)).toContain(
+        "event_001"
+      );
+      expect(list.body.data.items.map((event) => event._id)).not.toContain(
+        "event_draft"
+      );
 
-      const draftDetail = await request<ApiFailure>(baseUrl, "/events/event_draft");
+      const draftDetail = await request<ApiFailure>(
+        baseUrl,
+        "/events/event_draft"
+      );
       expect(draftDetail.response.status).toBe(404);
       expect(draftDetail.body.error.code).toBe("NOT_FOUND");
 
-      const create = await request<ApiSuccess<EventItem>>(baseUrl, "/admin/events", {
-        method: "POST",
-        actorId: "user_001",
-        body: createEventInput("Launch Event")
-      });
+      const create = await request<ApiSuccess<EventItem>>(
+        baseUrl,
+        "/admin/events",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: createEventInput("Launch Event")
+        }
+      );
       expect(create.response.status).toBe(201);
 
       const hiddenBeforeReview = await request<ApiFailure>(
@@ -254,16 +271,20 @@ describe("events integration readiness", () => {
       expect(duplicate.body.error.code).toBe("CONFLICT");
       expect(eventConflictReason(duplicate.body)).toBe("already_registered");
 
-      const full = await request<ApiFailure>(baseUrl, "/events/event_full/registrations", {
-        method: "POST",
-        actorId: "user_002",
-        body: {
-          contact_name: "Emma",
-          contact_phone: "13900000000",
-          attendee_count: 1,
-          source_channel: "miniapp"
+      const full = await request<ApiFailure>(
+        baseUrl,
+        "/events/event_full/registrations",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            contact_name: "Emma",
+            contact_phone: "13900000000",
+            attendee_count: 1,
+            source_channel: "miniapp"
+          }
         }
-      });
+      );
       expect(full.response.status).toBe(409);
       expect(full.body.error.code).toBe("CONFLICT");
       expect(eventConflictReason(full.body)).toBe("capacity_exceeded");
@@ -441,24 +462,44 @@ describe("discover integration readiness", () => {
         "post_006",
         "post_007"
       ]);
+      expect(list.body.data.items[0]).toHaveProperty("created_at");
+      expect(list.body.data.items[0]).toHaveProperty("comment_count", 1);
+      expect(list.body.data.items[0]).toHaveProperty("author_display");
 
-      const hidden = await request<ApiFailure>(baseUrl, "/discover/posts/post_hidden");
+      const hidden = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts/post_hidden"
+      );
       expect(hidden.response.status).toBe(404);
       expect(hidden.body.error.code).toBe("NOT_FOUND");
 
-      const create = await request<ApiSuccess<PostItem>>(baseUrl, "/discover/posts", {
-        method: "POST",
-        actorId: "user_002",
-        body: {
-          title: "Dentist recommendation",
-          content: "Looking near Tongzilin station.",
-          language: "en",
-          tag_ids: ["help"],
-          location_text: "Tongzilin",
-          image_file_ids: [],
-          image_urls: []
+      const mine = await request<ApiSuccess<PageResult<PostItem>>>(
+        baseUrl,
+        "/discover/me/posts",
+        { actorId: "user_001" }
+      );
+      expect(mine.response.status).toBe(200);
+      expect(mine.body.data.items.map((post) => post._id)).toContain(
+        "post_hidden"
+      );
+
+      const create = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            title: "Dentist recommendation",
+            content: "Looking near Tongzilin station.",
+            language: "en",
+            tag_ids: ["help"],
+            location_text: "Tongzilin",
+            image_file_ids: [],
+            image_urls: []
+          }
         }
-      });
+      );
       expect(create.response.status).toBe(201);
       expect(create.body.data.status).toBe("visible");
       expect(create.body.data.review_status).toBe("visible");
@@ -494,6 +535,22 @@ describe("discover integration readiness", () => {
       );
       expect(comment.response.status).toBe(201);
       expect(comment.body.data.post_id).toBe("post_001");
+      expect(comment.body.data).toHaveProperty("status", "visible");
+
+      const comments = await request<ApiSuccess<PageResult<CommentItem>>>(
+        baseUrl,
+        "/discover/posts/post_001/comments"
+      );
+      expect(comments.response.status).toBe(200);
+      expect(comments.body.data.items.map((item) => item._id)).toContain(
+        comment.body.data._id
+      );
+
+      const detailAfterComment = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_001"
+      );
+      expect(detailAfterComment.body.data).toHaveProperty("comment_count", 2);
 
       const hiddenComment = await request<ApiFailure>(
         baseUrl,
@@ -564,6 +621,117 @@ describe("discover integration readiness", () => {
       await close();
     }
   });
+
+  it("binds owned public post media and rejects unauthorized media ids", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const form = new FormData();
+      form.append(
+        "file",
+        new Blob(["fake image bytes"], { type: "image/jpeg" }),
+        "local-tip.jpg"
+      );
+      const uploadResponse = await fetch(`${baseUrl}/files/post-media`, {
+        method: "POST",
+        headers: {
+          "x-mock-user-id": "user_002"
+        },
+        body: form
+      });
+      const upload = {
+        response: uploadResponse,
+        body: (await uploadResponse.json()) as ApiSuccess<FileAsset>
+      };
+      expect(upload.response.status).toBe(201);
+      expect(upload.body.data.uploaded_by).toBe("user_002");
+      expect(upload.body.data.biz_type).toBe("post_image");
+      expect(upload.body.data.cloud_path).toContain(FILE_PATH_RULES.postImages);
+      const fileId = upload.body.data.file_id;
+
+      const uploadVideoForm = new FormData();
+      uploadVideoForm.append(
+        "file",
+        new Blob(["fake video bytes"], { type: "video/mp4" }),
+        "clip.mp4"
+      );
+      const uploadVideoResponse = await fetch(`${baseUrl}/files/post-media`, {
+        method: "POST",
+        headers: {
+          "x-mock-user-id": "user_002"
+        },
+        body: uploadVideoForm
+      });
+      const uploadVideo = {
+        response: uploadVideoResponse,
+        body: (await uploadVideoResponse.json()) as ApiSuccess<FileAsset>
+      };
+      expect(uploadVideo.response.status).toBe(201);
+      expect(uploadVideo.body.data.biz_type).toBe("post_video");
+
+      const invalidForm = new FormData();
+      invalidForm.append(
+        "file",
+        new Blob(["plain text"], { type: "text/plain" }),
+        "note.txt"
+      );
+      const invalidUploadResponse = await fetch(`${baseUrl}/files/post-media`, {
+        method: "POST",
+        headers: {
+          "x-mock-user-id": "user_002"
+        },
+        body: invalidForm
+      });
+      const invalidUpload = {
+        response: invalidUploadResponse,
+        body: (await invalidUploadResponse.json()) as ApiFailure
+      };
+      expect(invalidUpload.response.status).toBe(400);
+      expect(invalidUpload.body.error.code).toBe("VALIDATION_ERROR");
+
+      const unauthorized = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            title: "Unauthorized media",
+            content: "Should not bind another user's media.",
+            language: "en",
+            tag_ids: ["media"],
+            location_text: null,
+            image_file_ids: [fileId],
+            image_urls: []
+          }
+        }
+      );
+      expect(unauthorized.response.status).toBe(403);
+
+      const create = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            title: "Media backed post",
+            content: "Uses an uploaded media asset.",
+            language: "en",
+            tag_ids: ["media"],
+            location_text: null,
+            image_file_ids: [fileId],
+            image_urls: []
+          }
+        }
+      );
+      expect(create.response.status).toBe(201);
+      expect(create.body.data).toHaveProperty("image_file_ids", [fileId]);
+      expect(create.body.data).toHaveProperty("image_urls");
+    } finally {
+      await close();
+    }
+  });
 });
 
 describe("files auth roles and notifications readiness", () => {
@@ -572,7 +740,11 @@ describe("files auth roles and notifications readiness", () => {
 
     try {
       const uploadRequest = await request<
-        ApiSuccess<{ cloud_path: string; upload_url: string; expires_in: number }>
+        ApiSuccess<{
+          cloud_path: string;
+          upload_url: string;
+          expires_in: number;
+        }>
       >(baseUrl, "/files/upload-requests", {
         method: "POST",
         actorId: "user_002",
@@ -585,19 +757,25 @@ describe("files auth roles and notifications readiness", () => {
         }
       });
       expect(uploadRequest.response.status).toBe(201);
-      expect(uploadRequest.body.data.cloud_path).toBe("public/posts/post_001/new.jpg");
+      expect(uploadRequest.body.data.cloud_path).toBe(
+        "public/posts/post_001/new.jpg"
+      );
 
-      const complete = await request<ApiSuccess<FileAsset>>(baseUrl, "/files/complete", {
-        method: "POST",
-        actorId: "user_002",
-        body: {
-          biz_type: "post_image",
-          biz_id: "post_001",
-          file_id: "cloud://public/posts/post_001/new.jpg",
-          cloud_path: uploadRequest.body.data.cloud_path,
-          visibility: "public"
+      const complete = await request<ApiSuccess<FileAsset>>(
+        baseUrl,
+        "/files/complete",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            biz_type: "post_image",
+            biz_id: "post_001",
+            file_id: "cloud://public/posts/post_001/new.jpg",
+            cloud_path: uploadRequest.body.data.cloud_path,
+            visibility: "public"
+          }
         }
-      });
+      );
       expect(complete.response.status).toBe(201);
       expect(complete.body.data).toMatchObject({
         visibility: "public",
@@ -643,11 +821,15 @@ describe("files auth roles and notifications readiness", () => {
       expect(protectedComplete.response.status).toBe(403);
       expect(protectedComplete.body.error.code).toBe("FORBIDDEN");
 
-      const rejectedAsset = await request<ApiFailure>(baseUrl, "/files/private-url", {
-        method: "POST",
-        actorId: "user_001",
-        body: { file_id: "cloud://private/tickets/ticket_forbidden.png" }
-      });
+      const rejectedAsset = await request<ApiFailure>(
+        baseUrl,
+        "/files/private-url",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: { file_id: "cloud://private/tickets/ticket_forbidden.png" }
+        }
+      );
       expect(rejectedAsset.response.status).toBe(404);
 
       const ownerPrivateUrl = await request<
@@ -658,7 +840,9 @@ describe("files auth roles and notifications readiness", () => {
         body: { file_id: "cloud://private-ticket-001" }
       });
       expect(ownerPrivateUrl.response.status).toBe(200);
-      expect(ownerPrivateUrl.body.data.temp_url).toContain("private-ticket-001");
+      expect(ownerPrivateUrl.body.data.temp_url).toContain(
+        "private-ticket-001"
+      );
 
       const forbiddenPrivateUrl = await request<ApiFailure>(
         baseUrl,
@@ -722,11 +906,9 @@ describe("files auth roles and notifications readiness", () => {
       expect(crossUser.response.status).toBe(404);
       expect(crossUser.body.error.code).toBe("NOT_FOUND");
 
-      const otherUserNotifications = await request<ApiSuccess<NotificationItem[]>>(
-        baseUrl,
-        "/notifications",
-        { actorId: "user_002" }
-      );
+      const otherUserNotifications = await request<
+        ApiSuccess<NotificationItem[]>
+      >(baseUrl, "/notifications", { actorId: "user_002" });
       expect(otherUserNotifications.body.data).toEqual([
         expect.objectContaining({
           _id: "notification_002",

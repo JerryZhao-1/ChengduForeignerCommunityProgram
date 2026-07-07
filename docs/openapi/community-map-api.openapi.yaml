@@ -481,6 +481,7 @@ components:
         [
           _id,
           author_user_id,
+          author_display,
           community_id,
           title,
           content,
@@ -489,6 +490,14 @@ components:
           location_text,
           image_file_ids,
           image_urls,
+          place_id,
+          event_id,
+          comment_count,
+          like_count,
+          favorite_count,
+          share_count,
+          created_at,
+          updated_at,
           status,
           review_status
         ]
@@ -497,6 +506,17 @@ components:
           type: string
         author_user_id:
           type: string
+        author_display:
+          type: object
+          required: [nickname, avatar_url]
+          properties:
+            nickname:
+              type: string
+            avatar_url:
+              type:
+                - string
+                - "null"
+              format: uri
         community_id:
           type: string
         title:
@@ -523,6 +543,30 @@ components:
           items:
             type: string
             format: uri
+        place_id:
+          type:
+            - string
+            - "null"
+        event_id:
+          type:
+            - string
+            - "null"
+        comment_count:
+          type: integer
+          minimum: 0
+        like_count:
+          type: integer
+          minimum: 0
+        favorite_count:
+          type: integer
+          minimum: 0
+        share_count:
+          type: integer
+          minimum: 0
+        created_at:
+          type: string
+        updated_at:
+          type: string
         status:
           type: string
         review_status:
@@ -558,9 +602,20 @@ components:
             type: string
             format: uri
           default: []
+        place_id:
+          type:
+            - string
+            - "null"
+          default: null
+        event_id:
+          type:
+            - string
+            - "null"
+          default: null
     Comment:
       type: object
-      required: [_id, post_id, author_user_id, content, language, created_at]
+      required:
+        [_id, post_id, author_user_id, content, language, status, created_at]
       properties:
         _id:
           type: string
@@ -573,6 +628,8 @@ components:
         language:
           type: string
           enum: [zh, en]
+        status:
+          type: string
         created_at:
           type: string
     CreateCommentInput:
@@ -1877,7 +1934,76 @@ paths:
                         $ref: "#/components/schemas/Post"
         "404":
           $ref: "#/components/responses/NotFound"
+  /discover/me/posts:
+    get:
+      tags: [Discover]
+      operationId: listMyPosts
+      summary: List current actor discover posts
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/CommunityId"
+      responses:
+        "200":
+          description: Current actor post page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, page, pageSize, total]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Post"
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
   /discover/posts/{id}/comments:
+    get:
+      tags: [Discover]
+      operationId: listPostComments
+      summary: List visible post comments
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Comment page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, page, pageSize, total]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Comment"
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
+        "404":
+          $ref: "#/components/responses/NotFound"
     post:
       tags: [Discover]
       operationId: createComment
@@ -2354,6 +2480,39 @@ paths:
                         $ref: "#/components/schemas/UploadRequestResponse"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /files/post-media:
+    post:
+      tags: [Files]
+      operationId: uploadPostMedia
+      summary: Upload discover post media
+      description: Direct multipart upload for discover post images and videos. Returns a public active FileAsset whose file_id can be submitted in discover post image_file_ids.
+      security:
+        - MockActorHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: File asset
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/FileAsset"
+        "400":
+          $ref: "#/components/responses/BadRequest"
   /files/complete:
     post:
       tags: [Files]

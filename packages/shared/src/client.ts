@@ -170,6 +170,14 @@ export const createHttpClient = (
       detailPost: (id) => request("GET", apiPaths.discover.detailPost(id)),
       createPost: (input) =>
         request("POST", apiPaths.discover.createPost, input),
+      myPosts: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.discover.myPosts}${suffix}`);
+      },
+      listComments: (id, query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.discover.listComments(id)}${suffix}`);
+      },
       createComment: (id, input) =>
         request("POST", apiPaths.discover.createComment(id), input),
       reportPost: (id, input) =>
@@ -196,7 +204,13 @@ export const createHttpClient = (
         request("POST", apiPaths.files.createUploadRequest, input),
       complete: (input) =>
         request("POST", apiPaths.files.completeUpload, input),
-      privateUrl: (input) => request("POST", apiPaths.files.privateUrl, input)
+      privateUrl: (input) => request("POST", apiPaths.files.privateUrl, input),
+      uploadPostMedia: (input) =>
+        request(
+          "POST",
+          apiPaths.files.uploadPostMedia,
+          buildImageUploadFormData(input)
+        )
     },
     admin: {
       listEvents: () => request("GET", apiPaths.admin.listEvents),

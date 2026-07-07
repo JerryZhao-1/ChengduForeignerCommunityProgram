@@ -93,8 +93,14 @@ export const createMockProvider = (): ApiProvider => {
       async list(input) {
         return withMockErrors(() => service.posts.list(input));
       },
+      async listMine(input, actorId) {
+        return withMockErrors(() => service.posts.listMine(input, actorId));
+      },
       async detail(id) {
         return withMockErrors(() => service.posts.detail(id));
+      },
+      async listComments(postId, input) {
+        return withMockErrors(() => service.posts.listComments(postId, input));
       },
       async create(input, actorId) {
         return withMockErrors(() => service.posts.create(input, actorId));
@@ -194,6 +200,23 @@ export const createMockProvider = (): ApiProvider => {
       },
       async privateUrl(input, actorId) {
         return withMockErrors(() => service.files.privateUrl(input, actorId));
+      },
+      async uploadPostMedia(input, actorId) {
+        return withMockErrors(() => {
+          const safeFileName = input.file_name.replace(/[^\w.-]+/g, "-");
+          const pendingId = `_pending/${randomUUID()}`;
+          const cloudPath = `public/posts/${pendingId}/${randomUUID()}-${safeFileName}`;
+          return service.files.complete(
+            {
+              biz_type: input.kind === "video" ? "post_video" : "post_image",
+              biz_id: "__pending_post_media__",
+              file_id: `cloud://${cloudPath}`,
+              cloud_path: cloudPath,
+              visibility: "public"
+            },
+            actorId
+          );
+        });
       }
     }
   };

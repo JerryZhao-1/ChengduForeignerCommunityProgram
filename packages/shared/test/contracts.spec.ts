@@ -2,6 +2,8 @@ import {
   API_ERROR_CODES,
   apiPaths,
   CreateApiSuccessSchema,
+  CommentListQuerySchema,
+  CommentSchema,
   DeleteEventResponseSchema,
   DeletePlaceResponseSchema,
   DirectEventCoverUploadResponseSchema,
@@ -29,6 +31,7 @@ import {
   CreateEventInputSchema,
   eventContracts,
   fileContracts,
+  MyPostListQuerySchema,
   placeContracts,
   PostSchema,
   UpdatePlaceInputSchema,
@@ -754,5 +757,48 @@ describe("shared contracts", () => {
       apiErrorCodes: API_ERROR_CODES,
       filePaths: FILE_PATH_RULES
     }).toMatchSnapshot();
+  });
+
+  it("accepts discover core post metadata and comment read queries", () => {
+    const post = PostSchema.parse({
+      _id: "post_001",
+      author_user_id: "user_001",
+      author_display: {
+        nickname: "Jerry",
+        avatar_url: "https://example.com/avatar.jpg"
+      },
+      community_id: "tongzilin",
+      title: "Local tip",
+      content: "Useful content",
+      language: "en",
+      tag_ids: ["help"],
+      location_text: null,
+      image_file_ids: ["cloud://public/posts/pending/1.jpg"],
+      image_urls: ["https://example.com/public/posts/pending/1.jpg"],
+      place_id: null,
+      event_id: "event_001",
+      comment_count: 1,
+      like_count: 0,
+      favorite_count: 0,
+      share_count: 0,
+      created_at: "2026-03-28T09:00:00+08:00",
+      updated_at: "2026-03-28T09:00:00+08:00",
+      status: "visible",
+      review_status: "visible"
+    });
+    const comment = CommentSchema.parse({
+      _id: "comment_001",
+      post_id: post._id,
+      author_user_id: "user_002",
+      content: "Thanks",
+      language: "en",
+      status: "visible",
+      created_at: "2026-03-28T09:30:00+08:00"
+    });
+
+    expect(post.comment_count).toBe(1);
+    expect(comment.status).toBe("visible");
+    expect(CommentListQuerySchema.parse({ page: "2" }).page).toBe(2);
+    expect(MyPostListQuerySchema.parse({}).communityId).toBe("tongzilin");
   });
 });

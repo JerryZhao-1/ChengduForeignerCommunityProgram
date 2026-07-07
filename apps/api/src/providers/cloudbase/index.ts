@@ -12,18 +12,22 @@ import {
   EventWithRegistrationSchema,
   FileAssetSchema,
   PlaceSchema,
+  PostSchema,
+  CommentSchema,
   type Event,
   type EventAdminListItem,
   type EventAdminRegistrationRow,
   type EventRegistration,
   type EventTicket,
   type FileAsset,
+  type Comment,
   type PageResult,
   type Place,
   type PlaceDetail,
   type PlaceGalleryMedia,
   type PlaceListItem,
-  type PlaceMapMarker
+  type PlaceMapMarker,
+  type Post
 } from "@community-map/shared";
 
 import { apiError } from "../../lib/errors";
@@ -33,6 +37,12 @@ import type { ApiProvider } from "../types";
 const DEFAULT_COMMUNITY_ID = "tongzilin";
 const MAX_PLACES_FETCH = 1000;
 const MAX_EVENTS_FETCH = 1000;
+const MAX_DISCOVER_FETCH = 1000;
+const POST_MEDIA_BIZ_TYPES = new Set([
+  "post_image",
+  "post_video",
+  "post_media"
+]);
 
 type CloudbaseApp = ReturnType<typeof tcb.init>;
 type CloudbaseDatabase = ReturnType<CloudbaseApp["database"]>;
@@ -79,6 +89,8 @@ interface LiveCloudbaseContext {
   eventRegistrations: CloudbaseCollection;
   eventTickets: CloudbaseCollection;
   places: CloudbaseCollection;
+  posts: CloudbaseCollection;
+  comments: CloudbaseCollection;
   fileAssets: CloudbaseCollection;
 }
 
@@ -118,6 +130,11 @@ const isAdmin = (user: { role_flags: string[] }) =>
 
 const isLaunchVisibleEvent = (event: Event) =>
   event.review_status === "approved" && event.publish_status === "published";
+
+const isLaunchVisiblePost = (post: Post) =>
+  post.status === "visible" && post.review_status === "visible";
+
+const isVisibleComment = (comment: Comment) => comment.status === "visible";
 
 const isActiveRegistration = (registration: EventRegistration) =>
   !["cancelled", "closed"].includes(registration.registration_status);
@@ -298,7 +315,9 @@ const getCloudbaseTempFileUrls = async (
     context.app as unknown as {
       getTempFileURL(input: {
         fileList: string[];
-      }): Promise<{ fileList: Array<{ fileID: string; tempFileURL?: string }> }>;
+      }): Promise<{
+        fileList: Array<{ fileID: string; tempFileURL?: string }>;
+      }>;
     }
   ).getTempFileURL({
     fileList
@@ -448,6 +467,8 @@ const createLiveContext = (): LiveCloudbaseContext | null => {
     eventRegistrations: db.collection("event_registrations"),
     eventTickets: db.collection("event_tickets"),
     places: db.collection("places"),
+    posts: db.collection("posts"),
+    comments: db.collection("comments"),
     fileAssets: db.collection("file_assets")
   };
 };
@@ -472,6 +493,48 @@ const normalizePlace = (raw: unknown): Place | null => {
   return parsed.success ? parsed.data : null;
 };
 
+const normalizePost = (raw: unknown): Post | null => {
+  const item = raw as Partial<Post> | null;
+  if (!item || typeof item !== "object") {
+    return null;
+  }
+
+  const parsed = PostSchema.safeParse({
+    ...item,
+    author_display: item.author_display ?? {
+      nickname: item.author_user_id ?? "Unknown",
+      avatar_url: null
+    },
+    place_id: item.place_id ?? null,
+    event_id: item.event_id ?? null,
+    comment_count: item.comment_count ?? 0,
+    like_count: item.like_count ?? 0,
+    favorite_count: item.favorite_count ?? 0,
+    share_count: item.share_count ?? 0,
+    created_at: item.created_at ?? new Date(0).toISOString(),
+    updated_at: item.updated_at ?? item.created_at ?? new Date(0).toISOString()
+  });
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizeComment = (raw: unknown): Comment | null => {
+  const item = raw as Partial<Comment> | null;
+  if (!item || typeof item !== "object") {
+    return null;
+  }
+
+  const parsed = CommentSchema.safeParse({
+    ...item,
+    status: item.status ?? "visible"
+  });
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizeFileAsset = (raw: unknown): FileAsset | null => {
+  const parsed = FileAssetSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
 const readEvents = async (context: LiveCloudbaseContext) => {
   const result = await context.events.limit(MAX_EVENTS_FETCH).get();
   const events = result.data
@@ -482,12 +545,12 @@ const readEvents = async (context: LiveCloudbaseContext) => {
 };
 
 const readEventRegistrations = async (context: LiveCloudbaseContext) => {
-  const result = await context.eventRegistrations
-    .limit(MAX_EVENTS_FETCH)
-    .get();
+  const result = await context.eventRegistrations.limit(MAX_EVENTS_FETCH).get();
   return result.data
     .map(normalizeEventRegistration)
-    .filter((registration): registration is EventRegistration => !!registration);
+    .filter(
+      (registration): registration is EventRegistration => !!registration
+    );
 };
 
 const readEventTickets = async (context: LiveCloudbaseContext) => {
@@ -502,6 +565,25 @@ const readPlaces = async (context: LiveCloudbaseContext) => {
   return result.data
     .map(normalizePlace)
     .filter((place): place is Place => !!place);
+};
+
+const readPosts = async (context: LiveCloudbaseContext) => {
+  const result = await context.posts.limit(MAX_DISCOVER_FETCH).get();
+  return result.data.map(normalizePost).filter((post): post is Post => !!post);
+};
+
+const readComments = async (context: LiveCloudbaseContext) => {
+  const result = await context.comments.limit(MAX_DISCOVER_FETCH).get();
+  return result.data
+    .map(normalizeComment)
+    .filter((comment): comment is Comment => !!comment);
+};
+
+const readFileAssets = async (context: LiveCloudbaseContext) => {
+  const result = await context.fileAssets.limit(MAX_DISCOVER_FETCH).get();
+  return result.data
+    .map(normalizeFileAsset)
+    .filter((asset): asset is FileAsset => !!asset);
 };
 
 const createLiveEventsProvider = (
@@ -611,19 +693,13 @@ const createLiveEventsProvider = (
 
         const confirmedAttendees = registrations
           .filter(isActiveRegistration)
-          .reduce(
-            (sum, registration) => sum + registration.attendee_count,
-            0
-          );
+          .reduce((sum, registration) => sum + registration.attendee_count, 0);
         const currentConfirmedAttendees = Math.max(
           storedConfirmedAttendeeCount(eventResult.data) ?? 0,
           confirmedAttendees
         );
 
-        if (
-          currentConfirmedAttendees + input.attendee_count >
-          event.capacity
-        ) {
+        if (currentConfirmedAttendees + input.attendee_count > event.capacity) {
           throw apiError("CONFLICT", "Event capacity is full.", 409, {
             reason: "capacity_exceeded",
             remaining: Math.max(event.capacity - currentConfirmedAttendees, 0)
@@ -1159,6 +1235,339 @@ const createLivePlacesProvider = (
   }
 });
 
+const resolvePostMediaUrls = async (
+  context: LiveCloudbaseContext,
+  post: Post
+) => {
+  const fileIds = post.image_file_ids.filter((fileId) =>
+    cloudPathFromFileId(fileId).startsWith(FILE_PATH_RULES.postImages)
+  );
+  const urlsByFileId = await getCloudbaseTempFileUrls(context, fileIds);
+  return [
+    ...fileIds.map((fileId) => urlsByFileId.get(fileId)).filter(Boolean),
+    ...post.image_urls
+  ] as string[];
+};
+
+const normalizePostForRead = async (
+  context: LiveCloudbaseContext,
+  post: Post,
+  comments: Comment[]
+): Promise<Post> => {
+  const visibleComments = comments.filter(
+    (comment) => comment.post_id === post._id && isVisibleComment(comment)
+  );
+
+  return PostSchema.parse({
+    ...post,
+    comment_count: visibleComments.length,
+    image_urls: await resolvePostMediaUrls(context, post)
+  });
+};
+
+const createLivePostsProvider = (
+  context: LiveCloudbaseContext,
+  fallbackAuth: ApiProvider["auth"]
+): ApiProvider["posts"] => ({
+  async list(input) {
+    const [posts, comments] = await Promise.all([
+      readPosts(context),
+      readComments(context)
+    ]);
+    const visiblePosts = posts.filter(
+      (post) =>
+        isLaunchVisiblePost(post) &&
+        (!input.communityId || post.community_id === input.communityId) &&
+        (keywordMatch(post.title, input.keyword) ||
+          keywordMatch(post.content, input.keyword))
+    );
+    const normalized = await Promise.all(
+      visiblePosts.map((post) => normalizePostForRead(context, post, comments))
+    );
+
+    return paginate(normalized, input);
+  },
+  async listMine(input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    const [posts, comments] = await Promise.all([
+      readPosts(context),
+      readComments(context)
+    ]);
+    const ownedPosts = posts.filter(
+      (post) =>
+        post.author_user_id === actor._id &&
+        (!input.communityId || post.community_id === input.communityId)
+    );
+    const normalized = await Promise.all(
+      ownedPosts.map((post) => normalizePostForRead(context, post, comments))
+    );
+
+    return paginate(normalized, input);
+  },
+  async detail(id) {
+    const [posts, comments] = await Promise.all([
+      readPosts(context),
+      readComments(context)
+    ]);
+    const post = posts.find((item) => item._id === id);
+
+    return post && isLaunchVisiblePost(post)
+      ? normalizePostForRead(context, post, comments)
+      : null;
+  },
+  async listComments(postId, input) {
+    const [posts, comments] = await Promise.all([
+      readPosts(context),
+      readComments(context)
+    ]);
+    const post = posts.find((item) => item._id === postId);
+
+    if (!post || !isLaunchVisiblePost(post)) {
+      throw apiError("NOT_FOUND", "Post not found.", 404);
+    }
+
+    return paginate(
+      comments.filter(
+        (comment) => comment.post_id === postId && isVisibleComment(comment)
+      ),
+      input
+    );
+  },
+  async create(input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    const now = new Date().toISOString();
+    const postId = `post_${randomUUID()}`;
+    const imageFileIds = input.image_file_ids ?? [];
+    const fileAssets = await readFileAssets(context);
+    const assets = imageFileIds.map((fileId) =>
+      fileAssets.find((asset) => asset.file_id === fileId)
+    );
+    const hasInvalidAsset = assets.some(
+      (asset) =>
+        !asset ||
+        asset.status !== "active" ||
+        asset.visibility !== "public" ||
+        asset.uploaded_by !== actor._id ||
+        !asset.cloud_path.startsWith(FILE_PATH_RULES.postImages) ||
+        !POST_MEDIA_BIZ_TYPES.has(asset.biz_type)
+    );
+
+    if (hasInvalidAsset) {
+      throw apiError("FORBIDDEN", "Post media file access denied.", 403);
+    }
+
+    const post = PostSchema.parse({
+      _id: postId,
+      author_user_id: actor._id,
+      author_display: {
+        nickname: actor.nickname,
+        avatar_url: actor.avatar_url
+      },
+      community_id: DEFAULT_COMMUNITY_ID,
+      title: input.title ?? "",
+      content: input.content ?? "",
+      language: input.language ?? "zh",
+      tag_ids: input.tag_ids ?? [],
+      location_text: input.location_text ?? null,
+      image_file_ids: imageFileIds,
+      image_urls: input.image_urls ?? [],
+      place_id: input.place_id ?? null,
+      event_id: input.event_id ?? null,
+      comment_count: 0,
+      like_count: 0,
+      favorite_count: 0,
+      share_count: 0,
+      created_at: now,
+      updated_at: now,
+      status: "visible",
+      review_status: "visible"
+    });
+
+    await context.posts.doc(post._id).set(toCloudbaseSetDocument(post));
+    await Promise.all(
+      assets
+        .filter((asset): asset is FileAsset => !!asset)
+        .map((asset) =>
+          context.fileAssets.doc(asset._id).update({
+            biz_id: post._id
+          })
+        )
+    );
+
+    return normalizePostForRead(context, post, []);
+  },
+  async createComment(postId, input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    const posts = await readPosts(context);
+    const post = posts.find((item) => item._id === postId);
+
+    if (!post || !isLaunchVisiblePost(post)) {
+      throw apiError("NOT_FOUND", "Post not found.", 404);
+    }
+
+    const comment = CommentSchema.parse({
+      _id: `comment_${randomUUID()}`,
+      post_id: postId,
+      author_user_id: actor._id,
+      content: input.content,
+      language: input.language,
+      status: "visible",
+      created_at: new Date().toISOString()
+    });
+
+    await context.comments
+      .doc(comment._id)
+      .set(toCloudbaseSetDocument(comment));
+    await context.posts.doc(post._id).update({
+      comment_count: post.comment_count + 1,
+      updated_at: new Date().toISOString()
+    });
+
+    return comment;
+  },
+  async report(id) {
+    const posts = await readPosts(context);
+    const post = posts.find((item) => item._id === id);
+
+    if (!post || !isLaunchVisiblePost(post)) {
+      return null;
+    }
+
+    const nextPost = PostSchema.parse({
+      ...post,
+      review_status: "reported",
+      updated_at: new Date().toISOString()
+    });
+    await context.posts.doc(id).update({
+      review_status: nextPost.review_status,
+      updated_at: nextPost.updated_at
+    });
+    return nextPost;
+  },
+  async moderate(id, input) {
+    const posts = await readPosts(context);
+    const post = posts.find((item) => item._id === id);
+
+    if (!post) {
+      return null;
+    }
+
+    const nextPost = PostSchema.parse({
+      ...post,
+      review_status: input.review_status,
+      status: input.review_status,
+      updated_at: new Date().toISOString()
+    });
+    await context.posts.doc(id).update({
+      review_status: nextPost.review_status,
+      status: nextPost.status,
+      updated_at: nextPost.updated_at
+    });
+    return nextPost;
+  }
+});
+
+const createLiveFilesProvider = (
+  context: LiveCloudbaseContext
+): ApiProvider["files"] => ({
+  async createUploadRequest(input) {
+    const cloud_path = `${input.target_prefix}${input.biz_id}/${randomUUID()}-${sanitizeFileName(input.file_name, "upload")}`;
+    return {
+      cloud_path,
+      upload_url: `https://example.com/upload/${encodeURIComponent(cloud_path)}`,
+      expires_in: 900
+    };
+  },
+  async complete(input, actorId = "user_001") {
+    const asset = FileAssetSchema.parse({
+      _id: `file_${randomUUID()}`,
+      file_id: input.file_id,
+      cloud_path: input.cloud_path,
+      visibility: input.visibility,
+      biz_type: input.biz_type,
+      biz_id: input.biz_id,
+      uploaded_by: actorId,
+      status: "active"
+    } satisfies FileAsset);
+
+    const urlsByFileId = await getCloudbaseTempFileUrls(context, [
+      asset.file_id
+    ]);
+    if (!urlsByFileId.has(asset.file_id)) {
+      throw apiError(
+        "VALIDATION_ERROR",
+        "Uploaded file does not exist in CloudBase storage.",
+        400,
+        {
+          file_id: asset.file_id
+        }
+      );
+    }
+
+    await context.fileAssets.doc(asset._id).set(toCloudbaseSetDocument(asset));
+    return asset;
+  },
+  async privateUrl(input, actorId) {
+    const actor = await createMockProvider().auth.resolveActor(actorId);
+    const asset = (await readFileAssets(context)).find(
+      (item) => item.file_id === input.file_id && item.status === "active"
+    );
+
+    if (!asset) {
+      throw apiError("NOT_FOUND", "File not found.", 404);
+    }
+
+    if (
+      asset.visibility === "private" &&
+      asset.uploaded_by !== actor._id &&
+      !isAdmin(actor)
+    ) {
+      throw apiError("FORBIDDEN", "File access denied.", 403);
+    }
+
+    const urlsByFileId = await getCloudbaseTempFileUrls(context, [
+      asset.file_id
+    ]);
+    return {
+      temp_url:
+        urlsByFileId.get(asset.file_id) ??
+        `https://example.com/temp/${encodeURIComponent(asset.file_id)}`,
+      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+    };
+  },
+  async uploadPostMedia(input, actorId = "user_001") {
+    const cloudPath = `${FILE_PATH_RULES.postImages}_pending/${actorId}/${randomUUID()}-${sanitizeFileName(input.file_name, "post-media")}`;
+    const uploadResult = await (
+      context.app as unknown as {
+        uploadFile(input: {
+          cloudPath: string;
+          fileContent: Buffer;
+        }): Promise<{ fileID?: string; fileId?: string }>;
+      }
+    ).uploadFile({
+      cloudPath,
+      fileContent: input.buffer
+    });
+    const fileId =
+      uploadResult.fileID ??
+      uploadResult.fileId ??
+      `cloud://${getCloudbaseEnvId()}/${cloudPath}`;
+    const asset = FileAssetSchema.parse({
+      _id: `file_${randomUUID()}`,
+      file_id: fileId,
+      cloud_path: cloudPath,
+      visibility: "public",
+      biz_type: input.kind === "video" ? "post_video" : "post_image",
+      biz_id: "__pending_post_media__",
+      uploaded_by: actorId,
+      status: "active"
+    } satisfies FileAsset);
+
+    await context.fileAssets.doc(asset._id).set(toCloudbaseSetDocument(asset));
+    return asset;
+  }
+});
+
 export const createCloudbaseProvider = (): ApiProvider => {
   const fallback = createMockProvider();
   const liveContext = createLiveContext();
@@ -1170,6 +1579,8 @@ export const createCloudbaseProvider = (): ApiProvider => {
   return {
     ...fallback,
     events: createLiveEventsProvider(liveContext, fallback.auth),
-    places: createLivePlacesProvider(liveContext)
+    places: createLivePlacesProvider(liveContext),
+    posts: createLivePostsProvider(liveContext, fallback.auth),
+    files: createLiveFilesProvider(liveContext)
   };
 };

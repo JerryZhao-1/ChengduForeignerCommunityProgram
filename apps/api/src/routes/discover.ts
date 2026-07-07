@@ -1,8 +1,10 @@
 import Router from "@koa/router";
 import {
+  CommentListQuerySchema,
   CreateCommentInputSchema,
   CreatePostInputSchema,
   ModeratePostInputSchema,
+  MyPostListQuerySchema,
   PostListQuerySchema,
   ReportPostInputSchema
 } from "@community-map/shared";
@@ -26,6 +28,15 @@ export const registerDiscoverRoutes = (router: Router) => {
     sendSuccess(ctx, post);
   });
 
+  router.get("/discover/me/posts", async (ctx) => {
+    const query = parseOrThrow(MyPostListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listMine(
+      query,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
   router.post("/discover/posts", async (ctx) => {
     const input = parseOrThrow(CreatePostInputSchema, ctx.request.body);
     const post = await ctx.state.provider.posts.create(input, ctx.state.actor._id);
@@ -40,6 +51,15 @@ export const registerDiscoverRoutes = (router: Router) => {
       ctx.state.actor._id
     );
     sendSuccess(ctx, comment, 201);
+  });
+
+  router.get("/discover/posts/:id/comments", async (ctx) => {
+    const query = parseOrThrow(CommentListQuerySchema, ctx.query);
+    const comments = await ctx.state.provider.posts.listComments(
+      ctx.params.id,
+      query
+    );
+    sendSuccess(ctx, comments);
   });
 
   router.post("/discover/posts/:id/report", async (ctx) => {

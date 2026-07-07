@@ -75,7 +75,18 @@ export interface CommunityMapApiClient {
       location_text?: string | null;
       image_file_ids?: string[];
       image_urls?: string[];
+      place_id?: string | null;
+      event_id?: string | null;
     }): Promise<ApiResult<Post>>;
+    myPosts(query?: {
+      page?: number;
+      pageSize?: number;
+      communityId?: string;
+    }): Promise<ApiResult<PageResult<Post>>>;
+    listComments(
+      postId: string,
+      query?: { page?: number; pageSize?: number }
+    ): Promise<ApiResult<PageResult<Comment>>>;
     createComment(
       postId: string,
       input: { content: string; language: "zh" | "en" }
@@ -127,6 +138,11 @@ export interface CommunityMapApiClient {
     privateUrl(input: {
       file_id: string;
     }): Promise<ApiResult<{ temp_url: string; expires_at: string }>>;
+    uploadPostMedia(input: {
+      file: Blob;
+      file_name?: string;
+      content_type?: string;
+    }): Promise<ApiResult<FileAsset>>;
   };
   admin: {
     listEvents(): Promise<ApiResult<PageResult<EventAdminListItem>>>;
@@ -250,6 +266,12 @@ export const createMockClient = (
       async createPost(input) {
         return ok(service.posts.create(input, actorId));
       },
+      async myPosts(query) {
+        return ok(service.posts.listMine(query, actorId));
+      },
+      async listComments(postId, query) {
+        return ok(service.posts.listComments(postId, query));
+      },
       async createComment(postId, input) {
         return ok(service.posts.createComment(postId, input, actorId));
       },
@@ -294,6 +316,24 @@ export const createMockClient = (
       },
       async privateUrl(input) {
         return ok(service.files.privateUrl(input));
+      },
+      async uploadPostMedia(input) {
+        const fileName = input.file_name ?? "post-media-upload";
+        const contentType = input.content_type ?? input.file.type;
+        const isVideo = contentType.startsWith("video/");
+        const pendingId = `pending_${Date.now().toString(36)}`;
+        const completion = service.files.complete(
+          {
+            biz_type: isVideo ? "post_video" : "post_image",
+            biz_id: "__pending_post_media__",
+            file_id: `cloud://public/posts/${pendingId}/${fileName}`,
+            cloud_path: `public/posts/${pendingId}/${fileName}`,
+            visibility: "public"
+          },
+          actorId
+        );
+
+        return ok(completion);
       }
     },
     admin: {
@@ -362,9 +402,8 @@ export const createMockClient = (
         return ok(service.places.delete(id) as DeletePlaceResponse);
       },
       async searchPlacePoi(input) {
-        const isTongzilinInternationalCommunity = input.keyword.includes(
-          "桐梓林国际社区"
-        );
+        const isTongzilinInternationalCommunity =
+          input.keyword.includes("桐梓林国际社区");
 
         return ok([
           {

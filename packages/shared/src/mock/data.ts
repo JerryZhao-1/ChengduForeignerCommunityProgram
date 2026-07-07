@@ -385,6 +385,11 @@ export const createMockDataset = (): MockDataset => ({
     {
       _id: "post_001",
       author_user_id: "user_001",
+      author_display: {
+        nickname: "Jerry",
+        avatar_url:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+      },
       community_id: "tongzilin",
       title: "周边哪里能买到合适的婴儿用品？",
       content: "刚搬来桐梓林，想找靠谱的母婴店或药店，欢迎推荐。",
@@ -393,12 +398,25 @@ export const createMockDataset = (): MockDataset => ({
       location_text: "桐梓林地铁站附近",
       image_file_ids: [],
       image_urls: [],
+      place_id: null,
+      event_id: null,
+      comment_count: 1,
+      like_count: 12,
+      favorite_count: 3,
+      share_count: 2,
+      created_at: "2026-03-28T09:00:00+08:00",
+      updated_at: "2026-03-28T09:00:00+08:00",
       status: "visible",
       review_status: "visible"
     },
     {
       _id: "post_002",
       author_user_id: "user_002",
+      author_display: {
+        nickname: "Emma",
+        avatar_url:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+      },
       community_id: "tongzilin",
       title: "Any tennis groups in Tongzilin?",
       content:
@@ -410,12 +428,25 @@ export const createMockDataset = (): MockDataset => ({
       image_urls: [
         "https://images.unsplash.com/photo-1542144582-1ba00456b5e3?w=1200&auto=format&fit=crop"
       ],
+      place_id: null,
+      event_id: null,
+      comment_count: 0,
+      like_count: 24,
+      favorite_count: 8,
+      share_count: 4,
+      created_at: "2026-03-28T10:00:00+08:00",
+      updated_at: "2026-03-28T10:00:00+08:00",
       status: "visible",
       review_status: "visible"
     },
     {
       _id: "post_003",
       author_user_id: "user_001",
+      author_display: {
+        nickname: "Jerry",
+        avatar_url:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+      },
       community_id: "tongzilin",
       title: "桐梓林早晨散步路线分享",
       content:
@@ -427,12 +458,25 @@ export const createMockDataset = (): MockDataset => ({
       image_urls: [
         "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&auto=format&fit=crop"
       ],
+      place_id: null,
+      event_id: null,
+      comment_count: 0,
+      like_count: 31,
+      favorite_count: 12,
+      share_count: 5,
+      created_at: "2026-03-29T08:30:00+08:00",
+      updated_at: "2026-03-29T08:30:00+08:00",
       status: "visible",
       review_status: "visible"
     },
     {
       _id: "post_004",
       author_user_id: "user_002",
+      author_display: {
+        nickname: "Emma",
+        avatar_url:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+      },
       community_id: "tongzilin",
       title: "Coffee spots that are easy for English speakers",
       content:
@@ -445,12 +489,25 @@ export const createMockDataset = (): MockDataset => ({
         "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200&auto=format&fit=crop",
         "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200&auto=format&fit=crop"
       ],
+      place_id: "place_002",
+      event_id: null,
+      comment_count: 0,
+      like_count: 47,
+      favorite_count: 18,
+      share_count: 7,
+      created_at: "2026-03-30T14:20:00+08:00",
+      updated_at: "2026-03-30T14:20:00+08:00",
       status: "visible",
       review_status: "visible"
     },
     {
       _id: "post_005",
       author_user_id: "user_001",
+      author_display: {
+        nickname: "Jerry",
+        avatar_url:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+      },
       community_id: "tongzilin",
       title: "社区中心活动厅短视频预览",
       content:
@@ -462,12 +519,25 @@ export const createMockDataset = (): MockDataset => ({
       image_urls: [
         "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
       ],
+      place_id: "place_001",
+      event_id: null,
+      comment_count: 0,
+      like_count: 19,
+      favorite_count: 6,
+      share_count: 3,
+      created_at: "2026-03-31T16:45:00+08:00",
+      updated_at: "2026-03-31T16:45:00+08:00",
       status: "visible",
       review_status: "visible"
     },
     {
       _id: "post_006",
       author_user_id: "user_002",
+      author_display: {
+        nickname: "Emma",
+        avatar_url:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+      },
       community_id: "tongzilin",
       title: "Weekend language exchange recap with photos and video",
       content:
@@ -485,12 +555,25 @@ export const createMockDataset = (): MockDataset => ({
         "https://www.w3schools.com/html/mov_bbb.mp4",
         "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1200&auto=format&fit=crop"
       ],
+      place_id: "place_001",
+      event_id: "event_001",
+      comment_count: 0,
+      like_count: 56,
+      favorite_count: 21,
+      share_count: 9,
+      created_at: "2026-04-01T11:10:00+08:00",
+      updated_at: "2026-04-01T11:10:00+08:00",
       status: "visible",
       review_status: "visible"
     },
     {
       _id: "post_007",
       author_user_id: "user_001",
+      author_display: {
+        nickname: "Jerry",
+        avatar_url:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+      },
       community_id: "tongzilin",
       title: "提醒：最近雨天较多，地铁口到社区中心有一段路比较滑",
       content:
@@ -500,12 +583,25 @@ export const createMockDataset = (): MockDataset => ({
       location_text: "桐梓林地铁站附近",
       image_file_ids: [],
       image_urls: [],
+      place_id: null,
+      event_id: null,
+      comment_count: 0,
+      like_count: 8,
+      favorite_count: 1,
+      share_count: 2,
+      created_at: "2026-04-02T18:00:00+08:00",
+      updated_at: "2026-04-02T18:00:00+08:00",
       status: "visible",
       review_status: "visible"
     },
     {
       _id: "post_hidden",
       author_user_id: "user_001",
+      author_display: {
+        nickname: "Jerry",
+        avatar_url:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+      },
       community_id: "tongzilin",
       title: "Hidden moderation post",
       content: "This post must not appear publicly.",
@@ -514,12 +610,25 @@ export const createMockDataset = (): MockDataset => ({
       location_text: null,
       image_file_ids: [],
       image_urls: [],
+      place_id: null,
+      event_id: null,
+      comment_count: 0,
+      like_count: 0,
+      favorite_count: 0,
+      share_count: 0,
+      created_at: "2026-04-03T09:00:00+08:00",
+      updated_at: "2026-04-03T09:00:00+08:00",
       status: "hidden",
       review_status: "hidden"
     },
     {
       _id: "post_deleted",
       author_user_id: "user_002",
+      author_display: {
+        nickname: "Emma",
+        avatar_url:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+      },
       community_id: "tongzilin",
       title: "Deleted moderation post",
       content: "This post must not appear publicly.",
@@ -528,6 +637,14 @@ export const createMockDataset = (): MockDataset => ({
       location_text: null,
       image_file_ids: [],
       image_urls: [],
+      place_id: null,
+      event_id: null,
+      comment_count: 0,
+      like_count: 0,
+      favorite_count: 0,
+      share_count: 0,
+      created_at: "2026-04-03T10:00:00+08:00",
+      updated_at: "2026-04-03T10:00:00+08:00",
       status: "deleted",
       review_status: "deleted"
     }
@@ -539,6 +656,7 @@ export const createMockDataset = (): MockDataset => ({
       author_user_id: "user_002",
       content: "社区中心附近有一家口碑不错的母婴店。",
       language: "zh",
+      status: "visible",
       created_at: "2026-03-28T09:30:00+08:00"
     }
   ],

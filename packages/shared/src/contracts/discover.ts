@@ -1,12 +1,15 @@
 import { defineContract } from "./define-contract";
 import {
+  CommentListQuerySchema,
   CreateCommentInputSchema,
   CreatePostInputSchema,
   ModeratePostInputSchema,
+  MyPostListQuerySchema,
   PostListQuerySchema,
   ReportPostInputSchema
 } from "../schemas/discover";
 import { CommentSchema, PostSchema } from "../schemas/entities";
+import { PageResultSchema } from "../schemas/common";
 
 export const discoverContracts = {
   listPosts: defineContract({
@@ -31,6 +34,18 @@ export const discoverContracts = {
     path: "/discover/posts/:id/comments",
     request: CreateCommentInputSchema,
     response: CommentSchema
+  }),
+  listComments: defineContract({
+    method: "GET",
+    path: "/discover/posts/:id/comments",
+    request: CommentListQuerySchema,
+    response: PageResultSchema(CommentSchema)
+  }),
+  myPosts: defineContract({
+    method: "GET",
+    path: "/discover/me/posts",
+    request: MyPostListQuerySchema,
+    response: PageResultSchema(PostSchema)
   }),
   reportPost: defineContract({
     method: "POST",

@@ -149,6 +149,10 @@ export const PlaceSchema = z.object({
 export const PostSchema = z.object({
   _id: z.string(),
   author_user_id: z.string(),
+  author_display: z.object({
+    nickname: z.string(),
+    avatar_url: z.string().url().nullable()
+  }),
   community_id: z.string(),
   title: z.string(),
   content: z.string(),
@@ -157,6 +161,14 @@ export const PostSchema = z.object({
   location_text: z.string().nullable(),
   image_file_ids: z.array(z.string()),
   image_urls: z.array(z.string().url()),
+  place_id: z.string().nullable(),
+  event_id: z.string().nullable(),
+  comment_count: z.number().int().min(0),
+  like_count: z.number().int().min(0),
+  favorite_count: z.number().int().min(0),
+  share_count: z.number().int().min(0),
+  created_at: z.string(),
+  updated_at: z.string(),
   status: z.enum(POST_CONTENT_STATUSES),
   review_status: z.enum(POST_CONTENT_STATUSES)
 });
@@ -167,6 +179,7 @@ export const CommentSchema = z.object({
   author_user_id: z.string(),
   content: z.string(),
   language: LocaleSchema,
+  status: z.enum(POST_CONTENT_STATUSES),
   created_at: z.string()
 });
 

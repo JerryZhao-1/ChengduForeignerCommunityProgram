@@ -4,11 +4,12 @@ import {
   CreateUploadRequestInputSchema,
   DirectEventCoverUploadResponseSchema,
   FileCompletionResponseSchema,
+  FileAssetSchema,
   DirectPlaceGalleryUploadResponseSchema,
   PrivateUrlRequestInputSchema,
   PrivateUrlResponseSchema,
   UploadRequestResponseSchema
-} from "../schemas/files";
+} from "../schemas";
 
 export const fileContracts = {
   createUploadRequest: defineContract({
@@ -28,6 +29,11 @@ export const fileContracts = {
     path: "/files/private-url",
     request: PrivateUrlRequestInputSchema,
     response: PrivateUrlResponseSchema
+  }),
+  directPostMediaUpload: defineContract({
+    method: "POST",
+    path: "/files/post-media",
+    response: FileAssetSchema
   }),
   directPlaceGalleryUpload: defineContract({
     method: "POST",

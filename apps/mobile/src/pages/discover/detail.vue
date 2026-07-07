@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { onLoad, onShareAppMessage, onShareTimeline } from "@dcloudio/uni-app";
-import type { Post } from "@community-map/shared";
+import type { Comment, Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
@@ -33,10 +33,10 @@ const keyboardHeight = ref(0);
 const mediaIndex = ref(0);
 const isFollowing = ref(false);
 const postLiked = ref(false);
-const postLikeCount = ref(3198);
+const postLikeCount = ref(0);
 const postFavorited = ref(false);
-const postFavoriteCount = ref(4092);
-const postShareCount = ref(286);
+const postFavoriteCount = ref(0);
+const postShareCount = ref(0);
 const showShare = ref(false);
 
 const forwardIcon =
@@ -53,38 +53,7 @@ const authorProfiles: Record<string, { name: string; avatarUrl: string }> = {
   }
 };
 
-const comments = ref<CommentItem[]>([
-  {
-    id: "comment_001",
-    authorId: "user_002",
-    authorName: "Emma",
-    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-    content: "I'd love to join! Are weekends or weekday evenings better for everyone?",
-    time: "2h",
-    likeCount: 12,
-    liked: false
-  },
-  {
-    id: "comment_002",
-    authorId: "user_003",
-    authorName: "李雷",
-    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-    content: "桐梓林网球场周末上午人比较多，建议提前订场。",
-    time: "5h",
-    likeCount: 8,
-    liked: true
-  },
-  {
-    id: "comment_003",
-    authorId: "user_004",
-    authorName: "Sophie",
-    avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80",
-    content: "Beginner here, hope it's okay to tag along just to practice rallies.",
-    time: "1d",
-    likeCount: 3,
-    liked: false
-  }
-]);
+const comments = ref<CommentItem[]>([]);
 
 const commentCount = computed(() => comments.value.length);
 
@@ -101,12 +70,47 @@ const author = computed(() => {
   }
 
   return (
-    authorProfiles[post.value.author_user_id] ?? {
-      name: post.value.author_user_id,
-      avatarUrl: ""
+    {
+      name: post.value.author_display.nickname,
+      avatarUrl: post.value.author_display.avatar_url ?? ""
     }
   );
 });
+
+const formatTime = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString();
+};
+
+const toCommentItem = (comment: Comment): CommentItem => {
+  const profile = authorProfiles[comment.author_user_id] ?? {
+    name: comment.author_user_id,
+    avatarUrl: ""
+  };
+
+  return {
+    id: comment._id,
+    authorId: comment.author_user_id,
+    authorName: profile.name,
+    avatarUrl: profile.avatarUrl,
+    content: comment.content,
+    time: formatTime(comment.created_at),
+    likeCount: 0,
+    liked: false
+  };
+};
+
+const loadComments = async (id: string) => {
+  const result = await mobileApi.discover.listComments(id, {
+    page: 1,
+    pageSize: 50
+  });
+  comments.value = result.data.items.map(toCommentItem);
+};
 
 const loadPost = async (id: string) => {
   isLoading.value = true;
@@ -115,8 +119,13 @@ const loadPost = async (id: string) => {
   try {
     const result = await mobileApi.discover.detailPost(id);
     post.value = result.data;
+    postLikeCount.value = result.data.like_count;
+    postFavoriteCount.value = result.data.favorite_count;
+    postShareCount.value = result.data.share_count;
+    await loadComments(id);
   } catch {
     post.value = null;
+    comments.value = [];
     errorMessage.value = copy.value.detailError;
   } finally {
     isLoading.value = false;
@@ -168,20 +177,8 @@ const submitComment = async () => {
       content,
       language: state.locale
     });
-    comments.value = [
-      {
-        id: `comment_local_${Date.now()}`,
-        authorId: "user_001",
-        authorName: "Jerry",
-        avatarUrl: authorProfiles.user_001.avatarUrl,
-        content,
-        time: copy.value.commentJustNow,
-        likeCount: 0,
-        liked: false
-      },
-      ...comments.value
-    ];
     commentValue.value = "";
+    await loadPost(post.value._id);
     uni.showToast({ title: copy.value.commentSuccess, icon: "success" });
   } catch {
     uni.showToast({ title: copy.value.commentError, icon: "none" });
@@ -418,6 +415,7 @@ const openActions = () => {
           </view>
           <view class="article-meta">
             <text>{{ getLanguageLabel(post.language) }}</text>
+            <text>{{ post.created_at.slice(0, 10) }}</text>
             <text>{{ post.location_text || copy.locationFallback }}</text>
             <text>{{ post.review_status }}</text>
           </view>

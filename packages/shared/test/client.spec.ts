@@ -120,6 +120,74 @@ describe("shared api clients", () => {
     );
   });
 
+  it("keeps mock and http client signatures aligned for discover comments and my posts", async () => {
+    const mockClient = createMockClient({ actorId: "user_001" });
+    const requester = vi.fn(async (_method: string, url: string) => {
+      if (String(url).includes("/comments")) {
+        return {
+          success: true,
+          requestId: "req_comments",
+          data: {
+            items: [
+              {
+                _id: "comment_http_001",
+                post_id: "post_http_001",
+                author_user_id: "user_001",
+                content: "HTTP comment",
+                language: "en",
+                status: "visible",
+                created_at: "2026-03-28T09:30:00+08:00"
+              }
+            ],
+            page: 1,
+            pageSize: 20,
+            total: 1
+          }
+        };
+      }
+
+      return {
+        success: true,
+        requestId: "req_my_posts",
+        data: {
+          items: [],
+          page: 1,
+          pageSize: 10,
+          total: 0
+        }
+      };
+    });
+    const httpClient = createHttpClient({
+      actorId: "user_001",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    const mockComments = await mockClient.discover.listComments("post_001");
+    const mockMine = await mockClient.discover.myPosts();
+    const httpComments = await httpClient.discover.listComments("post_http_001");
+    const httpMine = await httpClient.discover.myPosts();
+
+    expect(mockComments.data.items[0]).toHaveProperty("status", "visible");
+    expect(mockMine.data.items.map((post) => post._id)).toContain(
+      "post_hidden"
+    );
+    expect(httpComments.data.items[0].content).toBe("HTTP comment");
+    expect(httpMine.data.total).toBe(0);
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/posts/post_http_001/comments",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/me/posts",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+  });
+
   it("keeps mock and http client signatures aligned for admin event management", async () => {
     const mockClient = createMockClient({ actorId: "user_001" });
     const requester = vi.fn(async (_method: string, url: string) => {

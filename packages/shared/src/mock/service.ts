@@ -226,6 +226,10 @@ const toEventAdminRegistrationRow = (
 const isLaunchVisiblePost = (post: Post) =>
   post.status === "visible" && post.review_status === "visible";
 
+const isVisibleComment = (comment: Comment) => comment.status === "visible";
+
+const POST_MEDIA_BIZ_TYPES = new Set(["post_image", "post_video", "post_media"]);
+
 const toPlaceGalleryMedia = (
   place: Place,
   fileAssets: FileAsset[]
@@ -665,6 +669,40 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
       }
     },
     posts: {
+      normalize(post: Post): Post {
+        const author = state.users.find((user) => user._id === post.author_user_id);
+        const visibleComments = state.comments.filter(
+          (comment) => comment.post_id === post._id && isVisibleComment(comment)
+        );
+        const fileUrls = post.image_file_ids
+          .map((fileId) =>
+            state.fileAssets.find(
+              (asset) =>
+                asset.file_id === fileId &&
+                asset.visibility === "public" &&
+                asset.status === "active"
+            )
+          )
+          .filter((asset): asset is FileAsset => !!asset)
+          .map((asset) => publicFileUrl(asset.cloud_path));
+
+        return {
+          ...post,
+          author_display: post.author_display ?? {
+            nickname: author?.nickname ?? post.author_user_id,
+            avatar_url: author?.avatar_url ?? null
+          },
+          place_id: post.place_id ?? null,
+          event_id: post.event_id ?? null,
+          comment_count: visibleComments.length,
+          like_count: Math.max(0, post.like_count ?? 0),
+          favorite_count: Math.max(0, post.favorite_count ?? 0),
+          share_count: Math.max(0, post.share_count ?? 0),
+          created_at: post.created_at ?? new Date().toISOString(),
+          updated_at: post.updated_at ?? post.created_at ?? new Date().toISOString(),
+          image_urls: [...fileUrls, ...post.image_urls]
+        };
+      },
       list(params: PageParams = {}) {
         const posts = state.posts.filter(
           (post) =>
@@ -674,30 +712,101 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
               keywordMatch(post.content, params.keyword))
         );
 
-        return paginate(posts, params);
+        return paginate(posts.map((post) => this.normalize(post)), params);
+      },
+      listMine(params: PageParams = {}, actorId?: string) {
+        const actor = requireUser(actorId);
+        const posts = state.posts.filter(
+          (post) =>
+            post.author_user_id === actor._id &&
+            (!params.communityId || post.community_id === params.communityId)
+        );
+
+        return paginate(posts.map((post) => this.normalize(post)), params);
       },
       detail(id: string) {
         const post = state.posts.find((item) => item._id === id);
-        return post && isLaunchVisiblePost(post) ? post : null;
+        return post && isLaunchVisiblePost(post) ? this.normalize(post) : null;
+      },
+      listComments(postId: string, params: PageParams = {}) {
+        const post = state.posts.find((item) => item._id === postId);
+
+        if (!post || !isLaunchVisiblePost(post)) {
+          throw mockError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        return paginate(
+          state.comments.filter(
+            (comment) => comment.post_id === postId && isVisibleComment(comment)
+          ),
+          params
+        );
       },
       create(input: Partial<Post>, actorId?: string) {
         const actor = requireUser(actorId);
+        const now = new Date().toISOString();
+        const imageFileIds = input.image_file_ids ?? [];
+        const postId = idFrom("post");
+        const assets = imageFileIds.map((fileId) =>
+          state.fileAssets.find((asset) => asset.file_id === fileId)
+        );
+
+        const hasInvalidAsset = assets.some(
+          (asset) =>
+            !asset ||
+            asset.status !== "active" ||
+            asset.visibility !== "public" ||
+            asset.uploaded_by !== actor._id ||
+            !asset.cloud_path.startsWith(FILE_PATH_RULES.postImages) ||
+            !POST_MEDIA_BIZ_TYPES.has(asset.biz_type)
+        );
+
+        if (hasInvalidAsset) {
+          throw mockError(
+            "FORBIDDEN",
+            "Post media file access denied.",
+            403
+          );
+        }
+
         const post: Post = {
-          _id: idFrom("post"),
+          _id: postId,
           author_user_id: actor._id,
+          author_display: {
+            nickname: actor.nickname,
+            avatar_url: actor.avatar_url
+          },
           community_id: "tongzilin",
           title: input.title ?? "",
           content: input.content ?? "",
           language: input.language ?? "zh",
           tag_ids: input.tag_ids ?? [],
           location_text: input.location_text ?? null,
-          image_file_ids: input.image_file_ids ?? [],
-          image_urls: input.image_urls ?? [],
+          image_file_ids: imageFileIds,
+          image_urls: [
+            ...assets
+              .filter((asset): asset is FileAsset => !!asset)
+              .map((asset) => publicFileUrl(asset.cloud_path)),
+            ...(input.image_urls ?? [])
+          ],
+          place_id: input.place_id ?? null,
+          event_id: input.event_id ?? null,
+          comment_count: 0,
+          like_count: 0,
+          favorite_count: 0,
+          share_count: 0,
+          created_at: now,
+          updated_at: now,
           status: "visible",
           review_status: "visible"
         };
         state.posts.unshift(post);
-        return post;
+        for (const asset of assets) {
+          if (asset) {
+            asset.biz_id = post._id;
+          }
+        }
+        return this.normalize(post);
       },
       createComment(
         postId: string,
@@ -717,6 +826,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           author_user_id: actor._id,
           content: input.content,
           language: input.language,
+          status: "visible",
           created_at: new Date().toISOString()
         };
         state.comments.unshift(comment);
@@ -728,7 +838,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           return null;
         }
         post.review_status = "reported";
-        return post;
+        return this.normalize(post);
       },
       moderate(id: string, input: { review_status: Post["review_status"] }) {
         const post = state.posts.find((item) => item._id === id);
@@ -737,7 +847,8 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         }
         post.review_status = input.review_status;
         post.status = input.review_status;
-        return post;
+        post.updated_at = new Date().toISOString();
+        return this.normalize(post);
       }
     },
     places: {

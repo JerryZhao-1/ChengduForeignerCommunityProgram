@@ -121,14 +121,14 @@ Protected file paths / business types:
 
 ### 2.5 运行模式
 
-| 模式                    | 说明                                                                                                                          |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `mock`                  | 默认模式，主要用于本地开发；数据在 mock service 中。                                                                          |
-| `http`                  | 前端通过 HTTP 访问本地 Koa API。                                                                                              |
-| `cloudbase-function`    | 小程序通过 `wx.cloud.callHTTPFunction` 或 fallback cloud function 调用 API。                                                  |
-| CloudBase live provider | 当前覆盖 places 与 events live 路径；需要 `API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、`CLOUDBASE_ENV_ID` 或 `TCB_ENV`。 |
+| 模式                    | 说明                                                                                                                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mock`                  | 默认模式，主要用于本地开发；数据在 mock service 中。                                                                                                                              |
+| `http`                  | 前端通过 HTTP 访问本地 Koa API。                                                                                                                                                  |
+| `cloudbase-function`    | 小程序通过 `wx.cloud.callHTTPFunction` 或 fallback cloud function 调用 API。                                                                                                      |
+| CloudBase live provider | 当前覆盖 places、events、discover core posts/comments 和通用 files 完成记录路径；需要 `API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、`CLOUDBASE_ENV_ID` 或 `TCB_ENV`。 |
 
-注意：discover、comments、files、notifications、auth/role 当前只完成 local/API readiness 和 CloudBase handler fallback parity；非 places/events live provider persistence 尚未验收。
+注意：discover core live provider 已有代码路径，但仍需 CloudBase dev/prod 集合、索引、安全规则和在线 smoke 证据后才能声明生产数据 readiness；notifications、auth/role 仍以 fallback parity 为主。
 
 Admin 地点与活动地址搜索由 API 端代理调用腾讯位置服务 WebServiceAPI：
 
@@ -460,11 +460,11 @@ curl http://127.0.0.1:8787/events/registrations/registration_001/ticket \
 
 在标准 `Event` 字段外，每个 item 额外包含：
 
-| 字段                        | 类型    | 说明                                  |
-| --------------------------- | ------- | ------------------------------------- |
-| `active_registration_count` | number  | 未取消/未关闭的报名笔数               |
-| `confirmed_attendee_count`  | number  | 未取消/未关闭报名的总参与人数         |
-| `remaining_capacity`        | number  | 剩余名额，最低为 0                    |
+| 字段                        | 类型    | 说明                                   |
+| --------------------------- | ------- | -------------------------------------- |
+| `active_registration_count` | number  | 未取消/未关闭的报名笔数                |
+| `confirmed_attendee_count`  | number  | 未取消/未关闭报名的总参与人数          |
+| `remaining_capacity`        | number  | 剩余名额，最低为 0                     |
 | `is_full`                   | boolean | `remaining_capacity === 0` 时为 `true` |
 
 常见错误：
@@ -487,20 +487,20 @@ curl http://127.0.0.1:8787/admin/events \
 
 Body：
 
-| 字段                        | 类型        | 必填 | 说明            |
-| --------------------------- | ----------- | ---- | --------------- |
-| `title_zh` / `title_en`     | string      | 是   | 双语标题        |
-| `summary_zh` / `summary_en` | string      | 是   | 双语摘要        |
-| `content_zh` / `content_en` | string      | 是   | 双语正文        |
-| `address_text`              | string      | 是   | 地址文本        |
-| `location`                  | Coordinates | 是   | 经纬度          |
-| `start_time` / `end_time`   | string      | 是   | 活动时间        |
-| `signup_deadline`           | string      | 是   | 报名截止        |
-| `capacity`                  | number      | 是   | 正整数          |
-| `place_id`                  | string      | 否   | 关联地点        |
-| `cover_file_id`             | string/null | 否   | 封面文件 ID；本地上传、复用地点自有图集或地点托管封面时提交，外部 URL-only 封面提交 `null` |
+| 字段                        | 类型        | 必填 | 说明                                                                                                      |
+| --------------------------- | ----------- | ---- | --------------------------------------------------------------------------------------------------------- |
+| `title_zh` / `title_en`     | string      | 是   | 双语标题                                                                                                  |
+| `summary_zh` / `summary_en` | string      | 是   | 双语摘要                                                                                                  |
+| `content_zh` / `content_en` | string      | 是   | 双语正文                                                                                                  |
+| `address_text`              | string      | 是   | 地址文本                                                                                                  |
+| `location`                  | Coordinates | 是   | 经纬度                                                                                                    |
+| `start_time` / `end_time`   | string      | 是   | 活动时间                                                                                                  |
+| `signup_deadline`           | string      | 是   | 报名截止                                                                                                  |
+| `capacity`                  | number      | 是   | 正整数                                                                                                    |
+| `place_id`                  | string      | 否   | 关联地点                                                                                                  |
+| `cover_file_id`             | string/null | 否   | 封面文件 ID；本地上传、复用地点自有图集或地点托管封面时提交，外部 URL-only 封面提交 `null`                |
 | `cover_cloud_path`          | string/null | 否   | 封面 cloud path；本地上传或复用地点自有图集时提交，地点托管封面可为 `null`，外部 URL-only 封面提交 `null` |
-| `cover_url`                 | URL string  | 否   | 封面 URL；可来自本地上传、地点封面、地点自有图集当前 URL 或 Amap 外部图片 URL |
+| `cover_url`                 | URL string  | 否   | 封面 URL；可来自本地上传、地点封面、地点自有图集当前 URL 或 Amap 外部图片 URL                             |
 
 响应 data：`Event`
 
@@ -628,11 +628,11 @@ curl -X PATCH http://127.0.0.1:8787/admin/events/event_001 \
 
 Body：
 
-| 字段             | 类型                                       | 必填 | 说明     |
-| ---------------- | ------------------------------------------ | ---- | -------- |
+| 字段             | 类型                                                 | 必填 | 说明     |
+| ---------------- | ---------------------------------------------------- | ---- | -------- |
 | `review_status`  | `draft` / `pending_review` / `approved` / `rejected` | 是   | 审核状态 |
 | `publish_status` | `draft` / `published` / `offline` / `ended`          | 否   | 发布状态 |
-| `reason`         | string                                     | 否   | 审核原因 |
+| `reason`         | string                                               | 否   | 审核原因 |
 
 响应 data：`Event`
 
@@ -668,20 +668,20 @@ Path params：
 
 响应 data：`EventAdminRegistrationRow[]`
 
-| 字段                  | 类型          | 说明                    |
-| --------------------- | ------------- | ----------------------- |
-| `_id`                 | string        | 报名 ID                 |
-| `event_id`            | string        | 活动 ID                 |
-| `user_id`             | string        | 用户 ID                 |
-| `contact_name`        | string        | 联系人                  |
-| `contact_phone`       | string        | 联系电话                |
-| `attendee_count`      | number        | 参与人数                |
-| `registration_status` | string        | 报名状态                |
-| `source_channel`      | string        | 来源渠道                |
-| `ticket_id`           | string        | 票据 ID                 |
-| `ticket_code`         | string/null   | 票码                    |
-| `ticket_status`       | string/null   | `valid` / `used` / `invalid` |
-| `ticket_used_at`      | string/null   | 核销时间                |
+| 字段                  | 类型        | 说明                         |
+| --------------------- | ----------- | ---------------------------- |
+| `_id`                 | string      | 报名 ID                      |
+| `event_id`            | string      | 活动 ID                      |
+| `user_id`             | string      | 用户 ID                      |
+| `contact_name`        | string      | 联系人                       |
+| `contact_phone`       | string      | 联系电话                     |
+| `attendee_count`      | number      | 参与人数                     |
+| `registration_status` | string      | 报名状态                     |
+| `source_channel`      | string      | 来源渠道                     |
+| `ticket_id`           | string      | 票据 ID                      |
+| `ticket_code`         | string/null | 票码                         |
+| `ticket_status`       | string/null | `valid` / `used` / `invalid` |
+| `ticket_used_at`      | string/null | 核销时间                     |
 
 常见错误：
 
@@ -755,20 +755,29 @@ Query：
 
 Post 字段：
 
-| 字段             | 类型        | 说明        |
-| ---------------- | ----------- | ----------- |
-| `_id`            | string      | 帖子 ID     |
-| `author_user_id` | string      | 作者        |
-| `community_id`   | string      | 社区        |
-| `title`          | string      | 标题        |
-| `content`        | string      | 内容        |
-| `language`       | `zh` / `en` | 语言        |
-| `tag_ids`        | string[]    | 标签        |
-| `location_text`  | string/null | 位置文本    |
-| `image_file_ids` | string[]    | 图片文件 ID |
-| `image_urls`     | URL[]       | 图片 URL    |
-| `status`         | string      | 内容状态    |
-| `review_status`  | string      | 审核状态    |
+| 字段             | 类型        | 说明         |
+| ---------------- | ----------- | ------------ |
+| `_id`            | string      | 帖子 ID      |
+| `author_user_id` | string      | 作者         |
+| `community_id`   | string      | 社区         |
+| `title`          | string      | 标题         |
+| `content`        | string      | 内容         |
+| `language`       | `zh` / `en` | 语言         |
+| `tag_ids`        | string[]    | 标签         |
+| `location_text`  | string/null | 位置文本     |
+| `image_file_ids` | string[]    | 图片文件 ID  |
+| `image_urls`     | URL[]       | 图片 URL     |
+| `place_id`       | string/null | 关联地点     |
+| `event_id`       | string/null | 关联活动     |
+| `created_at`     | string      | 创建时间     |
+| `updated_at`     | string      | 更新时间     |
+| `comment_count`  | number      | 可见评论数   |
+| `like_count`     | number      | 点赞数       |
+| `favorite_count` | number      | 收藏数       |
+| `share_count`    | number      | 分享数       |
+| `author_display` | object      | 作者展示快照 |
+| `status`         | string      | 内容状态     |
+| `review_status`  | string      | 审核状态     |
 
 示例：
 
@@ -807,6 +816,10 @@ Body：
 | `location_text`  | string/null | 否   | `null` | 位置        |
 | `image_file_ids` | string[]    | 否   | `[]`   | 图片文件 ID |
 | `image_urls`     | URL[]       | 否   | `[]`   | 图片 URL    |
+| `place_id`       | string/null | 否   | `null` | 关联地点    |
+| `event_id`       | string/null | 否   | `null` | 关联活动    |
+
+帖子媒体的 HTTP/H5 生产路径推荐调用 `POST /files/post-media` 直接上传 `multipart/form-data` 的 `file` 字段，成功后把返回的 `file_id` 放入 `image_file_ids`。微信小程序 `cloudbase-function` 模式可先调用 `POST /files/upload-requests` 获取 `cloud_path`，再用 `wx.cloud.uploadFile` 上传真实文件，最后调用 `POST /files/complete` 登记。API 会拒绝不存在、非本人上传、非 public、非 active 或不在 `public/posts/` 下的文件 ID。
 
 响应 data：`Post`
 
@@ -817,6 +830,50 @@ curl -X POST http://127.0.0.1:8787/discover/posts \
   -H 'content-type: application/json' \
   -H 'x-mock-user-id: user_001' \
   -d '{"title":"Hello","content":"Welcome","language":"en","tag_ids":["intro"]}'
+```
+
+### GET `/discover/me/posts`
+
+用途：获取当前 actor 自己发布的帖子，包括 hidden / reported / deleted 等 owner-visible 状态。
+
+权限：需要当前 actor。
+
+Query：
+
+| 字段          | 类型   | 默认值      | 说明              |
+| ------------- | ------ | ----------- | ----------------- |
+| `page`        | number | `1`         | 页码              |
+| `pageSize`    | number | `10`        | 每页数量，最大 50 |
+| `communityId` | string | `tongzilin` | 社区 ID           |
+
+响应 data：分页 `Post[]`
+
+示例：
+
+```bash
+curl 'http://127.0.0.1:8787/discover/me/posts' \
+  -H 'x-mock-user-id: user_001'
+```
+
+### GET `/discover/posts/:id/comments`
+
+用途：读取可见帖子的可见评论列表。missing、hidden、deleted、reported 等不可用帖子返回 `404`，不暴露评论。
+
+权限：无。
+
+Query：
+
+| 字段       | 类型   | 默认值 | 说明              |
+| ---------- | ------ | ------ | ----------------- |
+| `page`     | number | `1`    | 页码              |
+| `pageSize` | number | `20`   | 每页数量，最大 50 |
+
+响应 data：分页 `Comment[]`。`Comment` 包含 `_id`、`post_id`、`author_user_id`、`content`、`language`、`status`、`created_at`。
+
+示例：
+
+```bash
+curl 'http://127.0.0.1:8787/discover/posts/post_001/comments?page=1&pageSize=20'
 ```
 
 ### POST `/discover/posts/:id/comments`
@@ -1481,6 +1538,28 @@ curl -X POST http://127.0.0.1:8787/files/upload-requests \
   }'
 ```
 
+### POST `/files/post-media`
+
+用途：为 discover 帖子直接上传图片或视频媒体。成功后返回 active public `FileAsset`，创建帖子时提交返回的 `file_id` 到 `image_file_ids`。
+
+权限：需要当前 actor。
+
+请求：`multipart/form-data`
+
+| 字段   | 类型 | 必填 | 说明                               |
+| ------ | ---- | ---- | ---------------------------------- |
+| `file` | file | 是   | 支持 jpg/png/webp/gif/mp4/mov/webm |
+
+响应 data：`FileAsset`
+
+示例：
+
+```bash
+curl -X POST http://127.0.0.1:8787/files/post-media \
+  -H 'x-mock-user-id: user_001' \
+  -F 'file=@./local-tip.jpg'
+```
+
 ### POST `/files/complete`
 
 用途：上传完成后登记文件资产。
@@ -1579,6 +1658,7 @@ curl -X POST http://127.0.0.1:8787/files/private-url \
 | Places   | `POST`   | `/admin/places/:id/gallery-files`      | admin       | 直接追加地点图集图片   |
 | Places   | `DELETE` | `/admin/places/:id`                    | admin       | 删除地点               |
 | Files    | `POST`   | `/files/upload-requests`               | conditional | 创建上传请求           |
+| Files    | `POST`   | `/files/post-media`                    | actor       | 直接上传帖子媒体       |
 | Files    | `POST`   | `/files/complete`                      | conditional | 完成文件登记           |
 | Files    | `POST`   | `/files/private-url`                   | actor       | 获取私有文件临时地址   |
 

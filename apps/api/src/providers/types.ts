@@ -86,7 +86,19 @@ export interface ApiProvider {
       keyword?: string;
       communityId?: string;
     }): Promise<PageResult<Post>>;
+    listMine(
+      input: {
+        page?: number;
+        pageSize?: number;
+        communityId?: string;
+      },
+      actorId?: string
+    ): Promise<PageResult<Post>>;
     detail(id: string): Promise<Post | null>;
+    listComments(
+      postId: string,
+      input: { page?: number; pageSize?: number }
+    ): Promise<PageResult<Comment>>;
     create(input: Partial<Post>, actorId?: string): Promise<Post>;
     createComment(
       postId: string,
@@ -161,5 +173,14 @@ export interface ApiProvider {
       temp_url: string;
       expires_at: string;
     }>;
+    uploadPostMedia(
+      input: {
+        file_name: string;
+        content_type: string;
+        buffer: Buffer;
+        kind: "image" | "video";
+      },
+      actorId?: string
+    ): Promise<FileAsset>;
   };
 }

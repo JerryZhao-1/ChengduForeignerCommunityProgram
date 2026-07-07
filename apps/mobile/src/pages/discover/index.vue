@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { onLoad, onPullDownRefresh, onReachBottom } from "@dcloudio/uni-app";
+import {
+  onLoad,
+  onPullDownRefresh,
+  onReachBottom,
+  onShow
+} from "@dcloudio/uni-app";
 import type { Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
@@ -25,6 +30,7 @@ const isRefreshing = ref(false);
 const isLoadingMore = ref(false);
 const errorMessage = ref("");
 const statusBarHeight = ref(0);
+const hasLoaded = ref(false);
 
 const copy = computed(() => appCopy[state.locale].discover);
 const hasMore = computed(() => posts.value.length < total.value);
@@ -123,7 +129,16 @@ const openSearch = () => {
 
 onLoad(() => {
   statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight ?? 0;
-  loadPosts();
+  loadPosts().finally(() => {
+    hasLoaded.value = true;
+  });
+});
+
+onShow(() => {
+  if (hasLoaded.value) {
+    page.value = 1;
+    loadPosts(1);
+  }
 });
 
 onPullDownRefresh(refresh);
@@ -198,7 +213,11 @@ onReachBottom(loadMore);
             </view>
             <view class="card-text">{{ summarize(post.content) }}</view>
             <view class="meta-row">
+              <text class="meta">{{ post.author_display.nickname }}</text>
+              <text class="meta">{{ post.created_at.slice(0, 10) }}</text>
               <text class="meta">{{ post.location_text || copy.locationFallback }}</text>
+              <text class="meta">{{ post.comment_count }} {{ copy.commentSectionTitle }}</text>
+              <text class="meta">{{ post.like_count }} ♥</text>
               <text v-if="getMediaMeta(post)" class="meta">
                 {{ getMediaMeta(post) }}
               </text>

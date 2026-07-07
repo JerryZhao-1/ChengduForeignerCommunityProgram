@@ -3,18 +3,28 @@ import type { Context } from "koa";
 import { apiError } from "./errors";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const MAX_MULTIPART_BYTES = MAX_IMAGE_BYTES + 1024 * 1024;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const MAX_MULTIPART_BYTES = MAX_VIDEO_BYTES + 1024 * 1024;
 const SUPPORTED_IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/gif"
 ]);
+const SUPPORTED_VIDEO_TYPES = new Set([
+  "video/mp4",
+  "video/quicktime",
+  "video/webm"
+]);
 
 export interface UploadedImageFile {
   file_name: string;
   content_type: string;
   buffer: Buffer;
+}
+
+export interface UploadedPostMediaFile extends UploadedImageFile {
+  kind: "image" | "video";
 }
 
 const readRequestBuffer = async (ctx: Context) => {
@@ -74,9 +84,29 @@ const stripTrailingCrlf = (buffer: Buffer) =>
       : undefined
   );
 
-export const parseMultipartImageUpload = async (
-  ctx: Context
-): Promise<UploadedImageFile> => {
+const inferContentTypeFromFileName = (fileName: string) => {
+  const extension = fileName.split(".").pop()?.toLowerCase();
+  const types: Record<string, string> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    gif: "image/gif",
+    mp4: "video/mp4",
+    mov: "video/quicktime",
+    webm: "video/webm"
+  };
+
+  return extension ? types[extension] : undefined;
+};
+
+const parseMultipartUpload = async (
+  ctx: Context,
+  options: {
+    purpose: string;
+    allowVideo: boolean;
+  }
+): Promise<UploadedPostMediaFile> => {
   const contentType = ctx.get("content-type");
   const boundary = contentType.match(/boundary=([^;]+)/)?.[1];
   const contentLength = Number(ctx.get("content-length"));
@@ -90,9 +120,14 @@ export const parseMultipartImageUpload = async (
   }
 
   if (Number.isFinite(contentLength) && contentLength > MAX_MULTIPART_BYTES) {
-    throw apiError("VALIDATION_ERROR", "Gallery upload is too large.", 400, {
-      max_bytes: MAX_MULTIPART_BYTES
-    });
+    throw apiError(
+      "VALIDATION_ERROR",
+      `${options.purpose} is too large.`,
+      400,
+      {
+        max_bytes: MAX_MULTIPART_BYTES
+      }
+    );
   }
 
   const body = await readRequestBuffer(ctx);
@@ -140,34 +175,69 @@ export const parseMultipartImageUpload = async (
     if (!fileName || fileBody.length === 0) {
       throw apiError(
         "VALIDATION_ERROR",
-        "Uploaded image file is required.",
+        `Uploaded ${options.purpose} file is required.`,
         400
       );
     }
 
-    if (!SUPPORTED_IMAGE_TYPES.has(fileContentType)) {
+    const normalizedContentType =
+      fileContentType === "application/octet-stream"
+        ? (inferContentTypeFromFileName(fileName) ?? fileContentType)
+        : fileContentType;
+    const isImage = SUPPORTED_IMAGE_TYPES.has(normalizedContentType);
+    const isVideo =
+      options.allowVideo && SUPPORTED_VIDEO_TYPES.has(normalizedContentType);
+
+    if (!isImage && !isVideo) {
       throw apiError(
         "VALIDATION_ERROR",
-        "Unsupported gallery image type.",
+        `Unsupported ${options.purpose} type.`,
         400,
         {
-          content_type: fileContentType
+          content_type: normalizedContentType
         }
       );
     }
 
-    if (fileBody.length > MAX_IMAGE_BYTES) {
-      throw apiError("VALIDATION_ERROR", "Gallery image is too large.", 400, {
-        max_bytes: MAX_IMAGE_BYTES
-      });
+    const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (fileBody.length > maxBytes) {
+      throw apiError(
+        "VALIDATION_ERROR",
+        `${options.purpose} is too large.`,
+        400,
+        {
+          max_bytes: maxBytes
+        }
+      );
     }
 
     return {
       file_name: fileName,
-      content_type: fileContentType,
-      buffer: fileBody
+      content_type: normalizedContentType,
+      buffer: fileBody,
+      kind: isVideo ? "video" : "image"
     };
   }
 
-  throw apiError("VALIDATION_ERROR", "Uploaded image file is required.", 400);
+  throw apiError(
+    "VALIDATION_ERROR",
+    `Uploaded ${options.purpose} file is required.`,
+    400
+  );
 };
+
+export const parseMultipartImageUpload = async (
+  ctx: Context
+): Promise<UploadedImageFile> =>
+  parseMultipartUpload(ctx, {
+    purpose: "image",
+    allowVideo: false
+  });
+
+export const parseMultipartPostMediaUpload = async (
+  ctx: Context
+): Promise<UploadedPostMediaFile> =>
+  parseMultipartUpload(ctx, {
+    purpose: "post media",
+    allowVideo: true
+  });
