@@ -107,6 +107,13 @@
       }
     },
     {
+      "path": "pages/more/profile",
+      "style": {
+        "navigationBarTitleText": "个人主页",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/more/language-settings",
       "style": {
         "navigationBarTitleText": "语言设置"
