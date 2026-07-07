@@ -85,7 +85,7 @@ onMounted(load);
 
       <SectionPanel :title="copy.moreActions">
         <view class="quick-grid">
-          <view class="quick-item" @click="open('/pages/more/login')">登录</view>
+          <view class="quick-item" @click="open('/pages/more/profile')">个人主页</view>
           <view class="quick-item" @click="open('/pages/more/notifications')">通知中心</view>
           <view class="quick-item" @click="open('/pages/more/my-registrations')">我的报名</view>
           <view class="quick-item" @click="open('/pages/more/language-settings')">语言设置</view>

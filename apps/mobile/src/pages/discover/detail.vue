@@ -11,6 +11,7 @@ import { normalizePostMedia } from "./media";
 
 interface CommentItem {
   id: string;
+  authorId?: string;
   authorName: string;
   avatarUrl: string;
   content: string;
@@ -55,6 +56,7 @@ const authorProfiles: Record<string, { name: string; avatarUrl: string }> = {
 const comments = ref<CommentItem[]>([
   {
     id: "comment_001",
+    authorId: "user_002",
     authorName: "Emma",
     avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
     content: "I'd love to join! Are weekends or weekday evenings better for everyone?",
@@ -64,8 +66,9 @@ const comments = ref<CommentItem[]>([
   },
   {
     id: "comment_002",
+    authorId: "user_003",
     authorName: "李雷",
-    avatarUrl: "",
+    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
     content: "桐梓林网球场周末上午人比较多，建议提前订场。",
     time: "5h",
     likeCount: 8,
@@ -73,6 +76,7 @@ const comments = ref<CommentItem[]>([
   },
   {
     id: "comment_003",
+    authorId: "user_004",
     authorName: "Sophie",
     avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80",
     content: "Beginner here, hope it's okay to tag along just to practice rallies.",
@@ -167,6 +171,7 @@ const submitComment = async () => {
     comments.value = [
       {
         id: `comment_local_${Date.now()}`,
+        authorId: "user_001",
         authorName: "Jerry",
         avatarUrl: authorProfiles.user_001.avatarUrl,
         content,
@@ -220,6 +225,19 @@ const toggleFollow = () => {
     title: isFollowing.value ? copy.value.followDone : copy.value.unfollowDone,
     icon: "none"
   });
+};
+
+const openProfile = (userId?: string) => {
+  if (!userId) {
+    return;
+  }
+  uni.navigateTo({
+    url: `/pages/more/profile?id=${userId}`
+  });
+};
+
+const openAuthorProfile = () => {
+  openProfile(post.value?.author_user_id);
 };
 
 const togglePostLike = () => {
@@ -321,11 +339,12 @@ const openActions = () => {
             class="nav-avatar"
             :src="author.avatarUrl"
             mode="aspectFill"
+            @click.stop="openAuthorProfile"
           />
-          <view v-else class="nav-avatar fallback">
+          <view v-else class="nav-avatar fallback" @click.stop="openAuthorProfile">
             {{ author.name.slice(0, 1).toUpperCase() }}
           </view>
-          <view class="nav-user">
+          <view class="nav-user" @click.stop="openAuthorProfile">
             <view class="nav-name">{{ author.name }}</view>
             <view class="nav-id">{{ post?.author_user_id }}</view>
           </view>
@@ -425,12 +444,19 @@ const openActions = () => {
                 class="comment-avatar"
                 :src="comment.avatarUrl"
                 mode="aspectFill"
+                @click.stop="openProfile(comment.authorId)"
               />
-              <view v-else class="comment-avatar fallback">
+              <view
+                v-else
+                class="comment-avatar fallback"
+                @click.stop="openProfile(comment.authorId)"
+              >
                 {{ comment.authorName.slice(0, 1).toUpperCase() }}
               </view>
               <view class="comment-main">
-                <view class="comment-name">{{ comment.authorName }}</view>
+                <view class="comment-name" @click.stop="openProfile(comment.authorId)">
+                  {{ comment.authorName }}
+                </view>
                 <view class="comment-text">{{ comment.content }}</view>
                 <view class="comment-time">{{ comment.time }}</view>
               </view>

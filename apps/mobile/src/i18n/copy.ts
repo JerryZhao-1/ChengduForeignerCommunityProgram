@@ -120,6 +120,24 @@ export const appCopy = {
       reportReasonRequired: "请选择举报原因",
       reportSuccess: "已提交给社区管理员处理",
       reportError: "举报失败，请稍后重试"
+    },
+    profile: {
+      posts: "帖子",
+      videos: "视频",
+      textBadge: "文字",
+      communityLabel: "桐梓林社区",
+      followers: "粉丝",
+      following: "关注",
+      editProfile: "编辑资料",
+      shareProfile: "分享主页",
+      follow: "关注",
+      followed: "已关注",
+      message: "发消息",
+      emptyPosts: "还没有发布内容",
+      bioFallback: "这个人很神秘，还没有填写简介。",
+      shareLinkCopied: "主页链接已复制",
+      followDone: "已关注",
+      unfollowDone: "已取消关注"
     }
   },
   en: {
@@ -243,6 +261,24 @@ export const appCopy = {
       reportReasonRequired: "Please select a report reason",
       reportSuccess: "Sent to community admins",
       reportError: "Could not submit report. Please try again"
+    },
+    profile: {
+      posts: "Posts",
+      videos: "Videos",
+      textBadge: "Text",
+      communityLabel: "Tongzilin",
+      followers: "Followers",
+      following: "Following",
+      editProfile: "Edit Profile",
+      shareProfile: "Share Profile",
+      follow: "Follow",
+      followed: "Following",
+      message: "Message",
+      emptyPosts: "No posts yet",
+      bioFallback: "No bio yet.",
+      shareLinkCopied: "Profile link copied",
+      followDone: "Followed",
+      unfollowDone: "Unfollowed"
     }
   }
 } as const;
