@@ -434,7 +434,12 @@ describe("discover integration readiness", () => {
       expect(list.response.status).toBe(200);
       expect(list.body.data.items.map((post) => post._id)).toEqual([
         "post_001",
-        "post_002"
+        "post_002",
+        "post_003",
+        "post_004",
+        "post_005",
+        "post_006",
+        "post_007"
       ]);
 
       const hidden = await request<ApiFailure>(baseUrl, "/discover/posts/post_hidden");
