@@ -1,4 +1,8 @@
-import type { Event, EventRegistration } from "@community-map/shared";
+import {
+  ApiClientError,
+  type Event,
+  type EventRegistration
+} from "@community-map/shared";
 
 export interface EventSignupState {
   canSignup: boolean;
@@ -13,6 +17,43 @@ export interface EventSignupStateOptions {
 export const isActiveEventRegistration = (registration: EventRegistration) =>
   registration.registration_status !== "cancelled" &&
   registration.registration_status !== "closed";
+
+export const findActiveRegistrationForEvent = (
+  registrations: EventRegistration[],
+  eventId: string
+) =>
+  registrations.find(
+    (registration) =>
+      registration.event_id === eventId &&
+      isActiveEventRegistration(registration)
+  ) ?? null;
+
+const submitErrorReason = (err: ApiClientError) => {
+  if (
+    err.details &&
+    typeof err.details === "object" &&
+    "reason" in err.details
+  ) {
+    const reason = err.details.reason;
+    return typeof reason === "string" ? reason : "";
+  }
+
+  return "";
+};
+
+export const shouldConfirmRegistrationAfterSubmitError = (err: unknown) => {
+  if (err instanceof ApiClientError) {
+    return (
+      err.code === "CONFLICT" && submitErrorReason(err) === "already_registered"
+    );
+  }
+
+  if (err instanceof Error && /^HTTP \d{3}/.test(err.message)) {
+    return false;
+  }
+
+  return true;
+};
 
 export const isPublicEvent = (
   event: Pick<Event, "review_status" | "publish_status">

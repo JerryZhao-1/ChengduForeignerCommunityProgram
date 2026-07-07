@@ -10,9 +10,11 @@ import { onLoad, onShow } from "@dcloudio/uni-app";
 import { mobileApi } from "@/api/client";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 import {
+  findActiveRegistrationForEvent,
   getEventSignupState,
   isActiveEventRegistration,
-  isPublicEvent
+  isPublicEvent,
+  shouldConfirmRegistrationAfterSubmitError
 } from "./event-signup-state";
 
 const { state } = useAppStore();
@@ -57,12 +59,7 @@ const currentRegistration = computed(() => {
     return null;
   }
 
-  return (
-    registrations.value.find(
-      (item) =>
-        item.event_id === event.value?._id && isActiveEventRegistration(item)
-    ) ?? null
-  );
+  return findActiveRegistrationForEvent(registrations.value, event.value._id);
 });
 
 onLoad((query) => {
@@ -73,7 +70,9 @@ onShow(() => {
   void loadEvent(eventId.value);
 });
 
-const loadRegistrationTicket = async (registration: EventRegistration | null) => {
+const loadRegistrationTicket = async (
+  registration: EventRegistration | null
+) => {
   if (!registration) {
     ticketCode.value = "";
     return;
@@ -168,7 +167,11 @@ const submit = async () => {
     return;
   }
 
-  if (!Number.isInteger(attendeeCount) || attendeeCount < 1 || attendeeCount > 10) {
+  if (
+    !Number.isInteger(attendeeCount) ||
+    attendeeCount < 1 ||
+    attendeeCount > 10
+  ) {
     uni.showToast({ title: "报名人数需为 1-10 人", icon: "none" });
     return;
   }
@@ -176,8 +179,10 @@ const submit = async () => {
   submitting.value = true;
   ticketCode.value = "";
 
+  const currentEventId = event.value._id;
+
   try {
-    const result = await mobileApi.events.register(event.value._id, {
+    const result = await mobileApi.events.register(currentEventId, {
       contact_name: name,
       contact_phone: phone,
       attendee_count: attendeeCount,
@@ -191,10 +196,57 @@ const submit = async () => {
     ticketCode.value = result.data.ticket.ticket_code;
     uni.showToast({ title: "报名成功", icon: "success" });
   } catch (err) {
-    console.error(err);
+    const shouldConfirm = shouldConfirmRegistrationAfterSubmitError(err);
+    const confirmed = shouldConfirm
+      ? await confirmRegistrationAfterSubmitError(currentEventId)
+      : false;
+
+    if (confirmed) {
+      uni.showToast({ title: "报名成功", icon: "success" });
+      return;
+    }
+
+    console.warn("[events:signup] submit failed", err);
     uni.showToast({ title: "报名失败，请稍后重试", icon: "none" });
   } finally {
     submitting.value = false;
+  }
+};
+
+const confirmRegistrationAfterSubmitError = async (currentEventId: string) => {
+  try {
+    const registrationResult = await mobileApi.events.myRegistrations();
+    const latestRegistrations = Array.isArray(registrationResult.data)
+      ? registrationResult.data
+      : [];
+    const confirmedRegistration = findActiveRegistrationForEvent(
+      latestRegistrations,
+      currentEventId
+    );
+
+    if (!confirmedRegistration) {
+      console.warn(
+        "[events:signup] no registration found after submit failure"
+      );
+      return false;
+    }
+
+    registrations.value = mergeRegistration(
+      latestRegistrations,
+      confirmedRegistration
+    );
+    await loadRegistrationTicket(confirmedRegistration);
+    console.warn(
+      "[events:signup] registration confirmed after submit failure",
+      confirmedRegistration._id
+    );
+    return true;
+  } catch (confirmationError) {
+    console.warn(
+      "[events:signup] registration confirmation failed",
+      confirmationError
+    );
+    return false;
   }
 };
 
@@ -202,7 +254,9 @@ const mergeRegistration = (
   items: EventRegistration[],
   registration: EventRegistration
 ) => {
-  const existingIndex = items.findIndex((item) => item._id === registration._id);
+  const existingIndex = items.findIndex(
+    (item) => item._id === registration._id
+  );
 
   if (existingIndex >= 0) {
     return items.map((item, index) =>
@@ -230,8 +284,13 @@ const formatTime = (input: string) => {
 
     <template v-else-if="event">
       <view class="card">
-        <text class="title">{{ pickLocalized(state.locale, event.title_zh, event.title_en) }}</text>
-        <text class="meta">时间：{{ formatTime(event.start_time) }} - {{ formatTime(event.end_time) }}</text>
+        <text class="title">{{
+          pickLocalized(state.locale, event.title_zh, event.title_en)
+        }}</text>
+        <text class="meta"
+          >时间：{{ formatTime(event.start_time) }} -
+          {{ formatTime(event.end_time) }}</text
+        >
         <text class="meta">地点：{{ event.address_text }}</text>
       </view>
 

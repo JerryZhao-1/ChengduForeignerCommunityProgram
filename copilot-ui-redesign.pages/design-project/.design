@@ -1,0 +1,13 @@
+{
+  "data": [],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "desktop",
+    "projectName": "桐梓林生活导航 Copilot",
+    "windowSize": {
+      "width": 800,
+      "height": 600
+    },
+    "showEdge": false
+  }
+}

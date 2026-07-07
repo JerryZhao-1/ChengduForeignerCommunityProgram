@@ -1,7 +1,10 @@
 import {
+  ApiClientError,
+  ApiFailureResultSchema,
   createFetchRequester,
   createHttpClient,
   createMockClient,
+  type ApiError,
   type HttpRequester
 } from "@community-map/shared";
 
@@ -26,6 +29,29 @@ declare const wx:
     }
   | undefined;
 
+const createHttpStatusError = (status: number, payload: unknown): ApiError => ({
+  code: "UPSTREAM_ERROR",
+  message: `HTTP request failed with status ${status}.`,
+  details: payload
+});
+
+const assertSuccessfulApiResponse = (payload: unknown, status?: number) => {
+  const parsed = ApiFailureResultSchema.safeParse(payload);
+
+  if (parsed.success) {
+    throw new ApiClientError(parsed.data.error, {
+      requestId: parsed.data.requestId,
+      status
+    });
+  }
+
+  if (status !== undefined && (status < 200 || status >= 300)) {
+    throw new ApiClientError(createHttpStatusError(status, payload), {
+      status
+    });
+  }
+};
+
 const createUniRequester = (): HttpRequester => {
   if (typeof uni === "undefined" || typeof uni.request !== "function") {
     return createFetchRequester();
@@ -42,12 +68,12 @@ const createUniRequester = (): HttpRequester => {
         success: (result) => {
           const statusCode = result.statusCode ?? 500;
 
-          if (statusCode < 200 || statusCode >= 300) {
-            reject(new Error(`HTTP ${statusCode}`));
-            return;
+          try {
+            assertSuccessfulApiResponse(result.data, statusCode);
+            resolve(result.data as any);
+          } catch (err) {
+            reject(err);
           }
-
-          resolve(result.data as any);
         },
         fail: reject
       });
@@ -79,10 +105,7 @@ const createCloudbaseFunctionRequester = (): HttpRequester => {
         header: headers
       });
 
-      if (result.statusCode < 200 || result.statusCode >= 300) {
-        throw new Error(`HTTP ${result.statusCode}`);
-      }
-
+      assertSuccessfulApiResponse(result.data, result.statusCode);
       return result.data as any;
     }
 
@@ -100,6 +123,7 @@ const createCloudbaseFunctionRequester = (): HttpRequester => {
       }
     });
 
+    assertSuccessfulApiResponse(result.result);
     return result.result as any;
   };
 };
