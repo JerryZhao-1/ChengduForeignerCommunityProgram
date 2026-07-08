@@ -183,6 +183,77 @@ export const CommentSchema = z.object({
   created_at: z.string()
 });
 
+export const ReportEvidenceReferenceSchema = z.object({
+  file_id: z.string(),
+  cloud_path: z.string(),
+  visibility: FileVisibilitySchema,
+  temp_url: z.string().url().optional()
+});
+
+export const DiscoverReportCaseSchema = z.object({
+  _id: z.string(),
+  community_id: z.string(),
+  target_type: z.enum(["post", "comment"]),
+  target_id: z.string(),
+  post_id: z.string(),
+  comment_id: z.string().nullable(),
+  reporter_user_id: z.string(),
+  reason: z.string(),
+  description: z.string().nullable(),
+  evidence_file_ids: z.array(z.string()),
+  evidence: z.array(ReportEvidenceReferenceSchema).default([]),
+  status: z.enum(["open", "actioned", "rejected"]),
+  handler_user_id: z.string().nullable(),
+  resolution_note: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  resolved_at: z.string().nullable()
+});
+
+export const DiscoverAuditRecordSchema = z.object({
+  _id: z.string(),
+  community_id: z.string(),
+  actor_user_id: z.string(),
+  action: z.string(),
+  target_type: z.enum(["post", "comment", "report", "user"]),
+  target_id: z.string(),
+  reason: z.string().nullable(),
+  previous_state: z.record(z.unknown()).nullable(),
+  next_state: z.record(z.unknown()).nullable(),
+  created_at: z.string()
+});
+
+export const UserEnforcementStateSchema = z.object({
+  status: z.enum(["active", "warned", "muted", "banned"]),
+  reason: z.string().nullable(),
+  notes: z.string().nullable(),
+  expires_at: z.string().nullable(),
+  updated_at: z.string().nullable(),
+  updated_by: z.string().nullable()
+});
+
+export const DiscoverUserGovernanceSummarySchema = z.object({
+  user: UserSchema,
+  enforcement: UserEnforcementStateSchema,
+  post_count: z.number().int().min(0),
+  comment_count: z.number().int().min(0),
+  report_count: z.number().int().min(0),
+  violation_count: z.number().int().min(0)
+});
+
+export const DiscoverUserGovernanceDetailSchema =
+  DiscoverUserGovernanceSummarySchema.extend({
+    posts: z.array(PostSchema),
+    comments: z.array(CommentSchema),
+    reports: z.array(DiscoverReportCaseSchema),
+    audit_records: z.array(DiscoverAuditRecordSchema)
+  });
+
+export const DiscoverMeGovernanceSchema =
+  DiscoverUserGovernanceSummarySchema.extend({
+    unread_notification_count: z.number().int().min(0)
+  });
+
 export const AnnouncementSchema = z.object({
   _id: z.string(),
   community_id: z.string(),

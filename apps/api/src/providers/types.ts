@@ -2,6 +2,11 @@ import type {
   Announcement,
   AuthSession,
   Comment,
+  DiscoverAuditRecord,
+  DiscoverMeGovernance,
+  DiscoverReportCase,
+  DiscoverUserGovernanceDetail,
+  DiscoverUserGovernanceSummary,
   Event,
   EventAdminListItem,
   EventAdminRegistrationRow,
@@ -19,6 +24,7 @@ import type {
   PlaceListItem,
   PlaceMapMarker,
   Post,
+  UserEnforcementState,
   User
 } from "@community-map/shared";
 
@@ -94,10 +100,35 @@ export interface ApiProvider {
       },
       actorId?: string
     ): Promise<PageResult<Post>>;
+    meGovernance(actorId?: string): Promise<DiscoverMeGovernance>;
+    listAdmin(
+      input: {
+        page?: number;
+        pageSize?: number;
+        communityId?: string;
+        keyword?: string;
+        authorUserId?: string;
+        language?: "zh" | "en";
+        tag?: string;
+        status?: string;
+      },
+      actorId?: string
+    ): Promise<PageResult<Post>>;
     detail(id: string): Promise<Post | null>;
     listComments(
       postId: string,
       input: { page?: number; pageSize?: number }
+    ): Promise<PageResult<Comment>>;
+    listAdminComments(
+      input: {
+        page?: number;
+        pageSize?: number;
+        postId?: string;
+        authorUserId?: string;
+        keyword?: string;
+        status?: string;
+      },
+      actorId?: string
     ): Promise<PageResult<Comment>>;
     create(input: Partial<Post>, actorId?: string): Promise<Post>;
     createComment(
@@ -105,11 +136,91 @@ export interface ApiProvider {
       input: Pick<Comment, "content" | "language">,
       actorId?: string
     ): Promise<Comment>;
-    report(id: string): Promise<Post | null>;
+    report(
+      id: string,
+      input: {
+        reason: string;
+        description?: string;
+        evidence_file_ids?: string[];
+      },
+      actorId?: string
+    ): Promise<Post | null>;
+    reportComment(
+      postId: string,
+      commentId: string,
+      input: {
+        reason: string;
+        description?: string;
+        evidence_file_ids?: string[];
+      },
+      actorId?: string
+    ): Promise<DiscoverReportCase | null>;
     moderate(
       id: string,
-      input: { review_status: Post["review_status"] }
+      input: { review_status: Post["review_status"]; reason?: string },
+      actorId?: string
     ): Promise<Post | null>;
+    moderateComment(
+      id: string,
+      input: { status: Comment["status"]; reason?: string },
+      actorId?: string
+    ): Promise<Comment | null>;
+    listReportCases(
+      input: {
+        page?: number;
+        pageSize?: number;
+        targetType?: "post" | "comment";
+        status?: string;
+        reason?: string;
+      },
+      actorId?: string
+    ): Promise<PageResult<DiscoverReportCase>>;
+    detailReportCase(
+      id: string,
+      actorId?: string
+    ): Promise<DiscoverReportCase | null>;
+    resolveReportCase(
+      id: string,
+      input: {
+        status: "actioned" | "rejected";
+        reason: string;
+        moderation_action?: "none" | "hide" | "restore" | "delete";
+      },
+      actorId?: string
+    ): Promise<DiscoverReportCase | null>;
+    listGovernanceUsers(
+      input: {
+        page?: number;
+        pageSize?: number;
+        keyword?: string;
+        status?: string;
+      },
+      actorId?: string
+    ): Promise<PageResult<DiscoverUserGovernanceSummary>>;
+    detailGovernanceUser(
+      id: string,
+      actorId?: string
+    ): Promise<DiscoverUserGovernanceDetail | null>;
+    enforceUser(
+      id: string,
+      input: {
+        status: UserEnforcementState["status"];
+        reason: string;
+        notes?: string;
+        expires_at?: string | null;
+      },
+      actorId?: string
+    ): Promise<DiscoverUserGovernanceDetail | null>;
+    listAuditRecords(
+      input: {
+        page?: number;
+        pageSize?: number;
+        targetType?: "post" | "comment" | "report" | "user";
+        targetId?: string;
+        actorUserId?: string;
+      },
+      actorId?: string
+    ): Promise<PageResult<DiscoverAuditRecord>>;
   };
   places: {
     list(input: {
@@ -179,6 +290,16 @@ export interface ApiProvider {
         content_type: string;
         buffer: Buffer;
         kind: "image" | "video";
+      },
+      actorId?: string
+    ): Promise<FileAsset>;
+    uploadReportEvidence(
+      input: {
+        file_name: string;
+        content_type: string;
+        buffer: Buffer;
+        kind: "image" | "video";
+        biz_id?: string;
       },
       actorId?: string
     ): Promise<FileAsset>;

@@ -65,6 +65,7 @@ const buildImageUploadFormData = (input: {
   file: Blob;
   file_name?: string;
   content_type?: string;
+  biz_id?: string;
 }) => {
   const formData = new FormData();
   formData.append(
@@ -74,6 +75,9 @@ const buildImageUploadFormData = (input: {
   );
   if (input.content_type) {
     formData.append("content_type", input.content_type);
+  }
+  if (input.biz_id) {
+    formData.append("biz_id", input.biz_id);
   }
   return formData;
 };
@@ -174,6 +178,7 @@ export const createHttpClient = (
         const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.discover.myPosts}${suffix}`);
       },
+      meGovernance: () => request("GET", apiPaths.discover.meGovernance),
       listComments: (id, query) => {
         const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.discover.listComments(id)}${suffix}`);
@@ -181,7 +186,13 @@ export const createHttpClient = (
       createComment: (id, input) =>
         request("POST", apiPaths.discover.createComment(id), input),
       reportPost: (id, input) =>
-        request("POST", apiPaths.discover.reportPost(id), input)
+        request("POST", apiPaths.discover.reportPost(id), input),
+      reportComment: (postId, commentId, input) =>
+        request(
+          "POST",
+          apiPaths.discover.reportComment(postId, commentId),
+          input
+        )
     },
     places: {
       list: (query) => {
@@ -209,6 +220,12 @@ export const createHttpClient = (
         request(
           "POST",
           apiPaths.files.uploadPostMedia,
+          buildImageUploadFormData(input)
+        ),
+      uploadReportEvidence: (input) =>
+        request(
+          "POST",
+          apiPaths.files.uploadReportEvidence,
           buildImageUploadFormData(input)
         )
     },
@@ -240,6 +257,39 @@ export const createHttpClient = (
         ),
       moderatePost: (id, input) =>
         request("POST", apiPaths.admin.moderatePost(id), input),
+      listDiscoverPosts: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.admin.listDiscoverPosts}${suffix}`);
+      },
+      listDiscoverComments: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request(
+          "GET",
+          `${apiPaths.admin.listDiscoverComments}${suffix}`
+        );
+      },
+      moderateComment: (id, input) =>
+        request("POST", apiPaths.admin.moderateComment(id), input),
+      listDiscoverReports: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.admin.listDiscoverReports}${suffix}`);
+      },
+      detailDiscoverReport: (id) =>
+        request("GET", apiPaths.admin.detailDiscoverReport(id)),
+      resolveDiscoverReport: (id, input) =>
+        request("POST", apiPaths.admin.resolveDiscoverReport(id), input),
+      listDiscoverUsers: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.admin.listDiscoverUsers}${suffix}`);
+      },
+      detailDiscoverUser: (id) =>
+        request("GET", apiPaths.admin.detailDiscoverUser(id)),
+      enforceDiscoverUser: (id, input) =>
+        request("POST", apiPaths.admin.enforceDiscoverUser(id), input),
+      listDiscoverAudit: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.admin.listDiscoverAudit}${suffix}`);
+      },
       createPlace: (input) =>
         request("POST", apiPaths.admin.createPlace, input),
       updatePlace: (id, input) =>

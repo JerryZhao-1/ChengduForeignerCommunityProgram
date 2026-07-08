@@ -1,15 +1,13 @@
 import {
-  ApiClientError,
-  ApiFailureResultSchema,
   createFetchRequester,
   createHttpClient,
   createMockClient,
-  type ApiError,
   type HttpRequester
 } from "@community-map/shared";
 
 import { mobileEnv } from "@/config/env";
 import { resolveCloudbaseFunctionPath } from "./cloudbase-path";
+import { assertSuccessfulApiResponse, normalizeApiPayload } from "./response";
 
 declare const wx:
   | {
@@ -29,29 +27,6 @@ declare const wx:
     }
   | undefined;
 
-const createHttpStatusError = (status: number, payload: unknown): ApiError => ({
-  code: "UPSTREAM_ERROR",
-  message: `HTTP request failed with status ${status}.`,
-  details: payload
-});
-
-const assertSuccessfulApiResponse = (payload: unknown, status?: number) => {
-  const parsed = ApiFailureResultSchema.safeParse(payload);
-
-  if (parsed.success) {
-    throw new ApiClientError(parsed.data.error, {
-      requestId: parsed.data.requestId,
-      status
-    });
-  }
-
-  if (status !== undefined && (status < 200 || status >= 300)) {
-    throw new ApiClientError(createHttpStatusError(status, payload), {
-      status
-    });
-  }
-};
-
 const createUniRequester = (): HttpRequester => {
   if (typeof uni === "undefined" || typeof uni.request !== "function") {
     return createFetchRequester();
@@ -70,7 +45,7 @@ const createUniRequester = (): HttpRequester => {
 
           try {
             assertSuccessfulApiResponse(result.data, statusCode);
-            resolve(result.data as any);
+            resolve(normalizeApiPayload(result.data) as any);
           } catch (err) {
             reject(err);
           }

@@ -25,6 +25,7 @@ export interface UploadedImageFile {
 
 export interface UploadedPostMediaFile extends UploadedImageFile {
   kind: "image" | "video";
+  fields: Record<string, string>;
 }
 
 const readRequestBuffer = async (ctx: Context) => {
@@ -132,6 +133,8 @@ const parseMultipartUpload = async (
 
   const body = await readRequestBuffer(ctx);
   const parts = splitBuffer(body, Buffer.from(`--${boundary}`));
+  const fields: Record<string, string> = {};
+  let uploadedFile: UploadedPostMediaFile | null = null;
 
   for (const rawPart of parts) {
     let part = rawPart;
@@ -163,12 +166,19 @@ const parseMultipartUpload = async (
     }
 
     const params = parseContentDisposition(disposition);
-    if (params.get("name") !== "file") {
+    const fieldName = params.get("name");
+    if (!fieldName) {
+      continue;
+    }
+
+    const partBody = stripTrailingCrlf(part.subarray(headerEnd + 4));
+    if (fieldName !== "file") {
+      fields[fieldName] = partBody.toString("utf8");
       continue;
     }
 
     const fileName = params.get("filename")?.trim();
-    const fileBody = stripTrailingCrlf(part.subarray(headerEnd + 4));
+    const fileBody = partBody;
     const fileContentType =
       headers.get("content-type")?.toLowerCase() || "application/octet-stream";
 
@@ -211,12 +221,17 @@ const parseMultipartUpload = async (
       );
     }
 
-    return {
+    uploadedFile = {
       file_name: fileName,
       content_type: normalizedContentType,
       buffer: fileBody,
-      kind: isVideo ? "video" : "image"
+      kind: isVideo ? "video" : "image",
+      fields
     };
+  }
+
+  if (uploadedFile) {
+    return uploadedFile;
   }
 
   throw apiError(
@@ -239,5 +254,13 @@ export const parseMultipartPostMediaUpload = async (
 ): Promise<UploadedPostMediaFile> =>
   parseMultipartUpload(ctx, {
     purpose: "post media",
+    allowVideo: true
+  });
+
+export const parseMultipartReportEvidenceUpload = async (
+  ctx: Context
+): Promise<UploadedPostMediaFile> =>
+  parseMultipartUpload(ctx, {
+    purpose: "report evidence",
     allowVideo: true
   });

@@ -13,6 +13,13 @@ import type {
   EventSchema,
   EventTicketSchema,
   FileAssetSchema,
+  DiscoverAuditRecordSchema,
+  DiscoverMeGovernanceSchema,
+  DiscoverReportCaseSchema,
+  DiscoverUserGovernanceDetailSchema,
+  DiscoverUserGovernanceSummarySchema,
+  ReportEvidenceReferenceSchema,
+  UserEnforcementStateSchema,
   NotificationSchema,
   PlaceCoverSourceSchema,
   PlaceExternalMediaSchema,
@@ -62,6 +69,19 @@ export type PlaceAmapMediaSearchItem = z.infer<
 export type DeletePlaceResponse = z.infer<typeof DeletePlaceResponseSchema>;
 export type Post = z.infer<typeof PostSchema>;
 export type Comment = z.infer<typeof CommentSchema>;
+export type ReportEvidenceReference = z.infer<
+  typeof ReportEvidenceReferenceSchema
+>;
+export type DiscoverReportCase = z.infer<typeof DiscoverReportCaseSchema>;
+export type DiscoverAuditRecord = z.infer<typeof DiscoverAuditRecordSchema>;
+export type UserEnforcementState = z.infer<typeof UserEnforcementStateSchema>;
+export type DiscoverUserGovernanceSummary = z.infer<
+  typeof DiscoverUserGovernanceSummarySchema
+>;
+export type DiscoverUserGovernanceDetail = z.infer<
+  typeof DiscoverUserGovernanceDetailSchema
+>;
+export type DiscoverMeGovernance = z.infer<typeof DiscoverMeGovernanceSchema>;
 export type Announcement = z.infer<typeof AnnouncementSchema>;
 export type Notification = z.infer<typeof NotificationSchema>;
 export type FileAsset = z.infer<typeof FileAssetSchema>;

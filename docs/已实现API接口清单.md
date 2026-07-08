@@ -9,9 +9,9 @@
 - `packages/shared/src/contracts/*.ts`：共享契约定义
 - `apps/api/src/providers/*` 与 `packages/shared/src/mock/service.ts`：当前业务实现入口
 
-截至当前版本，`apps/api` 一共注册了 35 个接口：
+截至当前版本，`apps/api` 一共注册了 36 个接口：
 
-- 业务接口 34 个
+- 业务接口 35 个
 - 健康检查接口 1 个：`GET /health`
 
 ## 2. 总入口与核心文件
@@ -33,10 +33,10 @@
 
 ## 3. 当前实现状态说明
 
-| 运行模式    | 文件                                        | 说明                                                                                                                                                                                                                                                                                                                                                                  |
-| ----------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mock`      | `apps/api/src/providers/mock/index.ts`      | 当前默认模式，大多数接口都可用                                                                                                                                                                                                                                                                                                                                        |
-| `cloudbase` | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；live mode 已覆盖 places public list、map markers、detail、admin places create/list/update/delete，events list/detail/registration/admin create/list/update/delete/review/check-in/cover upload，discover posts/comments/owner posts/media binding 和 files complete/private-url 等路径；完整生产部署仍需在线集合、索引、安全规则和 smoke 证据 |
+| 运行模式    | 文件                                        | 说明                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mock`      | `apps/api/src/providers/mock/index.ts`      | 当前默认模式，大多数接口都可用                                                                                                                                                                                                                                                                                                                                                                                   |
+| `cloudbase` | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；live mode 已覆盖 places public list、map markers、detail、admin places create/list/update/delete，events list/detail/registration/admin create/list/update/delete/review/check-in/cover upload，discover posts/comments/owner posts/media binding、report case/audit、写操作 enforcement 拦截和 files complete/private-url 等路径；完整生产部署仍需在线集合、索引、安全规则和 smoke 证据 |
 
 ## 4. 接口清单
 
@@ -70,18 +70,30 @@ Events public reads 只返回 `review_status="approved"` 且 `publish_status="pu
 
 ### 4.3 社区发现 Discover
 
-| 方法   | 路径                                   | 用途           | 路由文件                          | 契约文件                                    | 业务实现                                                       |
-| ------ | -------------------------------------- | -------------- | --------------------------------- | ------------------------------------------- | -------------------------------------------------------------- |
-| `GET`  | `/discover/posts`                      | 获取帖子列表   | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.list`          |
-| `GET`  | `/discover/posts/:id`                  | 获取帖子详情   | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.detail`        |
-| `POST` | `/discover/posts`                      | 创建帖子       | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.create`        |
-| `GET`  | `/discover/me/posts`                   | 获取我的帖子   | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listMine`      |
-| `GET`  | `/discover/posts/:id/comments`         | 获取帖子评论   | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listComments`  |
-| `POST` | `/discover/posts/:id/comments`         | 对帖子发表评论 | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.createComment` |
-| `POST` | `/discover/posts/:id/report`           | 举报帖子       | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.report`        |
-| `POST` | `/admin/discover/posts/:id/moderation` | 管理端审核帖子 | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.moderate`      |
+| 方法   | 路径                                                 | 用途                 | 路由文件                          | 契约文件                                    | 业务实现                                                              |
+| ------ | ---------------------------------------------------- | -------------------- | --------------------------------- | ------------------------------------------- | --------------------------------------------------------------------- |
+| `GET`  | `/discover/posts`                                    | 获取帖子列表         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.list`                 |
+| `GET`  | `/discover/posts/:id`                                | 获取帖子详情         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.detail`               |
+| `POST` | `/discover/posts`                                    | 创建帖子             | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.create`               |
+| `GET`  | `/discover/me/posts`                                 | 获取我的帖子         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listMine`             |
+| `GET`  | `/discover/me/governance`                            | 获取我的治理摘要     | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.meGovernance`         |
+| `GET`  | `/discover/posts/:id/comments`                       | 获取帖子评论         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listComments`         |
+| `POST` | `/discover/posts/:id/comments`                       | 对帖子发表评论       | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.createComment`        |
+| `POST` | `/discover/posts/:id/report`                         | 举报帖子并创建 case  | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.report`               |
+| `POST` | `/discover/posts/:postId/comments/:commentId/report` | 举报评论并创建 case  | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.reportComment`        |
+| `GET`  | `/admin/discover/posts`                              | 管理端帖子队列       | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listAdmin`            |
+| `GET`  | `/admin/discover/comments`                           | 管理端评论队列       | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listAdminComments`    |
+| `GET`  | `/admin/discover/reports`                            | 管理端举报 case 队列 | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listReportCases`      |
+| `GET`  | `/admin/discover/reports/:id`                        | 举报 case 详情       | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.detailReportCase`     |
+| `POST` | `/admin/discover/posts/:id/moderation`               | 管理端治理帖子       | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.moderate`             |
+| `POST` | `/admin/discover/comments/:id/moderation`            | 管理端治理评论       | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.moderateComment`      |
+| `POST` | `/admin/discover/reports/:id/resolve`                | 处理举报 case        | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.resolveReportCase`    |
+| `GET`  | `/admin/discover/users`                              | 用户治理队列         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listGovernanceUsers`  |
+| `GET`  | `/admin/discover/users/:id`                          | 用户治理详情         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.detailGovernanceUser` |
+| `POST` | `/admin/discover/users/:id/enforcement`              | 用户警告/禁言/封禁   | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.enforceUser`          |
+| `GET`  | `/admin/discover/audit`                              | 治理审计记录         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listAuditRecords`     |
 
-Discover public reads 只返回 `status="visible"` 且 `review_status="visible"` 的目标社区帖子；hidden、deleted、reported 内容不会通过 public list/detail/comment list 暴露；`GET /discover/me/posts` 返回当前 actor 自己的 owner-visible 帖子并包含状态；评论读写只作用于 visible post；public `comment_count` 与可见评论列表使用相同过滤；创建帖子会初始化时间戳、计数、作者展示快照，并校验 `image_file_ids` 必须是本人上传的 active public `public/posts/` 文件资产；report 会进入治理状态并使 public reads 不再暴露该 post；admin moderation 需要管理员角色。
+Discover public reads 返回 `status="visible"` 且未被管理员 hidden/deleted 的目标社区帖子；`review_status="reported"` 仅表示已有举报 case，不会单独下架；`GET /discover/me/posts` 返回当前 actor 自己的 owner-visible 帖子并包含状态，但 `banned` 用户会被 403 拦截；`GET /discover/me/governance` 返回当前用户 enforcement、帖子/评论/举报计数和未读通知数；评论读写只作用于 visible post，reported comment 在管理员处置前仍公开可见；public `comment_count` 与可见评论列表使用相同过滤；创建帖子会初始化时间戳、计数、作者展示快照，并校验 `image_file_ids` 必须是本人上传的 active public `public/posts/` 文件资产；report 会创建 durable governance case，但只有 admin report resolution 或 moderation 明确 hide/delete 后才影响公开可见性；warned 不拦截操作，muted 拦截发帖/评论，banned 拦截发帖/评论/举报/my-posts，拦截响应为 `403 FORBIDDEN` 且 details 带 `enforcement_status`；admin moderation/report resolution/user enforcement 均需要管理员角色并写入 audit record，enforcement 变更会为目标用户追加通知。CloudBase live provider 当前覆盖 discover core posts/comments、`discover_report_cases` 和 `discover_audit_records` 的 report case 创建/list/detail/resolve 最小闭环，并对 live 覆盖的写操作复用 enforcement 拦截；CloudBase 集合索引/安全规则和在线 smoke 仍属于后续生产 readiness 工作。
 
 ### 4.4 地点 Places
 
@@ -136,7 +148,7 @@ Discover public reads 只返回 `status="visible"` 且 `review_status="visible"`
 | `GET`  | `/notifications`          | 获取当前用户通知列表 | `apps/api/src/routes/notifications.ts` | `packages/shared/src/contracts/notifications.ts` | `packages/shared/src/mock/service.ts` 中 `notifications.list`     |
 | `POST` | `/notifications/:id/read` | 将通知标记为已读     | `apps/api/src/routes/notifications.ts` | `packages/shared/src/contracts/notifications.ts` | `packages/shared/src/mock/service.ts` 中 `notifications.markRead` |
 
-Notifications list/read 只作用于当前 actor 自己的通知；跨用户 mark-read 返回 not-found envelope，不修改对方通知状态。
+Notifications list/read 只作用于当前 actor 自己的通知；跨用户 mark-read 返回 not-found envelope，不修改对方通知状态；Admin 设置用户 warned/muted/banned 或恢复 active 时，mock provider 会为目标用户追加账号状态通知，Mobile Me 页通过 `/discover/me/governance` 的未读数量显示提示。
 
 ### 4.7 文件 Files
 
@@ -146,8 +158,9 @@ Notifications list/read 只作用于当前 actor 自己的通知；跨用户 mar
 | `POST` | `/files/complete`        | 提交上传完成后的文件记录             | `apps/api/src/routes/files.ts` | `packages/shared/src/contracts/files.ts` | `packages/shared/src/mock/service.ts` 中 `files.complete`            |
 | `POST` | `/files/private-url`     | 获取私有文件临时访问地址             | `apps/api/src/routes/files.ts` | `packages/shared/src/contracts/files.ts` | `packages/shared/src/mock/service.ts` 中 `files.privateUrl`          |
 | `POST` | `/files/post-media`      | 直接上传 discover 帖子图片或视频媒体 | `apps/api/src/routes/files.ts` | `packages/shared/src/contracts/files.ts` | mock provider / CloudBase live 创建 active public `FileAsset`        |
+| `POST` | `/files/report-evidence` | 直接上传 discover 举报图片或视频证据 | `apps/api/src/routes/files.ts` | `packages/shared/src/contracts/files.ts` | mock provider / CloudBase live 创建 active private `FileAsset`       |
 
-Files 当前允许 public upload request/complete；`public/places/`、`private/tickets/`、`private/exports/`、`private/admin/` 及对应 protected biz type 需要 admin；活动封面推荐走 `/admin/events/cover-file` 或 `/admin/events/:id/cover-file` 的直接 multipart 上传；帖子媒体推荐走 `/files/post-media` 直接 multipart 上传；private URL 会校验文件存在和 owner/admin 权限。
+Files 当前允许 public upload request/complete；`public/places/`、`private/tickets/`、`private/exports/`、`private/admin/` 及对应 protected biz type 需要 admin；`report_evidence` 使用 `private/reports/`，允许登录 reporter 通过 `/files/report-evidence` 直接上传并登记为 private 文件，读取仍按 owner/admin 校验；活动封面推荐走 `/admin/events/cover-file` 或 `/admin/events/:id/cover-file` 的直接 multipart 上传；帖子媒体推荐走 `/files/post-media` 直接 multipart 上传；private URL 会校验文件存在和 owner/admin 权限。
 
 ### 4.8 系统 System
 
@@ -187,7 +200,7 @@ Files 当前允许 public upload request/complete；`public/places/`、`private/
 
 - `events` 列表、详情、报名、管理端列表、管理端报名列表
 - `events` public visibility、admin create/edit/publish/offline/re-publish、registration duplicate/full/closed/hidden、registration ticket join、ticket owner、check-in conflict/forbidden
-- `discover` 列表、发帖、visible-only public reads、comment unavailable post、report hiding、admin moderation forbidden/success
+- `discover` 列表、发帖、reported-still-public reads、comment unavailable post、report reject restore/actioned hide、admin moderation forbidden/success、warned/muted/banned/active enforcement
 - `files` public upload/complete、protected path denial、private URL owner/missing/forbidden
 - `auth/role/notifications` invalid actor、non-admin protected mutation、notification ownership list/read/cross-user denial
 - CloudBase handler fallback parity for representative non-places hardened paths

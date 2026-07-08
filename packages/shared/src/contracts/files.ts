@@ -35,6 +35,11 @@ export const fileContracts = {
     path: "/files/post-media",
     response: FileAssetSchema
   }),
+  directReportEvidenceUpload: defineContract({
+    method: "POST",
+    path: "/files/report-evidence",
+    response: FileAssetSchema
+  }),
   directPlaceGalleryUpload: defineContract({
     method: "POST",
     path: "/admin/places/:id/gallery-files",

@@ -9,6 +9,7 @@ export const FILE_PATH_RULES = {
   postImages: "public/posts/",
   announcementImages: "public/announcements/",
   tickets: "private/tickets/",
+  reports: "private/reports/",
   exports: "private/exports/",
   admin: "private/admin/"
 } as const;
@@ -24,6 +25,7 @@ export const CreateUploadRequestInputSchema = z.object({
     FILE_PATH_RULES.postImages,
     FILE_PATH_RULES.announcementImages,
     FILE_PATH_RULES.tickets,
+    FILE_PATH_RULES.reports,
     FILE_PATH_RULES.exports,
     FILE_PATH_RULES.admin
   ])

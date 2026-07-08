@@ -89,6 +89,12 @@
       }
     },
     {
+      "path": "pages/more/index",
+      "style": {
+        "navigationBarTitleText": "Me"
+      }
+    },
+    {
       "path": "pages/more/notifications",
       "style": {
         "navigationBarTitleText": "通知中心"
@@ -147,6 +153,10 @@
       {
         "pagePath": "pages/places/map",
         "text": "Places"
+      },
+      {
+        "pagePath": "pages/more/index",
+        "text": "Me"
       }
     ]
   }

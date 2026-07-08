@@ -989,6 +989,350 @@ describe("cloudbase event handler", () => {
     }
   });
 
+  it("persists live CloudBase discover report cases and resolves them", async () => {
+    const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+    const previousEnvId = process.env.CLOUDBASE_ENV_ID;
+    const dataset = createMockDataset();
+    const livePost = {
+      ...dataset.posts.find((post) => post._id === "post_003")!,
+      image_file_ids: [],
+      image_urls: []
+    };
+    const livePosts = [livePost];
+    const liveComments = [...dataset.comments];
+    const evidenceFileId =
+      "cloud://test-env/private/reports/pending_report_post_003/evidence.jpg";
+    const liveFileAssets = [
+      {
+        _id: "file_live_evidence",
+        file_id: evidenceFileId,
+        cloud_path: "private/reports/pending_report_post_003/evidence.jpg",
+        visibility: "private",
+        biz_type: "report_evidence",
+        biz_id: "pending_report_post_003",
+        uploaded_by: "user_002",
+        status: "active"
+      }
+    ];
+    const liveReportCases: Array<{ _id: string } & Record<string, unknown>> =
+      [];
+    const liveAuditRecords: Array<{ _id: string } & Record<string, unknown>> =
+      [];
+    const createCollection = <TItem extends { _id: string }>(
+      items: TItem[]
+    ) => ({
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({ data: items }))
+      })),
+      doc: vi.fn((id: string) => ({
+        set: vi.fn(async (payload: Omit<TItem, "_id">) => {
+          const existingIndex = items.findIndex((item) => item._id === id);
+          const nextItem = { _id: id, ...payload } as TItem;
+          if (existingIndex >= 0) {
+            items[existingIndex] = nextItem;
+          } else {
+            items.push(nextItem);
+          }
+          return { requestId: `req_set_${id}` };
+        }),
+        update: vi.fn(async (payload: Partial<TItem>) => {
+          const existing = items.find((item) => item._id === id);
+          if (existing) {
+            Object.assign(existing, payload);
+            return { updated: 1 };
+          }
+          return { updated: 0 };
+        })
+      }))
+    });
+    const collections = {
+      posts: createCollection(livePosts),
+      comments: createCollection(liveComments),
+      file_assets: createCollection(liveFileAssets),
+      discover_report_cases: createCollection(liveReportCases),
+      discover_audit_records: createCollection(liveAuditRecords)
+    };
+    const emptyCollection = createCollection([]);
+    const getTempFileURL = vi.fn(async (input: { fileList: string[] }) => ({
+      fileList: input.fileList.map((fileID) => ({
+        code: "SUCCESS",
+        fileID,
+        tempFileURL: `https://cdn.example.com/${encodeURIComponent(fileID)}`
+      })),
+      requestId: "req_report_temp_url"
+    }));
+    const initCloudbase = vi.fn(() => ({
+      database: () => ({
+        collection: (name: string) =>
+          collections[name as keyof typeof collections] ?? emptyCollection
+      }),
+      getTempFileURL
+    }));
+
+    try {
+      vi.resetModules();
+      vi.doMock("@cloudbase/node-sdk", () => ({
+        default: {
+          init: initCloudbase
+        }
+      }));
+      process.env.CLOUDBASE_PROVIDER_MODE = "live";
+      process.env.CLOUDBASE_ENV_ID = "test-env";
+
+      const { createCloudbaseProvider: createLiveProvider } =
+        await import("../src/providers/cloudbase");
+      const provider = createLiveProvider();
+      const reportedPost = await provider.posts.report(
+        livePost._id,
+        {
+          reason: "safety",
+          description: "Photo evidence attached.",
+          evidence_file_ids: [evidenceFileId]
+        },
+        "user_002"
+      );
+
+      expect(reportedPost?.review_status).toBe("reported");
+      expect(livePosts[0].review_status).toBe("reported");
+      expect(liveReportCases).toHaveLength(1);
+      expect(liveReportCases[0]).toMatchObject({
+        target_type: "post",
+        target_id: livePost._id,
+        post_id: livePost._id,
+        reporter_user_id: "user_002",
+        status: "open",
+        evidence_file_ids: [evidenceFileId]
+      });
+      expect(liveFileAssets[0].biz_id).toBe(liveReportCases[0]._id);
+
+      const listed = await provider.posts.listReportCases(
+        { status: "open", page: 1, pageSize: 20 },
+        "user_001"
+      );
+      const reportId = String(liveReportCases[0]._id);
+      expect(listed.items).toHaveLength(1);
+      expect(listed.items[0].evidence[0]?.temp_url).toContain(
+        encodeURIComponent(evidenceFileId)
+      );
+      expect(getTempFileURL).toHaveBeenCalledWith({
+        fileList: [evidenceFileId]
+      });
+
+      const detail = await provider.posts.detailReportCase(
+        reportId,
+        "user_001"
+      );
+      expect(detail?._id).toBe(reportId);
+      expect(detail?.evidence[0]?.cloud_path).toBe(
+        "private/reports/pending_report_post_003/evidence.jpg"
+      );
+
+      const resolved = await provider.posts.resolveReportCase(
+        reportId,
+        {
+          status: "actioned",
+          reason: "Post hidden after review.",
+          moderation_action: "hide"
+        },
+        "user_001"
+      );
+
+      expect(resolved?.status).toBe("actioned");
+      expect(resolved?.handler_user_id).toBe("user_001");
+      expect(livePosts[0]).toMatchObject({
+        status: "hidden",
+        review_status: "hidden"
+      });
+      expect(liveAuditRecords).toHaveLength(1);
+      expect(liveAuditRecords[0]).toMatchObject({
+        action: "resolve_report",
+        target_type: "report",
+        target_id: reportId,
+        actor_user_id: "user_001"
+      });
+    } finally {
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+
+      if (previousEnvId === undefined) {
+        delete process.env.CLOUDBASE_ENV_ID;
+      } else {
+        process.env.CLOUDBASE_ENV_ID = previousEnvId;
+      }
+
+      vi.doUnmock("@cloudbase/node-sdk");
+      vi.resetModules();
+    }
+  });
+
+  it("uses live CloudBase collections for admin discover governance", async () => {
+    const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+    const previousEnvId = process.env.CLOUDBASE_ENV_ID;
+    const dataset = createMockDataset();
+    const livePost = {
+      ...dataset.posts.find((post) => post._id === "post_002")!,
+      image_file_ids: [],
+      image_urls: []
+    };
+    const liveComment = {
+      ...dataset.comments.find((comment) => comment._id === "comment_001")!,
+      post_id: livePost._id
+    };
+    const livePosts = [livePost];
+    const liveComments = [liveComment];
+    const liveReportCases: Array<{ _id: string } & Record<string, unknown>> =
+      [];
+    const liveAuditRecords: Array<{ _id: string } & Record<string, unknown>> =
+      [];
+    const createCollection = <TItem extends { _id: string }>(
+      items: TItem[]
+    ) => ({
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({ data: items }))
+      })),
+      doc: vi.fn((id: string) => ({
+        set: vi.fn(async (payload: Omit<TItem, "_id">) => {
+          const existingIndex = items.findIndex((item) => item._id === id);
+          const nextItem = { _id: id, ...payload } as TItem;
+          if (existingIndex >= 0) {
+            items[existingIndex] = nextItem;
+          } else {
+            items.unshift(nextItem);
+          }
+          return { requestId: `req_set_${id}` };
+        }),
+        update: vi.fn(async (payload: Partial<TItem>) => {
+          const existing = items.find((item) => item._id === id);
+          if (existing) {
+            Object.assign(existing, payload);
+            return { updated: 1 };
+          }
+          return { updated: 0 };
+        })
+      }))
+    });
+    const collections = {
+      posts: createCollection(livePosts),
+      comments: createCollection(liveComments),
+      file_assets: createCollection([]),
+      discover_report_cases: createCollection(liveReportCases),
+      discover_audit_records: createCollection(liveAuditRecords)
+    };
+    const emptyCollection = createCollection([]);
+    const initCloudbase = vi.fn(() => ({
+      database: () => ({
+        collection: (name: string) =>
+          collections[name as keyof typeof collections] ?? emptyCollection
+      }),
+      getTempFileURL: vi.fn(async (input: { fileList: string[] }) => ({
+        fileList: input.fileList.map((fileID) => ({
+          code: "SUCCESS",
+          fileID,
+          tempFileURL: `https://cdn.example.com/${encodeURIComponent(fileID)}`
+        }))
+      }))
+    }));
+
+    try {
+      vi.resetModules();
+      vi.doMock("@cloudbase/node-sdk", () => ({
+        default: {
+          init: initCloudbase
+        }
+      }));
+      process.env.CLOUDBASE_PROVIDER_MODE = "live";
+      process.env.CLOUDBASE_ENV_ID = "test-env";
+
+      const { createCloudbaseProvider: createLiveProvider } =
+        await import("../src/providers/cloudbase");
+      const provider = createLiveProvider();
+      const adminPosts = await provider.posts.listAdmin(
+        { page: 1, pageSize: 20, status: "all" },
+        "user_001"
+      );
+      const adminComments = await provider.posts.listAdminComments(
+        { page: 1, pageSize: 20, status: "all" },
+        "user_001"
+      );
+
+      expect(adminPosts.items.map((post) => post._id)).toEqual([livePost._id]);
+      expect(adminComments.items.map((comment) => comment._id)).toEqual([
+        liveComment._id
+      ]);
+
+      const moderatedComment = await provider.posts.moderateComment(
+        liveComment._id,
+        {
+          status: "hidden",
+          reason: "Live comment moderation"
+        },
+        "user_001"
+      );
+
+      expect(moderatedComment?.status).toBe("hidden");
+      expect(liveComments[0].status).toBe("hidden");
+      expect(liveAuditRecords).toHaveLength(1);
+      expect(liveAuditRecords[0]).toMatchObject({
+        action: "moderate_comment",
+        target_type: "comment",
+        target_id: liveComment._id,
+        actor_user_id: "user_001"
+      });
+
+      const enforced = await provider.posts.enforceUser(
+        "user_002",
+        {
+          status: "muted",
+          reason: "Repeated comment issues"
+        },
+        "user_001"
+      );
+
+      expect(enforced?.enforcement.status).toBe("muted");
+      expect(liveAuditRecords).toHaveLength(2);
+      expect(liveAuditRecords[0]).toMatchObject({
+        action: "enforce_user",
+        target_type: "user",
+        target_id: "user_002"
+      });
+      await expect(
+        provider.posts.create(
+          {
+            title: "Blocked live post",
+            content: "Muted users cannot publish.",
+            language: "en",
+            tag_ids: []
+          },
+          "user_002"
+        )
+      ).rejects.toMatchObject({
+        code: "FORBIDDEN",
+        details: {
+          enforcement_status: "muted",
+          action: "create_post"
+        }
+      });
+    } finally {
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+
+      if (previousEnvId === undefined) {
+        delete process.env.CLOUDBASE_ENV_ID;
+      } else {
+        process.env.CLOUDBASE_ENV_ID = previousEnvId;
+      }
+
+      vi.doUnmock("@cloudbase/node-sdk");
+      vi.resetModules();
+    }
+  });
+
   it("resolves live CloudBase event covers from place gallery file ids", async () => {
     const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
     const previousEnvId = process.env.CLOUDBASE_ENV_ID;

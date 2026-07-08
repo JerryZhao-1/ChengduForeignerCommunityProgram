@@ -1,0 +1,12 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/contracts.spec.ts (19 tests) 8ms
+ ✓ packages/shared/test/client.spec.ts (17 tests) 10ms
+ ✓ apps/api/test/integration-readiness.spec.ts (9 tests) 71ms
+
+ Test Files  3 passed (3)
+      Tests  45 passed (45)
+   Start at  23:52:12
+   Duration  581ms (transform 190ms, setup 0ms, collect 625ms, tests 88ms, environment 0ms, prepare 109ms)
+

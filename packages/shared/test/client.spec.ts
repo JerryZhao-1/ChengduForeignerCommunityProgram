@@ -165,7 +165,8 @@ describe("shared api clients", () => {
 
     const mockComments = await mockClient.discover.listComments("post_001");
     const mockMine = await mockClient.discover.myPosts();
-    const httpComments = await httpClient.discover.listComments("post_http_001");
+    const httpComments =
+      await httpClient.discover.listComments("post_http_001");
     const httpMine = await httpClient.discover.myPosts();
 
     expect(mockComments.data.items[0]).toHaveProperty("status", "visible");
@@ -185,6 +186,185 @@ describe("shared api clients", () => {
       "http://localhost:8787/discover/me/posts",
       undefined,
       { "x-mock-user-id": "user_001" }
+    );
+  });
+
+  it("keeps mock and http client signatures aligned for discover governance", async () => {
+    const mockClient = createMockClient({ actorId: "user_001" });
+    const requester = vi.fn(async (method: string, url: string) => {
+      if (String(url).includes("/admin/discover/reports/report_http/resolve")) {
+        expect(method).toBe("POST");
+        return {
+          success: true,
+          requestId: "req_resolve",
+          data: {
+            _id: "report_http",
+            community_id: "tongzilin",
+            target_type: "post",
+            target_id: "post_http",
+            post_id: "post_http",
+            comment_id: null,
+            reporter_user_id: "user_002",
+            reason: "spam",
+            description: null,
+            evidence_file_ids: [],
+            evidence: [],
+            status: "actioned",
+            handler_user_id: "user_001",
+            resolution_note: "Resolved",
+            created_at: "2026-04-03T09:15:00+08:00",
+            updated_at: "2026-04-03T09:20:00+08:00",
+            resolved_at: "2026-04-03T09:20:00+08:00"
+          }
+        };
+      }
+
+      if (String(url).includes("/admin/discover/reports")) {
+        return {
+          success: true,
+          requestId: "req_reports",
+          data: { items: [], page: 1, pageSize: 20, total: 0 }
+        };
+      }
+
+      if (String(url).includes("/discover/me/governance")) {
+        return {
+          success: true,
+          requestId: "req_me_governance",
+          data: {
+            user: {
+              _id: "user_001",
+              nickname: "Jerry",
+              avatar_url: null,
+              preferred_language: "zh",
+              role_flags: ["community_admin"],
+              status: "active"
+            },
+            enforcement: {
+              status: "active",
+              reason: null,
+              notes: null,
+              expires_at: null,
+              updated_at: null,
+              updated_by: null
+            },
+            post_count: 0,
+            comment_count: 0,
+            report_count: 0,
+            violation_count: 0,
+            unread_notification_count: 0
+          }
+        };
+      }
+
+      return {
+        success: true,
+        requestId: "req_posts",
+        data: { items: [], page: 1, pageSize: 20, total: 0 }
+      };
+    });
+    const httpClient = createHttpClient({
+      actorId: "user_001",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    const mockPosts = await mockClient.admin.listDiscoverPosts({
+      status: "hidden"
+    });
+    const mockReports = await mockClient.admin.listDiscoverReports({
+      status: "open"
+    });
+    const httpPosts = await httpClient.admin.listDiscoverPosts({
+      status: "reported",
+      keyword: "tennis"
+    });
+    const httpReports = await httpClient.admin.listDiscoverReports({
+      status: "open"
+    });
+    const mockMeGovernance = await mockClient.discover.meGovernance();
+    const httpMeGovernance = await httpClient.discover.meGovernance();
+    const resolved = await httpClient.admin.resolveDiscoverReport(
+      "report_http",
+      {
+        status: "actioned",
+        reason: "Resolved",
+        moderation_action: "hide"
+      }
+    );
+
+    expect(mockPosts.data.items[0]?.review_status).toBe("hidden");
+    expect(mockReports.data.items[0]?.status).toBe("open");
+    expect(httpPosts.data.total).toBe(0);
+    expect(httpReports.data.total).toBe(0);
+    expect(mockMeGovernance.data).toHaveProperty("unread_notification_count");
+    expect(httpMeGovernance.data.enforcement.status).toBe("active");
+    expect(resolved.data.status).toBe("actioned");
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/admin/discover/posts?status=reported&keyword=tennis",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/me/governance",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+  });
+
+  it("uploads report evidence through the shared files client", async () => {
+    const mockClient = createMockClient({ actorId: "user_002" });
+    const requester = vi.fn(async (method: string, url: string, body) => {
+      expect(method).toBe("POST");
+      expect(url).toBe("http://localhost:8787/files/report-evidence");
+      expect(body).toBeInstanceOf(FormData);
+      expect((body as FormData).get("biz_id")).toBe("pending_report_post_003");
+
+      return {
+        success: true,
+        requestId: "req_report_evidence",
+        data: {
+          _id: "file_report_http",
+          file_id:
+            "cloud://test-env/private/reports/pending_report_post_003/evidence.jpg",
+          cloud_path: "private/reports/pending_report_post_003/evidence.jpg",
+          visibility: "private",
+          biz_type: "report_evidence",
+          biz_id: "pending_report_post_003",
+          uploaded_by: "user_002",
+          status: "active"
+        }
+      };
+    });
+    const httpClient = createHttpClient({
+      actorId: "user_002",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    const mockUpload = await mockClient.files.uploadReportEvidence({
+      file: new Blob(["fake evidence"], { type: "image/jpeg" }),
+      file_name: "evidence.jpg",
+      content_type: "image/jpeg",
+      biz_id: "pending_report_post_003"
+    });
+    const httpUpload = await httpClient.files.uploadReportEvidence({
+      file: new Blob(["fake evidence"], { type: "image/jpeg" }),
+      file_name: "evidence.jpg",
+      content_type: "image/jpeg",
+      biz_id: "pending_report_post_003"
+    });
+
+    expect(mockUpload.data.biz_type).toBe("report_evidence");
+    expect(mockUpload.data.visibility).toBe("private");
+    expect(httpUpload.data.file_id).toContain("private/reports");
+    expect(requester).toHaveBeenCalledWith(
+      "POST",
+      "http://localhost:8787/files/report-evidence",
+      expect.any(FormData),
+      { "x-mock-user-id": "user_002" }
     );
   });
 

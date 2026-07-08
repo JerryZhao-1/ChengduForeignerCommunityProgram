@@ -1,6 +1,8 @@
 import type {
   Announcement,
   Comment,
+  DiscoverAuditRecord,
+  DiscoverReportCase,
   Event,
   EventRegistration,
   EventTicket,
@@ -19,6 +21,19 @@ export interface MockDataset {
   places: Place[];
   posts: Post[];
   comments: Comment[];
+  reportCases: DiscoverReportCase[];
+  auditRecords: DiscoverAuditRecord[];
+  userEnforcements: Record<
+    string,
+    {
+      status: "active" | "warned" | "muted" | "banned";
+      reason: string | null;
+      notes: string | null;
+      expires_at: string | null;
+      updated_at: string | null;
+      updated_by: string | null;
+    }
+  >;
   announcements: Announcement[];
   notifications: Notification[];
   fileAssets: FileAsset[];
@@ -660,6 +675,59 @@ export const createMockDataset = (): MockDataset => ({
       created_at: "2026-03-28T09:30:00+08:00"
     }
   ],
+  reportCases: [
+    {
+      _id: "report_001",
+      community_id: "tongzilin",
+      target_type: "post",
+      target_id: "post_hidden",
+      post_id: "post_hidden",
+      comment_id: null,
+      reporter_user_id: "user_002",
+      reason: "safety",
+      description: "Seeded moderation case for admin review.",
+      evidence_file_ids: ["cloud://report-evidence-001"],
+      evidence: [],
+      status: "open",
+      handler_user_id: null,
+      resolution_note: null,
+      created_at: "2026-04-03T09:15:00+08:00",
+      updated_at: "2026-04-03T09:15:00+08:00",
+      resolved_at: null
+    }
+  ],
+  auditRecords: [
+    {
+      _id: "audit_001",
+      community_id: "tongzilin",
+      actor_user_id: "user_001",
+      action: "moderate_post",
+      target_type: "post",
+      target_id: "post_hidden",
+      reason: "Seeded hidden post for governance console.",
+      previous_state: { status: "visible", review_status: "visible" },
+      next_state: { status: "hidden", review_status: "hidden" },
+      created_at: "2026-04-03T09:10:00+08:00"
+    }
+  ],
+  userEnforcements: {
+    user_001: {
+      status: "active",
+      reason: null,
+      notes: null,
+      expires_at: null,
+      updated_at: null,
+      updated_by: null
+    },
+    user_002: {
+      status: "warned",
+      reason: "Seeded warning for governance workflow.",
+      notes: "Monitor future reports.",
+      expires_at: null,
+      updated_at: "2026-04-03T09:20:00+08:00",
+      updated_by: "user_001"
+    }
+  },
   announcements: [
     {
       _id: "announcement_001",
@@ -736,6 +804,16 @@ export const createMockDataset = (): MockDataset => ({
       biz_type: "event_ticket",
       biz_id: "ticket_001",
       uploaded_by: "user_001",
+      status: "active"
+    },
+    {
+      _id: "file_report_001",
+      file_id: "cloud://report-evidence-001",
+      cloud_path: "private/reports/report_001/evidence.jpg",
+      visibility: "private",
+      biz_type: "report_evidence",
+      biz_id: "report_001",
+      uploaded_by: "user_002",
       status: "active"
     }
   ]

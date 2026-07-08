@@ -11,7 +11,10 @@ import {
   isProtectedGalleryCompletion,
   isProtectedGalleryUploadRequest
 } from "../lib/protected-files";
-import { parseMultipartPostMediaUpload } from "../lib/multipart";
+import {
+  parseMultipartPostMediaUpload,
+  parseMultipartReportEvidenceUpload
+} from "../lib/multipart";
 
 export const registerFileRoutes = (router: Router) => {
   const requireAdminRole = requireRole("community_admin", "system_admin");
@@ -57,6 +60,18 @@ export const registerFileRoutes = (router: Router) => {
     const file = await parseMultipartPostMediaUpload(ctx);
     const data = await ctx.state.provider.files.uploadPostMedia(
       file,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data, 201);
+  });
+
+  router.post("/files/report-evidence", async (ctx) => {
+    const file = await parseMultipartReportEvidenceUpload(ctx);
+    const data = await ctx.state.provider.files.uploadReportEvidence(
+      {
+        ...file,
+        biz_id: file.fields.biz_id || undefined
+      },
       ctx.state.actor._id
     );
     sendSuccess(ctx, data, 201);

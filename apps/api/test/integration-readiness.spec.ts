@@ -66,6 +66,7 @@ interface EventInput {
 
 interface PostItem {
   _id: string;
+  author_user_id: string;
   title: string;
   status: string;
   review_status: string;
@@ -75,6 +76,7 @@ interface CommentItem {
   _id: string;
   post_id: string;
   author_user_id: string;
+  status: string;
 }
 
 interface FileAsset {
@@ -87,9 +89,47 @@ interface FileAsset {
   status: string;
 }
 
+interface ReportCase {
+  _id: string;
+  target_type: "post" | "comment";
+  target_id: string;
+  post_id: string;
+  comment_id: string | null;
+  reporter_user_id: string;
+  reason: string;
+  evidence_file_ids: string[];
+  evidence: Array<{ file_id: string; temp_url?: string }>;
+  status: string;
+  handler_user_id: string | null;
+}
+
+interface UserGovernance {
+  user: { _id: string; nickname: string; role_flags: string[] };
+  enforcement: { status: string; reason: string | null };
+  post_count: number;
+  comment_count: number;
+  report_count: number;
+  violation_count: number;
+}
+
+interface MeGovernance extends UserGovernance {
+  unread_notification_count: number;
+}
+
+interface AuditRecord {
+  _id: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  actor_user_id: string;
+  reason: string | null;
+}
+
 interface NotificationItem {
   _id: string;
   user_id: string;
+  title: string;
+  body: string;
   status: string;
 }
 
@@ -520,7 +560,7 @@ describe("discover integration readiness", () => {
     }
   });
 
-  it("enforces comment availability, report hiding, and admin moderation", async () => {
+  it("enforces comment availability, report visibility, and admin moderation", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 
     try {
@@ -576,11 +616,12 @@ describe("discover integration readiness", () => {
       expect(report.response.status).toBe(200);
       expect(report.body.data.review_status).toBe("reported");
 
-      const reportedDetail = await request<ApiFailure>(
+      const reportedDetail = await request<ApiSuccess<PostItem>>(
         baseUrl,
         "/discover/posts/post_002"
       );
-      expect(reportedDetail.response.status).toBe(404);
+      expect(reportedDetail.response.status).toBe(200);
+      expect(reportedDetail.body.data.review_status).toBe("reported");
 
       const nonAdminModeration = await request<ApiFailure>(
         baseUrl,
@@ -617,6 +658,508 @@ describe("discover integration readiness", () => {
         "/discover/posts/post_001"
       );
       expect(hiddenAfterModeration.response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it("creates durable report cases, protects evidence, and audits governance actions", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const evidenceForm = new FormData();
+      evidenceForm.append("biz_id", "pending_report_post_003");
+      evidenceForm.append(
+        "file",
+        new Blob(["fake evidence bytes"], { type: "image/jpeg" }),
+        "evidence.jpg"
+      );
+      const evidenceUploadResponse = await fetch(
+        `${baseUrl}/files/report-evidence`,
+        {
+          method: "POST",
+          headers: {
+            "x-mock-user-id": "user_002"
+          },
+          body: evidenceForm
+        }
+      );
+      const evidenceUpload = {
+        response: evidenceUploadResponse,
+        body: (await evidenceUploadResponse.json()) as ApiSuccess<FileAsset>
+      };
+      expect(evidenceUpload.response.status).toBe(201);
+      expect(evidenceUpload.body.data.visibility).toBe("private");
+      expect(evidenceUpload.body.data.biz_type).toBe("report_evidence");
+      expect(evidenceUpload.body.data.biz_id).toBe("pending_report_post_003");
+      expect(evidenceUpload.body.data.cloud_path).toContain(
+        FILE_PATH_RULES.reports
+      );
+
+      const reportPost = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_003/report",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            reason: "safety",
+            description: "Photo evidence attached.",
+            evidence_file_ids: [evidenceUpload.body.data.file_id]
+          }
+        }
+      );
+      expect(reportPost.response.status).toBe(200);
+      expect(reportPost.body.data.review_status).toBe("reported");
+
+      const publicDetail = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_003"
+      );
+      expect(publicDetail.response.status).toBe(200);
+      expect(publicDetail.body.data.review_status).toBe("reported");
+
+      const publicList = await request<ApiSuccess<PageResult<PostItem>>>(
+        baseUrl,
+        "/discover/posts"
+      );
+      expect(publicList.body.data.items.map((item) => item._id)).toContain(
+        "post_003"
+      );
+
+      const forbiddenQueue = await request<ApiFailure>(
+        baseUrl,
+        "/admin/discover/reports",
+        { actorId: "user_002" }
+      );
+      expect(forbiddenQueue.response.status).toBe(403);
+
+      const reports = await request<ApiSuccess<PageResult<ReportCase>>>(
+        baseUrl,
+        "/admin/discover/reports?status=open",
+        { actorId: "user_001" }
+      );
+      expect(reports.response.status).toBe(200);
+      const createdReport = reports.body.data.items.find(
+        (item) => item.post_id === "post_003"
+      );
+      expect(createdReport?.evidence_file_ids).toEqual([
+        evidenceUpload.body.data.file_id
+      ]);
+      expect(createdReport?.evidence[0]?.temp_url).toContain("private/reports");
+
+      const rejected = await request<ApiSuccess<ReportCase>>(
+        baseUrl,
+        `/admin/discover/reports/${createdReport?._id}/resolve`,
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            status: "rejected",
+            reason: "No violation.",
+            moderation_action: "none"
+          }
+        }
+      );
+      expect(rejected.response.status).toBe(200);
+      expect(rejected.body.data.status).toBe("rejected");
+
+      const visibleAfterReject = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_003"
+      );
+      expect(visibleAfterReject.response.status).toBe(200);
+      expect(visibleAfterReject.body.data.review_status).toBe("visible");
+
+      await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_003/report",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            reason: "safety",
+            description: "Second review."
+          }
+        }
+      );
+      const secondReports = await request<ApiSuccess<PageResult<ReportCase>>>(
+        baseUrl,
+        "/admin/discover/reports?status=open",
+        { actorId: "user_001" }
+      );
+      const secondReport = secondReports.body.data.items.find(
+        (item) => item.post_id === "post_003"
+      );
+      expect(secondReport).toBeTruthy();
+
+      const actioned = await request<ApiSuccess<ReportCase>>(
+        baseUrl,
+        `/admin/discover/reports/${secondReport?._id}/resolve`,
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            status: "actioned",
+            reason: "Hide after review.",
+            moderation_action: "hide"
+          }
+        }
+      );
+      expect(actioned.body.data.status).toBe("actioned");
+
+      const hiddenAfterAction = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts/post_003"
+      );
+      expect(hiddenAfterAction.response.status).toBe(404);
+
+      const comment = await request<ApiSuccess<CommentItem>>(
+        baseUrl,
+        "/discover/posts/post_004/comments",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: { content: "Reportable comment.", language: "en" }
+        }
+      );
+      expect(comment.response.status).toBe(201);
+
+      const commentReport = await request<ApiSuccess<ReportCase>>(
+        baseUrl,
+        `/discover/posts/post_004/comments/${comment.body.data._id}/report`,
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { reason: "spam", description: "Comment report." }
+        }
+      );
+      expect(commentReport.response.status).toBe(201);
+      expect(commentReport.body.data.target_type).toBe("comment");
+
+      const hideComment = await request<ApiSuccess<CommentItem>>(
+        baseUrl,
+        `/admin/discover/comments/${comment.body.data._id}/moderation`,
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: { status: "hidden", reason: "Policy review" }
+        }
+      );
+      expect(hideComment.body.data.status).toBe("hidden");
+
+      const comments = await request<ApiSuccess<PageResult<CommentItem>>>(
+        baseUrl,
+        "/discover/posts/post_004/comments"
+      );
+      expect(comments.body.data.items.map((item) => item._id)).not.toContain(
+        comment.body.data._id
+      );
+
+      const resolved = await request<ApiSuccess<ReportCase>>(
+        baseUrl,
+        `/admin/discover/reports/${commentReport.body.data._id}/resolve`,
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            status: "actioned",
+            reason: "Comment hidden.",
+            moderation_action: "hide"
+          }
+        }
+      );
+      expect(resolved.body.data.status).toBe("actioned");
+      expect(resolved.body.data.handler_user_id).toBe("user_001");
+
+      const enforce = await request<ApiSuccess<UserGovernance>>(
+        baseUrl,
+        "/admin/discover/users/user_002/enforcement",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            status: "muted",
+            reason: "Repeated report violations."
+          }
+        }
+      );
+      expect(enforce.response.status).toBe(200);
+      expect(enforce.body.data.enforcement.status).toBe("muted");
+
+      const audit = await request<ApiSuccess<PageResult<AuditRecord>>>(
+        baseUrl,
+        "/admin/discover/audit",
+        { actorId: "user_001" }
+      );
+      expect(audit.body.data.items.map((item) => item.action)).toEqual(
+        expect.arrayContaining([
+          "moderate_comment",
+          "resolve_report",
+          "enforce_user"
+        ])
+      );
+    } finally {
+      await close();
+    }
+  });
+
+  it("applies warned, muted, banned, and restored enforcement rules", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    const createPostBody = (title: string) => ({
+      title,
+      content: "Governance enforcement check.",
+      language: "en",
+      tag_ids: ["governance"],
+      location_text: "Tongzilin",
+      image_file_ids: [],
+      image_urls: []
+    });
+
+    try {
+      const warned = await request<ApiSuccess<UserGovernance>>(
+        baseUrl,
+        "/admin/discover/users/user_002/enforcement",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            status: "warned",
+            reason: "Please follow community rules."
+          }
+        }
+      );
+      expect(warned.response.status).toBe(200);
+      expect(warned.body.data.enforcement.status).toBe("warned");
+
+      const warnedGovernance = await request<ApiSuccess<MeGovernance>>(
+        baseUrl,
+        "/discover/me/governance",
+        { actorId: "user_002" }
+      );
+      expect(warnedGovernance.response.status).toBe(200);
+      expect(warnedGovernance.body.data.enforcement.status).toBe("warned");
+      expect(
+        warnedGovernance.body.data.unread_notification_count
+      ).toBeGreaterThan(0);
+
+      const notifications = await request<ApiSuccess<NotificationItem[]>>(
+        baseUrl,
+        "/notifications",
+        { actorId: "user_002" }
+      );
+      expect(notifications.body.data[0]?.title).toContain("提醒");
+      expect(notifications.body.data[0]?.body).toContain(
+        "Please follow community rules."
+      );
+
+      const warnedPost = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: createPostBody("Warned can post")
+        }
+      );
+      expect(warnedPost.response.status).toBe(201);
+
+      const warnedComment = await request<ApiSuccess<CommentItem>>(
+        baseUrl,
+        "/discover/posts/post_001/comments",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { content: "Warned can comment.", language: "en" }
+        }
+      );
+      expect(warnedComment.response.status).toBe(201);
+
+      const warnedReport = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_002/report",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { reason: "spam", description: "Warned can report." }
+        }
+      );
+      expect(warnedReport.response.status).toBe(200);
+
+      await request<ApiSuccess<UserGovernance>>(
+        baseUrl,
+        "/admin/discover/users/user_002/enforcement",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            status: "muted",
+            reason: "Temporary mute."
+          }
+        }
+      );
+
+      const mutedPost = await request<ApiFailure>(baseUrl, "/discover/posts", {
+        method: "POST",
+        actorId: "user_002",
+        body: createPostBody("Muted cannot post")
+      });
+      expect(mutedPost.response.status).toBe(403);
+      expect(mutedPost.body.error.code).toBe("FORBIDDEN");
+      expect(
+        (mutedPost.body.error.details as { enforcement_status?: string })
+          .enforcement_status
+      ).toBe("muted");
+
+      const mutedComment = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts/post_001/comments",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { content: "Muted cannot comment.", language: "en" }
+        }
+      );
+      expect(mutedComment.response.status).toBe(403);
+      expect(
+        (mutedComment.body.error.details as { enforcement_status?: string })
+          .enforcement_status
+      ).toBe("muted");
+
+      const mutedReport = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_003/report",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { reason: "spam", description: "Muted can still report." }
+        }
+      );
+      expect(mutedReport.response.status).toBe(200);
+
+      await request<ApiSuccess<UserGovernance>>(
+        baseUrl,
+        "/admin/discover/users/user_002/enforcement",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            status: "banned",
+            reason: "Temporary ban."
+          }
+        }
+      );
+
+      const bannedPost = await request<ApiFailure>(baseUrl, "/discover/posts", {
+        method: "POST",
+        actorId: "user_002",
+        body: createPostBody("Banned cannot post")
+      });
+      expect(bannedPost.response.status).toBe(403);
+      expect(
+        (bannedPost.body.error.details as { enforcement_status?: string })
+          .enforcement_status
+      ).toBe("banned");
+
+      const bannedComment = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts/post_001/comments",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { content: "Banned cannot comment.", language: "en" }
+        }
+      );
+      expect(bannedComment.response.status).toBe(403);
+
+      const bannedReport = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts/post_004/report",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { reason: "spam", description: "Banned cannot report." }
+        }
+      );
+      expect(bannedReport.response.status).toBe(403);
+
+      const bannedMine = await request<ApiFailure>(
+        baseUrl,
+        "/discover/me/posts",
+        { actorId: "user_002" }
+      );
+      expect(bannedMine.response.status).toBe(403);
+
+      const bannedGovernance = await request<ApiSuccess<MeGovernance>>(
+        baseUrl,
+        "/discover/me/governance",
+        { actorId: "user_002" }
+      );
+      expect(bannedGovernance.response.status).toBe(200);
+      expect(bannedGovernance.body.data.enforcement.status).toBe("banned");
+
+      const publicList = await request<ApiSuccess<PageResult<PostItem>>>(
+        baseUrl,
+        "/discover/posts",
+        { actorId: "user_002" }
+      );
+      expect(publicList.response.status).toBe(200);
+      expect(publicList.body.data.items.map((item) => item._id)).not.toEqual(
+        expect.arrayContaining(["post_002", "post_004", "post_006"])
+      );
+      expect(
+        publicList.body.data.items.some(
+          (item) => item.author_user_id === "user_002"
+        )
+      ).toBe(false);
+
+      const bannedAuthorPost = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts/post_002"
+      );
+      expect(bannedAuthorPost.response.status).toBe(404);
+
+      await request<ApiSuccess<UserGovernance>>(
+        baseUrl,
+        "/admin/discover/users/user_002/enforcement",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            status: "active",
+            reason: "Restored."
+          }
+        }
+      );
+
+      const restoredPost = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: createPostBody("Restored can post")
+        }
+      );
+      expect(restoredPost.response.status).toBe(201);
+
+      const restoredAuthorPost = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_002"
+      );
+      expect(restoredAuthorPost.response.status).toBe(200);
+      expect(restoredAuthorPost.body.data.status).toBe("visible");
+
+      const restoredGovernance = await request<ApiSuccess<MeGovernance>>(
+        baseUrl,
+        "/discover/me/governance",
+        { actorId: "user_002" }
+      );
+      expect(restoredGovernance.body.data.enforcement.status).toBe("active");
+      expect(
+        restoredGovernance.body.data.unread_notification_count
+      ).toBeGreaterThanOrEqual(4);
     } finally {
       await close();
     }

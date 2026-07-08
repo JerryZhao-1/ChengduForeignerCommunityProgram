@@ -62,6 +62,9 @@ export const appCopy = {
       invalidImageUrl: "媒体 URL 格式不正确",
       createSuccess: "帖子已发布",
       createError: "发布失败，请稍后重试",
+      accountMutedPost: "账号已被禁言，暂时不能发布帖子",
+      accountMutedComment: "账号已被禁言，暂时不能发表评论",
+      accountBannedAction: "账号已被封禁，暂时不能执行此操作",
       detailLoading: "正在加载帖子...",
       detailError: "帖子加载失败，请返回后重试。",
       detailMissing: "没有找到帖子 ID。",
@@ -134,6 +137,28 @@ export const appCopy = {
       statusDeleted: "已删除",
       reportError: "举报失败，请稍后重试"
     },
+    me: {
+      title: "我的",
+      loading: "正在加载我的信息...",
+      error: "我的信息加载失败，请稍后重试。",
+      retry: "重试",
+      posts: "帖子",
+      comments: "评论",
+      reports: "举报",
+      statusActive: "正常",
+      statusWarned: "已提醒",
+      statusMuted: "已禁言",
+      statusBanned: "已封禁",
+      warningTitle: "账号提醒",
+      warningBody: "请查看通知中心了解原因。",
+      notificationLabel: "通知",
+      profile: "查看个人主页",
+      myPosts: "我的帖子",
+      notifications: "通知中心",
+      registrations: "我的报名",
+      favorites: "我的收藏",
+      language: "语言设置"
+    },
     profile: {
       posts: "帖子",
       videos: "视频",
@@ -155,7 +180,8 @@ export const appCopy = {
   },
   en: {
     homeTitle: "Tongzilin Community Guide",
-    homeSubtitle: "Phase 1 freezes entry points, interfaces, and mock data first.",
+    homeSubtitle:
+      "Phase 1 freezes entry points, interfaces, and mock data first.",
     moreActions: "Quick Actions",
     discover: {
       feedTitle: "Discover",
@@ -205,7 +231,8 @@ export const appCopy = {
       mediaUploading: "Uploading media...",
       mediaUploadError: "Media upload failed. Remove it and try again",
       imageUrlsLabel: "Dev Fallback Media URLs",
-      imageUrlsPlaceholder: "Optional. One image or video URL per line for local debugging",
+      imageUrlsPlaceholder:
+        "Optional. One image or video URL per line for local debugging",
       mediaPreviewLabel: "Media Preview",
       noMediaPreview: "No media yet. Text-only posts are welcome too.",
       submitPost: "Publish",
@@ -216,11 +243,17 @@ export const appCopy = {
       invalidImageUrl: "One or more media URLs are invalid",
       createSuccess: "Post published",
       createError: "Could not publish. Please try again",
+      accountMutedPost: "Your account is muted and cannot publish posts now",
+      accountMutedComment:
+        "Your account is muted and cannot post comments now",
+      accountBannedAction:
+        "Your account is banned and cannot perform this action now",
       detailLoading: "Loading post...",
       detailError: "Could not load this post. Please go back and try again.",
       detailMissing: "Post ID is missing.",
       commentSectionTitle: "Comments",
-      commentSectionHint: "Visible comments are loaded from the API and refreshed after posting.",
+      commentSectionHint:
+        "Visible comments are loaded from the API and refreshed after posting.",
       commentPlaceholder: "Write a reply",
       commentBarPlaceholder: "Say something...",
       followButton: "Follow",
@@ -250,21 +283,31 @@ export const appCopy = {
       reportReasonOptions: [
         { label: "Sexual or explicit content", value: "sexual-content" },
         { label: "Graphic violence", value: "violence" },
-        { label: "Political harm or illegal activity", value: "political-or-illegal" },
-        { label: "Hate, discrimination, or extremism", value: "hate-or-extremism" },
+        {
+          label: "Political harm or illegal activity",
+          value: "political-or-illegal"
+        },
+        {
+          label: "Hate, discrimination, or extremism",
+          value: "hate-or-extremism"
+        },
         { label: "Harassment, abuse, or personal attack", value: "harassment" },
         { label: "Spam, scam, or malicious marketing", value: "spam-or-scam" },
         { label: "Privacy violation or personal data leak", value: "privacy" },
         { label: "Minor safety concern", value: "minor-safety" },
         { label: "False or misleading information", value: "misinformation" },
-        { label: "Copyright or impersonation issue", value: "intellectual-property" },
+        {
+          label: "Copyright or impersonation issue",
+          value: "intellectual-property"
+        },
         { label: "Other", value: "other" }
       ],
       reportOtherReasonLabel: "Other Reason",
       reportOtherReasonPlaceholder: "Briefly describe the reason",
       reportOtherReasonRequired: "Please enter the other reason",
       reportDescriptionLabel: "Details",
-      reportDescriptionPlaceholder: "Describe the issue, where it appears, or any useful context.",
+      reportDescriptionPlaceholder:
+        "Describe the issue, where it appears, or any useful context.",
       reportEvidenceLabel: "Evidence",
       reportEvidenceHint: "Optional. Add images, videos, or other evidence.",
       reportAddImage: "Add Image",
@@ -287,6 +330,28 @@ export const appCopy = {
       statusHidden: "Hidden",
       statusDeleted: "Deleted",
       reportError: "Could not submit report. Please try again"
+    },
+    me: {
+      title: "Me",
+      loading: "Loading your profile...",
+      error: "Could not load your profile. Please try again.",
+      retry: "Retry",
+      posts: "Posts",
+      comments: "Comments",
+      reports: "Reports",
+      statusActive: "Active",
+      statusWarned: "Warned",
+      statusMuted: "Muted",
+      statusBanned: "Banned",
+      warningTitle: "Account Notice",
+      warningBody: "Open notifications for the reason.",
+      notificationLabel: "Notifications",
+      profile: "View Profile",
+      myPosts: "My Posts",
+      notifications: "Notifications",
+      registrations: "My Registrations",
+      favorites: "My Favorites",
+      language: "Language"
     },
     profile: {
       posts: "Posts",

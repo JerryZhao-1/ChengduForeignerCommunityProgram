@@ -7,6 +7,7 @@ import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
+import { getDiscoverEnforcementMessage } from "./enforcement-error";
 import { normalizePostMedia } from "./media";
 
 interface CommentItem {
@@ -60,7 +61,9 @@ const commentCount = computed(() => comments.value.length);
 const getLanguageLabel = (language: Post["language"]) =>
   language === "zh" ? copy.value.languageZh : copy.value.languageEn;
 
-const postMedia = computed(() => (post.value ? normalizePostMedia(post.value) : []));
+const postMedia = computed(() =>
+  post.value ? normalizePostMedia(post.value) : []
+);
 const customNavStyle = computed(() => ({
   paddingTop: `${statusBarHeight.value}px`
 }));
@@ -69,12 +72,10 @@ const author = computed(() => {
     return null;
   }
 
-  return (
-    {
-      name: post.value.author_display.nickname,
-      avatarUrl: post.value.author_display.avatar_url ?? ""
-    }
-  );
+  return {
+    name: post.value.author_display.nickname,
+    avatarUrl: post.value.author_display.avatar_url ?? ""
+  };
 });
 
 const formatTime = (value: string) => {
@@ -180,8 +181,13 @@ const submitComment = async () => {
     commentValue.value = "";
     await loadPost(post.value._id);
     uni.showToast({ title: copy.value.commentSuccess, icon: "success" });
-  } catch {
-    uni.showToast({ title: copy.value.commentError, icon: "none" });
+  } catch (err) {
+    uni.showToast({
+      title:
+        getDiscoverEnforcementMessage(err, copy.value) ||
+        copy.value.commentError,
+      icon: "none"
+    });
   } finally {
     isSubmittingComment.value = false;
   }
@@ -258,7 +264,9 @@ const togglePostFavorite = () => {
 };
 
 const sharePath = computed(() => `/pages/discover/detail?id=${postId.value}`);
-const shareTitle = computed(() => post.value?.title || copy.value.shareCardTitle);
+const shareTitle = computed(
+  () => post.value?.title || copy.value.shareCardTitle
+);
 
 const openShare = () => {
   showShare.value = true;
@@ -338,7 +346,11 @@ const openActions = () => {
             mode="aspectFill"
             @click.stop="openAuthorProfile"
           />
-          <view v-else class="nav-avatar fallback" @click.stop="openAuthorProfile">
+          <view
+            v-else
+            class="nav-avatar fallback"
+            @click.stop="openAuthorProfile"
+          >
             {{ author.name.slice(0, 1).toUpperCase() }}
           </view>
           <view class="nav-user" @click.stop="openAuthorProfile">
@@ -359,8 +371,16 @@ const openActions = () => {
     </view>
 
     <view class="detail-card">
-      <AsyncStateCard v-if="isLoading" variant="loading" :text="copy.detailLoading" />
-      <AsyncStateCard v-else-if="errorMessage" variant="error" :text="errorMessage" />
+      <AsyncStateCard
+        v-if="isLoading"
+        variant="loading"
+        :text="copy.detailLoading"
+      />
+      <AsyncStateCard
+        v-else-if="errorMessage"
+        variant="error"
+        :text="errorMessage"
+      />
 
       <template v-else-if="post">
         <view v-if="postMedia.length" class="gallery">
@@ -424,7 +444,9 @@ const openActions = () => {
         <view class="content">{{ post.content }}</view>
 
         <view v-if="post.tag_ids.length" class="tags">
-          <text v-for="tag in post.tag_ids" :key="tag" class="tag">#{{ tag }}</text>
+          <text v-for="tag in post.tag_ids" :key="tag" class="tag"
+            >#{{ tag }}</text
+          >
         </view>
 
         <view class="comment-box">
@@ -436,7 +458,11 @@ const openActions = () => {
           </view>
 
           <view class="comment-list">
-            <view v-for="comment in comments" :key="comment.id" class="comment-item">
+            <view
+              v-for="comment in comments"
+              :key="comment.id"
+              class="comment-item"
+            >
               <image
                 v-if="comment.avatarUrl"
                 class="comment-avatar"
@@ -452,7 +478,10 @@ const openActions = () => {
                 {{ comment.authorName.slice(0, 1).toUpperCase() }}
               </view>
               <view class="comment-main">
-                <view class="comment-name" @click.stop="openProfile(comment.authorId)">
+                <view
+                  class="comment-name"
+                  @click.stop="openProfile(comment.authorId)"
+                >
                   {{ comment.authorName }}
                 </view>
                 <view class="comment-text">{{ comment.content }}</view>
@@ -540,7 +569,9 @@ const openActions = () => {
             <text class="share-label">{{ copy.shareCopyLink }}</text>
           </view>
         </view>
-        <view class="share-cancel" @click="closeShare">{{ copy.shareCancel }}</view>
+        <view class="share-cancel" @click="closeShare">{{
+          copy.shareCancel
+        }}</view>
       </view>
     </view>
   </view>

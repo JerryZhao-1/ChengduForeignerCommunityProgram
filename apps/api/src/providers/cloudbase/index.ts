@@ -14,8 +14,20 @@ import {
   PlaceSchema,
   PostSchema,
   CommentSchema,
+  DiscoverAuditRecordSchema,
+  DiscoverReportCaseSchema,
+  DiscoverMeGovernanceSchema,
+  DiscoverUserGovernanceDetailSchema,
+  DiscoverUserGovernanceSummarySchema,
+  UserEnforcementStateSchema,
+  UserSchema,
   type Event,
   type EventAdminListItem,
+  type DiscoverAuditRecord,
+  type DiscoverMeGovernance,
+  type DiscoverReportCase,
+  type DiscoverUserGovernanceDetail,
+  type DiscoverUserGovernanceSummary,
   type EventAdminRegistrationRow,
   type EventRegistration,
   type EventTicket,
@@ -27,7 +39,9 @@ import {
   type PlaceGalleryMedia,
   type PlaceListItem,
   type PlaceMapMarker,
-  type Post
+  type Post,
+  type User,
+  type UserEnforcementState
 } from "@community-map/shared";
 
 import { apiError } from "../../lib/errors";
@@ -92,6 +106,8 @@ interface LiveCloudbaseContext {
   posts: CloudbaseCollection;
   comments: CloudbaseCollection;
   fileAssets: CloudbaseCollection;
+  discoverReportCases: CloudbaseCollection;
+  discoverAuditRecords: CloudbaseCollection;
 }
 
 const cleanUndefined = <TItem extends object>(input: Partial<TItem>) =>
@@ -132,9 +148,11 @@ const isLaunchVisibleEvent = (event: Event) =>
   event.review_status === "approved" && event.publish_status === "published";
 
 const isLaunchVisiblePost = (post: Post) =>
-  post.status === "visible" && post.review_status === "visible";
+  post.status === "visible" &&
+  !["hidden", "deleted"].includes(post.review_status);
 
-const isVisibleComment = (comment: Comment) => comment.status === "visible";
+const isVisibleComment = (comment: Comment) =>
+  comment.status === "visible" || comment.status === "reported";
 
 const isActiveRegistration = (registration: EventRegistration) =>
   !["cancelled", "closed"].includes(registration.registration_status);
@@ -313,9 +331,7 @@ const getCloudbaseTempFileUrls = async (
 
   const result = await (
     context.app as unknown as {
-      getTempFileURL(input: {
-        fileList: string[];
-      }): Promise<{
+      getTempFileURL(input: { fileList: string[] }): Promise<{
         fileList: Array<{ fileID: string; tempFileURL?: string }>;
       }>;
     }
@@ -469,7 +485,9 @@ const createLiveContext = (): LiveCloudbaseContext | null => {
     places: db.collection("places"),
     posts: db.collection("posts"),
     comments: db.collection("comments"),
-    fileAssets: db.collection("file_assets")
+    fileAssets: db.collection("file_assets"),
+    discoverReportCases: db.collection("discover_report_cases"),
+    discoverAuditRecords: db.collection("discover_audit_records")
   };
 };
 
@@ -535,6 +553,20 @@ const normalizeFileAsset = (raw: unknown): FileAsset | null => {
   return parsed.success ? parsed.data : null;
 };
 
+const normalizeDiscoverReportCase = (
+  raw: unknown
+): DiscoverReportCase | null => {
+  const parsed = DiscoverReportCaseSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizeDiscoverAuditRecord = (
+  raw: unknown
+): DiscoverAuditRecord | null => {
+  const parsed = DiscoverAuditRecordSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
 const readEvents = async (context: LiveCloudbaseContext) => {
   const result = await context.events.limit(MAX_EVENTS_FETCH).get();
   const events = result.data
@@ -584,6 +616,24 @@ const readFileAssets = async (context: LiveCloudbaseContext) => {
   return result.data
     .map(normalizeFileAsset)
     .filter((asset): asset is FileAsset => !!asset);
+};
+
+const readDiscoverReportCases = async (context: LiveCloudbaseContext) => {
+  const result = await context.discoverReportCases
+    .limit(MAX_DISCOVER_FETCH)
+    .get();
+  return result.data
+    .map(normalizeDiscoverReportCase)
+    .filter((report): report is DiscoverReportCase => !!report);
+};
+
+const readDiscoverAuditRecords = async (context: LiveCloudbaseContext) => {
+  const result = await context.discoverAuditRecords
+    .limit(MAX_DISCOVER_FETCH)
+    .get();
+  return result.data
+    .map(normalizeDiscoverAuditRecord)
+    .filter((record): record is DiscoverAuditRecord => !!record);
 };
 
 const createLiveEventsProvider = (
@@ -1265,10 +1315,508 @@ const normalizePostForRead = async (
   });
 };
 
+const requireLiveAdminActor = async (
+  fallbackAuth: ApiProvider["auth"],
+  actorId?: string
+) => {
+  const actor = await fallbackAuth.resolveActor(actorId);
+  if (!isAdmin(actor)) {
+    throw apiError("FORBIDDEN", "Insufficient permission.", 403);
+  }
+  return actor;
+};
+
+const LIVE_ENFORCEMENT_STATUSES = [
+  "active",
+  "warned",
+  "muted",
+  "banned"
+] as const;
+const LIVE_CONTENT_STATUSES = [
+  "visible",
+  "reported",
+  "hidden",
+  "deleted"
+] as const;
+
+const isLiveEnforcementStatus = (
+  value: unknown
+): value is UserEnforcementState["status"] =>
+  typeof value === "string" &&
+  LIVE_ENFORCEMENT_STATUSES.some((status) => status === value);
+
+const isLiveEnforcementContentStatus = (
+  value: unknown
+): value is Post["status"] =>
+  typeof value === "string" &&
+  LIVE_CONTENT_STATUSES.some((status) => status === value);
+
+const toPlaceholderUser = (userId: string): User =>
+  UserSchema.parse({
+    _id: userId,
+    nickname: userId,
+    avatar_url: "https://example.com/avatar-placeholder.png",
+    preferred_language: "zh",
+    role_flags: [],
+    status: "active"
+  });
+
+const resolveLiveGovernanceUser = async (
+  fallbackAuth: ApiProvider["auth"],
+  userId: string
+): Promise<User> => {
+  try {
+    return await fallbackAuth.resolveActor(userId);
+  } catch {
+    return toPlaceholderUser(userId);
+  }
+};
+
+const latestLiveUserEnforcement = (
+  auditRecords: DiscoverAuditRecord[],
+  userId: string
+): UserEnforcementState => {
+  const record = auditRecords
+    .filter(
+      (item) =>
+        item.action === "enforce_user" &&
+        item.target_type === "user" &&
+        item.target_id === userId
+    )
+    .sort(
+      (left, right) =>
+        Date.parse(right.created_at) - Date.parse(left.created_at)
+    )[0];
+  const nextState = record?.next_state;
+  const status = isLiveEnforcementStatus(nextState?.status)
+    ? nextState.status
+    : "active";
+  const expiresAt =
+    typeof nextState?.expires_at === "string" ? nextState.expires_at : null;
+
+  if (status !== "active" && expiresAt && Date.parse(expiresAt) <= Date.now()) {
+    return UserEnforcementStateSchema.parse({
+      status: "active",
+      reason: null,
+      notes: typeof nextState?.notes === "string" ? nextState.notes : null,
+      expires_at: null,
+      updated_at: new Date().toISOString(),
+      updated_by:
+        typeof nextState?.updated_by === "string" ? nextState.updated_by : null
+    });
+  }
+
+  return UserEnforcementStateSchema.parse({
+    status,
+    reason: typeof nextState?.reason === "string" ? nextState.reason : null,
+    notes: typeof nextState?.notes === "string" ? nextState.notes : null,
+    expires_at: expiresAt,
+    updated_at:
+      typeof nextState?.updated_at === "string" ? nextState.updated_at : null,
+    updated_by:
+      typeof nextState?.updated_by === "string" ? nextState.updated_by : null
+  });
+};
+
+const collectLiveGovernanceUserIds = (
+  posts: Post[],
+  comments: Comment[],
+  reports: DiscoverReportCase[],
+  auditRecords: DiscoverAuditRecord[]
+) => {
+  const ids = new Set<string>();
+
+  posts.forEach((post) => ids.add(post.author_user_id));
+  comments.forEach((comment) => ids.add(comment.author_user_id));
+  reports.forEach((report) => {
+    ids.add(report.reporter_user_id);
+    if (report.handler_user_id) {
+      ids.add(report.handler_user_id);
+    }
+  });
+  auditRecords.forEach((record) => {
+    ids.add(record.actor_user_id);
+    if (record.target_type === "user") {
+      ids.add(record.target_id);
+    }
+  });
+
+  return [...ids];
+};
+
+const buildLiveUserGovernanceSummary = (
+  user: User,
+  posts: Post[],
+  comments: Comment[],
+  reports: DiscoverReportCase[],
+  auditRecords: DiscoverAuditRecord[]
+): DiscoverUserGovernanceSummary =>
+  DiscoverUserGovernanceSummarySchema.parse({
+    user,
+    enforcement: latestLiveUserEnforcement(auditRecords, user._id),
+    post_count: posts.filter((post) => post.author_user_id === user._id).length,
+    comment_count: comments.filter(
+      (comment) => comment.author_user_id === user._id
+    ).length,
+    report_count: reports.filter(
+      (report) => report.reporter_user_id === user._id
+    ).length,
+    violation_count: auditRecords.filter(
+      (record) => record.target_type === "user" && record.target_id === user._id
+    ).length
+  });
+
+const buildLiveUserGovernanceDetail = async (
+  context: LiveCloudbaseContext,
+  user: User,
+  posts: Post[],
+  comments: Comment[],
+  reports: DiscoverReportCase[],
+  auditRecords: DiscoverAuditRecord[]
+): Promise<DiscoverUserGovernanceDetail> => {
+  const ownedPostIds = new Set(
+    posts
+      .filter((post) => post.author_user_id === user._id)
+      .map((post) => post._id)
+  );
+  const visibleReports = await Promise.all(
+    reports
+      .filter(
+        (report) =>
+          report.reporter_user_id === user._id ||
+          ownedPostIds.has(report.post_id)
+      )
+      .map((report) => normalizeLiveReportCase(context, report, true))
+  );
+
+  return DiscoverUserGovernanceDetailSchema.parse({
+    ...buildLiveUserGovernanceSummary(
+      user,
+      posts,
+      comments,
+      reports,
+      auditRecords
+    ),
+    posts: posts.filter((post) => post.author_user_id === user._id),
+    comments: comments.filter((comment) => comment.author_user_id === user._id),
+    reports: visibleReports,
+    audit_records: auditRecords.filter(
+      (record) =>
+        record.target_id === user._id || record.actor_user_id === user._id
+    )
+  });
+};
+
+const hideLiveBannedUserPosts = async (
+  context: LiveCloudbaseContext,
+  posts: Post[],
+  userId: string
+) => {
+  const hiddenPosts = posts
+    .filter(
+      (post) =>
+        post.author_user_id === userId &&
+        post.status === "visible" &&
+        !["hidden", "deleted"].includes(post.review_status)
+    )
+    .map((post) => ({
+      _id: post._id,
+      status: post.status,
+      review_status: post.review_status
+    }));
+  const now = new Date().toISOString();
+
+  await Promise.all(
+    hiddenPosts.map((post) =>
+      context.posts.doc(post._id).update({
+        status: "hidden",
+        review_status: "hidden",
+        updated_at: now
+      })
+    )
+  );
+
+  return hiddenPosts;
+};
+
+const restoreLiveBannedUserPosts = async (
+  context: LiveCloudbaseContext,
+  posts: Post[],
+  auditRecords: DiscoverAuditRecord[],
+  userId: string
+) => {
+  const latestBan = auditRecords
+    .filter(
+      (record) =>
+        record.action === "enforce_user" &&
+        record.target_type === "user" &&
+        record.target_id === userId &&
+        record.next_state?.status === "banned"
+    )
+    .sort(
+      (left, right) =>
+        Date.parse(right.created_at) - Date.parse(left.created_at)
+    )[0];
+  const hiddenPosts = Array.isArray(latestBan?.next_state?.banned_hidden_posts)
+    ? latestBan.next_state.banned_hidden_posts
+    : [];
+  const restoredPostIds: string[] = [];
+  const now = new Date().toISOString();
+
+  for (const hiddenPost of hiddenPosts) {
+    if (!hiddenPost || typeof hiddenPost !== "object") {
+      continue;
+    }
+
+    const candidate = hiddenPost as {
+      _id?: unknown;
+      status?: unknown;
+      review_status?: unknown;
+    };
+
+    if (
+      typeof candidate._id !== "string" ||
+      !isLiveEnforcementContentStatus(candidate.status) ||
+      !isLiveEnforcementContentStatus(candidate.review_status)
+    ) {
+      continue;
+    }
+
+    const post = posts.find((item) => item._id === candidate._id);
+    if (
+      post &&
+      post.author_user_id === userId &&
+      post.status === "hidden" &&
+      post.review_status === "hidden"
+    ) {
+      await context.posts.doc(post._id).update({
+        status: candidate.status,
+        review_status: candidate.review_status,
+        updated_at: now
+      });
+      restoredPostIds.push(post._id);
+    }
+  }
+
+  return restoredPostIds;
+};
+
+const assertLiveReportEvidenceAccess = (
+  evidenceFileIds: string[],
+  fileAssets: FileAsset[],
+  actor: { _id: string; role_flags: string[] }
+) => {
+  for (const fileId of evidenceFileIds) {
+    const asset = fileAssets.find(
+      (item) => item.file_id === fileId && item.status === "active"
+    );
+
+    if (
+      !asset ||
+      asset.visibility !== "private" ||
+      asset.biz_type !== "report_evidence" ||
+      !asset.cloud_path.startsWith(FILE_PATH_RULES.reports) ||
+      (asset.uploaded_by !== actor._id && !isAdmin(actor))
+    ) {
+      throw apiError("FORBIDDEN", "Report evidence access denied.", 403);
+    }
+  }
+};
+
+const normalizeLiveReportCase = async (
+  context: LiveCloudbaseContext,
+  report: DiscoverReportCase,
+  includeEvidenceUrls = false
+): Promise<DiscoverReportCase> => {
+  const fileAssets = await readFileAssets(context);
+  const evidenceAssets = report.evidence_file_ids
+    .map((fileId) =>
+      fileAssets.find(
+        (asset) => asset.file_id === fileId && asset.status === "active"
+      )
+    )
+    .filter((asset): asset is FileAsset => !!asset);
+  const urlsByFileId = includeEvidenceUrls
+    ? await getCloudbaseTempFileUrls(
+        context,
+        evidenceAssets.map((asset) => asset.file_id)
+      )
+    : new Map<string, string>();
+
+  return {
+    ...report,
+    evidence: evidenceAssets.map((asset) => ({
+      file_id: asset.file_id,
+      cloud_path: asset.cloud_path,
+      visibility: asset.visibility,
+      ...(includeEvidenceUrls
+        ? { temp_url: urlsByFileId.get(asset.file_id) }
+        : {})
+    }))
+  };
+};
+
+const createLiveReportCase = async (
+  context: LiveCloudbaseContext,
+  input: {
+    target_type: "post" | "comment";
+    post: Post;
+    comment?: Comment;
+    reason: string;
+    description?: string;
+    evidence_file_ids?: string[];
+    actor: { _id: string; role_flags: string[] };
+  }
+) => {
+  const evidenceFileIds = input.evidence_file_ids ?? [];
+  const fileAssets = await readFileAssets(context);
+  assertLiveReportEvidenceAccess(evidenceFileIds, fileAssets, input.actor);
+
+  const now = new Date().toISOString();
+  const report = DiscoverReportCaseSchema.parse({
+    _id: `report_${randomUUID()}`,
+    community_id: input.post.community_id,
+    target_type: input.target_type,
+    target_id: input.comment?._id ?? input.post._id,
+    post_id: input.post._id,
+    comment_id: input.comment?._id ?? null,
+    reporter_user_id: input.actor._id,
+    reason: input.reason,
+    description: input.description ?? null,
+    evidence_file_ids: evidenceFileIds,
+    evidence: [],
+    status: "open",
+    handler_user_id: null,
+    resolution_note: null,
+    created_at: now,
+    updated_at: now,
+    resolved_at: null
+  });
+
+  await context.discoverReportCases
+    .doc(report._id)
+    .set(toCloudbaseSetDocument(report));
+  await Promise.all(
+    evidenceFileIds.map(async (fileId) => {
+      const asset = fileAssets.find((item) => item.file_id === fileId);
+      if (asset) {
+        await context.fileAssets.doc(asset._id).update({ biz_id: report._id });
+      }
+    })
+  );
+
+  return normalizeLiveReportCase(context, report);
+};
+
+const assertLiveActorAllowed = async (
+  context: LiveCloudbaseContext,
+  actorId: string,
+  action: "create_post" | "create_comment" | "report" | "read_mine"
+) => {
+  const enforcement = latestLiveUserEnforcement(
+    await readDiscoverAuditRecords(context),
+    actorId
+  );
+  const blockedByMuted =
+    enforcement.status === "muted" &&
+    (action === "create_post" || action === "create_comment");
+  const blockedByBanned =
+    enforcement.status === "banned" &&
+    ["create_post", "create_comment", "report", "read_mine"].includes(action);
+
+  if (!blockedByMuted && !blockedByBanned) {
+    return;
+  }
+
+  throw apiError("FORBIDDEN", "User enforcement blocks this action.", 403, {
+    enforcement_status: enforcement.status,
+    action
+  });
+};
+
+const addLiveAuditRecord = async (
+  context: LiveCloudbaseContext,
+  input: {
+    actor_user_id: string;
+    action: string;
+    target_type: DiscoverAuditRecord["target_type"];
+    target_id: string;
+    reason?: string | null;
+    previous_state?: Record<string, unknown> | null;
+    next_state?: Record<string, unknown> | null;
+  }
+) => {
+  const record = DiscoverAuditRecordSchema.parse({
+    _id: `audit_${randomUUID()}`,
+    community_id: DEFAULT_COMMUNITY_ID,
+    actor_user_id: input.actor_user_id,
+    action: input.action,
+    target_type: input.target_type,
+    target_id: input.target_id,
+    reason: input.reason ?? null,
+    previous_state: input.previous_state ?? null,
+    next_state: input.next_state ?? null,
+    created_at: new Date().toISOString()
+  });
+
+  await context.discoverAuditRecords
+    .doc(record._id)
+    .set(toCloudbaseSetDocument(record));
+  return record;
+};
+
 const createLivePostsProvider = (
   context: LiveCloudbaseContext,
-  fallbackAuth: ApiProvider["auth"]
+  fallbackAuth: ApiProvider["auth"],
+  fallbackPosts: ApiProvider["posts"]
 ): ApiProvider["posts"] => ({
+  ...fallbackPosts,
+  async meGovernance(actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    const [posts, comments, reports, auditRecords] = await Promise.all([
+      readPosts(context),
+      readComments(context),
+      readDiscoverReportCases(context),
+      readDiscoverAuditRecords(context)
+    ]);
+
+    return DiscoverMeGovernanceSchema.parse({
+      ...buildLiveUserGovernanceSummary(
+        actor,
+        posts,
+        comments,
+        reports,
+        auditRecords
+      ),
+      unread_notification_count: 0
+    } satisfies DiscoverMeGovernance);
+  },
+  async listAdmin(input, actorId) {
+    await requireLiveAdminActor(fallbackAuth, actorId);
+    const [posts, comments] = await Promise.all([
+      readPosts(context),
+      readComments(context)
+    ]);
+    const filteredPosts = posts.filter((post) => {
+      const status = input.status ?? "all";
+      return (
+        (!input.communityId || post.community_id === input.communityId) &&
+        (status === "all" ||
+          post.status === status ||
+          post.review_status === status) &&
+        (!input.authorUserId || post.author_user_id === input.authorUserId) &&
+        (!input.language || post.language === input.language) &&
+        (!input.tag || post.tag_ids.includes(input.tag)) &&
+        (keywordMatch(post.title, input.keyword) ||
+          keywordMatch(post.content, input.keyword))
+      );
+    });
+    const normalized = await Promise.all(
+      filteredPosts.map((post) => normalizePostForRead(context, post, comments))
+    );
+
+    return paginate(normalized, input);
+  },
   async list(input) {
     const [posts, comments] = await Promise.all([
       readPosts(context),
@@ -1289,6 +1837,7 @@ const createLivePostsProvider = (
   },
   async listMine(input, actorId) {
     const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "read_mine");
     const [posts, comments] = await Promise.all([
       readPosts(context),
       readComments(context)
@@ -1333,8 +1882,24 @@ const createLivePostsProvider = (
       input
     );
   },
+  async listAdminComments(input, actorId) {
+    await requireLiveAdminActor(fallbackAuth, actorId);
+    const comments = (await readComments(context)).filter((comment) => {
+      const status = input.status ?? "all";
+      return (
+        (!input.postId || comment.post_id === input.postId) &&
+        (status === "all" || comment.status === status) &&
+        (!input.authorUserId ||
+          comment.author_user_id === input.authorUserId) &&
+        keywordMatch(comment.content, input.keyword)
+      );
+    });
+
+    return paginate(comments, input);
+  },
   async create(input, actorId) {
     const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "create_post");
     const now = new Date().toISOString();
     const postId = `post_${randomUUID()}`;
     const imageFileIds = input.image_file_ids ?? [];
@@ -1398,6 +1963,7 @@ const createLivePostsProvider = (
   },
   async createComment(postId, input, actorId) {
     const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "create_comment");
     const posts = await readPosts(context);
     const post = posts.find((item) => item._id === postId);
 
@@ -1425,7 +1991,9 @@ const createLivePostsProvider = (
 
     return comment;
   },
-  async report(id) {
+  async report(id, input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "report");
     const posts = await readPosts(context);
     const post = posts.find((item) => item._id === id);
 
@@ -1442,9 +2010,389 @@ const createLivePostsProvider = (
       review_status: nextPost.review_status,
       updated_at: nextPost.updated_at
     });
+    await createLiveReportCase(context, {
+      target_type: "post",
+      post: nextPost,
+      reason: input.reason,
+      description: input.description,
+      evidence_file_ids: input.evidence_file_ids,
+      actor
+    });
     return nextPost;
   },
-  async moderate(id, input) {
+  async reportComment(postId, commentId, input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "report");
+    const [posts, comments] = await Promise.all([
+      readPosts(context),
+      readComments(context)
+    ]);
+    const post = posts.find((item) => item._id === postId);
+    const comment = comments.find(
+      (item) => item._id === commentId && item.post_id === postId
+    );
+
+    if (
+      !post ||
+      !comment ||
+      !isLaunchVisiblePost(post) ||
+      !isVisibleComment(comment)
+    ) {
+      return null;
+    }
+
+    const nextComment = CommentSchema.parse({
+      ...comment,
+      status: "reported"
+    });
+    await context.comments.doc(commentId).update({
+      status: nextComment.status
+    });
+
+    return createLiveReportCase(context, {
+      target_type: "comment",
+      post,
+      comment: nextComment,
+      reason: input.reason,
+      description: input.description,
+      evidence_file_ids: input.evidence_file_ids,
+      actor
+    });
+  },
+  async listReportCases(input, actorId) {
+    await requireLiveAdminActor(fallbackAuth, actorId);
+    const reports = (await readDiscoverReportCases(context)).filter(
+      (report) => {
+        const status = input.status ?? "all";
+        return (
+          (status === "all" || report.status === status) &&
+          (!input.targetType || report.target_type === input.targetType) &&
+          (!input.reason || report.reason === input.reason)
+        );
+      }
+    );
+    const normalized = await Promise.all(
+      reports.map((report) => normalizeLiveReportCase(context, report, true))
+    );
+
+    return paginate(normalized, input);
+  },
+  async detailReportCase(id, actorId) {
+    await requireLiveAdminActor(fallbackAuth, actorId);
+    const report = (await readDiscoverReportCases(context)).find(
+      (item) => item._id === id
+    );
+
+    return report ? normalizeLiveReportCase(context, report, true) : null;
+  },
+  async resolveReportCase(id, input, actorId) {
+    const actor = await requireLiveAdminActor(fallbackAuth, actorId);
+    const report = (await readDiscoverReportCases(context)).find(
+      (item) => item._id === id
+    );
+    if (!report) {
+      return null;
+    }
+
+    const now = new Date().toISOString();
+    const previous = {
+      status: report.status,
+      handler_user_id: report.handler_user_id,
+      resolution_note: report.resolution_note
+    };
+    const nextReport = DiscoverReportCaseSchema.parse({
+      ...report,
+      status: input.status,
+      handler_user_id: actor._id,
+      resolution_note: input.reason,
+      updated_at: now,
+      resolved_at: now
+    });
+    await context.discoverReportCases.doc(id).update({
+      status: nextReport.status,
+      handler_user_id: nextReport.handler_user_id,
+      resolution_note: nextReport.resolution_note,
+      updated_at: nextReport.updated_at,
+      resolved_at: nextReport.resolved_at
+    });
+
+    const action = input.moderation_action ?? "none";
+    const hasOtherOpenReport = (await readDiscoverReportCases(context)).some(
+      (item) =>
+        item._id !== report._id &&
+        item.status === "open" &&
+        item.target_type === report.target_type &&
+        item.target_id === report.target_id
+    );
+
+    if (action !== "none" && report.target_type === "post") {
+      const nextStatus =
+        action === "restore"
+          ? "visible"
+          : action === "delete"
+            ? "deleted"
+            : "hidden";
+      await context.posts.doc(report.post_id).update({
+        status: nextStatus,
+        review_status: nextStatus,
+        updated_at: now
+      });
+    }
+
+    if (
+      action === "none" &&
+      input.status === "rejected" &&
+      report.target_type === "post" &&
+      !hasOtherOpenReport
+    ) {
+      const targetPost = (await readPosts(context)).find(
+        (post) => post._id === report.post_id
+      );
+      if (
+        targetPost &&
+        targetPost.status === "visible" &&
+        targetPost.review_status === "reported"
+      ) {
+        await context.posts.doc(report.post_id).update({
+          review_status: "visible",
+          updated_at: now
+        });
+      }
+    }
+
+    if (
+      action !== "none" &&
+      report.target_type === "comment" &&
+      report.comment_id
+    ) {
+      const nextStatus =
+        action === "restore"
+          ? "visible"
+          : action === "delete"
+            ? "deleted"
+            : "hidden";
+      await context.comments.doc(report.comment_id).update({
+        status: nextStatus
+      });
+    }
+
+    if (
+      action === "none" &&
+      input.status === "rejected" &&
+      report.target_type === "comment" &&
+      report.comment_id &&
+      !hasOtherOpenReport
+    ) {
+      const targetComment = (await readComments(context)).find(
+        (comment) => comment._id === report.comment_id
+      );
+      if (targetComment?.status === "reported") {
+        await context.comments.doc(report.comment_id).update({
+          status: "visible"
+        });
+      }
+    }
+
+    await addLiveAuditRecord(context, {
+      actor_user_id: actor._id,
+      action: "resolve_report",
+      target_type: "report",
+      target_id: report._id,
+      reason: input.reason,
+      previous_state: previous,
+      next_state: {
+        status: nextReport.status,
+        handler_user_id: nextReport.handler_user_id,
+        resolution_note: nextReport.resolution_note,
+        moderation_action: action
+      }
+    });
+
+    return normalizeLiveReportCase(context, nextReport, true);
+  },
+  async listAuditRecords(input, actorId) {
+    await requireLiveAdminActor(fallbackAuth, actorId);
+    const records = (await readDiscoverAuditRecords(context)).filter(
+      (record) =>
+        (!input.targetType || record.target_type === input.targetType) &&
+        (!input.targetId || record.target_id === input.targetId) &&
+        (!input.actorUserId || record.actor_user_id === input.actorUserId)
+    );
+
+    return paginate(records, input);
+  },
+  async moderateComment(id, input, actorId) {
+    const actor = await requireLiveAdminActor(fallbackAuth, actorId);
+    const comment = (await readComments(context)).find(
+      (item) => item._id === id
+    );
+    if (!comment) {
+      return null;
+    }
+    const previous = { status: comment.status };
+    const nextComment = CommentSchema.parse({
+      ...comment,
+      status: input.status
+    });
+
+    await context.comments.doc(id).update({
+      status: nextComment.status
+    });
+    await addLiveAuditRecord(context, {
+      actor_user_id: actor._id,
+      action: "moderate_comment",
+      target_type: "comment",
+      target_id: id,
+      reason: input.reason ?? null,
+      previous_state: previous,
+      next_state: { status: nextComment.status }
+    });
+
+    return nextComment;
+  },
+  async listGovernanceUsers(input, actorId) {
+    await requireLiveAdminActor(fallbackAuth, actorId);
+    const [posts, comments, reports, auditRecords] = await Promise.all([
+      readPosts(context),
+      readComments(context),
+      readDiscoverReportCases(context),
+      readDiscoverAuditRecords(context)
+    ]);
+    const users = await Promise.all(
+      collectLiveGovernanceUserIds(posts, comments, reports, auditRecords).map(
+        (id) => resolveLiveGovernanceUser(fallbackAuth, id)
+      )
+    );
+    const summaries = users
+      .map((user) =>
+        buildLiveUserGovernanceSummary(
+          user,
+          posts,
+          comments,
+          reports,
+          auditRecords
+        )
+      )
+      .filter((summary) => {
+        const status = input.status ?? "all";
+        return (
+          (status === "all" ||
+            summary.enforcement.status === status ||
+            summary.user.status === status) &&
+          (keywordMatch(summary.user.nickname, input.keyword) ||
+            keywordMatch(summary.user.phone ?? "", input.keyword) ||
+            keywordMatch(summary.user._id, input.keyword))
+        );
+      });
+
+    return paginate(summaries, input);
+  },
+  async detailGovernanceUser(id, actorId) {
+    await requireLiveAdminActor(fallbackAuth, actorId);
+    const [posts, comments, reports, auditRecords] = await Promise.all([
+      readPosts(context),
+      readComments(context),
+      readDiscoverReportCases(context),
+      readDiscoverAuditRecords(context)
+    ]);
+    const knownUserIds = collectLiveGovernanceUserIds(
+      posts,
+      comments,
+      reports,
+      auditRecords
+    );
+
+    if (!knownUserIds.includes(id)) {
+      return null;
+    }
+
+    const user = await resolveLiveGovernanceUser(fallbackAuth, id);
+    return buildLiveUserGovernanceDetail(
+      context,
+      user,
+      posts,
+      comments,
+      reports,
+      auditRecords
+    );
+  },
+  async enforceUser(id, input, actorId) {
+    const actor = await requireLiveAdminActor(fallbackAuth, actorId);
+    const [posts, comments, reports, auditRecords] = await Promise.all([
+      readPosts(context),
+      readComments(context),
+      readDiscoverReportCases(context),
+      readDiscoverAuditRecords(context)
+    ]);
+    const knownUserIds = collectLiveGovernanceUserIds(
+      posts,
+      comments,
+      reports,
+      auditRecords
+    );
+
+    if (!knownUserIds.includes(id)) {
+      return null;
+    }
+
+    const user = await resolveLiveGovernanceUser(fallbackAuth, id);
+    if (user.role_flags.includes("system_admin") && actor._id !== user._id) {
+      throw apiError("FORBIDDEN", "System admin enforcement denied.", 403);
+    }
+
+    const previous = latestLiveUserEnforcement(auditRecords, id);
+    const bannedHiddenPosts =
+      input.status === "banned"
+        ? await hideLiveBannedUserPosts(context, posts, id)
+        : [];
+    const restoredPostIds =
+      input.status === "active" && previous.status === "banned"
+        ? await restoreLiveBannedUserPosts(context, posts, auditRecords, id)
+        : [];
+    const now = new Date().toISOString();
+    const nextState = UserEnforcementStateSchema.parse({
+      status: input.status,
+      reason: input.reason,
+      notes: input.notes ?? null,
+      expires_at: input.expires_at ?? null,
+      updated_at: now,
+      updated_by: actor._id
+    });
+
+    await addLiveAuditRecord(context, {
+      actor_user_id: actor._id,
+      action: "enforce_user",
+      target_type: "user",
+      target_id: id,
+      reason: input.reason,
+      previous_state: previous,
+      next_state: {
+        ...nextState,
+        ...(bannedHiddenPosts.length
+          ? { banned_hidden_posts: bannedHiddenPosts }
+          : {}),
+        ...(restoredPostIds.length
+          ? { restored_post_ids: restoredPostIds }
+          : {})
+      }
+    });
+
+    const updatedPosts =
+      bannedHiddenPosts.length || restoredPostIds.length
+        ? await readPosts(context)
+        : posts;
+
+    return buildLiveUserGovernanceDetail(
+      context,
+      user,
+      updatedPosts,
+      comments,
+      reports,
+      await readDiscoverAuditRecords(context)
+    );
+  },
+  async moderate(id, input, actorId) {
+    const actor = await requireLiveAdminActor(fallbackAuth, actorId);
     const posts = await readPosts(context);
     const post = posts.find((item) => item._id === id);
 
@@ -1462,6 +2410,21 @@ const createLivePostsProvider = (
       review_status: nextPost.review_status,
       status: nextPost.status,
       updated_at: nextPost.updated_at
+    });
+    await addLiveAuditRecord(context, {
+      actor_user_id: actor._id,
+      action: "moderate_post",
+      target_type: "post",
+      target_id: id,
+      reason: input.reason ?? null,
+      previous_state: {
+        status: post.status,
+        review_status: post.review_status
+      },
+      next_state: {
+        status: nextPost.status,
+        review_status: nextPost.review_status
+      }
     });
     return nextPost;
   }
@@ -1565,6 +2528,38 @@ const createLiveFilesProvider = (
 
     await context.fileAssets.doc(asset._id).set(toCloudbaseSetDocument(asset));
     return asset;
+  },
+  async uploadReportEvidence(input, actorId = "user_001") {
+    const bizId = input.biz_id ?? `pending_report_${randomUUID()}`;
+    const cloudPath = `${FILE_PATH_RULES.reports}${bizId}/${randomUUID()}-${sanitizeFileName(input.file_name, "report-evidence")}`;
+    const uploadResult = await (
+      context.app as unknown as {
+        uploadFile(input: {
+          cloudPath: string;
+          fileContent: Buffer;
+        }): Promise<{ fileID?: string; fileId?: string }>;
+      }
+    ).uploadFile({
+      cloudPath,
+      fileContent: input.buffer
+    });
+    const fileId =
+      uploadResult.fileID ??
+      uploadResult.fileId ??
+      `cloud://${getCloudbaseEnvId()}/${cloudPath}`;
+    const asset = FileAssetSchema.parse({
+      _id: `file_${randomUUID()}`,
+      file_id: fileId,
+      cloud_path: cloudPath,
+      visibility: "private",
+      biz_type: "report_evidence",
+      biz_id: bizId,
+      uploaded_by: actorId,
+      status: "active"
+    } satisfies FileAsset);
+
+    await context.fileAssets.doc(asset._id).set(toCloudbaseSetDocument(asset));
+    return asset;
   }
 });
 
@@ -1580,7 +2575,7 @@ export const createCloudbaseProvider = (): ApiProvider => {
     ...fallback,
     events: createLiveEventsProvider(liveContext, fallback.auth),
     places: createLivePlacesProvider(liveContext),
-    posts: createLivePostsProvider(liveContext, fallback.auth),
+    posts: createLivePostsProvider(liveContext, fallback.auth, fallback.posts),
     files: createLiveFilesProvider(liveContext)
   };
 };

@@ -26,6 +26,7 @@ exports[`shared contracts > keeps page envelope, file rules, and enums stable 1`
     "exports": "private/exports/",
     "placeGallery": "public/places/",
     "postImages": "public/posts/",
+    "reports": "private/reports/",
     "tickets": "private/tickets/",
   },
   "locales": [

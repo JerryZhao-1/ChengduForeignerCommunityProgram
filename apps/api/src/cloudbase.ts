@@ -281,6 +281,10 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       return ok(await provider.posts.list(query), requestId);
     }
 
+    if (method === "GET" && pathname === "/discover/me/governance") {
+      return ok(await provider.posts.meGovernance(actorId), requestId);
+    }
+
     {
       const match = matchRoute("/discover/posts/:id", pathname);
 
@@ -321,8 +325,12 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       const match = matchRoute("/discover/posts/:id/report", pathname);
 
       if (method === "POST" && match.matched) {
-        parseOrThrow(ReportPostInputSchema, body);
-        const post = await provider.posts.report(match.params.id);
+        const input = parseOrThrow(ReportPostInputSchema, body);
+        const post = await provider.posts.report(
+          match.params.id,
+          input,
+          actorId
+        );
 
         if (!post) {
           throw apiError("NOT_FOUND", "Post not found.", 404);
@@ -562,7 +570,11 @@ export const main: CloudbaseEventHandler = async (event, context) => {
           "system_admin"
         ]);
         const input = parseOrThrow(ModeratePostInputSchema, body);
-        const post = await provider.posts.moderate(match.params.id, input);
+        const post = await provider.posts.moderate(
+          match.params.id,
+          input,
+          actorId
+        );
 
         if (!post) {
           throw apiError("NOT_FOUND", "Post not found.", 404);

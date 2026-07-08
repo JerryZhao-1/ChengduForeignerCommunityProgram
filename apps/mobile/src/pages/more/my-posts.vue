@@ -26,7 +26,8 @@ const statusLabel = (post: Post) => {
 };
 
 const canOpenPublicDetail = (post: Post) =>
-  post.status === "visible" && post.review_status === "visible";
+  post.status === "visible" &&
+  !["hidden", "deleted"].includes(post.review_status);
 
 const loadPosts = async () => {
   isLoading.value = true;

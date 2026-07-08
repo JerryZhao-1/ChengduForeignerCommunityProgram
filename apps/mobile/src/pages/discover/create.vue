@@ -6,6 +6,7 @@ import { uploadPostMedia } from "@/api/post-media-upload";
 import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
+import { getDiscoverEnforcementMessage } from "./enforcement-error";
 import { getMediaKind } from "./media";
 
 const { state } = useAppStore();
@@ -208,8 +209,13 @@ const submit = async () => {
     uni.redirectTo({
       url: `/pages/discover/detail?id=${result.data._id}`
     });
-  } catch {
-    uni.showToast({ title: copy.value.createError, icon: "none" });
+  } catch (err) {
+    uni.showToast({
+      title:
+        getDiscoverEnforcementMessage(err, copy.value) ||
+        copy.value.createError,
+      icon: "none"
+    });
   } finally {
     isSubmitting.value = false;
   }

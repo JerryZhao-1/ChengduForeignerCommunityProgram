@@ -15,9 +15,12 @@ export const apiPaths = {
     detailPost: (id: string) => `/discover/posts/${id}`,
     createPost: "/discover/posts",
     myPosts: "/discover/me/posts",
+    meGovernance: "/discover/me/governance",
     listComments: (id: string) => `/discover/posts/${id}/comments`,
     createComment: (id: string) => `/discover/posts/${id}/comments`,
-    reportPost: (id: string) => `/discover/posts/${id}/report`
+    reportPost: (id: string) => `/discover/posts/${id}/report`,
+    reportComment: (postId: string, commentId: string) =>
+      `/discover/posts/${postId}/comments/${commentId}/report`
   },
   places: {
     list: "/places",
@@ -36,7 +39,8 @@ export const apiPaths = {
     createUploadRequest: "/files/upload-requests",
     completeUpload: "/files/complete",
     privateUrl: "/files/private-url",
-    uploadPostMedia: "/files/post-media"
+    uploadPostMedia: "/files/post-media",
+    uploadReportEvidence: "/files/report-evidence"
   },
   admin: {
     listEvents: "/admin/events",
@@ -48,7 +52,20 @@ export const apiPaths = {
     checkinEvent: (id: string) => `/admin/events/${id}/checkin`,
     uploadPendingEventCoverFile: "/admin/events/cover-file",
     uploadEventCoverFile: (id: string) => `/admin/events/${id}/cover-file`,
+    listDiscoverPosts: "/admin/discover/posts",
+    listDiscoverComments: "/admin/discover/comments",
+    listDiscoverReports: "/admin/discover/reports",
+    detailDiscoverReport: (id: string) => `/admin/discover/reports/${id}`,
     moderatePost: (id: string) => `/admin/discover/posts/${id}/moderation`,
+    moderateComment: (id: string) =>
+      `/admin/discover/comments/${id}/moderation`,
+    resolveDiscoverReport: (id: string) =>
+      `/admin/discover/reports/${id}/resolve`,
+    listDiscoverUsers: "/admin/discover/users",
+    detailDiscoverUser: (id: string) => `/admin/discover/users/${id}`,
+    enforceDiscoverUser: (id: string) =>
+      `/admin/discover/users/${id}/enforcement`,
+    listDiscoverAudit: "/admin/discover/audit",
     listPlaces: "/admin/places",
     searchPlacePoi: "/admin/places/poi-search",
     searchPlaceAmapMedia: "/admin/places/amap-media-search",

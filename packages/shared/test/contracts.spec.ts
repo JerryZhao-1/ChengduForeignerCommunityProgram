@@ -6,6 +6,10 @@ import {
   CommentSchema,
   DeleteEventResponseSchema,
   DeletePlaceResponseSchema,
+  DiscoverAuditRecordSchema,
+  DiscoverMeGovernanceSchema,
+  DiscoverReportCaseSchema,
+  DiscoverUserGovernanceSummarySchema,
   DirectEventCoverUploadResponseSchema,
   EventAdminListItemSchema,
   EventAdminRegistrationRowSchema,
@@ -32,6 +36,7 @@ import {
   eventContracts,
   fileContracts,
   MyPostListQuerySchema,
+  ResolveReportInputSchema,
   placeContracts,
   PostSchema,
   UpdatePlaceInputSchema,
@@ -800,5 +805,82 @@ describe("shared contracts", () => {
     expect(comment.status).toBe("visible");
     expect(CommentListQuerySchema.parse({ page: "2" }).page).toBe(2);
     expect(MyPostListQuerySchema.parse({}).communityId).toBe("tongzilin");
+  });
+
+  it("accepts discover governance reports, user summaries, and audit records", () => {
+    const report = DiscoverReportCaseSchema.parse({
+      _id: "report_001",
+      community_id: "tongzilin",
+      target_type: "comment",
+      target_id: "comment_001",
+      post_id: "post_001",
+      comment_id: "comment_001",
+      reporter_user_id: "user_002",
+      reason: "spam",
+      description: "Repeated ad content",
+      evidence_file_ids: ["cloud://report-evidence-001"],
+      evidence: [
+        {
+          file_id: "cloud://report-evidence-001",
+          cloud_path: FILE_PATH_RULES.reports + "report_001/evidence.jpg",
+          visibility: "private",
+          temp_url: "https://example.com/temp/report-evidence-001"
+        }
+      ],
+      status: "open",
+      handler_user_id: null,
+      resolution_note: null,
+      created_at: "2026-04-03T09:15:00+08:00",
+      updated_at: "2026-04-03T09:15:00+08:00",
+      resolved_at: null
+    });
+    const user = UserSchema.parse({
+      _id: "user_002",
+      openid: "openid_002",
+      nickname: "Emma",
+      avatar_url: "https://example.com/avatar.jpg",
+      preferred_language: "en",
+      role_flags: ["user"],
+      status: "active"
+    });
+    const summary = DiscoverUserGovernanceSummarySchema.parse({
+      user,
+      enforcement: {
+        status: "warned",
+        reason: "Report upheld",
+        notes: null,
+        expires_at: null,
+        updated_at: "2026-04-03T09:20:00+08:00",
+        updated_by: "user_001"
+      },
+      post_count: 2,
+      comment_count: 1,
+      report_count: 1,
+      violation_count: 1
+    });
+    const meGovernance = DiscoverMeGovernanceSchema.parse({
+      ...summary,
+      unread_notification_count: 2
+    });
+    const audit = DiscoverAuditRecordSchema.parse({
+      _id: "audit_001",
+      community_id: "tongzilin",
+      actor_user_id: "user_001",
+      action: "resolve_report",
+      target_type: "report",
+      target_id: report._id,
+      reason: "Report upheld",
+      previous_state: { status: "open" },
+      next_state: { status: "actioned" },
+      created_at: "2026-04-03T09:22:00+08:00"
+    });
+
+    expect(report.evidence[0]?.visibility).toBe("private");
+    expect(summary.enforcement.status).toBe("warned");
+    expect(meGovernance.unread_notification_count).toBe(2);
+    expect(audit.target_type).toBe("report");
+    expect(
+      ResolveReportInputSchema.parse({ status: "actioned", reason: "ok" })
+    ).toHaveProperty("moderation_action", "none");
   });
 });

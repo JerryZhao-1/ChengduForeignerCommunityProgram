@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { ApiClientError } from "@community-map/shared";
+
 import { resolveCloudbaseFunctionPath } from "./cloudbase-path";
+import { assertSuccessfulApiResponse, normalizeApiPayload } from "./response";
 
 describe("mobile API client helpers", () => {
   it("resolves absolute URLs without depending on the browser URL global", () => {
@@ -26,5 +29,41 @@ describe("mobile API client helpers", () => {
     expect(resolveCloudbaseFunctionPath("/places/map-markers")).toBe(
       "/places/map-markers"
     );
+  });
+
+  it("parses string API envelopes before checking failure responses", () => {
+    const payload = JSON.stringify({
+      success: false,
+      error: {
+        code: "FORBIDDEN",
+        message: "Blocked",
+        details: {
+          enforcement_status: "muted",
+          action: "create_comment"
+        }
+      },
+      requestId: "req_forbidden"
+    });
+
+    expect(normalizeApiPayload(payload)).toMatchObject({
+      success: false,
+      requestId: "req_forbidden"
+    });
+    expect(() => assertSuccessfulApiResponse(payload, 403)).toThrow(
+      ApiClientError
+    );
+
+    try {
+      assertSuccessfulApiResponse(payload, 403);
+    } catch (err) {
+      expect(err).toMatchObject({
+        code: "FORBIDDEN",
+        details: {
+          enforcement_status: "muted",
+          action: "create_comment"
+        },
+        status: 403
+      });
+    }
   });
 });

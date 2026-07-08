@@ -1,6 +1,6 @@
 # API 接口使用手册
 
-更新时间：2026-06-29
+更新时间：2026-07-08
 适用对象：Mobile、小程序、Admin、events、discover、places、files、notifications 等模块开发者
 事实来源：`packages/shared/src/contracts/*`、`packages/shared/src/schemas/*`、`apps/api/src/routes/*`、`docs/已实现API接口清单.md`
 
@@ -13,13 +13,12 @@
   - Shared contract / schema 覆盖当前已实现接口。
   - Places 主链路已覆盖 list、map markers、detail、admin list/create/update/delete、gallery metadata、志愿者导入草稿边界。
   - Events 基础闭环已覆盖 list、detail、registration、ticket、admin create/update/review/checkin。
-  - Discover 基础闭环已覆盖 feed、detail、create、comment、report、admin moderation。
-  - Files 基础流已覆盖 upload request、complete、private url。
+  - Discover 基础闭环已覆盖 feed、detail、create、comment、report、admin moderation、report case list/detail/resolve。
+  - Files 基础流已覆盖 upload request、complete、private url、post media multipart、report evidence multipart。
   - Auth、announcements、notifications 有最低可用接口。
   - 6.19-6.21 local/API readiness 已覆盖 events、discover、files、notifications、auth/role 的关键负路径和 CloudBase handler fallback parity。
 - 未完善 / 不应宣称线上完成：
-  - 非 places CloudBase live providers 尚未完成。
-  - CloudBase dev places live acceptance 已覆盖 public list、map、detail、admin update/delete、draft visibility 和真实 storage gallery media temp URL；非 places live providers 尚未完成。
+  - CloudBase dev live acceptance 仍需补齐线上 smoke 证据，尤其是 discover report case 集合、索引、安全规则和 storage 临时 URL 权限。
   - 线上 `/api` route、prod env、生产数据库权限规则尚未完成验收。
   - CloudBase MCP 未重新登录和 live smoke test 前，不能把微信云数据库标记为“已验证可连接”。
 
@@ -121,14 +120,14 @@ Protected file paths / business types:
 
 ### 2.5 运行模式
 
-| 模式                    | 说明                                                                                                                                                                              |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mock`                  | 默认模式，主要用于本地开发；数据在 mock service 中。                                                                                                                              |
-| `http`                  | 前端通过 HTTP 访问本地 Koa API。                                                                                                                                                  |
-| `cloudbase-function`    | 小程序通过 `wx.cloud.callHTTPFunction` 或 fallback cloud function 调用 API。                                                                                                      |
-| CloudBase live provider | 当前覆盖 places、events、discover core posts/comments 和通用 files 完成记录路径；需要 `API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、`CLOUDBASE_ENV_ID` 或 `TCB_ENV`。 |
+| 模式                    | 说明                                                                                                                                                                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mock`                  | 默认模式，主要用于本地开发；数据在 mock service 中。                                                                                                                                                                                       |
+| `http`                  | 前端通过 HTTP 访问本地 Koa API。                                                                                                                                                                                                           |
+| `cloudbase-function`    | 小程序通过 `wx.cloud.callHTTPFunction` 或 fallback cloud function 调用 API。                                                                                                                                                               |
+| CloudBase live provider | 当前覆盖 places、events、discover core posts/comments、discover report cases/audit records 和通用 files 完成记录/直接 multipart 上传路径；需要 `API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、`CLOUDBASE_ENV_ID` 或 `TCB_ENV`。 |
 
-注意：discover core live provider 已有代码路径，但仍需 CloudBase dev/prod 集合、索引、安全规则和在线 smoke 证据后才能声明生产数据 readiness；notifications、auth/role 仍以 fallback parity 为主。
+注意：discover live provider 已有 report case 持久化和写操作 enforcement 拦截代码路径，但仍需 CloudBase dev/prod 集合、索引、安全规则和在线 smoke 证据后才能声明生产数据 readiness；notifications、auth/role 仍以 fallback parity 为主。
 
 Admin 地点与活动地址搜索由 API 端代理调用腾讯位置服务 WebServiceAPI：
 
@@ -738,7 +737,7 @@ curl -X POST http://127.0.0.1:8787/admin/events/event_001/checkin \
 
 ### GET `/discover/posts`
 
-用途：获取社区内容流。
+用途：获取社区内容流。`status="visible"` 且未被管理员隐藏/删除的帖子会公开展示；`review_status="reported"` 仅表示已有举报 case，不会单独下架。
 
 权限：无。
 
@@ -803,7 +802,7 @@ curl http://127.0.0.1:8787/discover/posts/post_001
 
 用途：创建帖子。
 
-权限：需要当前 actor。
+权限：需要当前 actor；`muted` 和 `banned` 用户返回 `403 FORBIDDEN`，`details.enforcement_status` 分别为 `muted` / `banned`。
 
 Body：
 
@@ -836,7 +835,7 @@ curl -X POST http://127.0.0.1:8787/discover/posts \
 
 用途：获取当前 actor 自己发布的帖子，包括 hidden / reported / deleted 等 owner-visible 状态。
 
-权限：需要当前 actor。
+权限：需要当前 actor；`banned` 用户返回 `403 FORBIDDEN`，`details.enforcement_status="banned"`。
 
 Query：
 
@@ -855,9 +854,24 @@ curl 'http://127.0.0.1:8787/discover/me/posts' \
   -H 'x-mock-user-id: user_001'
 ```
 
+### GET `/discover/me/governance`
+
+用途：获取当前 actor 的治理摘要、帖子/评论/举报计数和未读通知数，用于 Mobile `Me` 页。
+
+权限：需要当前 actor；`warned`、`muted`、`banned` 均允许读取，便于本人查看账号状态。
+
+响应 data：`DiscoverMeGovernance`，字段包括 `user`、`enforcement`、`post_count`、`comment_count`、`report_count`、`violation_count`、`unread_notification_count`。
+
+示例：
+
+```bash
+curl 'http://127.0.0.1:8787/discover/me/governance' \
+  -H 'x-mock-user-id: user_001'
+```
+
 ### GET `/discover/posts/:id/comments`
 
-用途：读取可见帖子的可见评论列表。missing、hidden、deleted、reported 等不可用帖子返回 `404`，不暴露评论。
+用途：读取可见帖子的可见评论列表。missing、hidden、deleted 等不可用帖子返回 `404`，不暴露评论；`reported` 但未被管理员隐藏/删除的帖子仍可读取。
 
 权限：无。
 
@@ -880,7 +894,7 @@ curl 'http://127.0.0.1:8787/discover/posts/post_001/comments?page=1&pageSize=20'
 
 用途：发表评论。
 
-权限：需要当前 actor。
+权限：需要当前 actor；`muted` 和 `banned` 用户返回 `403 FORBIDDEN`，`details.enforcement_status` 分别为 `muted` / `banned`。
 
 Body：
 
@@ -904,14 +918,15 @@ curl -X POST http://127.0.0.1:8787/discover/posts/post_001/comments \
 
 用途：举报帖子。
 
-权限：需要当前 actor。
+权限：需要当前 actor；`banned` 用户返回 `403 FORBIDDEN`，`muted` 用户仍允许举报。
 
 Body：
 
-| 字段          | 类型   | 必填 | 说明     |
-| ------------- | ------ | ---- | -------- |
-| `reason`      | string | 是   | 举报原因 |
-| `description` | string | 否   | 补充描述 |
+| 字段                | 类型     | 必填 | 说明                                               |
+| ------------------- | -------- | ---- | -------------------------------------------------- |
+| `reason`            | string   | 是   | 举报原因                                           |
+| `description`       | string   | 否   | 补充描述                                           |
+| `evidence_file_ids` | string[] | 否   | 已通过 `report_evidence` 上传登记的私有证据文件 ID |
 
 响应 data：`Post`
 
@@ -923,6 +938,56 @@ curl -X POST http://127.0.0.1:8787/discover/posts/post_001/report \
   -H 'x-mock-user-id: user_001' \
   -d '{"reason":"spam","description":"Repeated content"}'
 ```
+
+说明：举报只创建 durable report case，并把目标标记为 reported 供管理端队列识别；`status="visible" + review_status="reported"` 的帖子仍通过 public list/detail/comment reads 可见。只有管理端明确 `hide` 或 `delete` 后才影响公开可见性。证据文件必须是当前 reporter 可访问的 private `report_evidence` 文件，public payload 不返回证据 URL。
+
+### POST `/discover/posts/:postId/comments/:commentId/report`
+
+用途：举报评论。
+
+权限：需要当前 actor；`banned` 用户返回 `403 FORBIDDEN`，`muted` 用户仍允许举报。
+
+Body：同帖子举报，支持 `reason`、`description`、`evidence_file_ids`。
+
+响应 data：`DiscoverReportCase`
+
+### GET `/admin/discover/posts`
+
+用途：管理端帖子治理队列，可查看 visible/reported/hidden/deleted 内容。
+
+权限：`community_admin` 或 `system_admin`。
+
+Query：`page`、`pageSize`、`keyword`、`communityId`、`authorUserId`、`language`、`tag`、`status=all|visible|reported|hidden|deleted`。
+
+响应 data：分页 `Post[]`。
+
+### GET `/admin/discover/comments`
+
+用途：管理端评论治理队列。
+
+权限：`community_admin` 或 `system_admin`。
+
+Query：`page`、`pageSize`、`postId`、`authorUserId`、`keyword`、`status=all|visible|reported|hidden|deleted`。
+
+响应 data：分页 `Comment[]`。
+
+### GET `/admin/discover/reports`
+
+用途：管理端举报 case 队列。
+
+权限：`community_admin` 或 `system_admin`。
+
+Query：`page`、`pageSize`、`targetType=post|comment`、`status=all|open|actioned|rejected`、`reason`。
+
+响应 data：分页 `DiscoverReportCase[]`。admin 响应可包含 evidence temporary URL；public discover 响应不包含证据。
+
+### GET `/admin/discover/reports/:id`
+
+用途：查看单个举报 case，包括 evidence temporary URL、handler、resolution 和时间戳。
+
+权限：`community_admin` 或 `system_admin`。
+
+响应 data：`DiscoverReportCase`
 
 ### POST `/admin/discover/posts/:id/moderation`
 
@@ -947,6 +1012,68 @@ curl -X POST http://127.0.0.1:8787/admin/discover/posts/post_001/moderation \
   -H 'x-mock-user-id: user_001' \
   -d '{"review_status":"hidden","reason":"spam"}'
 ```
+
+### POST `/admin/discover/comments/:id/moderation`
+
+用途：管理端隐藏、恢复或删除评论。
+
+权限：`community_admin` 或 `system_admin`。
+
+Body：`{ "status": "visible|hidden|deleted", "reason": "..." }`
+
+响应 data：`Comment`
+
+### POST `/admin/discover/reports/:id/resolve`
+
+用途：处理举报 case，并可联动 hide/restore/delete 目标内容。
+
+权限：`community_admin` 或 `system_admin`。
+
+Body：`{ "status": "actioned|rejected", "reason": "...", "moderation_action": "none|hide|restore|delete" }`
+
+响应 data：`DiscoverReportCase`
+
+说明：`rejected + moderation_action="none"` 会在没有其他 open report 的前提下恢复仅因举报产生的 reported 标记，但不会覆盖已被管理员隐藏或删除的内容；`actioned + hide/delete` 才会隐藏或删除目标。
+
+### GET `/admin/discover/users`
+
+用途：用户治理队列，包含用户资料、角色、发帖/评论/举报/违规计数和 enforcement 状态。
+
+权限：`community_admin` 或 `system_admin`。
+
+Query：`page`、`pageSize`、`keyword`、`status=all|active|warned|muted|banned|inactive`。
+
+响应 data：分页 `DiscoverUserGovernanceSummary[]`。
+
+### GET `/admin/discover/users/:id`
+
+用途：用户治理详情，包含用户帖子、评论、相关 report case 和 audit records。
+
+权限：`community_admin` 或 `system_admin`。
+
+响应 data：`DiscoverUserGovernanceDetail`
+
+### POST `/admin/discover/users/:id/enforcement`
+
+用途：警告、禁言、封禁或恢复用户。
+
+权限：`community_admin` 或 `system_admin`。
+
+Body：`{ "status": "active|warned|muted|banned", "reason": "...", "notes": "...", "expires_at": null }`
+
+响应 data：`DiscoverUserGovernanceDetail`
+
+说明：`warned` 不拦截操作，只通过 Me 页和通知提示本人；`muted` 禁止发帖、评论，允许公开浏览、举报和 Me 页读取；`banned` 禁止发帖、评论、举报和 `/discover/me/posts` 等登录态个人内容读取，公开浏览与 `/discover/me/governance` 仍允许。被拦截接口返回 `403 FORBIDDEN`，`details` 包含 `enforcement_status` 和 `action`。Admin 设置 `warned`、`muted`、`banned` 或恢复 `active` 时会为目标用户追加一条通知。
+
+### GET `/admin/discover/audit`
+
+用途：治理操作审计记录，覆盖内容治理、举报处理、用户 enforcement。
+
+权限：`community_admin` 或 `system_admin`。
+
+Query：`page`、`pageSize`、`targetType=post|comment|report|user`、`targetId`、`actorUserId`。
+
+响应 data：分页 `DiscoverAuditRecord[]`。每条记录包含 actor、target、action、reason、previous_state、next_state 和 created_at。
 
 ## 9. Places
 
@@ -1485,6 +1612,7 @@ curl -X POST http://127.0.0.1:8787/notifications/notification_001/read \
 | `postImages`         | `public/posts/`         | 帖子图片     |
 | `announcementImages` | `public/announcements/` | 公告图片     |
 | `tickets`            | `private/tickets/`      | 票券二维码   |
+| `reports`            | `private/reports/`      | 举报证据     |
 | `exports`            | `private/exports/`      | 导出文件     |
 | `admin`              | `private/admin/`        | 后台私有文件 |
 
@@ -1492,6 +1620,7 @@ curl -X POST http://127.0.0.1:8787/notifications/notification_001/read \
 
 - `place_gallery` 或 `target_prefix=public/places/` 的 upload request 需要 admin。
 - `place_gallery` 或 `cloud_path` 以 `public/places/` 开头的 complete 需要 admin。
+- `report_evidence` 使用 `private/reports/`，普通登录用户可为自己的举报登记，读取临时 URL 仍遵循 private owner/admin 权限。
 - private 文件必须通过 `/files/private-url` 获取临时访问地址。
 
 ### POST `/files/upload-requests`
@@ -1558,6 +1687,30 @@ curl -X POST http://127.0.0.1:8787/files/upload-requests \
 curl -X POST http://127.0.0.1:8787/files/post-media \
   -H 'x-mock-user-id: user_001' \
   -F 'file=@./local-tip.jpg'
+```
+
+### POST `/files/report-evidence`
+
+用途：为 discover 举报直接上传图片或视频证据。成功后返回 active private `FileAsset`，提交举报时只把返回的 `file_id` 放入 `evidence_file_ids`。
+
+权限：需要当前 actor。
+
+请求：`multipart/form-data`
+
+| 字段     | 类型   | 必填 | 说明                                    |
+| -------- | ------ | ---- | --------------------------------------- |
+| `file`   | file   | 是   | 支持 jpg/png/webp/gif/mp4/mov/webm      |
+| `biz_id` | string | 否   | pending id；不传时服务端生成 pending id |
+
+响应 data：`FileAsset`，其中 `biz_type="report_evidence"`、`visibility="private"`、`cloud_path` 位于 `private/reports/`。
+
+示例：
+
+```bash
+curl -X POST http://127.0.0.1:8787/files/report-evidence \
+  -H 'x-mock-user-id: user_002' \
+  -F 'biz_id=pending_report_post_003' \
+  -F 'file=@./evidence.jpg'
 ```
 
 ### POST `/files/complete`
@@ -1659,6 +1812,7 @@ curl -X POST http://127.0.0.1:8787/files/private-url \
 | Places   | `DELETE` | `/admin/places/:id`                    | admin       | 删除地点               |
 | Files    | `POST`   | `/files/upload-requests`               | conditional | 创建上传请求           |
 | Files    | `POST`   | `/files/post-media`                    | actor       | 直接上传帖子媒体       |
+| Files    | `POST`   | `/files/report-evidence`               | actor       | 直接上传举报证据       |
 | Files    | `POST`   | `/files/complete`                      | conditional | 完成文件登记           |
 | Files    | `POST`   | `/files/private-url`                   | actor       | 获取私有文件临时地址   |
 

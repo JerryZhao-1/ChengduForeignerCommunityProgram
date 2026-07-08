@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
+import { uploadReportEvidence } from "@/api/report-evidence-upload";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
 
@@ -83,6 +84,29 @@ const removeVideo = (path: string) => {
   videoPaths.value = videoPaths.value.filter((item) => item !== path);
 };
 
+const getFileNameFromPath = (path: string, fallback: string) => {
+  const cleanPath = path.split("?")[0] ?? path;
+  return cleanPath.split("/").filter(Boolean).pop() || fallback;
+};
+
+const registerEvidenceFiles = async () => {
+  const paths = [...imagePaths.value, ...videoPaths.value];
+  const evidenceFileIds: string[] = [];
+  const bizId = `pending_report_${postId.value}`;
+
+  for (const [index, path] of paths.entries()) {
+    const fileName = getFileNameFromPath(path, `evidence-${index + 1}`);
+    const asset = await uploadReportEvidence({
+      filePath: path,
+      fileName,
+      bizId
+    });
+    evidenceFileIds.push(asset.file_id);
+  }
+
+  return evidenceFileIds;
+};
+
 const getReasonForSubmit = () => {
   if (!selectedReason.value) {
     return "";
@@ -129,16 +153,21 @@ const submitReport = async () => {
 
   const reason = getReasonForSubmit();
   if (!reason) {
-    uni.showToast({ title: copy.value.reportOtherReasonRequired, icon: "none" });
+    uni.showToast({
+      title: copy.value.reportOtherReasonRequired,
+      icon: "none"
+    });
     return;
   }
 
   isSubmitting.value = true;
   try {
     const description = getDescriptionForSubmit();
+    const evidenceFileIds = await registerEvidenceFiles();
     await mobileApi.discover.reportPost(postId.value, {
       reason,
-      description: description || undefined
+      description: description || undefined,
+      evidence_file_ids: evidenceFileIds
     });
     uni.showToast({ title: copy.value.reportSuccess, icon: "success" });
     setTimeout(() => {
@@ -158,7 +187,11 @@ const submitReport = async () => {
       <view class="nav-content">
         <view class="nav-back" @click.stop="goBack">‹</view>
         <view class="nav-title">{{ copy.reportTitle }}</view>
-        <button class="nav-done" :disabled="isSubmitting" @click.stop="submitReport">
+        <button
+          class="nav-done"
+          :disabled="isSubmitting"
+          @click.stop="submitReport"
+        >
           {{ isSubmitting ? copy.submittingReport : copy.reportDone }}
         </button>
         <view class="nav-spacer" />
@@ -206,23 +239,38 @@ const submitReport = async () => {
         <view class="label">{{ copy.reportEvidenceLabel }}</view>
         <view class="evidence-hint">{{ copy.reportEvidenceHint }}</view>
         <view class="evidence-actions">
-          <button class="secondary" :disabled="!canAddImages" @click="addImages">
+          <button
+            class="secondary"
+            :disabled="!canAddImages"
+            @click="addImages"
+          >
             {{ copy.reportAddImage }}
           </button>
-          <button class="secondary" @click="addVideo">{{ copy.reportAddVideo }}</button>
+          <button class="secondary" @click="addVideo">
+            {{ copy.reportAddVideo }}
+          </button>
         </view>
 
-        <view v-if="imagePaths.length || videoPaths.length" class="evidence-list">
+        <view
+          v-if="imagePaths.length || videoPaths.length"
+          class="evidence-list"
+        >
           <view v-for="path in imagePaths" :key="path" class="evidence-item">
             <image class="evidence-image" :src="path" mode="aspectFill" />
             <button class="remove" @click="removeImage(path)">×</button>
           </view>
-          <view v-for="path in videoPaths" :key="path" class="evidence-item video">
+          <view
+            v-for="path in videoPaths"
+            :key="path"
+            class="evidence-item video"
+          >
             <view class="video-thumb">{{ copy.videoBadge }}</view>
             <button class="remove" @click="removeVideo(path)">×</button>
           </view>
         </view>
-        <view v-else class="empty-evidence">{{ copy.reportEvidenceEmpty }}</view>
+        <view v-else class="empty-evidence">{{
+          copy.reportEvidenceEmpty
+        }}</view>
       </view>
     </view>
   </view>

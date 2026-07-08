@@ -1,20 +1,27 @@
 import type {
   AuthSession,
   Comment,
+  DiscoverAuditRecord,
+  DiscoverMeGovernance,
+  DiscoverReportCase,
+  DiscoverUserGovernanceDetail,
+  DiscoverUserGovernanceSummary,
   Event,
   EventAdminListItem,
   EventAdminRegistrationRow,
   EventRegistration,
   EventTicket,
   FileAsset,
+  Notification,
   Place,
   PlaceDetail,
   PlaceGalleryMedia,
   PlaceListItem,
   Post,
+  UserEnforcementState,
   User
 } from "../types/entities";
-import type { ApiErrorCode } from "../enums";
+import { POST_CONTENT_STATUSES, type ApiErrorCode } from "../enums";
 import type { MockDataset } from "./data";
 import { FILE_PATH_RULES } from "../schemas/files";
 import { PLACE_TOP_LEVEL_CATEGORIES } from "../schemas/place-categories";
@@ -30,6 +37,14 @@ interface PageParams {
   tag?: string;
   recommended?: boolean;
   sort?: "recommended" | "name";
+  authorUserId?: string;
+  language?: "zh" | "en";
+  status?: string;
+  postId?: string;
+  targetType?: string;
+  targetId?: string;
+  actorUserId?: string;
+  reason?: string;
 }
 
 const DEFAULT_PAGE = 1;
@@ -224,11 +239,17 @@ const toEventAdminRegistrationRow = (
 });
 
 const isLaunchVisiblePost = (post: Post) =>
-  post.status === "visible" && post.review_status === "visible";
+  post.status === "visible" &&
+  !["hidden", "deleted"].includes(post.review_status);
 
-const isVisibleComment = (comment: Comment) => comment.status === "visible";
+const isVisibleComment = (comment: Comment) =>
+  comment.status === "visible" || comment.status === "reported";
 
-const POST_MEDIA_BIZ_TYPES = new Set(["post_image", "post_video", "post_media"]);
+const POST_MEDIA_BIZ_TYPES = new Set([
+  "post_image",
+  "post_video",
+  "post_media"
+]);
 
 const toPlaceGalleryMedia = (
   place: Place,
@@ -343,6 +364,382 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     user,
     token: `mock-token-${user._id}`
   });
+
+  const requireAdminUser = (actorId?: string) => {
+    const actor = requireUser(actorId);
+    if (!isAdmin(actor)) {
+      throw mockError("FORBIDDEN", "Insufficient permission.", 403);
+    }
+    return actor;
+  };
+
+  const ensureUserEnforcement = (userId: string): UserEnforcementState => {
+    const existing = state.userEnforcements[userId];
+    if (existing) {
+      return existing;
+    }
+
+    const next: UserEnforcementState = {
+      status: "active",
+      reason: null,
+      notes: null,
+      expires_at: null,
+      updated_at: null,
+      updated_by: null
+    };
+    state.userEnforcements[userId] = next;
+    return next;
+  };
+
+  const getEffectiveUserEnforcement = (
+    userId: string
+  ): UserEnforcementState => {
+    const enforcement = ensureUserEnforcement(userId);
+    if (
+      enforcement.status !== "active" &&
+      enforcement.expires_at &&
+      Date.parse(enforcement.expires_at) <= Date.now()
+    ) {
+      const next: UserEnforcementState = {
+        status: "active",
+        reason: null,
+        notes: enforcement.notes,
+        expires_at: null,
+        updated_at: new Date().toISOString(),
+        updated_by: enforcement.updated_by
+      };
+      state.userEnforcements[userId] = next;
+      return next;
+    }
+
+    return enforcement;
+  };
+
+  const assertActorAllowed = (
+    actor: User,
+    action: "create_post" | "create_comment" | "report" | "read_mine"
+  ) => {
+    const enforcement = getEffectiveUserEnforcement(actor._id);
+    const blockedByMuted =
+      enforcement.status === "muted" &&
+      (action === "create_post" || action === "create_comment");
+    const blockedByBanned =
+      enforcement.status === "banned" &&
+      ["create_post", "create_comment", "report", "read_mine"].includes(action);
+
+    if (!blockedByMuted && !blockedByBanned) {
+      return;
+    }
+
+    throw mockError("FORBIDDEN", "User enforcement blocks this action.", 403, {
+      enforcement_status: enforcement.status,
+      action
+    });
+  };
+
+  const addNotification = (input: {
+    user_id: string;
+    title: string;
+    body: string;
+  }) => {
+    const notification: Notification = {
+      _id: idFrom("notification"),
+      user_id: input.user_id,
+      title: input.title,
+      body: input.body,
+      status: "unread",
+      created_at: new Date().toISOString()
+    };
+    state.notifications.unshift(notification);
+    return notification;
+  };
+
+  const addEnforcementNotification = (
+    user: User,
+    enforcement: UserEnforcementState
+  ) => {
+    const reasonText = enforcement.reason ? `原因：${enforcement.reason}` : "";
+    const copy: Record<
+      UserEnforcementState["status"],
+      { title: string; body: string }
+    > = {
+      active: {
+        title: "账号状态已恢复",
+        body: "你的账号治理状态已恢复为正常。"
+      },
+      warned: {
+        title: "社区提醒",
+        body: `你的账号收到一条社区提醒。${reasonText}`
+      },
+      muted: {
+        title: "账号已被禁言",
+        body: `你暂时不能发布帖子或评论。${reasonText}`
+      },
+      banned: {
+        title: "账号已被封禁",
+        body: `你暂时不能发布、评论、举报或查看个人内容。${reasonText}`
+      }
+    };
+    addNotification({
+      user_id: user._id,
+      title: copy[enforcement.status].title,
+      body: copy[enforcement.status].body
+    });
+  };
+
+  const addAuditRecord = (input: {
+    actor_user_id: string;
+    action: string;
+    target_type: DiscoverAuditRecord["target_type"];
+    target_id: string;
+    reason?: string | null;
+    previous_state?: Record<string, unknown> | null;
+    next_state?: Record<string, unknown> | null;
+  }) => {
+    const record: DiscoverAuditRecord = {
+      _id: idFrom("audit"),
+      community_id: "tongzilin",
+      actor_user_id: input.actor_user_id,
+      action: input.action,
+      target_type: input.target_type,
+      target_id: input.target_id,
+      reason: input.reason ?? null,
+      previous_state: input.previous_state ?? null,
+      next_state: input.next_state ?? null,
+      created_at: new Date().toISOString()
+    };
+    state.auditRecords.unshift(record);
+    return record;
+  };
+
+  const normalizeReportCase = (
+    report: DiscoverReportCase,
+    includeEvidenceUrls = false
+  ): DiscoverReportCase => {
+    const evidence = report.evidence_file_ids
+      .map((fileId) =>
+        state.fileAssets.find(
+          (asset) => asset.file_id === fileId && asset.status === "active"
+        )
+      )
+      .filter((asset): asset is FileAsset => !!asset)
+      .map((asset) => ({
+        file_id: asset.file_id,
+        cloud_path: asset.cloud_path,
+        visibility: asset.visibility,
+        ...(includeEvidenceUrls
+          ? { temp_url: `https://example.com/temp/${asset.file_id}` }
+          : {})
+      }));
+
+    return {
+      ...report,
+      evidence
+    };
+  };
+
+  const assertReportEvidenceAccess = (
+    evidenceFileIds: string[],
+    actor: User
+  ) => {
+    for (const fileId of evidenceFileIds) {
+      const asset = state.fileAssets.find(
+        (item) => item.file_id === fileId && item.status === "active"
+      );
+
+      if (
+        !asset ||
+        asset.visibility !== "private" ||
+        asset.biz_type !== "report_evidence" ||
+        !asset.cloud_path.startsWith(FILE_PATH_RULES.reports) ||
+        (asset.uploaded_by !== actor._id && !isAdmin(actor))
+      ) {
+        throw mockError("FORBIDDEN", "Report evidence access denied.", 403);
+      }
+    }
+  };
+
+  const createReportCase = (input: {
+    target_type: "post" | "comment";
+    post: Post;
+    comment?: Comment;
+    reason: string;
+    description?: string;
+    evidence_file_ids?: string[];
+    actor: User;
+  }) => {
+    const evidenceFileIds = input.evidence_file_ids ?? [];
+    assertReportEvidenceAccess(evidenceFileIds, input.actor);
+
+    const now = new Date().toISOString();
+    const report: DiscoverReportCase = {
+      _id: idFrom("report"),
+      community_id: input.post.community_id,
+      target_type: input.target_type,
+      target_id: input.comment?._id ?? input.post._id,
+      post_id: input.post._id,
+      comment_id: input.comment?._id ?? null,
+      reporter_user_id: input.actor._id,
+      reason: input.reason,
+      description: input.description ?? null,
+      evidence_file_ids: evidenceFileIds,
+      evidence: [],
+      status: "open",
+      handler_user_id: null,
+      resolution_note: null,
+      created_at: now,
+      updated_at: now,
+      resolved_at: null
+    };
+    state.reportCases.unshift(report);
+
+    for (const fileId of evidenceFileIds) {
+      const asset = state.fileAssets.find((item) => item.file_id === fileId);
+      if (asset) {
+        asset.biz_id = report._id;
+      }
+    }
+
+    return normalizeReportCase(report);
+  };
+
+  const buildUserGovernanceSummary = (
+    user: User
+  ): DiscoverUserGovernanceSummary => {
+    const userReports = state.reportCases.filter(
+      (report) => report.reporter_user_id === user._id
+    );
+    const userAudit = state.auditRecords.filter(
+      (record) => record.target_type === "user" && record.target_id === user._id
+    );
+
+    return {
+      user,
+      enforcement: getEffectiveUserEnforcement(user._id),
+      post_count: state.posts.filter((post) => post.author_user_id === user._id)
+        .length,
+      comment_count: state.comments.filter(
+        (comment) => comment.author_user_id === user._id
+      ).length,
+      report_count: userReports.length,
+      violation_count: userAudit.length
+    };
+  };
+
+  const buildUserGovernanceDetail = (
+    user: User
+  ): DiscoverUserGovernanceDetail => ({
+    ...buildUserGovernanceSummary(user),
+    posts: state.posts
+      .filter((post) => post.author_user_id === user._id)
+      .map((post) => post),
+    comments: state.comments.filter(
+      (comment) => comment.author_user_id === user._id
+    ),
+    reports: state.reportCases
+      .filter(
+        (report) =>
+          report.reporter_user_id === user._id ||
+          state.posts.some(
+            (post) =>
+              post._id === report.post_id && post.author_user_id === user._id
+          )
+      )
+      .map((report) => normalizeReportCase(report, true)),
+    audit_records: state.auditRecords.filter(
+      (record) =>
+        record.target_id === user._id || record.actor_user_id === user._id
+    )
+  });
+
+  const buildMeGovernance = (user: User): DiscoverMeGovernance => ({
+    ...buildUserGovernanceSummary(user),
+    unread_notification_count: state.notifications.filter(
+      (notification) =>
+        notification.user_id === user._id && notification.status === "unread"
+    ).length
+  });
+
+  const hideBannedUserPosts = (userId: string) => {
+    const hiddenPosts = state.posts
+      .filter(
+        (post) =>
+          post.author_user_id === userId &&
+          post.status === "visible" &&
+          !["hidden", "deleted"].includes(post.review_status)
+      )
+      .map((post) => ({
+        _id: post._id,
+        status: post.status,
+        review_status: post.review_status
+      }));
+    const now = new Date().toISOString();
+
+    for (const hiddenPost of hiddenPosts) {
+      const post = state.posts.find((item) => item._id === hiddenPost._id);
+      if (post) {
+        post.status = "hidden";
+        post.review_status = "hidden";
+        post.updated_at = now;
+      }
+    }
+
+    return hiddenPosts;
+  };
+
+  const restoreBannedUserPosts = (userId: string) => {
+    const latestBan = state.auditRecords.find(
+      (record) =>
+        record.action === "enforce_user" &&
+        record.target_type === "user" &&
+        record.target_id === userId &&
+        (record.next_state as { status?: unknown } | null)?.status === "banned"
+    );
+    const hiddenPosts = Array.isArray(
+      (
+        latestBan?.next_state as {
+          banned_hidden_posts?: unknown;
+        } | null
+      )?.banned_hidden_posts
+    )
+      ? ((
+          latestBan?.next_state as {
+            banned_hidden_posts: Array<{
+              _id?: unknown;
+              status?: unknown;
+              review_status?: unknown;
+            }>;
+          }
+        ).banned_hidden_posts ?? [])
+      : [];
+    const restoredPostIds: string[] = [];
+    const now = new Date().toISOString();
+
+    for (const hiddenPost of hiddenPosts) {
+      if (
+        typeof hiddenPost._id !== "string" ||
+        !POST_CONTENT_STATUSES.includes(hiddenPost.status as any) ||
+        !POST_CONTENT_STATUSES.includes(hiddenPost.review_status as any)
+      ) {
+        continue;
+      }
+
+      const post = state.posts.find((item) => item._id === hiddenPost._id);
+      if (
+        post &&
+        post.author_user_id === userId &&
+        post.status === "hidden" &&
+        post.review_status === "hidden"
+      ) {
+        post.status = hiddenPost.status as Post["status"];
+        post.review_status = hiddenPost.review_status as Post["review_status"];
+        post.updated_at = now;
+        restoredPostIds.push(post._id);
+      }
+    }
+
+    return restoredPostIds;
+  };
 
   return {
     auth: {
@@ -670,7 +1067,9 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     },
     posts: {
       normalize(post: Post): Post {
-        const author = state.users.find((user) => user._id === post.author_user_id);
+        const author = state.users.find(
+          (user) => user._id === post.author_user_id
+        );
         const visibleComments = state.comments.filter(
           (comment) => comment.post_id === post._id && isVisibleComment(comment)
         );
@@ -699,7 +1098,8 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           favorite_count: Math.max(0, post.favorite_count ?? 0),
           share_count: Math.max(0, post.share_count ?? 0),
           created_at: post.created_at ?? new Date().toISOString(),
-          updated_at: post.updated_at ?? post.created_at ?? new Date().toISOString(),
+          updated_at:
+            post.updated_at ?? post.created_at ?? new Date().toISOString(),
           image_urls: [...fileUrls, ...post.image_urls]
         };
       },
@@ -712,17 +1112,51 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
               keywordMatch(post.content, params.keyword))
         );
 
-        return paginate(posts.map((post) => this.normalize(post)), params);
+        return paginate(
+          posts.map((post) => this.normalize(post)),
+          params
+        );
       },
       listMine(params: PageParams = {}, actorId?: string) {
         const actor = requireUser(actorId);
+        assertActorAllowed(actor, "read_mine");
         const posts = state.posts.filter(
           (post) =>
             post.author_user_id === actor._id &&
             (!params.communityId || post.community_id === params.communityId)
         );
 
-        return paginate(posts.map((post) => this.normalize(post)), params);
+        return paginate(
+          posts.map((post) => this.normalize(post)),
+          params
+        );
+      },
+      meGovernance(actorId?: string) {
+        const actor = requireUser(actorId);
+        return buildMeGovernance(actor);
+      },
+      listAdmin(params: PageParams = {}, actorId?: string) {
+        requireAdminUser(actorId);
+        const posts = state.posts.filter((post) => {
+          const status = params.status ?? "all";
+          return (
+            (!params.communityId || post.community_id === params.communityId) &&
+            (status === "all" ||
+              post.status === status ||
+              post.review_status === status) &&
+            (!params.authorUserId ||
+              post.author_user_id === params.authorUserId) &&
+            (!params.language || post.language === params.language) &&
+            (!params.tag || post.tag_ids.includes(params.tag)) &&
+            (keywordMatch(post.title, params.keyword) ||
+              keywordMatch(post.content, params.keyword))
+          );
+        });
+
+        return paginate(
+          posts.map((post) => this.normalize(post)),
+          params
+        );
       },
       detail(id: string) {
         const post = state.posts.find((item) => item._id === id);
@@ -742,8 +1176,24 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           params
         );
       },
+      listAdminComments(params: PageParams = {}, actorId?: string) {
+        requireAdminUser(actorId);
+        const comments = state.comments.filter((comment) => {
+          const status = params.status ?? "all";
+          return (
+            (!params.postId || comment.post_id === params.postId) &&
+            (status === "all" || comment.status === status) &&
+            (!params.authorUserId ||
+              comment.author_user_id === params.authorUserId) &&
+            keywordMatch(comment.content, params.keyword)
+          );
+        });
+
+        return paginate(comments, params);
+      },
       create(input: Partial<Post>, actorId?: string) {
         const actor = requireUser(actorId);
+        assertActorAllowed(actor, "create_post");
         const now = new Date().toISOString();
         const imageFileIds = input.image_file_ids ?? [];
         const postId = idFrom("post");
@@ -762,11 +1212,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         );
 
         if (hasInvalidAsset) {
-          throw mockError(
-            "FORBIDDEN",
-            "Post media file access denied.",
-            403
-          );
+          throw mockError("FORBIDDEN", "Post media file access denied.", 403);
         }
 
         const post: Post = {
@@ -814,6 +1260,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         actorId?: string
       ) {
         const actor = requireUser(actorId);
+        assertActorAllowed(actor, "create_comment");
         const post = state.posts.find((item) => item._id === postId);
 
         if (!post || !isLaunchVisiblePost(post)) {
@@ -832,23 +1279,347 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         state.comments.unshift(comment);
         return comment;
       },
-      report(id: string) {
+      report(
+        id: string,
+        input: {
+          reason: string;
+          description?: string;
+          evidence_file_ids?: string[];
+        },
+        actorId?: string
+      ) {
+        const actor = requireUser(actorId);
+        assertActorAllowed(actor, "report");
         const post = state.posts.find((item) => item._id === id);
         if (!post || !isLaunchVisiblePost(post)) {
           return null;
         }
         post.review_status = "reported";
+        post.updated_at = new Date().toISOString();
+        createReportCase({
+          target_type: "post",
+          post,
+          reason: input.reason,
+          description: input.description,
+          evidence_file_ids: input.evidence_file_ids,
+          actor
+        });
         return this.normalize(post);
       },
-      moderate(id: string, input: { review_status: Post["review_status"] }) {
+      reportComment(
+        postId: string,
+        commentId: string,
+        input: {
+          reason: string;
+          description?: string;
+          evidence_file_ids?: string[];
+        },
+        actorId?: string
+      ) {
+        const actor = requireUser(actorId);
+        assertActorAllowed(actor, "report");
+        const post = state.posts.find((item) => item._id === postId);
+        const comment = state.comments.find(
+          (item) => item._id === commentId && item.post_id === postId
+        );
+
+        if (
+          !post ||
+          !comment ||
+          !isLaunchVisiblePost(post) ||
+          !isVisibleComment(comment)
+        ) {
+          return null;
+        }
+
+        comment.status = "reported";
+        return createReportCase({
+          target_type: "comment",
+          post,
+          comment,
+          reason: input.reason,
+          description: input.description,
+          evidence_file_ids: input.evidence_file_ids,
+          actor
+        });
+      },
+      moderate(
+        id: string,
+        input: { review_status: Post["review_status"]; reason?: string },
+        actorId?: string
+      ) {
+        const actor = requireAdminUser(actorId);
         const post = state.posts.find((item) => item._id === id);
         if (!post) {
           return null;
         }
+        const previous = {
+          status: post.status,
+          review_status: post.review_status
+        };
         post.review_status = input.review_status;
         post.status = input.review_status;
         post.updated_at = new Date().toISOString();
+        addAuditRecord({
+          actor_user_id: actor._id,
+          action: "moderate_post",
+          target_type: "post",
+          target_id: post._id,
+          reason: input.reason ?? null,
+          previous_state: previous,
+          next_state: {
+            status: post.status,
+            review_status: post.review_status
+          }
+        });
         return this.normalize(post);
+      },
+      moderateComment(
+        id: string,
+        input: { status: Comment["status"]; reason?: string },
+        actorId?: string
+      ) {
+        const actor = requireAdminUser(actorId);
+        const comment = state.comments.find((item) => item._id === id);
+        if (!comment) {
+          return null;
+        }
+        const previous = { status: comment.status };
+        comment.status = input.status;
+        addAuditRecord({
+          actor_user_id: actor._id,
+          action: "moderate_comment",
+          target_type: "comment",
+          target_id: comment._id,
+          reason: input.reason ?? null,
+          previous_state: previous,
+          next_state: { status: comment.status }
+        });
+        return comment;
+      },
+      listReportCases(params: PageParams = {}, actorId?: string) {
+        requireAdminUser(actorId);
+        const reports = state.reportCases.filter((report) => {
+          const status = params.status ?? "all";
+          return (
+            (status === "all" || report.status === status) &&
+            (!params.targetType || report.target_type === params.targetType) &&
+            (!params.reason || report.reason === params.reason)
+          );
+        });
+
+        return paginate(
+          reports.map((report) => normalizeReportCase(report, true)),
+          params
+        );
+      },
+      detailReportCase(id: string, actorId?: string) {
+        requireAdminUser(actorId);
+        const report = state.reportCases.find((item) => item._id === id);
+        return report ? normalizeReportCase(report, true) : null;
+      },
+      resolveReportCase(
+        id: string,
+        input: {
+          status: "actioned" | "rejected";
+          reason: string;
+          moderation_action?: "none" | "hide" | "restore" | "delete";
+        },
+        actorId?: string
+      ) {
+        const actor = requireAdminUser(actorId);
+        const report = state.reportCases.find((item) => item._id === id);
+        if (!report) {
+          return null;
+        }
+
+        const now = new Date().toISOString();
+        const previous = {
+          status: report.status,
+          handler_user_id: report.handler_user_id,
+          resolution_note: report.resolution_note
+        };
+        report.status = input.status;
+        report.handler_user_id = actor._id;
+        report.resolution_note = input.reason;
+        report.updated_at = now;
+        report.resolved_at = now;
+
+        const targetPost = state.posts.find(
+          (post) => post._id === report.post_id
+        );
+        const targetComment =
+          report.comment_id === null
+            ? null
+            : state.comments.find(
+                (comment) => comment._id === report.comment_id
+              );
+        const action = input.moderation_action ?? "none";
+        const hasOtherOpenReport = state.reportCases.some(
+          (item) =>
+            item._id !== report._id &&
+            item.status === "open" &&
+            item.target_type === report.target_type &&
+            item.target_id === report.target_id
+        );
+
+        if (targetPost && report.target_type === "post" && action !== "none") {
+          const nextStatus =
+            action === "restore"
+              ? "visible"
+              : action === "delete"
+                ? "deleted"
+                : "hidden";
+          targetPost.status = nextStatus;
+          targetPost.review_status = nextStatus;
+          targetPost.updated_at = now;
+        }
+
+        if (
+          targetPost &&
+          report.target_type === "post" &&
+          input.status === "rejected" &&
+          action === "none" &&
+          !hasOtherOpenReport &&
+          targetPost.status === "visible" &&
+          targetPost.review_status === "reported"
+        ) {
+          targetPost.review_status = "visible";
+          targetPost.updated_at = now;
+        }
+
+        if (
+          targetComment &&
+          report.target_type === "comment" &&
+          action !== "none"
+        ) {
+          targetComment.status =
+            action === "restore"
+              ? "visible"
+              : action === "delete"
+                ? "deleted"
+                : "hidden";
+        }
+
+        if (
+          targetComment &&
+          report.target_type === "comment" &&
+          input.status === "rejected" &&
+          action === "none" &&
+          !hasOtherOpenReport &&
+          targetComment.status === "reported"
+        ) {
+          targetComment.status = "visible";
+        }
+
+        addAuditRecord({
+          actor_user_id: actor._id,
+          action: "resolve_report",
+          target_type: "report",
+          target_id: report._id,
+          reason: input.reason,
+          previous_state: previous,
+          next_state: {
+            status: report.status,
+            handler_user_id: report.handler_user_id,
+            resolution_note: report.resolution_note,
+            moderation_action: action
+          }
+        });
+
+        return normalizeReportCase(report, true);
+      },
+      listGovernanceUsers(params: PageParams = {}, actorId?: string) {
+        requireAdminUser(actorId);
+        const summaries = state.users
+          .map((user) => buildUserGovernanceSummary(user))
+          .filter((summary) => {
+            const status = params.status ?? "all";
+            return (
+              (status === "all" ||
+                summary.enforcement.status === status ||
+                summary.user.status === status) &&
+              (keywordMatch(summary.user.nickname, params.keyword) ||
+                keywordMatch(summary.user.phone, params.keyword) ||
+                keywordMatch(summary.user._id, params.keyword))
+            );
+          });
+
+        return paginate(summaries, params);
+      },
+      detailGovernanceUser(id: string, actorId?: string) {
+        requireAdminUser(actorId);
+        const user = state.users.find((item) => item._id === id);
+        return user ? buildUserGovernanceDetail(user) : null;
+      },
+      enforceUser(
+        id: string,
+        input: {
+          status: UserEnforcementState["status"];
+          reason: string;
+          notes?: string;
+          expires_at?: string | null;
+        },
+        actorId?: string
+      ) {
+        const actor = requireAdminUser(actorId);
+        const user = state.users.find((item) => item._id === id);
+        if (!user) {
+          return null;
+        }
+        if (
+          user.role_flags.includes("system_admin") &&
+          actor._id !== user._id
+        ) {
+          throw mockError("FORBIDDEN", "System admin enforcement denied.", 403);
+        }
+
+        const previous = { ...ensureUserEnforcement(user._id) };
+        const bannedHiddenPosts =
+          input.status === "banned" ? hideBannedUserPosts(user._id) : [];
+        const restoredPostIds =
+          input.status === "active" && previous.status === "banned"
+            ? restoreBannedUserPosts(user._id)
+            : [];
+        state.userEnforcements[user._id] = {
+          status: input.status,
+          reason: input.reason,
+          notes: input.notes ?? null,
+          expires_at: input.expires_at ?? null,
+          updated_at: new Date().toISOString(),
+          updated_by: actor._id
+        };
+        addEnforcementNotification(user, state.userEnforcements[user._id]);
+        addAuditRecord({
+          actor_user_id: actor._id,
+          action: "enforce_user",
+          target_type: "user",
+          target_id: user._id,
+          reason: input.reason,
+          previous_state: previous,
+          next_state: {
+            ...state.userEnforcements[user._id],
+            ...(bannedHiddenPosts.length
+              ? { banned_hidden_posts: bannedHiddenPosts }
+              : {}),
+            ...(restoredPostIds.length
+              ? { restored_post_ids: restoredPostIds }
+              : {})
+          }
+        });
+
+        return buildUserGovernanceDetail(user);
+      },
+      listAuditRecords(params: PageParams = {}, actorId?: string) {
+        requireAdminUser(actorId);
+        const records = state.auditRecords.filter(
+          (record) =>
+            (!params.targetType || record.target_type === params.targetType) &&
+            (!params.targetId || record.target_id === params.targetId) &&
+            (!params.actorUserId || record.actor_user_id === params.actorUserId)
+        );
+
+        return paginate(records, params);
       }
     },
     places: {

@@ -2,6 +2,11 @@ import type {
   Announcement,
   AuthSession,
   Comment,
+  DiscoverAuditRecord,
+  DiscoverMeGovernance,
+  DiscoverReportCase,
+  DiscoverUserGovernanceDetail,
+  DiscoverUserGovernanceSummary,
   Event,
   EventAdminListItem,
   EventAdminRegistrationRow,
@@ -83,6 +88,7 @@ export interface CommunityMapApiClient {
       pageSize?: number;
       communityId?: string;
     }): Promise<ApiResult<PageResult<Post>>>;
+    meGovernance(): Promise<ApiResult<DiscoverMeGovernance>>;
     listComments(
       postId: string,
       query?: { page?: number; pageSize?: number }
@@ -93,8 +99,21 @@ export interface CommunityMapApiClient {
     ): Promise<ApiResult<Comment>>;
     reportPost(
       postId: string,
-      input: { reason: string; description?: string }
+      input: {
+        reason: string;
+        description?: string;
+        evidence_file_ids?: string[];
+      }
     ): Promise<ApiResult<Post>>;
+    reportComment(
+      postId: string,
+      commentId: string,
+      input: {
+        reason: string;
+        description?: string;
+        evidence_file_ids?: string[];
+      }
+    ): Promise<ApiResult<DiscoverReportCase>>;
   };
   places: {
     list(query?: {
@@ -143,6 +162,12 @@ export interface CommunityMapApiClient {
       file_name?: string;
       content_type?: string;
     }): Promise<ApiResult<FileAsset>>;
+    uploadReportEvidence(input: {
+      file: Blob;
+      file_name?: string;
+      content_type?: string;
+      biz_id?: string;
+    }): Promise<ApiResult<FileAsset>>;
   };
   admin: {
     listEvents(): Promise<ApiResult<PageResult<EventAdminListItem>>>;
@@ -175,8 +200,71 @@ export interface CommunityMapApiClient {
     }): Promise<ApiResult<DirectEventCoverUploadResponse>>;
     moderatePost(
       id: string,
-      input: { review_status: Post["review_status"] }
+      input: { review_status: Post["review_status"]; reason?: string }
     ): Promise<ApiResult<Post>>;
+    listDiscoverPosts(query?: {
+      page?: number;
+      pageSize?: number;
+      communityId?: string;
+      keyword?: string;
+      authorUserId?: string;
+      language?: "zh" | "en";
+      tag?: string;
+      status?: string;
+    }): Promise<ApiResult<PageResult<Post>>>;
+    listDiscoverComments(query?: {
+      page?: number;
+      pageSize?: number;
+      postId?: string;
+      authorUserId?: string;
+      keyword?: string;
+      status?: string;
+    }): Promise<ApiResult<PageResult<Comment>>>;
+    moderateComment(
+      id: string,
+      input: { status: Comment["status"]; reason?: string }
+    ): Promise<ApiResult<Comment>>;
+    listDiscoverReports(query?: {
+      page?: number;
+      pageSize?: number;
+      targetType?: "post" | "comment";
+      status?: string;
+      reason?: string;
+    }): Promise<ApiResult<PageResult<DiscoverReportCase>>>;
+    detailDiscoverReport(id: string): Promise<ApiResult<DiscoverReportCase>>;
+    resolveDiscoverReport(
+      id: string,
+      input: {
+        status: "actioned" | "rejected";
+        reason: string;
+        moderation_action?: "none" | "hide" | "restore" | "delete";
+      }
+    ): Promise<ApiResult<DiscoverReportCase>>;
+    listDiscoverUsers(query?: {
+      page?: number;
+      pageSize?: number;
+      keyword?: string;
+      status?: string;
+    }): Promise<ApiResult<PageResult<DiscoverUserGovernanceSummary>>>;
+    detailDiscoverUser(
+      id: string
+    ): Promise<ApiResult<DiscoverUserGovernanceDetail>>;
+    enforceDiscoverUser(
+      id: string,
+      input: {
+        status: "active" | "warned" | "muted" | "banned";
+        reason: string;
+        notes?: string;
+        expires_at?: string | null;
+      }
+    ): Promise<ApiResult<DiscoverUserGovernanceDetail>>;
+    listDiscoverAudit(query?: {
+      page?: number;
+      pageSize?: number;
+      targetType?: "post" | "comment" | "report" | "user";
+      targetId?: string;
+      actorUserId?: string;
+    }): Promise<ApiResult<PageResult<DiscoverAuditRecord>>>;
     createPlace(input: Partial<Place>): Promise<ApiResult<Place>>;
     updatePlace(id: string, input: Partial<Place>): Promise<ApiResult<Place>>;
     deletePlace(id: string): Promise<ApiResult<DeletePlaceResponse>>;
@@ -269,6 +357,9 @@ export const createMockClient = (
       async myPosts(query) {
         return ok(service.posts.listMine(query, actorId));
       },
+      async meGovernance() {
+        return ok(service.posts.meGovernance(actorId));
+      },
       async listComments(postId, query) {
         return ok(service.posts.listComments(postId, query));
       },
@@ -276,8 +367,17 @@ export const createMockClient = (
         return ok(service.posts.createComment(postId, input, actorId));
       },
       async reportPost(postId, input) {
-        void input;
-        return ok(service.posts.report(postId) as Post);
+        return ok(service.posts.report(postId, input, actorId) as Post);
+      },
+      async reportComment(postId, commentId, input) {
+        return ok(
+          service.posts.reportComment(
+            postId,
+            commentId,
+            input,
+            actorId
+          ) as DiscoverReportCase
+        );
       }
     },
     places: {
@@ -329,6 +429,22 @@ export const createMockClient = (
             file_id: `cloud://public/posts/${pendingId}/${fileName}`,
             cloud_path: `public/posts/${pendingId}/${fileName}`,
             visibility: "public"
+          },
+          actorId
+        );
+
+        return ok(completion);
+      },
+      async uploadReportEvidence(input) {
+        const fileName = input.file_name ?? "report-evidence-upload";
+        const bizId = input.biz_id ?? "__pending_report_evidence__";
+        const completion = service.files.complete(
+          {
+            biz_type: "report_evidence",
+            biz_id: bizId,
+            file_id: `cloud://private/reports/${bizId}/${fileName}`,
+            cloud_path: `private/reports/${bizId}/${fileName}`,
+            visibility: "private"
           },
           actorId
         );
@@ -390,7 +506,56 @@ export const createMockClient = (
         );
       },
       async moderatePost(id, input) {
-        return ok(service.posts.moderate(id, input) as Post);
+        return ok(service.posts.moderate(id, input, actorId) as Post);
+      },
+      async listDiscoverPosts(query) {
+        return ok(service.posts.listAdmin(query, actorId));
+      },
+      async listDiscoverComments(query) {
+        return ok(service.posts.listAdminComments(query, actorId));
+      },
+      async moderateComment(id, input) {
+        return ok(service.posts.moderateComment(id, input, actorId) as Comment);
+      },
+      async listDiscoverReports(query) {
+        return ok(service.posts.listReportCases(query, actorId));
+      },
+      async detailDiscoverReport(id) {
+        return ok(
+          service.posts.detailReportCase(id, actorId) as DiscoverReportCase
+        );
+      },
+      async resolveDiscoverReport(id, input) {
+        return ok(
+          service.posts.resolveReportCase(
+            id,
+            input,
+            actorId
+          ) as DiscoverReportCase
+        );
+      },
+      async listDiscoverUsers(query) {
+        return ok(service.posts.listGovernanceUsers(query, actorId));
+      },
+      async detailDiscoverUser(id) {
+        return ok(
+          service.posts.detailGovernanceUser(
+            id,
+            actorId
+          ) as DiscoverUserGovernanceDetail
+        );
+      },
+      async enforceDiscoverUser(id, input) {
+        return ok(
+          service.posts.enforceUser(
+            id,
+            input,
+            actorId
+          ) as DiscoverUserGovernanceDetail
+        );
+      },
+      async listDiscoverAudit(query) {
+        return ok(service.posts.listAuditRecords(query, actorId));
       },
       async createPlace(input) {
         return ok(service.places.create(input));
