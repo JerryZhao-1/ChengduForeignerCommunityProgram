@@ -669,6 +669,11 @@ export const createMockDataset = (): MockDataset => ({
       _id: "comment_001",
       post_id: "post_001",
       author_user_id: "user_002",
+      author_display: {
+        nickname: "Emma",
+        avatar_url:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+      },
       content: "社区中心附近有一家口碑不错的母婴店。",
       language: "zh",
       status: "visible",
@@ -753,6 +758,12 @@ export const createMockDataset = (): MockDataset => ({
       user_id: "user_001",
       title: "报名成功",
       body: "你已成功报名周末国际邻里早午餐。",
+      target_type: "event",
+      post_id: null,
+      comment_id: null,
+      place_id: null,
+      event_id: "event_001",
+      report_id: null,
       status: "unread",
       created_at: "2026-03-28T10:05:00+08:00"
     },
@@ -761,6 +772,12 @@ export const createMockDataset = (): MockDataset => ({
       user_id: "user_002",
       title: "Comment reply",
       body: "Someone replied to your post.",
+      target_type: "comment",
+      post_id: "post_001",
+      comment_id: "comment_001",
+      place_id: null,
+      event_id: null,
+      report_id: null,
       status: "unread",
       created_at: "2026-03-28T10:10:00+08:00"
     }

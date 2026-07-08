@@ -177,6 +177,15 @@ export const CommentSchema = z.object({
   _id: z.string(),
   post_id: z.string(),
   author_user_id: z.string(),
+  author_display: z
+    .object({
+      nickname: z.string(),
+      avatar_url: z.string().url().nullable()
+    })
+    .default({
+      nickname: "Community member",
+      avatar_url: null
+    }),
   content: z.string(),
   language: LocaleSchema,
   status: z.enum(POST_CONTENT_STATUSES),
@@ -274,6 +283,15 @@ export const NotificationSchema = z.object({
   user_id: z.string(),
   title: z.string(),
   body: z.string(),
+  target_type: z
+    .enum(["post", "comment", "place", "event", "user", "report"])
+    .nullable()
+    .default(null),
+  post_id: z.string().nullable().default(null),
+  comment_id: z.string().nullable().default(null),
+  place_id: z.string().nullable().default(null),
+  event_id: z.string().nullable().default(null),
+  report_id: z.string().nullable().default(null),
   status: NotificationStatusSchema,
   created_at: z.string()
 });

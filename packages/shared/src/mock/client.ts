@@ -27,7 +27,7 @@ import type {
 } from "../types/entities";
 import type { ApiResult, PageResult } from "../types/common";
 
-import { createMockService } from "./service";
+import { createMockService, MockServiceError } from "./service";
 
 export interface ClientContext {
   actorId?: string;
@@ -88,6 +88,14 @@ export interface CommunityMapApiClient {
       pageSize?: number;
       communityId?: string;
     }): Promise<ApiResult<PageResult<Post>>>;
+    listPlaceRelatedPosts(
+      placeId: string,
+      query?: { page?: number; pageSize?: number; communityId?: string }
+    ): Promise<ApiResult<PageResult<Post>>>;
+    listEventRelatedPosts(
+      eventId: string,
+      query?: { page?: number; pageSize?: number; communityId?: string }
+    ): Promise<ApiResult<PageResult<Post>>>;
     meGovernance(): Promise<ApiResult<DiscoverMeGovernance>>;
     listComments(
       postId: string,
@@ -356,6 +364,20 @@ export const createMockClient = (
       },
       async myPosts(query) {
         return ok(service.posts.listMine(query, actorId));
+      },
+      async listPlaceRelatedPosts(placeId, query) {
+        const data = service.posts.listRelatedByPlace(placeId, query);
+        if (!data) {
+          throw new MockServiceError("NOT_FOUND", "Place not found.", 404);
+        }
+        return ok(data);
+      },
+      async listEventRelatedPosts(eventId, query) {
+        const data = service.posts.listRelatedByEvent(eventId, query);
+        if (!data) {
+          throw new MockServiceError("NOT_FOUND", "Event not found.", 404);
+        }
+        return ok(data);
       },
       async meGovernance() {
         return ok(service.posts.meGovernance(actorId));

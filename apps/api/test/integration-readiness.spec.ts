@@ -67,7 +67,10 @@ interface EventInput {
 interface PostItem {
   _id: string;
   author_user_id: string;
+  author_display: { nickname: string; avatar_url: string | null };
   title: string;
+  place_id: string | null;
+  event_id: string | null;
   status: string;
   review_status: string;
 }
@@ -76,6 +79,7 @@ interface CommentItem {
   _id: string;
   post_id: string;
   author_user_id: string;
+  author_display: { nickname: string; avatar_url: string | null };
   status: string;
 }
 
@@ -130,6 +134,12 @@ interface NotificationItem {
   user_id: string;
   title: string;
   body: string;
+  target_type: string | null;
+  post_id: string | null;
+  comment_id: string | null;
+  place_id: string | null;
+  event_id: string | null;
+  report_id: string | null;
   status: string;
 }
 
@@ -544,6 +554,118 @@ describe("discover integration readiness", () => {
       expect(create.body.data.status).toBe("visible");
       expect(create.body.data.review_status).toBe("visible");
 
+      const associated = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            title: "Coffee meetup recap",
+            content: "Global Corner Cafe worked well for a small group.",
+            language: "en",
+            tag_ids: ["coffee", "recap"],
+            place_id: "place_002",
+            event_id: "event_001",
+            image_file_ids: [],
+            image_urls: []
+          }
+        }
+      );
+      expect(associated.response.status).toBe(201);
+      expect(associated.body.data.place_id).toBe("place_002");
+      expect(associated.body.data.event_id).toBe("event_001");
+
+      const invalidPlace = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            title: "Draft place should fail",
+            content: "This should not link draft content.",
+            language: "en",
+            tag_ids: ["places"],
+            place_id: "place_003",
+            image_file_ids: [],
+            image_urls: []
+          }
+        }
+      );
+      expect(invalidPlace.response.status).toBe(404);
+      expect(invalidPlace.body.error.code).toBe("NOT_FOUND");
+
+      const invalidEvent = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: {
+            title: "Offline event should fail",
+            content: "This should not link offline content.",
+            language: "en",
+            tag_ids: ["events"],
+            event_id: "event_offline",
+            image_file_ids: [],
+            image_urls: []
+          }
+        }
+      );
+      expect(invalidEvent.response.status).toBe(404);
+      expect(invalidEvent.body.error.code).toBe("NOT_FOUND");
+
+      const placeRelated = await request<ApiSuccess<PageResult<PostItem>>>(
+        baseUrl,
+        "/discover/places/place_002/posts?pageSize=10"
+      );
+      expect(placeRelated.response.status).toBe(200);
+      expect(placeRelated.body.data.items.map((post) => post._id)).toContain(
+        associated.body.data._id
+      );
+      expect(
+        placeRelated.body.data.items.every(
+          (post) => post.place_id === "place_002" && post.status === "visible"
+        )
+      ).toBe(true);
+
+      const eventRelated = await request<ApiSuccess<PageResult<PostItem>>>(
+        baseUrl,
+        "/discover/events/event_001/posts?pageSize=10"
+      );
+      expect(eventRelated.response.status).toBe(200);
+      expect(eventRelated.body.data.items.map((post) => post._id)).toContain(
+        associated.body.data._id
+      );
+      expect(
+        eventRelated.body.data.items.every(
+          (post) => post.event_id === "event_001" && post.status === "visible"
+        )
+      ).toBe(true);
+
+      await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        `/admin/discover/posts/${associated.body.data._id}/moderation`,
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: { review_status: "hidden" }
+        }
+      );
+      const placeRelatedAfterModeration = await request<
+        ApiSuccess<PageResult<PostItem>>
+      >(baseUrl, "/discover/places/place_002/posts?pageSize=10");
+      expect(
+        placeRelatedAfterModeration.body.data.items.map((post) => post._id)
+      ).not.toContain(associated.body.data._id);
+
+      const hiddenRelated = await request<ApiFailure>(
+        baseUrl,
+        "/discover/events/event_offline/posts"
+      );
+      expect(hiddenRelated.response.status).toBe(404);
+
       const invalid = await request<ApiFailure>(baseUrl, "/discover/posts", {
         method: "POST",
         actorId: "user_002",
@@ -576,6 +698,16 @@ describe("discover integration readiness", () => {
       expect(comment.response.status).toBe(201);
       expect(comment.body.data.post_id).toBe("post_001");
       expect(comment.body.data).toHaveProperty("status", "visible");
+      expect(comment.body.data.author_display.nickname).toBe("Emma");
+
+      const ownerNotifications = await request<
+        ApiSuccess<NotificationItem[]>
+      >(baseUrl, "/notifications", { actorId: "user_001" });
+      expect(ownerNotifications.body.data[0]).toMatchObject({
+        target_type: "comment",
+        post_id: "post_001",
+        comment_id: comment.body.data._id
+      });
 
       const comments = await request<ApiSuccess<PageResult<CommentItem>>>(
         baseUrl,

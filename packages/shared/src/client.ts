@@ -178,6 +178,20 @@ export const createHttpClient = (
         const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.discover.myPosts}${suffix}`);
       },
+      listPlaceRelatedPosts: (placeId, query) => {
+        const suffix = buildQuerySuffix(query);
+        return request(
+          "GET",
+          `${apiPaths.discover.listPlaceRelatedPosts(placeId)}${suffix}`
+        );
+      },
+      listEventRelatedPosts: (eventId, query) => {
+        const suffix = buildQuerySuffix(query);
+        return request(
+          "GET",
+          `${apiPaths.discover.listEventRelatedPosts(eventId)}${suffix}`
+        );
+      },
       meGovernance: () => request("GET", apiPaths.discover.meGovernance),
       listComments: (id, query) => {
         const suffix = buildQuerySuffix(query);

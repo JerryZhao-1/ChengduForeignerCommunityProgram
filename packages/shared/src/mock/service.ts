@@ -441,12 +441,24 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     user_id: string;
     title: string;
     body: string;
+    target_type?: Notification["target_type"];
+    post_id?: string | null;
+    comment_id?: string | null;
+    place_id?: string | null;
+    event_id?: string | null;
+    report_id?: string | null;
   }) => {
     const notification: Notification = {
       _id: idFrom("notification"),
       user_id: input.user_id,
       title: input.title,
       body: input.body,
+      target_type: input.target_type ?? null,
+      post_id: input.post_id ?? null,
+      comment_id: input.comment_id ?? null,
+      place_id: input.place_id ?? null,
+      event_id: input.event_id ?? null,
+      report_id: input.report_id ?? null,
       status: "unread",
       created_at: new Date().toISOString()
     };
@@ -483,7 +495,8 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     addNotification({
       user_id: user._id,
       title: copy[enforcement.status].title,
-      body: copy[enforcement.status].body
+      body: copy[enforcement.status].body,
+      target_type: "user"
     });
   };
 
@@ -1103,6 +1116,23 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           image_urls: [...fileUrls, ...post.image_urls]
         };
       },
+      normalizeComment(comment: Comment): Comment {
+        const author = state.users.find(
+          (user) => user._id === comment.author_user_id
+        );
+
+        return {
+          ...comment,
+          author_display: {
+            nickname:
+              comment.author_display?.nickname ??
+              author?.nickname ??
+              "Community member",
+            avatar_url:
+              comment.author_display?.avatar_url ?? author?.avatar_url ?? null
+          }
+        };
+      },
       list(params: PageParams = {}) {
         const posts = state.posts.filter(
           (post) =>
@@ -1124,6 +1154,50 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           (post) =>
             post.author_user_id === actor._id &&
             (!params.communityId || post.community_id === params.communityId)
+        );
+
+        return paginate(
+          posts.map((post) => this.normalize(post)),
+          params
+        );
+      },
+      listRelatedByPlace(placeId: string, params: PageParams = {}) {
+        const place = state.places.find((item) => item._id === placeId);
+        if (
+          !place ||
+          place.status !== "published" ||
+          (params.communityId && place.community_id !== params.communityId)
+        ) {
+          return null;
+        }
+
+        const posts = state.posts.filter(
+          (post) =>
+            post.place_id === placeId &&
+            isLaunchVisiblePost(post) &&
+            post.community_id === place.community_id
+        );
+
+        return paginate(
+          posts.map((post) => this.normalize(post)),
+          params
+        );
+      },
+      listRelatedByEvent(eventId: string, params: PageParams = {}) {
+        const event = state.events.find((item) => item._id === eventId);
+        if (
+          !event ||
+          !isLaunchVisibleEvent(event) ||
+          (params.communityId && event.community_id !== params.communityId)
+        ) {
+          return null;
+        }
+
+        const posts = state.posts.filter(
+          (post) =>
+            post.event_id === eventId &&
+            isLaunchVisiblePost(post) &&
+            post.community_id === event.community_id
         );
 
         return paginate(
@@ -1172,7 +1246,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         return paginate(
           state.comments.filter(
             (comment) => comment.post_id === postId && isVisibleComment(comment)
-          ),
+          ).map((comment) => this.normalizeComment(comment)),
           params
         );
       },
@@ -1189,7 +1263,10 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           );
         });
 
-        return paginate(comments, params);
+        return paginate(
+          comments.map((comment) => this.normalizeComment(comment)),
+          params
+        );
       },
       create(input: Partial<Post>, actorId?: string) {
         const actor = requireUser(actorId);
@@ -1213,6 +1290,28 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
 
         if (hasInvalidAsset) {
           throw mockError("FORBIDDEN", "Post media file access denied.", 403);
+        }
+
+        if (input.place_id) {
+          const place = state.places.find((item) => item._id === input.place_id);
+          if (
+            !place ||
+            place.status !== "published" ||
+            place.community_id !== "tongzilin"
+          ) {
+            throw mockError("NOT_FOUND", "Place association not found.", 404);
+          }
+        }
+
+        if (input.event_id) {
+          const event = state.events.find((item) => item._id === input.event_id);
+          if (
+            !event ||
+            !isLaunchVisibleEvent(event) ||
+            event.community_id !== "tongzilin"
+          ) {
+            throw mockError("NOT_FOUND", "Event association not found.", 404);
+          }
         }
 
         const post: Post = {
@@ -1271,12 +1370,28 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           _id: idFrom("comment"),
           post_id: postId,
           author_user_id: actor._id,
+          author_display: {
+            nickname: actor.nickname,
+            avatar_url: actor.avatar_url
+          },
           content: input.content,
           language: input.language,
           status: "visible",
           created_at: new Date().toISOString()
         };
         state.comments.unshift(comment);
+        if (post.author_user_id !== actor._id) {
+          addNotification({
+            user_id: post.author_user_id,
+            title: "帖子收到新评论",
+            body: `${actor.nickname} 评论了你的帖子：${post.title}`,
+            target_type: "comment",
+            post_id: post._id,
+            comment_id: comment._id,
+            place_id: post.place_id,
+            event_id: post.event_id
+          });
+        }
         return comment;
       },
       report(
@@ -1372,6 +1487,17 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
             review_status: post.review_status
           }
         });
+        if (post.author_user_id !== actor._id) {
+          addNotification({
+            user_id: post.author_user_id,
+            title: "帖子治理状态已更新",
+            body: `你的帖子“${post.title}”状态已更新。`,
+            target_type: "post",
+            post_id: post._id,
+            place_id: post.place_id,
+            event_id: post.event_id
+          });
+        }
         return this.normalize(post);
       },
       moderateComment(
@@ -1395,6 +1521,16 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           previous_state: previous,
           next_state: { status: comment.status }
         });
+        if (comment.author_user_id !== actor._id) {
+          addNotification({
+            user_id: comment.author_user_id,
+            title: "评论治理状态已更新",
+            body: "你的评论状态已更新。",
+            target_type: "comment",
+            post_id: comment.post_id,
+            comment_id: comment._id
+          });
+        }
         return comment;
       },
       listReportCases(params: PageParams = {}, actorId?: string) {
@@ -1526,6 +1662,19 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
             moderation_action: action
           }
         });
+        if (report.reporter_user_id !== actor._id) {
+          addNotification({
+            user_id: report.reporter_user_id,
+            title: "举报处理结果",
+            body: `你的举报已处理：${input.reason}`,
+            target_type: "report",
+            post_id: report.post_id,
+            comment_id: report.comment_id,
+            report_id: report._id,
+            place_id: targetPost?.place_id ?? null,
+            event_id: targetPost?.event_id ?? null
+          });
+        }
 
         return normalizeReportCase(report, true);
       },

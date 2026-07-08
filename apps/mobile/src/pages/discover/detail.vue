@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { onLoad, onShareAppMessage, onShareTimeline } from "@dcloudio/uni-app";
-import type { Comment, Post } from "@community-map/shared";
+import type { Comment, Event, PlaceDetail, Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import { appCopy } from "@/i18n/copy";
-import { useAppStore } from "@/stores/app-store";
+import { pickLocalized, useAppStore } from "@/stores/app-store";
 import { getDiscoverEnforcementMessage } from "./enforcement-error";
 import { normalizePostMedia } from "./media";
 
@@ -24,6 +24,10 @@ interface CommentItem {
 const { state } = useAppStore();
 const copy = computed(() => appCopy[state.locale].discover);
 const post = ref<Post | null>(null);
+const associatedPlace = ref<PlaceDetail | null>(null);
+const associatedEvent = ref<Event | null>(null);
+const hasUnavailablePlace = ref(false);
+const hasUnavailableEvent = ref(false);
 const postId = ref("");
 const isLoading = ref(true);
 const errorMessage = ref("");
@@ -43,17 +47,6 @@ const showShare = ref(false);
 const forwardIcon =
   "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjI5MzciIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTMgNWw4IDYtOCA2Ii8+PHBhdGggZD0iTTIxIDExYy05IDAtMTUgMi0xNyA4Ii8+PC9zdmc+";
 
-const authorProfiles: Record<string, { name: string; avatarUrl: string }> = {
-  user_001: {
-    name: "Jerry",
-    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
-  },
-  user_002: {
-    name: "Emma",
-    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
-  }
-};
-
 const comments = ref<CommentItem[]>([]);
 
 const commentCount = computed(() => comments.value.length);
@@ -63,6 +56,24 @@ const getLanguageLabel = (language: Post["language"]) =>
 
 const postMedia = computed(() =>
   post.value ? normalizePostMedia(post.value) : []
+);
+const placeAssociationTitle = computed(() =>
+  associatedPlace.value
+    ? pickLocalized(
+        state.locale,
+        associatedPlace.value.name_zh,
+        associatedPlace.value.name_en
+      )
+    : ""
+);
+const eventAssociationTitle = computed(() =>
+  associatedEvent.value
+    ? pickLocalized(
+        state.locale,
+        associatedEvent.value.title_zh,
+        associatedEvent.value.title_en
+      )
+    : ""
 );
 const customNavStyle = computed(() => ({
   paddingTop: `${statusBarHeight.value}px`
@@ -88,21 +99,41 @@ const formatTime = (value: string) => {
 };
 
 const toCommentItem = (comment: Comment): CommentItem => {
-  const profile = authorProfiles[comment.author_user_id] ?? {
-    name: comment.author_user_id,
-    avatarUrl: ""
-  };
-
   return {
     id: comment._id,
     authorId: comment.author_user_id,
-    authorName: profile.name,
-    avatarUrl: profile.avatarUrl,
+    authorName: comment.author_display.nickname || comment.author_user_id,
+    avatarUrl: comment.author_display.avatar_url ?? "",
     content: comment.content,
     time: formatTime(comment.created_at),
     likeCount: 0,
     liked: false
   };
+};
+
+const loadAssociations = async (item: Post) => {
+  associatedPlace.value = null;
+  associatedEvent.value = null;
+  hasUnavailablePlace.value = false;
+  hasUnavailableEvent.value = false;
+
+  if (item.place_id) {
+    try {
+      const result = await mobileApi.places.detail(item.place_id);
+      associatedPlace.value = result.data;
+    } catch {
+      hasUnavailablePlace.value = true;
+    }
+  }
+
+  if (item.event_id) {
+    try {
+      const result = await mobileApi.events.detail(item.event_id);
+      associatedEvent.value = result.data;
+    } catch {
+      hasUnavailableEvent.value = true;
+    }
+  }
 };
 
 const loadComments = async (id: string) => {
@@ -123,10 +154,13 @@ const loadPost = async (id: string) => {
     postLikeCount.value = result.data.like_count;
     postFavoriteCount.value = result.data.favorite_count;
     postShareCount.value = result.data.share_count;
+    await loadAssociations(result.data);
     await loadComments(id);
   } catch {
     post.value = null;
     comments.value = [];
+    associatedPlace.value = null;
+    associatedEvent.value = null;
     errorMessage.value = copy.value.detailError;
   } finally {
     isLoading.value = false;
@@ -241,6 +275,24 @@ const openProfile = (userId?: string) => {
 
 const openAuthorProfile = () => {
   openProfile(post.value?.author_user_id);
+};
+
+const openAssociatedPlace = () => {
+  if (!associatedPlace.value) {
+    return;
+  }
+  uni.navigateTo({
+    url: `/pages/places/detail?id=${associatedPlace.value._id}`
+  });
+};
+
+const openAssociatedEvent = () => {
+  if (!associatedEvent.value) {
+    return;
+  }
+  uni.navigateTo({
+    url: `/pages/events/detail?id=${associatedEvent.value._id}`
+  });
 };
 
 const togglePostLike = () => {
@@ -442,6 +494,76 @@ const openActions = () => {
         </view>
 
         <view class="content">{{ post.content }}</view>
+
+        <view
+          v-if="
+            associatedPlace ||
+            associatedEvent ||
+            hasUnavailablePlace ||
+            hasUnavailableEvent
+          "
+          class="association-list"
+        >
+          <view
+            v-if="associatedPlace"
+            class="association-card"
+            @click="openAssociatedPlace"
+          >
+            <image
+              v-if="associatedPlace.cover_url"
+              class="association-cover"
+              :src="associatedPlace.cover_url"
+              mode="aspectFill"
+            />
+            <view class="association-main">
+              <view class="association-label">{{
+                copy.placeAssociationLabel
+              }}</view>
+              <view class="association-title">{{ placeAssociationTitle }}</view>
+              <view class="association-meta">{{
+                pickLocalized(
+                  state.locale,
+                  associatedPlace.address_zh,
+                  associatedPlace.address_en
+                )
+              }}</view>
+            </view>
+          </view>
+          <view
+            v-else-if="hasUnavailablePlace"
+            class="association-unavailable"
+          >
+            {{ copy.placeAssociationUnavailable }}
+          </view>
+
+          <view
+            v-if="associatedEvent"
+            class="association-card"
+            @click="openAssociatedEvent"
+          >
+            <image
+              v-if="associatedEvent.cover_url"
+              class="association-cover"
+              :src="associatedEvent.cover_url"
+              mode="aspectFill"
+            />
+            <view class="association-main">
+              <view class="association-label">{{
+                copy.eventAssociationLabel
+              }}</view>
+              <view class="association-title">{{ eventAssociationTitle }}</view>
+              <view class="association-meta">{{
+                associatedEvent.address_text
+              }}</view>
+            </view>
+          </view>
+          <view
+            v-else-if="hasUnavailableEvent"
+            class="association-unavailable"
+          >
+            {{ copy.eventAssociationUnavailable }}
+          </view>
+        </view>
 
         <view v-if="post.tag_ids.length" class="tags">
           <text v-for="tag in post.tag_ids" :key="tag" class="tag"
@@ -772,6 +894,70 @@ const openActions = () => {
   color: #111827;
   font-size: 30rpx;
   white-space: pre-wrap;
+}
+
+.association-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  margin-top: 22rpx;
+}
+
+.association-card {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+  min-height: 128rpx;
+  padding: 14rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 12rpx;
+  background: #f9fafb;
+}
+
+.association-cover {
+  flex-shrink: 0;
+  width: 112rpx;
+  height: 96rpx;
+  border-radius: 8rpx;
+  background: #e2e8f0;
+}
+
+.association-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.association-label {
+  color: #64748b;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.association-title {
+  overflow: hidden;
+  margin-top: 4rpx;
+  color: #111827;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.association-meta {
+  overflow: hidden;
+  margin-top: 4rpx;
+  color: #64748b;
+  font-size: 23rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.association-unavailable {
+  padding: 18rpx;
+  border-radius: 10rpx;
+  background: #f3f4f6;
+  color: #64748b;
+  font-size: 24rpx;
 }
 
 .tags {

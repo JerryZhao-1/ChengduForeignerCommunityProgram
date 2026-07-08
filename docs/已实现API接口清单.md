@@ -9,9 +9,9 @@
 - `packages/shared/src/contracts/*.ts`：共享契约定义
 - `apps/api/src/providers/*` 与 `packages/shared/src/mock/service.ts`：当前业务实现入口
 
-截至当前版本，`apps/api` 一共注册了 36 个接口：
+截至当前版本，`apps/api` 一共注册了 38 个接口：
 
-- 业务接口 35 个
+- 业务接口 37 个
 - 健康检查接口 1 个：`GET /health`
 
 ## 2. 总入口与核心文件
@@ -77,6 +77,8 @@ Events public reads 只返回 `review_status="approved"` 且 `publish_status="pu
 | `POST` | `/discover/posts`                                    | 创建帖子             | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.create`               |
 | `GET`  | `/discover/me/posts`                                 | 获取我的帖子         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listMine`             |
 | `GET`  | `/discover/me/governance`                            | 获取我的治理摘要     | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.meGovernance`         |
+| `GET`  | `/discover/places/:placeId/posts`                    | 获取地点相关帖子     | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listRelatedByPlace`   |
+| `GET`  | `/discover/events/:eventId/posts`                    | 获取活动相关帖子     | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listRelatedByEvent`   |
 | `GET`  | `/discover/posts/:id/comments`                       | 获取帖子评论         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listComments`         |
 | `POST` | `/discover/posts/:id/comments`                       | 对帖子发表评论       | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.createComment`        |
 | `POST` | `/discover/posts/:id/report`                         | 举报帖子并创建 case  | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.report`               |
@@ -93,7 +95,7 @@ Events public reads 只返回 `review_status="approved"` 且 `publish_status="pu
 | `POST` | `/admin/discover/users/:id/enforcement`              | 用户警告/禁言/封禁   | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.enforceUser`          |
 | `GET`  | `/admin/discover/audit`                              | 治理审计记录         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listAuditRecords`     |
 
-Discover public reads 返回 `status="visible"` 且未被管理员 hidden/deleted 的目标社区帖子；`review_status="reported"` 仅表示已有举报 case，不会单独下架；`GET /discover/me/posts` 返回当前 actor 自己的 owner-visible 帖子并包含状态，但 `banned` 用户会被 403 拦截；`GET /discover/me/governance` 返回当前用户 enforcement、帖子/评论/举报计数和未读通知数；评论读写只作用于 visible post，reported comment 在管理员处置前仍公开可见；public `comment_count` 与可见评论列表使用相同过滤；创建帖子会初始化时间戳、计数、作者展示快照，并校验 `image_file_ids` 必须是本人上传的 active public `public/posts/` 文件资产；report 会创建 durable governance case，但只有 admin report resolution 或 moderation 明确 hide/delete 后才影响公开可见性；warned 不拦截操作，muted 拦截发帖/评论，banned 拦截发帖/评论/举报/my-posts，拦截响应为 `403 FORBIDDEN` 且 details 带 `enforcement_status`；admin moderation/report resolution/user enforcement 均需要管理员角色并写入 audit record，enforcement 变更会为目标用户追加通知。CloudBase live provider 当前覆盖 discover core posts/comments、`discover_report_cases` 和 `discover_audit_records` 的 report case 创建/list/detail/resolve 最小闭环，并对 live 覆盖的写操作复用 enforcement 拦截；CloudBase 集合索引/安全规则和在线 smoke 仍属于后续生产 readiness 工作。
+Discover public reads 返回 `status="visible"` 且未被管理员 hidden/deleted 的目标社区帖子；`review_status="reported"` 仅表示已有举报 case，不会单独下架；帖子 payload 包含 `place_id`、`event_id` 和 profile-backed `author_display`，评论 payload 也包含 safe `author_display`；创建帖子可提交 nullable `place_id` / `event_id`，但会拒绝 missing、draft/offline/unpublished 或非目标社区的地点/活动关联，失败不创建 partial post；`GET /discover/places/:placeId/posts` 与 `GET /discover/events/:eventId/posts` 返回 bounded page envelope，只返回对应地点/活动下仍公开可见的卡片安全帖子，关联地点/活动不可公开时返回 not-found envelope；`GET /discover/me/posts` 返回当前 actor 自己的 owner-visible 帖子并包含状态，但 `banned` 用户会被 403 拦截；`GET /discover/me/governance` 返回当前用户 enforcement、帖子/评论/举报计数和未读通知数；评论读写只作用于 visible post，reported comment 在管理员处置前仍公开可见；public `comment_count` 与可见评论列表使用相同过滤；创建帖子会初始化时间戳、计数、作者展示快照，并校验 `image_file_ids` 必须是本人上传的 active public `public/posts/` 文件资产；report 会创建 durable governance case，但只有 admin report resolution 或 moderation 明确 hide/delete 后才影响公开可见性；warned 不拦截操作，muted 拦截发帖/评论，banned 拦截发帖/评论/举报/my-posts，拦截响应为 `403 FORBIDDEN` 且 details 带 `enforcement_status`；admin moderation/report resolution/user enforcement 均需要管理员角色并写入 audit record。新评论会为非本人 post owner 追加 discover comment 通知；post/comment moderation 和 report resolution 会为 affected user/reporter 追加 owner-safe 通知并带 `post_id`、`comment_id`、`place_id`、`event_id`、`report_id` 等导航 metadata；report resolution 依赖当前 durable report-case workflow，未暴露 private admin notes。CloudBase live provider 当前覆盖 discover core posts/comments、place/event association validation、related place/event post queries、`discover_report_cases` 和 `discover_audit_records` 的 report case 创建/list/detail/resolve 最小闭环，并对 live 覆盖的写操作复用 enforcement 拦截；notifications/auth 仍以 fallback parity 为主，完整线上 notification 写入证据仍属于后续生产 readiness 工作。
 
 ### 4.4 地点 Places
 
@@ -148,7 +150,7 @@ Discover public reads 返回 `status="visible"` 且未被管理员 hidden/delete
 | `GET`  | `/notifications`          | 获取当前用户通知列表 | `apps/api/src/routes/notifications.ts` | `packages/shared/src/contracts/notifications.ts` | `packages/shared/src/mock/service.ts` 中 `notifications.list`     |
 | `POST` | `/notifications/:id/read` | 将通知标记为已读     | `apps/api/src/routes/notifications.ts` | `packages/shared/src/contracts/notifications.ts` | `packages/shared/src/mock/service.ts` 中 `notifications.markRead` |
 
-Notifications list/read 只作用于当前 actor 自己的通知；跨用户 mark-read 返回 not-found envelope，不修改对方通知状态；Admin 设置用户 warned/muted/banned 或恢复 active 时，mock provider 会为目标用户追加账号状态通知，Mobile Me 页通过 `/discover/me/governance` 的未读数量显示提示。
+Notifications list/read 只作用于当前 actor 自己的通知；跨用户 mark-read 返回 not-found envelope，不修改对方通知状态；notification payload 支持 nullable `target_type`、`post_id`、`comment_id`、`place_id`、`event_id`、`report_id` 导航 metadata。Admin 设置用户 warned/muted/banned 或恢复 active 时，mock provider 会为目标用户追加账号状态通知；Discover 新评论、moderation outcome 和 report resolution 会按 owner/recipient 规则创建通知并抑制 self-notification；Mobile Me 页通过 `/discover/me/governance` 的未读数量显示提示。
 
 ### 4.7 文件 Files
 

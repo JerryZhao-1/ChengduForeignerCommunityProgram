@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { onLoad, onShareAppMessage } from "@dcloudio/uni-app";
-import type { PlaceDetail } from "@community-map/shared";
+import type { PlaceDetail, Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
@@ -19,6 +19,7 @@ import { usePlaceAsyncState } from "./usePlaceAsyncState";
 
 const { state } = useAppStore();
 const place = ref<PlaceDetail | null>(null);
+const relatedPosts = ref<Post[]>([]);
 const { loading, error, run, setError } = usePlaceAsyncState();
 const detailCopy = computed(() => getPlacesCopy(state.locale, "detail"));
 const { isFavorite, toggleFavorite } = usePlaceFavoriteState(
@@ -147,6 +148,18 @@ onLoad(async (query) => {
   if (result) {
     place.value = result.data;
     syncShareMenuAvailability();
+    try {
+      const related = await mobileApi.discover.listPlaceRelatedPosts(
+        result.data._id,
+        {
+          communityId: state.communityId,
+          pageSize: 5
+        }
+      );
+      relatedPosts.value = related.data.items;
+    } catch {
+      relatedPosts.value = [];
+    }
   }
 });
 
@@ -251,6 +264,10 @@ const shareButtonLabel = computed(() =>
 
 const markExternalImageFailed = (url: string) => {
   failedExternalImages.value = new Set([...failedExternalImages.value, url]);
+};
+
+const openRelatedPost = (id: string) => {
+  uni.navigateTo({ url: `/pages/discover/detail?id=${id}` });
 };
 </script>
 
@@ -392,6 +409,23 @@ const markExternalImageFailed = (url: string) => {
         </button>
       </view>
       <view v-if="shareSummary" class="share-summary">{{ shareSummary }}</view>
+      <view v-if="relatedPosts.length" class="related-section">
+        <view class="info-label">{{
+          state.locale === "zh" ? "相关讨论" : "Related Discussion"
+        }}</view>
+        <view
+          v-for="post in relatedPosts"
+          :key="post._id"
+          class="related-card"
+          @click="openRelatedPost(post._id)"
+        >
+          <view class="related-title">{{ post.title }}</view>
+          <view class="related-meta">
+            <text>{{ post.author_display.nickname }}</text>
+            <text>{{ post.comment_count }} comments</text>
+          </view>
+        </view>
+      </view>
     </SectionPanel>
     <AsyncStateCard v-else variant="empty" :text="detailCopy.empty" />
   </view>
@@ -498,6 +532,30 @@ const markExternalImageFailed = (url: string) => {
   color: #64748b;
   font-size: 22rpx;
   line-height: 1.4;
+}
+
+.related-section {
+  margin-top: 22rpx;
+}
+
+.related-card {
+  padding: 18rpx 0;
+  border-top: 1rpx solid #e5e7eb;
+}
+
+.related-title {
+  color: #111827;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.related-meta {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 8rpx;
+  color: #64748b;
+  font-size: 23rpx;
 }
 
 .place-action {

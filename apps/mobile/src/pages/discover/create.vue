@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
+import type { Event, PlaceListItem } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import { uploadPostMedia } from "@/api/post-media-upload";
 import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
-import { useAppStore } from "@/stores/app-store";
+import { pickLocalized, useAppStore } from "@/stores/app-store";
 import { getDiscoverEnforcementMessage } from "./enforcement-error";
 import { getMediaKind } from "./media";
 
@@ -18,11 +20,15 @@ const form = reactive({
   language: "en" as "zh" | "en",
   tagsText: "",
   location_text: "",
-  imageUrlsText: ""
+  imageUrlsText: "",
+  place_id: null as string | null,
+  event_id: null as string | null
 });
 
 const isSubmitting = ref(false);
 const isPickingMedia = ref(false);
+const places = ref<PlaceListItem[]>([]);
+const events = ref<Event[]>([]);
 
 interface SelectedMedia {
   id: string;
@@ -35,6 +41,30 @@ interface SelectedMedia {
 }
 
 const selectedMedia = ref<SelectedMedia[]>([]);
+const placePickerLabels = computed(() => [
+  copy.value.associationNone,
+  ...places.value.map((place) =>
+    pickLocalized(state.locale, place.name_zh, place.name_en)
+  )
+]);
+const eventPickerLabels = computed(() => [
+  copy.value.associationNone,
+  ...events.value.map((event) =>
+    pickLocalized(state.locale, event.title_zh, event.title_en)
+  )
+]);
+const selectedPlaceLabel = computed(() => {
+  const place = places.value.find((item) => item._id === form.place_id);
+  return place
+    ? pickLocalized(state.locale, place.name_zh, place.name_en)
+    : copy.value.associationNone;
+});
+const selectedEventLabel = computed(() => {
+  const event = events.value.find((item) => item._id === form.event_id);
+  return event
+    ? pickLocalized(state.locale, event.title_zh, event.title_en)
+    : copy.value.associationNone;
+});
 
 const parseTags = () =>
   form.tagsText
@@ -148,6 +178,37 @@ const removeMedia = (id: string) => {
   selectedMedia.value = selectedMedia.value.filter((item) => item.id !== id);
 };
 
+const loadAssociationOptions = async () => {
+  const [placeResult, eventResult] = await Promise.allSettled([
+    mobileApi.places.list({ communityId: state.communityId, pageSize: 50 }),
+    mobileApi.events.list({ communityId: state.communityId, pageSize: 50 })
+  ]);
+
+  if (placeResult.status === "fulfilled") {
+    places.value = placeResult.value.data.items;
+  }
+
+  if (eventResult.status === "fulfilled") {
+    events.value = eventResult.value.data.items;
+  }
+};
+
+const onPlacePicked = (event: { detail: { value: string | number } }) => {
+  const index = Number(event.detail.value);
+  form.place_id = index > 0 ? (places.value[index - 1]?._id ?? null) : null;
+};
+
+const onEventPicked = (event: { detail: { value: string | number } }) => {
+  const index = Number(event.detail.value);
+  form.event_id = index > 0 ? (events.value[index - 1]?._id ?? null) : null;
+};
+
+onLoad((query) => {
+  form.place_id = String(query?.placeId ?? "").trim() || null;
+  form.event_id = String(query?.eventId ?? "").trim() || null;
+  void loadAssociationOptions();
+});
+
 const submit = async () => {
   if (isSubmitting.value) {
     return;
@@ -202,7 +263,9 @@ const submit = async () => {
       tag_ids: tagIds,
       location_text: form.location_text.trim() || null,
       image_file_ids: imageFileIds,
-      image_urls: imageUrls
+      image_urls: imageUrls,
+      place_id: form.place_id,
+      event_id: form.event_id
     });
 
     uni.showToast({ title: copy.value.createSuccess, icon: "success" });
@@ -281,6 +344,20 @@ const submit = async () => {
           class="input"
           :placeholder="copy.locationPlaceholder"
         />
+      </view>
+
+      <view class="field-group">
+        <view class="label">{{ copy.placeAssociationLabel }}</view>
+        <picker :range="placePickerLabels" @change="onPlacePicked">
+          <view class="picker-field">{{ selectedPlaceLabel }}</view>
+        </picker>
+      </view>
+
+      <view class="field-group">
+        <view class="label">{{ copy.eventAssociationLabel }}</view>
+        <picker :range="eventPickerLabels" @change="onEventPicked">
+          <view class="picker-field">{{ selectedEventLabel }}</view>
+        </picker>
       </view>
 
       <view class="field-group">
@@ -366,7 +443,8 @@ const submit = async () => {
 }
 
 .input,
-.textarea {
+.textarea,
+.picker-field {
   width: 100%;
   box-sizing: border-box;
   background: #ffffff;
@@ -378,6 +456,12 @@ const submit = async () => {
 
 .input {
   min-height: 78rpx;
+}
+
+.picker-field {
+  min-height: 78rpx;
+  color: #111827;
+  line-height: 38rpx;
 }
 
 .textarea {

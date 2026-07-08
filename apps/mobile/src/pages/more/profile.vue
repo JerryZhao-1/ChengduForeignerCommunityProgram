@@ -18,51 +18,13 @@ interface ProfileInfo {
   following: number;
 }
 
-const userProfiles: Record<string, ProfileInfo> = {
-  user_001: {
-    name: "Jerry",
-    handle: "jerry_",
-    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-    bioZh: "桐梓林在地生活分享 · 早晨散步与咖啡\n记录社区里的日常小事。",
-    bioEn: "Tongzilin local life · morning walks & coffee\nSharing the little things around the community.",
-    followers: 1280,
-    following: 342
-  },
-  user_002: {
-    name: "Emma",
-    handle: "emma.cd",
-    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-    bioZh: "语言交换组织者 · 网球爱好者\n欢迎新邻居一起玩。",
-    bioEn: "Language exchange host · tennis lover\nNew neighbors always welcome.",
-    followers: 2460,
-    following: 512
-  },
-  user_003: {
-    name: "李雷",
-    handle: "lilei",
-    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-    bioZh: "桐梓林老住户，爱运动、爱分享本地信息。",
-    bioEn: "Longtime Tongzilin resident who loves sports and local tips.",
-    followers: 620,
-    following: 210
-  },
-  user_004: {
-    name: "Sophie",
-    handle: "sophie_h",
-    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb",
-    bioZh: "刚搬来的新邻居，正在学中文。",
-    bioEn: "New neighbor here, learning Chinese step by step.",
-    followers: 138,
-    following: 305
-  }
-};
-
 const { state } = useAppStore();
 const copy = computed(() => appCopy[state.locale].profile);
 
 const targetUserId = ref(state.userId);
 const statusBarHeight = ref(0);
 const posts = ref<Post[]>([]);
+const selfProfile = ref<ProfileInfo | null>(null);
 const activeTab = ref<"grid" | "reels">("grid");
 const isFollowing = ref(false);
 
@@ -70,20 +32,27 @@ const customNavStyle = computed(() => ({
   paddingTop: `${statusBarHeight.value}px`
 }));
 
-const profile = computed<ProfileInfo>(
-  () =>
-    userProfiles[targetUserId.value] ?? {
-      name: targetUserId.value,
-      handle: targetUserId.value,
-      avatarUrl: "",
-      bioZh: "",
-      bioEn: "",
-      followers: 0,
-      following: 0
-    }
-);
-
 const isSelf = computed(() => targetUserId.value === state.userId);
+const sourcePost = computed(() =>
+  posts.value.find((post) => post.author_user_id === targetUserId.value)
+);
+const profile = computed<ProfileInfo>(() => {
+  if (isSelf.value && selfProfile.value) {
+    return selfProfile.value;
+  }
+
+  const author = sourcePost.value?.author_display;
+  return {
+    name: author?.nickname || targetUserId.value,
+    handle: targetUserId.value,
+    avatarUrl: author?.avatar_url ?? "",
+    bioZh: "",
+    bioEn: "",
+    followers: 0,
+    following: 0
+  };
+});
+
 const bio = computed(() => {
   const value = state.locale === "zh" ? profile.value.bioZh : profile.value.bioEn;
   return value || copy.value.bioFallback;
@@ -126,12 +95,35 @@ const loadPosts = async () => {
   }
 };
 
+const loadSelfProfile = async () => {
+  if (!isSelf.value) {
+    selfProfile.value = null;
+    return;
+  }
+
+  try {
+    const result = await mobileApi.auth.me();
+    selfProfile.value = {
+      name: result.data.user.nickname,
+      handle: result.data.user._id,
+      avatarUrl: result.data.user.avatar_url,
+      bioZh: "",
+      bioEn: "",
+      followers: 0,
+      following: 0
+    };
+  } catch {
+    selfProfile.value = null;
+  }
+};
+
 onLoad((query) => {
   statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight ?? 0;
   const id = String(query?.id ?? "").trim();
   if (id) {
     targetUserId.value = id;
   }
+  loadSelfProfile();
   loadPosts();
 });
 

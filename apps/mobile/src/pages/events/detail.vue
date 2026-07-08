@@ -2,7 +2,8 @@
 import {
   ApiClientError,
   type Event,
-  type EventRegistration
+  type EventRegistration,
+  type Post
 } from "@community-map/shared";
 import { computed, ref } from "vue";
 import { onLoad, onShow } from "@dcloudio/uni-app";
@@ -17,6 +18,7 @@ import {
 
 const { state } = useAppStore();
 const event = ref<Event | null>(null);
+const relatedPosts = ref<Post[]>([]);
 const eventId = ref("");
 const registrations = ref<EventRegistration[]>([]);
 const ticketCode = ref("");
@@ -91,6 +93,7 @@ const loadEvent = async (id: string) => {
   loading.value = true;
   error.value = "";
   event.value = null;
+  relatedPosts.value = [];
 
   try {
     const eventResult = await mobileApi.events.detail(id);
@@ -100,11 +103,24 @@ const loadEvent = async (id: string) => {
       return;
     }
     event.value = eventResult.data;
+    try {
+      const related = await mobileApi.discover.listEventRelatedPosts(
+        eventResult.data._id,
+        {
+          communityId: state.communityId,
+          pageSize: 5
+        }
+      );
+      relatedPosts.value = related.data.items;
+    } catch {
+      relatedPosts.value = [];
+    }
   } catch (err) {
     console.error(err);
     error.value = isUnavailableEventError(err)
       ? unavailableEventMessage
       : "活动加载失败，请稍后重试";
+    relatedPosts.value = [];
     loading.value = false;
     return;
   }
@@ -136,6 +152,19 @@ const register = () => {
   uni.navigateTo({
     url: `/pages/events/signup?id=${event.value._id}`
   });
+};
+
+const startDiscussion = () => {
+  if (!event.value) {
+    return;
+  }
+  uni.navigateTo({
+    url: `/pages/discover/create?eventId=${event.value._id}`
+  });
+};
+
+const openRelatedPost = (id: string) => {
+  uni.navigateTo({ url: `/pages/discover/detail?id=${id}` });
 };
 
 const formatTime = (input: string) => {
@@ -186,6 +215,26 @@ const statusLabel = (item: Event) => {
         <text class="section-title">活动介绍</text>
         <text class="details">{{ pickLocalized(state.locale, event.content_zh, event.content_en) }}</text>
       </view>
+
+      <view v-if="relatedPosts.length" class="card">
+        <text class="section-title">{{ state.locale === "zh" ? "相关讨论" : "Related Discussion" }}</text>
+        <view
+          v-for="post in relatedPosts"
+          :key="post._id"
+          class="related-card"
+          @click="openRelatedPost(post._id)"
+        >
+          <text class="related-title">{{ post.title }}</text>
+          <view class="related-meta">
+            <text>{{ post.author_display.nickname }}</text>
+            <text>{{ post.comment_count }} comments</text>
+          </view>
+        </view>
+      </view>
+
+      <button class="secondary-action" @click="startDiscussion">
+        {{ state.locale === "zh" ? "发起活动讨论" : "Start Discussion" }}
+      </button>
 
       <view v-if="ticketCode" class="ticket-card">
         <text class="section-title">入场凭证</text>
@@ -277,6 +326,28 @@ const statusLabel = (item: Event) => {
   line-height: 1.7;
 }
 
+.related-card {
+  display: block;
+  padding: 18rpx 0;
+  border-top: 1rpx solid #e5e7eb;
+}
+
+.related-title {
+  display: block;
+  color: #111827;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.related-meta {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 8rpx;
+  color: #64748b;
+  font-size: 23rpx;
+}
+
 .ticket-card {
   background: #ecfdf5;
   border-color: #a7f3d0;
@@ -294,6 +365,12 @@ const statusLabel = (item: Event) => {
   margin-top: 24rpx;
   background: #0f766e;
   color: #ffffff;
+}
+
+.secondary-action {
+  margin-top: 20rpx;
+  background: #e6f4ff;
+  color: #0052d9;
 }
 
 .primary.disabled {

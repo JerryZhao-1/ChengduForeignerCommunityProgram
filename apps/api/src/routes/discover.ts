@@ -13,6 +13,7 @@ import {
   ModerateCommentInputSchema,
   MyPostListQuerySchema,
   PostListQuerySchema,
+  RelatedPostListQuerySchema,
   ReportCommentInputSchema,
   ResolveReportInputSchema,
   ReportPostInputSchema
@@ -35,6 +36,30 @@ export const registerDiscoverRoutes = (router: Router) => {
       throw apiError("NOT_FOUND", "Post not found.", 404);
     }
     sendSuccess(ctx, post);
+  });
+
+  router.get("/discover/places/:placeId/posts", async (ctx) => {
+    const query = parseOrThrow(RelatedPostListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listRelatedByPlace({
+      ...query,
+      placeId: ctx.params.placeId
+    });
+    if (!data) {
+      throw apiError("NOT_FOUND", "Place not found.", 404);
+    }
+    sendSuccess(ctx, data);
+  });
+
+  router.get("/discover/events/:eventId/posts", async (ctx) => {
+    const query = parseOrThrow(RelatedPostListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listRelatedByEvent({
+      ...query,
+      eventId: ctx.params.eventId
+    });
+    if (!data) {
+      throw apiError("NOT_FOUND", "Event not found.", 404);
+    }
+    sendSuccess(ctx, data);
   });
 
   router.get("/discover/me/posts", async (ctx) => {

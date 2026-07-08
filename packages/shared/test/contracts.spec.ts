@@ -4,8 +4,10 @@ import {
   CreateApiSuccessSchema,
   CommentListQuerySchema,
   CommentSchema,
+  CreatePostInputSchema,
   DeleteEventResponseSchema,
   DeletePlaceResponseSchema,
+  discoverContracts,
   DiscoverAuditRecordSchema,
   DiscoverMeGovernanceSchema,
   DiscoverReportCaseSchema,
@@ -36,6 +38,8 @@ import {
   eventContracts,
   fileContracts,
   MyPostListQuerySchema,
+  NotificationSchema,
+  RelatedPostListQuerySchema,
   ResolveReportInputSchema,
   placeContracts,
   PostSchema,
@@ -795,14 +799,56 @@ describe("shared contracts", () => {
       _id: "comment_001",
       post_id: post._id,
       author_user_id: "user_002",
+      author_display: {
+        nickname: "Emma",
+        avatar_url: null
+      },
       content: "Thanks",
       language: "en",
       status: "visible",
       created_at: "2026-03-28T09:30:00+08:00"
     });
+    const createInput = CreatePostInputSchema.parse({
+      title: "Coffee tip",
+      content: "Attach this to a place.",
+      language: "en",
+      tag_ids: ["coffee"],
+      place_id: "place_002",
+      event_id: null
+    });
+    const relatedQuery = RelatedPostListQuerySchema.parse({
+      pageSize: "8",
+      communityId: "tongzilin"
+    });
+    const notification = NotificationSchema.parse({
+      _id: "notification_001",
+      user_id: "user_001",
+      title: "Comment",
+      body: "A neighbor commented.",
+      target_type: "comment",
+      post_id: post._id,
+      comment_id: comment._id,
+      place_id: post.place_id,
+      event_id: post.event_id,
+      report_id: null,
+      status: "unread",
+      created_at: "2026-03-28T09:31:00+08:00"
+    });
 
     expect(post.comment_count).toBe(1);
+    expect(createInput.place_id).toBe("place_002");
+    expect(relatedQuery.pageSize).toBe(8);
+    expect(discoverContracts.listPlaceRelatedPosts).toMatchObject({
+      method: "GET",
+      path: "/discover/places/:placeId/posts"
+    });
+    expect(discoverContracts.listEventRelatedPosts).toMatchObject({
+      method: "GET",
+      path: "/discover/events/:eventId/posts"
+    });
     expect(comment.status).toBe("visible");
+    expect(comment.author_display.nickname).toBe("Emma");
+    expect(notification.post_id).toBe(post._id);
     expect(CommentListQuerySchema.parse({ page: "2" }).page).toBe(2);
     expect(MyPostListQuerySchema.parse({}).communityId).toBe("tongzilin");
   });

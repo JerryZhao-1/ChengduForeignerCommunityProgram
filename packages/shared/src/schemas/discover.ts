@@ -28,6 +28,12 @@ export const MyPostListQuerySchema = z.object({
   communityId: z.string().default("tongzilin")
 });
 
+export const RelatedPostListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(20).default(5),
+  communityId: z.string().default("tongzilin")
+});
+
 export const CreatePostInputSchema = PostSchema.pick({
   title: true,
   content: true,

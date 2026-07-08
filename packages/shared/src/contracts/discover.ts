@@ -18,6 +18,7 @@ import {
   ModerateCommentInputSchema,
   MyPostListQuerySchema,
   PostListQuerySchema,
+  RelatedPostListQuerySchema,
   ReportCommentInputSchema,
   ResolveReportInputSchema,
   ReportPostInputSchema
@@ -59,6 +60,18 @@ export const discoverContracts = {
     method: "GET",
     path: "/discover/me/posts",
     request: MyPostListQuerySchema,
+    response: PageResultSchema(PostSchema)
+  }),
+  listPlaceRelatedPosts: defineContract({
+    method: "GET",
+    path: "/discover/places/:placeId/posts",
+    request: RelatedPostListQuerySchema,
+    response: PageResultSchema(PostSchema)
+  }),
+  listEventRelatedPosts: defineContract({
+    method: "GET",
+    path: "/discover/events/:eventId/posts",
+    request: RelatedPostListQuerySchema,
     response: PageResultSchema(PostSchema)
   }),
   meGovernance: defineContract({

@@ -1853,6 +1853,60 @@ const createLivePostsProvider = (
 
     return paginate(normalized, input);
   },
+  async listRelatedByPlace(input) {
+    const [places, posts, comments] = await Promise.all([
+      readPlaces(context),
+      readPosts(context),
+      readComments(context)
+    ]);
+    const place = places.find((item) => item._id === input.placeId);
+    if (
+      !place ||
+      place.status !== "published" ||
+      (input.communityId && place.community_id !== input.communityId)
+    ) {
+      return null;
+    }
+
+    const relatedPosts = posts.filter(
+      (post) =>
+        post.place_id === input.placeId &&
+        post.community_id === place.community_id &&
+        isLaunchVisiblePost(post)
+    );
+    const normalized = await Promise.all(
+      relatedPosts.map((post) => normalizePostForRead(context, post, comments))
+    );
+
+    return paginate(normalized, input);
+  },
+  async listRelatedByEvent(input) {
+    const [events, posts, comments] = await Promise.all([
+      readEvents(context),
+      readPosts(context),
+      readComments(context)
+    ]);
+    const event = events.find((item) => item._id === input.eventId);
+    if (
+      !event ||
+      !isLaunchVisibleEvent(event) ||
+      (input.communityId && event.community_id !== input.communityId)
+    ) {
+      return null;
+    }
+
+    const relatedPosts = posts.filter(
+      (post) =>
+        post.event_id === input.eventId &&
+        post.community_id === event.community_id &&
+        isLaunchVisiblePost(post)
+    );
+    const normalized = await Promise.all(
+      relatedPosts.map((post) => normalizePostForRead(context, post, comments))
+    );
+
+    return paginate(normalized, input);
+  },
   async detail(id) {
     const [posts, comments] = await Promise.all([
       readPosts(context),
@@ -1921,6 +1975,32 @@ const createLivePostsProvider = (
       throw apiError("FORBIDDEN", "Post media file access denied.", 403);
     }
 
+    if (input.place_id) {
+      const place = (await readPlaces(context)).find(
+        (item) => item._id === input.place_id
+      );
+      if (
+        !place ||
+        place.status !== "published" ||
+        place.community_id !== DEFAULT_COMMUNITY_ID
+      ) {
+        throw apiError("NOT_FOUND", "Place association not found.", 404);
+      }
+    }
+
+    if (input.event_id) {
+      const event = (await readEvents(context)).find(
+        (item) => item._id === input.event_id
+      );
+      if (
+        !event ||
+        !isLaunchVisibleEvent(event) ||
+        event.community_id !== DEFAULT_COMMUNITY_ID
+      ) {
+        throw apiError("NOT_FOUND", "Event association not found.", 404);
+      }
+    }
+
     const post = PostSchema.parse({
       _id: postId,
       author_user_id: actor._id,
@@ -1975,6 +2055,10 @@ const createLivePostsProvider = (
       _id: `comment_${randomUUID()}`,
       post_id: postId,
       author_user_id: actor._id,
+      author_display: {
+        nickname: actor.nickname,
+        avatar_url: actor.avatar_url
+      },
       content: input.content,
       language: input.language,
       status: "visible",

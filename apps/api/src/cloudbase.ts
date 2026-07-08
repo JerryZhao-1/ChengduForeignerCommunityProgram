@@ -15,6 +15,7 @@ import {
   PlacePoiSearchQuerySchema,
   PostListQuerySchema,
   PrivateUrlRequestInputSchema,
+  RelatedPostListQuerySchema,
   ReportPostInputSchema,
   ReviewEventInputSchema,
   UpdateEventInputSchema,
@@ -283,6 +284,48 @@ export const main: CloudbaseEventHandler = async (event, context) => {
 
     if (method === "GET" && pathname === "/discover/me/governance") {
       return ok(await provider.posts.meGovernance(actorId), requestId);
+    }
+
+    {
+      const match = matchRoute("/discover/places/:placeId/posts", pathname);
+
+      if (method === "GET" && match.matched) {
+        const query = parseOrThrow(
+          RelatedPostListQuerySchema,
+          Object.fromEntries(url.searchParams.entries())
+        );
+        const posts = await provider.posts.listRelatedByPlace({
+          ...query,
+          placeId: match.params.placeId
+        });
+
+        if (!posts) {
+          throw apiError("NOT_FOUND", "Place not found.", 404);
+        }
+
+        return ok(posts, requestId);
+      }
+    }
+
+    {
+      const match = matchRoute("/discover/events/:eventId/posts", pathname);
+
+      if (method === "GET" && match.matched) {
+        const query = parseOrThrow(
+          RelatedPostListQuerySchema,
+          Object.fromEntries(url.searchParams.entries())
+        );
+        const posts = await provider.posts.listRelatedByEvent({
+          ...query,
+          eventId: match.params.eventId
+        });
+
+        if (!posts) {
+          throw apiError("NOT_FOUND", "Event not found.", 404);
+        }
+
+        return ok(posts, requestId);
+      }
     }
 
     {

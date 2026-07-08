@@ -96,6 +96,16 @@ export const createMockProvider = (): ApiProvider => {
       async listMine(input, actorId) {
         return withMockErrors(() => service.posts.listMine(input, actorId));
       },
+      async listRelatedByPlace(input) {
+        return withMockErrors(() =>
+          service.posts.listRelatedByPlace(input.placeId, input)
+        );
+      },
+      async listRelatedByEvent(input) {
+        return withMockErrors(() =>
+          service.posts.listRelatedByEvent(input.eventId, input)
+        );
+      },
       async meGovernance(actorId) {
         return withMockErrors(() => service.posts.meGovernance(actorId));
       },

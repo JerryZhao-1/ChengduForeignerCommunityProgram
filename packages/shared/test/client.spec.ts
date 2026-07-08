@@ -189,6 +189,71 @@ describe("shared api clients", () => {
     );
   });
 
+  it("serializes discover related post queries for places and events", async () => {
+    const mockClient = createMockClient({ actorId: "user_001" });
+    const requester = vi.fn(async () => ({
+      success: true,
+      requestId: "req_related_posts",
+      data: {
+        items: [],
+        page: 1,
+        pageSize: 5,
+        total: 0
+      }
+    }));
+    const httpClient = createHttpClient({
+      actorId: "user_001",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    const mockPlaceRelated =
+      await mockClient.discover.listPlaceRelatedPosts("place_001");
+    await httpClient.discover.listPlaceRelatedPosts("place_001", {
+      pageSize: 4,
+      communityId: "tongzilin"
+    });
+    await httpClient.discover.listEventRelatedPosts("event_001", {
+      page: 2
+    });
+
+    expect(mockPlaceRelated.data.items.map((post) => post.place_id)).toContain(
+      "place_001"
+    );
+    await expect(
+      mockClient.discover.listPlaceRelatedPosts("place_does_not_exist")
+    ).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "Place not found.",
+      status: 404
+    });
+    await expect(
+      mockClient.discover.listEventRelatedPosts("event_does_not_exist")
+    ).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "Event not found.",
+      status: 404
+    });
+    expect(apiPaths.discover.listPlaceRelatedPosts("place_001")).toBe(
+      "/discover/places/place_001/posts"
+    );
+    expect(apiPaths.discover.listEventRelatedPosts("event_001")).toBe(
+      "/discover/events/event_001/posts"
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/places/place_001/posts?pageSize=4&communityId=tongzilin",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/events/event_001/posts?page=2",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+  });
+
   it("keeps mock and http client signatures aligned for discover governance", async () => {
     const mockClient = createMockClient({ actorId: "user_001" });
     const requester = vi.fn(async (method: string, url: string) => {

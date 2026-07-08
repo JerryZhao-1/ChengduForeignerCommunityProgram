@@ -100,6 +100,18 @@ export interface ApiProvider {
       },
       actorId?: string
     ): Promise<PageResult<Post>>;
+    listRelatedByPlace(input: {
+      placeId: string;
+      page?: number;
+      pageSize?: number;
+      communityId?: string;
+    }): Promise<PageResult<Post> | null>;
+    listRelatedByEvent(input: {
+      eventId: string;
+      page?: number;
+      pageSize?: number;
+      communityId?: string;
+    }): Promise<PageResult<Post> | null>;
     meGovernance(actorId?: string): Promise<DiscoverMeGovernance>;
     listAdmin(
       input: {
