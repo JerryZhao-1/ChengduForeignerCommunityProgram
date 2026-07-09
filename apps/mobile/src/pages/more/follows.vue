@@ -58,6 +58,13 @@ const toggleFollow = async (item: ProfileFollowListItem) => {
       following: !item.followed_by_actor
     });
     const followedByActor = result.data.following;
+    if (listType.value === "following" && !followedByActor) {
+      items.value = items.value.filter(
+        (row) => row.user._id !== item.user._id
+      );
+      return;
+    }
+
     items.value = items.value.map((row) =>
       row.user._id === item.user._id
         ? {

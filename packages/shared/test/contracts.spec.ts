@@ -1126,6 +1126,8 @@ describe("shared contracts", () => {
     });
     const meGovernance = DiscoverMeGovernanceSchema.parse({
       ...summary,
+      liked_post_count: 3,
+      favorited_post_count: 1,
       unread_notification_count: 2
     });
     const audit = DiscoverAuditRecordSchema.parse({
@@ -1144,6 +1146,7 @@ describe("shared contracts", () => {
     expect(report.evidence[0]?.visibility).toBe("private");
     expect(summary.enforcement.status).toBe("warned");
     expect(meGovernance.unread_notification_count).toBe(2);
+    expect(meGovernance.liked_post_count).toBe(3);
     expect(audit.target_type).toBe("report");
     expect(
       ResolveReportInputSchema.parse({ status: "actioned", reason: "ok" })

@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "assertions": {
+    "projectConfigExists": true,
+    "projectConfigHasAppId": true,
+    "tabBarHasFiveTabs": true,
+    "tabBarMatchesRequiredTabs": true,
+    "pagesExistForTabs": true,
+    "cloudbaseFunctionModeConfigured": true,
+    "cloudbaseClientUsesCallHTTPFunction": true,
+    "noLocalhostApiInMpArtifacts": true
+  },
+  "failed": [],
+  "canonicalImportPath": "apps/mobile/dist/build/mp-weixin",
+  "tabBar": [
+    [
+      "Home",
+      "pages/home/index"
+    ],
+    [
+      "Events",
+      "pages/events/index"
+    ],
+    [
+      "Discover",
+      "pages/discover/index"
+    ],
+    [
+      "Places",
+      "pages/places/map"
+    ],
+    [
+      "Me",
+      "pages/more/index"
+    ]
+  ],
+  "inspected": {
+    "appJson": "apps/mobile/dist/build/mp-weixin/app.json",
+    "projectConfig": "apps/mobile/dist/build/mp-weixin/project.config.json",
+    "env": "apps/mobile/dist/build/mp-weixin/config/env.js",
+    "client": "apps/mobile/dist/build/mp-weixin/api/client.js"
+  }
+}

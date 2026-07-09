@@ -265,6 +265,8 @@ export const DiscoverUserGovernanceDetailSchema =
 
 export const DiscoverMeGovernanceSchema =
   DiscoverUserGovernanceSummarySchema.extend({
+    liked_post_count: z.number().int().min(0),
+    favorited_post_count: z.number().int().min(0),
     unread_notification_count: z.number().int().min(0)
   });
 

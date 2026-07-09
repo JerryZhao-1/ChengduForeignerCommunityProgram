@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/events/event_091aff2d-75eb-4c43-b0d9-22df7fef6385/checkin",
+    "actor": "declared-dev-actor"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "_id": "ticket_f9456b04-0476-49fc-a34a-3c848a820b3c",
+      "registration_id": "reg_6770dd6b-b401-44eb-a19e-a6072432fd74",
+      "ticket_code": "TZL-1783584901145",
+      "qr_file_id": "cloud://ticket_f9456b04-0476-49fc-a34a-3c848a820b3c",
+      "qr_cloud_path": "private/tickets/ticket_f9456b04-0476-49fc-a34a-3c848a820b3c.png",
+      "visibility": "private",
+      "status": "used",
+      "issued_at": "2026-07-09T08:15:01.145Z",
+      "used_at": "2026-07-09T08:15:02.033Z"
+    },
+    "requestId": "f23a312a-4ad8-4c16-8419-3eff8e2730c2"
+  }
+}

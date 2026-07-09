@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "assertions": {
+    "validatesCoordinates": true,
+    "usesNativeOpenLocation": true,
+    "showsFailureToast": true,
+    "detailUsesNavigationHelper": true,
+    "mapUsesNavigationHelper": true,
+    "mapFocusesDetailSelection": true,
+    "testsFailureFallback": true
+  },
+  "failed": [],
+  "inspected": {
+    "navigation": "apps/mobile/src/pages/places/navigation.ts",
+    "detail": "apps/mobile/src/pages/places/detail.vue",
+    "map": "apps/mobile/src/pages/places/map.vue",
+    "spec": "apps/mobile/src/pages/places/navigation.spec.ts"
+  }
+}

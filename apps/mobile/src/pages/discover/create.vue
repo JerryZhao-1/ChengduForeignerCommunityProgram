@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
-import type { DiscoverTag, Event, PlaceListItem } from "@community-map/shared";
+import {
+  ApiClientError,
+  type DiscoverTag,
+  type Event,
+  type Post,
+  type PlaceListItem
+} from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import { uploadPostMedia } from "@/api/post-media-upload";
@@ -32,6 +38,7 @@ const tagInput = ref("");
 const selectedTags = ref<DiscoverTag[]>([]);
 const tagSuggestions = ref<DiscoverTag[]>([]);
 const isLoadingTags = ref(false);
+const isCreatingTag = ref(false);
 
 interface SelectedMedia {
   id: string;
@@ -153,23 +160,62 @@ const addTag = (tag: DiscoverTag) => {
   tagInput.value = "";
 };
 
+const findExistingTag = async (normalized: string) => {
+  const result = await mobileApi.discover.listTags({
+    keyword: normalized,
+    pageSize: 12
+  });
+  return result.data.items.find((tag) => tag._id === normalized);
+};
+
+const getTagCreateErrorMessage = (error: unknown) => {
+  if (error instanceof ApiClientError) {
+    if (error.code === "UNAUTHORIZED") {
+      return copy.value.tagCreateAuthError;
+    }
+    if (error.code === "CONFLICT") {
+      return copy.value.tagHiddenError;
+    }
+  }
+
+  return copy.value.tagCreateError;
+};
+
 const createAndAddTag = async (label: string) => {
   const normalized = normalizeTagLabel(label);
   if (!normalized) {
-    return;
+    return false;
+  }
+
+  if (isCreatingTag.value) {
+    return false;
   }
 
   const existing = tagSuggestions.value.find((tag) => tag._id === normalized);
   if (existing) {
     addTag(existing);
-    return;
+    return true;
   }
 
+  isCreatingTag.value = true;
   try {
     const result = await mobileApi.discover.createTag({ label: normalized });
     addTag(result.data);
-  } catch {
-    showValidation(copy.value.tagCreateError);
+    return true;
+  } catch (error) {
+    try {
+      const existingTag = await findExistingTag(normalized);
+      if (existingTag) {
+        addTag(existingTag);
+        return true;
+      }
+    } catch {
+      // Keep the original create error as the user-facing cause.
+    }
+    showValidation(getTagCreateErrorMessage(error));
+    return false;
+  } finally {
+    isCreatingTag.value = false;
   }
 };
 
@@ -268,6 +314,57 @@ const onEventPicked = (event: { detail: { value: string | number } }) => {
   form.event_id = index > 0 ? (events.value[index - 1]?._id ?? null) : null;
 };
 
+const hasSameTagSet = (postTagIds: string[], tagIds: string[]) => {
+  if (postTagIds.length !== tagIds.length) {
+    return false;
+  }
+
+  const postTags = new Set(postTagIds);
+  return tagIds.every((tagId) => postTags.has(tagId));
+};
+
+const isRecentlyCreatedPost = (
+  post: Post,
+  submittedAt: number,
+  title: string,
+  content: string,
+  tagIds: string[]
+) => {
+  const createdAt = Date.parse(post.created_at);
+  if (Number.isNaN(createdAt)) {
+    return false;
+  }
+
+  const lowerBound = submittedAt - 2 * 60 * 1000;
+  const upperBound = Date.now() + 2 * 60 * 1000;
+
+  return (
+    createdAt >= lowerBound &&
+    createdAt <= upperBound &&
+    post.title === title &&
+    post.content === content &&
+    post.language === form.language &&
+    hasSameTagSet(post.tag_ids, tagIds)
+  );
+};
+
+const findCreatedPostAfterAmbiguousFailure = async (
+  submittedAt: number,
+  title: string,
+  content: string,
+  tagIds: string[]
+) => {
+  const result = await mobileApi.discover.myPosts({
+    communityId: state.communityId,
+    page: 1,
+    pageSize: 20
+  });
+
+  return result.data.items.find((item) =>
+    isRecentlyCreatedPost(item, submittedAt, title, content, tagIds)
+  );
+};
+
 onLoad((query) => {
   form.place_id = String(query?.placeId ?? "").trim() || null;
   form.event_id = String(query?.eventId ?? "").trim() || null;
@@ -300,7 +397,10 @@ const submit = async () => {
   }
 
   if (tagInput.value.trim()) {
-    await createAndAddTag(tagInput.value);
+    const tagAdded = await createAndAddTag(tagInput.value);
+    if (!tagAdded) {
+      return;
+    }
   }
 
   const tagIds = selectedTags.value.map((tag) => tag._id);
@@ -326,6 +426,8 @@ const submit = async () => {
   }
 
   isSubmitting.value = true;
+  let createdPostId = "";
+  const submittedAt = Date.now();
   try {
     const result = await mobileApi.discover.createPost({
       title,
@@ -338,16 +440,46 @@ const submit = async () => {
       place_id: form.place_id,
       event_id: form.event_id
     });
-
-    uni.showToast({ title: copy.value.createSuccess, icon: "success" });
-    uni.redirectTo({
-      url: `/pages/discover/detail?id=${result.data._id}`
-    });
+    createdPostId = result.data._id;
   } catch (err) {
+    try {
+      const createdPost = await findCreatedPostAfterAmbiguousFailure(
+        submittedAt,
+        title,
+        content,
+        tagIds
+      );
+      if (createdPost) {
+        createdPostId = createdPost._id;
+      }
+    } catch {
+      // Keep the original create error as the user-facing cause.
+    }
+
+    if (!createdPostId) {
+      uni.showToast({
+        title:
+          getDiscoverEnforcementMessage(err, copy.value) ||
+          copy.value.createError,
+        icon: "none"
+      });
+      isSubmitting.value = false;
+      return;
+    }
+  }
+
+  try {
+    uni.showToast({ title: copy.value.createSuccess, icon: "success" });
+    await new Promise<void>((resolve, reject) => {
+      uni.redirectTo({
+        url: `/pages/discover/detail?id=${createdPostId}`,
+        success: () => resolve(),
+        fail: reject
+      });
+    });
+  } catch {
     uni.showToast({
-      title:
-        getDiscoverEnforcementMessage(err, copy.value) ||
-        copy.value.createError,
+      title: copy.value.createPublishedNavigationFallback,
       icon: "none"
     });
   } finally {
@@ -432,9 +564,12 @@ const submit = async () => {
           <button
             v-if="tagSuggestionItems.canCreate"
             class="tag-option create"
+            :class="{ loading: isCreatingTag }"
+            :disabled="isCreatingTag"
             @click="createAndAddTag(tagSuggestionItems.typed)"
           >
-            {{ copy.tagCreatePrefix }} #{{ tagSuggestionItems.typed }}
+            {{ isCreatingTag ? copy.tagLoading : copy.tagCreatePrefix }}
+            #{{ tagSuggestionItems.typed }}
           </button>
         </view>
       </view>

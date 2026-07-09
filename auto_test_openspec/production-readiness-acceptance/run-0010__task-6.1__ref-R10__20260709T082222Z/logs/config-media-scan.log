@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "assertions": [
+    "mp_build_has_no_forbidden_fixture_event_media",
+    "mp_build_has_no_localhost_or_lan_api",
+    "mp_build_has_cloudbase_target",
+    "devtools_import_path_documented",
+    "map_keys_documented_as_server_side",
+    "legal_domains_blocker_documented",
+    "platform_dependencies_listed",
+    "expected_assertion_recorded:mp_build_has_no_forbidden_fixture_event_media",
+    "expected_assertion_recorded:mp_build_has_no_localhost_or_lan_api",
+    "expected_assertion_recorded:mp_build_has_cloudbase_target",
+    "expected_assertion_recorded:devtools_import_path_documented",
+    "expected_assertion_recorded:map_keys_documented_as_server_side",
+    "expected_assertion_recorded:legal_domains_blocker_documented",
+    "expected_assertion_recorded:platform_dependencies_listed"
+  ],
+  "scannedFileCount": 142,
+  "forbiddenFixtureMedia": "https://example.com/public/events/",
+  "localPatterns": [
+    "http://localhost",
+    "https://localhost",
+    "http://127.0.0.1",
+    "https://127.0.0.1",
+    "http://192.168.",
+    "http://10."
+  ],
+  "docs": {
+    "config": "docs/production-preview-config.md",
+    "identity": "docs/production-acceptance-identity.md"
+  }
+}

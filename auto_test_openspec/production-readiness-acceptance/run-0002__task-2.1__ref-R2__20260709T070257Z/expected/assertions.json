@@ -1,0 +1,24 @@
+{
+  "required": [
+    "target_url_is_https",
+    "target_url_is_not_localhost_or_lan",
+    "cloudbase_gateway_domain_is_used",
+    "mini_program_build_uses_cloudbase_function_requester",
+    "mini_program_build_has_no_local_api_endpoint",
+    "health_ok",
+    "places_public_reads_success",
+    "events_registration_ticket_checkin_success",
+    "discover_create_comment_interaction_report_success",
+    "admin_governance_smoke_success"
+  ],
+  "forbiddenEndpointPatterns": [
+    "http://localhost",
+    "https://localhost",
+    "http://127.",
+    "https://127.",
+    "http://192.168.",
+    "https://192.168.",
+    "http://10.",
+    "https://10."
+  ]
+}

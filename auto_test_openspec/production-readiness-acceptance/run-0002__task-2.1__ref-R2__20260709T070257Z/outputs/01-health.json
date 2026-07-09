@@ -1,0 +1,11 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/health",
+    "actor": null
+  },
+  "status": 200,
+  "body": {
+    "ok": true
+  }
+}

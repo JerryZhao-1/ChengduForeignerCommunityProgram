@@ -1,0 +1,46 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/discover/posts",
+    "actor": "declared-dev-actor"
+  },
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "_id": "post_70fc8aa1-1f34-4674-abe2-75d5ad9d4fe3",
+      "author_user_id": "user_002",
+      "author_display": {
+        "nickname": "Emma",
+        "avatar_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+      },
+      "community_id": "tongzilin",
+      "title": "Interaction hardening post 20260709082127",
+      "content": "Testing near-concurrent interaction writes.",
+      "language": "en",
+      "tag_ids": [
+        "acceptance",
+        "interaction"
+      ],
+      "location_text": "Tongzilin",
+      "image_file_ids": [],
+      "image_urls": [],
+      "place_id": null,
+      "event_id": null,
+      "comment_count": 0,
+      "like_count": 0,
+      "favorite_count": 0,
+      "share_count": 0,
+      "is_pinned": false,
+      "is_featured": false,
+      "is_recommended": false,
+      "is_official": false,
+      "ops_rank": 0,
+      "created_at": "2026-07-09T08:21:28.956Z",
+      "updated_at": "2026-07-09T08:21:28.956Z",
+      "status": "visible",
+      "review_status": "visible"
+    },
+    "requestId": "fbdcb46f-b1d3-4fb3-80d5-7b23eda6297b"
+  }
+}

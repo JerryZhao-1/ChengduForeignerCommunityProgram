@@ -1,0 +1,28 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/events/event_71880296-417b-4efe-bf67-af924c4c7ec8/registrations",
+    "actor": "declared-dev-actor"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "_id": "reg_80e5ef95-ad1e-45bb-b8c9-e0cad07a11dc",
+        "event_id": "event_71880296-417b-4efe-bf67-af924c4c7ec8",
+        "user_id": "user_002",
+        "contact_name": "Acceptance Smoke User",
+        "contact_phone": "13009080320",
+        "attendee_count": 1,
+        "registration_status": "confirmed",
+        "ticket_id": "ticket_0c4452e8-eb40-440d-a47b-548882e8e69f",
+        "source_channel": "miniapp",
+        "ticket_code": "TZL-1783584202387",
+        "ticket_status": "valid",
+        "ticket_used_at": null
+      }
+    ],
+    "requestId": "c3685fdb-7e99-46ce-89c8-127f37480362"
+  }
+}

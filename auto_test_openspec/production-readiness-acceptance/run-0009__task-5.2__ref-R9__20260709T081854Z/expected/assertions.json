@@ -1,0 +1,10 @@
+{
+  "required": [
+    "post_created",
+    "initial_interaction_state_read",
+    "concurrent_like_favorite_share_completed",
+    "final_liked_preserved",
+    "final_favorited_preserved",
+    "final_share_count_incremented"
+  ]
+}

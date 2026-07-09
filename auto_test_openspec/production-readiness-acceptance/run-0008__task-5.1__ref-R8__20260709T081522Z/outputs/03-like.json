@@ -1,0 +1,21 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/discover/posts/post_752c80b2-fdc7-403e-bf8d-978b2748d7b5/like",
+    "actor": "declared-dev-actor"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "post_id": "post_752c80b2-fdc7-403e-bf8d-978b2748d7b5",
+      "actor_user_id": "user_001",
+      "liked": true,
+      "favorited": false,
+      "like_count": 1,
+      "favorite_count": 0,
+      "share_count": 0
+    },
+    "requestId": "6b97d1ea-700e-487a-84d0-f4b7bca67480"
+  }
+}

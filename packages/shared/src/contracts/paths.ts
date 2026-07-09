@@ -1,7 +1,9 @@
 export const apiPaths = {
   auth: {
     login: "/auth/login",
-    me: "/auth/me"
+    adminLogin: "/auth/admin/login",
+    me: "/auth/me",
+    wechatMiniappSession: "/auth/wechat-miniapp/session"
   },
   events: {
     list: "/events",
@@ -27,6 +29,8 @@ export const apiPaths = {
     createTag: "/discover/tags",
     createPost: "/discover/posts",
     myPosts: "/discover/me/posts",
+    myLikedPosts: "/discover/me/liked-posts",
+    myFavoritedPosts: "/discover/me/favorited-posts",
     myComments: "/discover/me/comments",
     myCommentDetail: (id: string) => `/discover/me/comments/${id}`,
     myReports: "/discover/me/reports",

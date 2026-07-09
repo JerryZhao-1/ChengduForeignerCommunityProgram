@@ -5,6 +5,7 @@ import {
   buildPlaceDetailNavigationTarget,
   buildPlaceMarkerNavigationTarget,
   hasValidPlaceNavigationTarget,
+  openPlaceNativeNavigation,
   placesPagePaths
 } from "./navigation";
 
@@ -75,5 +76,76 @@ describe("mobile places navigation helpers", () => {
         address: ""
       })
     ).toBe(true);
+  });
+
+  it("shows recoverable feedback when native navigation fails", () => {
+    const showToastCalls: unknown[] = [];
+    const openLocationCalls: unknown[] = [];
+    (globalThis as unknown as { uni: unknown }).uni = {
+      openLocation: (input: { fail?: () => void }) => {
+        openLocationCalls.push(input);
+        input.fail?.();
+      },
+      showToast: (input: unknown) => {
+        showToastCalls.push(input);
+      }
+    };
+
+    const opened = openPlaceNativeNavigation(
+      {
+        latitude: 30.61,
+        longitude: 104.06,
+        name: "Valid marker",
+        address: ""
+      },
+      {
+        unavailable: "Navigation unavailable",
+        failed: "Navigation failed"
+      }
+    );
+
+    expect(opened).toBe(true);
+    expect(openLocationCalls).toHaveLength(1);
+    expect(showToastCalls).toEqual([
+      {
+        title: "Navigation failed",
+        icon: "none"
+      }
+    ]);
+  });
+
+  it("does not open native navigation for invalid targets", () => {
+    const showToastCalls: unknown[] = [];
+    const openLocationCalls: unknown[] = [];
+    (globalThis as unknown as { uni: unknown }).uni = {
+      openLocation: (input: unknown) => {
+        openLocationCalls.push(input);
+      },
+      showToast: (input: unknown) => {
+        showToastCalls.push(input);
+      }
+    };
+
+    const opened = openPlaceNativeNavigation(
+      {
+        latitude: 91,
+        longitude: 104.06,
+        name: "Invalid marker",
+        address: ""
+      },
+      {
+        unavailable: "Navigation unavailable",
+        failed: "Navigation failed"
+      }
+    );
+
+    expect(opened).toBe(false);
+    expect(openLocationCalls).toHaveLength(0);
+    expect(showToastCalls).toEqual([
+      {
+        title: "Navigation unavailable",
+        icon: "none"
+      }
+    ]);
   });
 });

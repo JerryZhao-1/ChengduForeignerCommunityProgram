@@ -1,0 +1,15 @@
+{
+  "required": [
+    "handoff_document_exists",
+    "handoff_has_recommendation",
+    "handoff_recommends_no_public_launch",
+    "handoff_has_environment",
+    "handoff_has_worker_evidence",
+    "handoff_has_module_status",
+    "handoff_has_device_matrix",
+    "handoff_has_known_blockers",
+    "handoff_has_manual_entrypoints",
+    "all_required_run_folders_exist",
+    "all_required_runs_linked_in_handoff"
+  ]
+}

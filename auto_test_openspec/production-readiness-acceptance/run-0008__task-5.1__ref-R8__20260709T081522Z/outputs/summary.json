@@ -1,0 +1,54 @@
+{
+  "created": {
+    "post_id": "post_752c80b2-fdc7-403e-bf8d-978b2748d7b5",
+    "comment_id": "comment_5e9a0344-6b45-4447-b839-544675ae8328",
+    "report_id": "report_71ed0d20-1060-4845-a261-429237e73858"
+  },
+  "interaction": {
+    "post_id": "post_752c80b2-fdc7-403e-bf8d-978b2748d7b5",
+    "actor_user_id": "user_001",
+    "liked": true,
+    "favorited": true,
+    "like_count": 1,
+    "favorite_count": 1,
+    "share_count": 1
+  },
+  "analytics": {
+    "post_count": 6,
+    "comment_count": 5,
+    "report_count": 2,
+    "open_report_count": 2
+  },
+  "assertions": [
+    "post_create_success_envelope",
+    "post_created",
+    "comment_create_success_envelope",
+    "comment_created",
+    "like_success_envelope",
+    "like_recorded",
+    "favorite_success_envelope",
+    "favorite_recorded",
+    "share_success_envelope",
+    "share_recorded",
+    "interaction_success_envelope",
+    "interaction_state_read",
+    "report_success_envelope",
+    "report_submitted",
+    "admin_posts_success_envelope",
+    "admin_post_visible",
+    "admin_reports_success_envelope",
+    "admin_report_visible",
+    "admin_analytics_success_envelope",
+    "admin_analytics_read",
+    "expected_assertion_recorded:post_created",
+    "expected_assertion_recorded:comment_created",
+    "expected_assertion_recorded:like_recorded",
+    "expected_assertion_recorded:favorite_recorded",
+    "expected_assertion_recorded:share_recorded",
+    "expected_assertion_recorded:interaction_state_read",
+    "expected_assertion_recorded:report_submitted",
+    "expected_assertion_recorded:admin_post_visible",
+    "expected_assertion_recorded:admin_report_visible",
+    "expected_assertion_recorded:admin_analytics_read"
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/places/map-markers",
+    "actor": null
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "_id": "place_72013172-bbdb-4fc0-9670-0ac0b1dec2c8",
+        "name_zh": "Gli Azzurri意大利餐厅",
+        "name_en": "Pending English name",
+        "cover_url": "https://store.is.autonavi.com/showpic/23778cec59f94171fc6935823a4278c8",
+        "category_level_1": "food-drink",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.612728,
+          "longitude": 104.066365
+        }
+      },
+      {
+        "_id": "place_d6af35be-acea-41b8-92ed-cfd0fa909072",
+        "name_zh": "OBelian·西餐厅·BAR(桐梓林店)",
+        "name_en": "Obelian Bar",
+        "cover_url": "https://aos-comment.amap.com/B0JAHR7PIZ/comment/content_media_external_file_1000034564_ss__1759367411864_19671829.jpg",
+        "category_level_1": "food-drink",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.615625,
+          "longitude": 104.066641
+        }
+      },
+      {
+        "_id": "place_0d8d6682-77c5-4194-a54a-4c57726ee5f6",
+        "name_zh": "古巴热浪红酒馆(桐梓林店)",
+        "name_en": "Pending English name",
+        "cover_url": "https://aos-comment.amap.com/B001C7YAF5/comment/8E3B9ACC_106F_41AC_AF95_9D56EDA98434_L0_001_1500_2000_1768696068630_29923452.jpg",
+        "category_level_1": "food-drink",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.61372,
+          "longitude": 104.065826
+        }
+      },
+      {
+        "_id": "place_f927986a-aea3-438b-8be3-c29d93976ffa",
+        "name_zh": "成都市武侯区桐梓林国际社区",
+        "name_en": "Tongzilin Community Center",
+        "cover_url": "http://store.is.autonavi.com/showpic/d3058d40442c86ede59ec0dbc6e532c9",
+        "category_level_1": "public-service",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.618887,
+          "longitude": 104.065468
+        }
+      },
+      {
+        "_id": "place_ee3dd91f-9e67-4ecb-996a-8c9c91e5c18b",
+        "name_zh": "氟西汀 Cocktail Bar(桐梓林店)",
+        "name_en": "FLOUXETINE Whisky&cocktail.Bar",
+        "cover_url": "https://aos-comment.amap.com/B0GKD7UJAZ/comment/content_media_external_file_123735_ss__1754922620645_51348593.jpg",
+        "category_level_1": "food-drink",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.618764,
+          "longitude": 104.062642
+        }
+      },
+      {
+        "_id": "place_f04664cf-26b4-4c04-9b35-c8fdd958aaa3",
+        "name_zh": "汤之加里·贵州酸汤BISTRO(桐梓林店)",
+        "name_en": "Guizhou sour soup",
+        "cover_url": "https://aos-comment.amap.com/B0I3F7QBIU/comment/5609eb4527de02f586fae7eb02fd5a70_2048_2048_80.jpg",
+        "category_level_1": "food-drink",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.618906,
+          "longitude": 104.063204
+        }
+      },
+      {
+        "_id": "place_94386f11-6089-4f07-8e34-eb31687bacb9",
+        "name_zh": "派特空间宠物冻干(桐梓林店)",
+        "name_en": "pet space",
+        "cover_url": "https://store.is.autonavi.com/showpic/ddcde71ce60dffda21601b900bebb519",
+        "category_level_1": "lifestyle",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.618648,
+          "longitude": 104.062725
+        }
+      },
+      {
+        "_id": "place_f8ea0c85-90c9-44b5-85fe-249891d87784",
+        "name_zh": "火山vintage(古着店)",
+        "name_en": "Vintage",
+        "cover_url": "https://aos-comment.amap.com/B0IG0R88VH/comment/content_media_external_file_100017044_1766161298689_27172297.jpg",
+        "category_level_1": "shopping",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.613399,
+          "longitude": 104.066448
+        }
+      },
+      {
+        "_id": "place_402319eb-3264-447a-918b-cbf927f783f1",
+        "name_zh": "红旗连锁(紫荆东路便利店桐梓林店)",
+        "name_en": "Hong Qi Chain",
+        "cover_url": "https://aos-comment.amap.com/B0FFKV2G0D/comment/AF88CE77_E1F1_4A69_ABA7_DFEA9825A233_L0_001_1500_200_1764835551245_66283131.jpg",
+        "category_level_1": "community",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.613002,
+          "longitude": 104.055484
+        }
+      },
+      {
+        "_id": "place_9660a140-9934-4310-b688-b1b2a7694f27",
+        "name_zh": "老爹兔头",
+        "name_en": "Spicy Rabbit Head",
+        "cover_url": "https://store.is.autonavi.com/showpic/8e5356334fdd5ce7837628e8ee2367fc",
+        "category_level_1": "food-drink",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.618881,
+          "longitude": 104.06284
+        }
+      },
+      {
+        "_id": "place_8a9dfcd9-b5da-48e9-956d-9b644f09366b",
+        "name_zh": "面包谷Grains n'Beans(桐梓林店)",
+        "name_en": "Pending English name",
+        "cover_url": "https://aos-comment.amap.com/B0FFITQF6I/comment/C46D3345_46FD_4ECB_A1C9_D6C2C4C1058D_L0_001_1134_2016_1728639658094_45021294.jpg",
+        "category_level_1": "food-drink",
+        "is_recommended": false,
+        "location": {
+          "latitude": 30.612028,
+          "longitude": 104.060217
+        }
+      }
+    ],
+    "requestId": "aa852d4d-709b-4b5a-87fc-38191b5945a6"
+  }
+}

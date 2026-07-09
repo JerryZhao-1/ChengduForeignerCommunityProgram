@@ -1,0 +1,57 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/discover/analytics?windowDays=30",
+    "actor": "declared-dev-actor"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "window_days": 30,
+      "post_count": 6,
+      "comment_count": 5,
+      "report_count": 2,
+      "open_report_count": 2,
+      "pending_workload_count": 4,
+      "average_moderation_hours": null,
+      "engagement": {
+        "like_count": 2,
+        "favorite_count": 2,
+        "share_count": 2
+      },
+      "active_authors": [
+        {
+          "user_id": "user_002",
+          "post_count": 6,
+          "comment_count": 0
+        },
+        {
+          "user_id": "user_001",
+          "post_count": 0,
+          "comment_count": 5
+        }
+      ],
+      "popular_places": [],
+      "popular_events": [
+        {
+          "event_id": "event_6a75d232-50ff-42ce-8307-16ce6bc9fb53",
+          "post_count": 1
+        },
+        {
+          "event_id": "event_441be093-e39e-40ff-aead-ff96b42f0ee7",
+          "post_count": 1
+        },
+        {
+          "event_id": "event_25afe321-094c-49a5-b7ba-4f018b0b9a69",
+          "post_count": 1
+        },
+        {
+          "event_id": "event_71880296-417b-4efe-bf67-af924c4c7ec8",
+          "post_count": 1
+        }
+      ]
+    },
+    "requestId": "17389f90-1164-4275-9f4f-a1d8636dd02e"
+  }
+}

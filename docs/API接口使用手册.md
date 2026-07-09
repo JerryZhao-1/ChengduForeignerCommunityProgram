@@ -60,6 +60,8 @@ content-type: application/json
 
 具体角色以 `packages/shared/src/mock/data.ts` 为准。
 
+生产验收身份分类见 `docs/production-acceptance-identity.md`。`x-mock-user-id` 可以作为已声明的 CloudBase dev acceptance actor 使用，但不是 public launch 的生产认证方案。
+
 ### 2.3 响应 envelope
 
 成功：
@@ -124,10 +126,10 @@ Protected file paths / business types:
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `mock`                  | 默认模式，主要用于本地开发；数据在 mock service 中。                                                                                                                                                                                       |
 | `http`                  | 前端通过 HTTP 访问本地 Koa API。                                                                                                                                                                                                           |
-| `cloudbase-function`    | 小程序通过 `wx.cloud.callHTTPFunction` 或 fallback cloud function 调用 API。                                                                                                                                                               |
+| `cloudbase-function`    | 小程序通过 `wx.cloud.callHTTPFunction` 或 fallback cloud function 调用 API；生产类小程序调用不发送 `x-mock-user-id`，由 CloudBase/微信注入 `x-wx-openid`、`x-wx-appid` 解析用户。                                                           |
 | CloudBase live provider | 当前覆盖 places、events、discover core posts/comments、discover report cases/audit records 和通用 files 完成记录/直接 multipart 上传路径；需要 `API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、`CLOUDBASE_ENV_ID` 或 `TCB_ENV`。 |
 
-注意：discover live provider 已有 report case 持久化和写操作 enforcement 拦截代码路径，但仍需 CloudBase dev/prod 集合、索引、安全规则和在线 smoke 证据后才能声明生产数据 readiness；notifications、auth/role 仍以 fallback parity 为主。
+注意：discover live provider 已有 report case 持久化和写操作 enforcement 拦截代码路径；Mini Program 用户侧 actor 已可由 WeChat identity 映射到 `users` 集合。Admin 生产认证、notifications live 投递、CloudBase dev/prod 集合索引、安全规则和在线 smoke 证据仍需独立验收。
 
 Admin 地点与活动地址搜索由 API 端代理调用腾讯位置服务 WebServiceAPI：
 
@@ -292,6 +294,39 @@ curl -X POST http://127.0.0.1:8787/auth/login \
 curl http://127.0.0.1:8787/auth/me \
   -H 'x-mock-user-id: user_001'
 ```
+
+### POST `/auth/admin/login`
+
+用途：Admin Web 正式用户名/密码登录，成功后返回 Bearer token。
+
+权限：无。用户名和密码哈希通过 `API_ADMIN_USERNAME`、`API_ADMIN_PASSWORD_SCRYPT`、`API_ADMIN_SESSION_SECRET` 等 API 环境变量配置；密码哈希使用 `node scripts/hash_admin_password.mjs <password>` 生成。
+
+Body：
+
+| 字段       | 类型   | 必填 | 说明           |
+| ---------- | ------ | ---- | -------------- |
+| `username` | string | 是   | 管理员用户名   |
+| `password` | string | 是   | 管理员明文密码 |
+
+响应 data：`AuthSession`。Admin 后续请求使用：
+
+```text
+Authorization: Bearer <token>
+```
+
+### POST `/auth/wechat-miniapp/session`
+
+用途：微信小程序 CloudBase function 模式下创建或刷新站内用户 session。
+
+权限：需要 CloudBase/微信注入的 `x-wx-openid` 和 `x-wx-appid`。本接口不要求小程序端传 openid，也不应从前端伪造。
+
+Body：
+
+| 字段                 | 类型        | 必填 | 说明     |
+| -------------------- | ----------- | ---- | -------- |
+| `preferred_language` | `zh` / `en` | 否   | 偏好语言 |
+
+响应 data：`AuthSession`。CloudBase live mode 会按 `appid + openid` 生成稳定站内用户 `_id`，并写入/更新 `users` 集合。
 
 ## 7. Events
 
@@ -943,7 +978,7 @@ curl 'http://127.0.0.1:8787/discover/me/posts' \
 
 权限：需要当前 actor；`warned`、`muted`、`banned` 均允许读取，便于本人查看账号状态。
 
-响应 data：`DiscoverMeGovernance`，字段包括 `user`、`enforcement`、`post_count`、`comment_count`、`report_count`、`violation_count`、`unread_notification_count`。
+响应 data：`DiscoverMeGovernance`，字段包括 `user`、`enforcement`、`post_count`、`liked_post_count`、`favorited_post_count`、`comment_count`、`report_count`、`violation_count`、`unread_notification_count`。
 
 示例：
 
@@ -951,6 +986,22 @@ curl 'http://127.0.0.1:8787/discover/me/posts' \
 curl 'http://127.0.0.1:8787/discover/me/governance' \
   -H 'x-mock-user-id: user_001'
 ```
+
+### GET `/discover/me/liked-posts`
+
+用途：获取当前 actor 点赞过且仍可见的帖子列表，用于 Mobile `Me` 页“我的点赞”。
+
+权限：需要当前 actor；`banned` 用户返回 `403 FORBIDDEN`。
+
+Query 同 `/discover/me/posts`。响应 data：分页 `Post[]`。
+
+### GET `/discover/me/favorited-posts`
+
+用途：获取当前 actor 收藏过且仍可见的帖子列表，用于 Mobile `Me` 页“我的收藏”。
+
+权限：需要当前 actor；`banned` 用户返回 `403 FORBIDDEN`。
+
+Query 同 `/discover/me/posts`。响应 data：分页 `Post[]`。
 
 ### GET `/discover/posts/:id/comments`
 

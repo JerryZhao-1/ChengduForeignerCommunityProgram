@@ -65,7 +65,8 @@ const uploadViaHttpApi = (
       filePath: input.filePath,
       name: "file",
       fileName: input.fileName,
-      header: mobileEnv.actorId
+      header:
+        mobileEnv.apiMode !== "cloudbase-function" && mobileEnv.actorId
         ? {
             "x-mock-user-id": mobileEnv.actorId
           }

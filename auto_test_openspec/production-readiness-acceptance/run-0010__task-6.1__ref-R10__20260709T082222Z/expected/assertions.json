@@ -1,0 +1,11 @@
+{
+  "required": [
+    "mp_build_has_no_forbidden_fixture_event_media",
+    "mp_build_has_no_localhost_or_lan_api",
+    "mp_build_has_cloudbase_target",
+    "devtools_import_path_documented",
+    "map_keys_documented_as_server_side",
+    "legal_domains_blocker_documented",
+    "platform_dependencies_listed"
+  ]
+}

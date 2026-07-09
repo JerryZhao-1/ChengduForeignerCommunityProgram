@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "handoffDocument": "docs/production-acceptance-handoff-2026-07-09.md",
+  "evidenceRoot": "auto_test_openspec/production-readiness-acceptance",
+  "requiredRuns": [
+    "run-0001__task-1.1__ref-R1__20260709T065611Z",
+    "run-0002__task-2.1__ref-R2__20260709T070257Z",
+    "run-0003__task-2.2__ref-R3__20260709T080441Z",
+    "run-0004__task-3.1__ref-R4__20260709T080744Z",
+    "run-0005__task-3.2__ref-R5__20260709T080951Z",
+    "run-0006__task-3.3__ref-R6__20260709T081119Z",
+    "run-0007__task-4.1__ref-R7__20260709T081335Z",
+    "run-0008__task-5.1__ref-R8__20260709T081522Z",
+    "run-0009__task-5.2__ref-R9__20260709T081854Z",
+    "run-0010__task-6.1__ref-R10__20260709T082222Z"
+  ],
+  "assertions": [
+    "handoff_document_exists",
+    "handoff_has_recommendation",
+    "handoff_recommends_no_public_launch",
+    "handoff_has_environment",
+    "handoff_has_worker_evidence",
+    "handoff_has_module_status",
+    "handoff_has_device_matrix",
+    "handoff_has_known_blockers",
+    "handoff_has_manual_entrypoints",
+    "all_required_run_folders_exist",
+    "all_required_runs_linked_in_handoff",
+    "expected_assertion_recorded:handoff_document_exists",
+    "expected_assertion_recorded:handoff_has_recommendation",
+    "expected_assertion_recorded:handoff_recommends_no_public_launch",
+    "expected_assertion_recorded:handoff_has_environment",
+    "expected_assertion_recorded:handoff_has_worker_evidence",
+    "expected_assertion_recorded:handoff_has_module_status",
+    "expected_assertion_recorded:handoff_has_device_matrix",
+    "expected_assertion_recorded:handoff_has_known_blockers",
+    "expected_assertion_recorded:handoff_has_manual_entrypoints",
+    "expected_assertion_recorded:all_required_run_folders_exist",
+    "expected_assertion_recorded:all_required_runs_linked_in_handoff"
+  ]
+}

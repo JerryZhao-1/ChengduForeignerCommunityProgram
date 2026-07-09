@@ -1,9 +1,14 @@
 import { createServer } from "node:http";
 
+import Koa from "koa";
+import Router from "@koa/router";
 import { FILE_PATH_RULES } from "@community-map/shared";
 import { vi } from "vitest";
 
 import { createApp } from "../src/app";
+import { actorMiddleware, requireRole } from "../src/lib/auth";
+import { createAdminPasswordHash } from "../src/lib/admin-auth";
+import { errorMiddleware, requestIdMiddleware } from "../src/lib/http";
 
 const createTestBaseUrl = async () => {
   const app = createApp("mock");
@@ -28,6 +33,99 @@ const createTestBaseUrl = async () => {
 };
 
 describe("api routes", () => {
+  it("allows anonymous public routes without resolving a live actor", async () => {
+    const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+    const previousAllowMock = process.env.API_ALLOW_MOCK_ACTOR_HEADER;
+    const resolveActorCalls: Array<{ userId?: string }> = [];
+    const app = new Koa();
+    const router = new Router();
+
+    process.env.CLOUDBASE_PROVIDER_MODE = "live";
+    delete process.env.API_ALLOW_MOCK_ACTOR_HEADER;
+
+    app.use(errorMiddleware);
+    app.use(requestIdMiddleware);
+    app.use(async (ctx, next) => {
+      ctx.state.provider = {
+        auth: {
+          async resolveActor(userId?: string) {
+            resolveActorCalls.push({ userId });
+            if (!userId) {
+              throw new Error("Anonymous actor should not be resolved.");
+            }
+            return {
+              _id: userId,
+              nickname: "Admin",
+              avatar_url: null,
+              preferred_language: "zh",
+              role_flags: ["user", "community_admin", "system_admin"],
+              status: "active"
+            };
+          }
+        }
+      };
+      await next();
+    });
+    app.use(actorMiddleware);
+
+    for (const path of ["/health", "/places", "/events", "/discover/posts"]) {
+      router.get(path, (ctx) => {
+        ctx.body = { ok: true, path };
+      });
+    }
+    router.get(
+      "/admin/events",
+      requireRole("community_admin", "system_admin"),
+      (ctx) => {
+        ctx.body = { ok: true };
+      }
+    );
+    app.use(router.routes());
+
+    const server = createServer(app.callback());
+    await new Promise<void>((resolve) => {
+      server.listen(0, "127.0.0.1", () => resolve());
+    });
+    const address = server.address();
+    if (!address || typeof address === "string") {
+      throw new Error("Failed to create test server.");
+    }
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+
+    try {
+      for (const path of [
+        "/health",
+        "/places",
+        "/events",
+        "/discover/posts"
+      ]) {
+        const response = await fetch(`${baseUrl}${path}`);
+        expect(response.status).toBe(200);
+      }
+
+      expect(resolveActorCalls).toHaveLength(0);
+
+      const protectedResponse = await fetch(`${baseUrl}/admin/events`);
+      expect(protectedResponse.status).toBe(401);
+      expect(resolveActorCalls).toHaveLength(0);
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+      if (previousAllowMock === undefined) {
+        delete process.env.API_ALLOW_MOCK_ACTOR_HEADER;
+      } else {
+        process.env.API_ALLOW_MOCK_ACTOR_HEADER = previousAllowMock;
+      }
+    }
+  });
+
   it("sets local CORS headers without duplicating CloudBase-managed CORS", async () => {
     const previousDisableAppCors = process.env.DISABLE_APP_CORS;
     const previousTencentRunEnv = process.env.TENCENTCLOUD_RUNENV;
@@ -94,6 +192,139 @@ describe("api routes", () => {
     }
   });
 
+  it("supports self-managed admin login and bearer-protected admin routes", async () => {
+    const previousUsername = process.env.API_ADMIN_USERNAME;
+    const previousPassword = process.env.API_ADMIN_PASSWORD_SCRYPT;
+    const previousSecret = process.env.API_ADMIN_SESSION_SECRET;
+    const previousUserId = process.env.API_ADMIN_USER_ID;
+
+    process.env.API_ADMIN_USERNAME = "admin";
+    process.env.API_ADMIN_PASSWORD_SCRYPT =
+      await createAdminPasswordHash("correct horse battery staple");
+    process.env.API_ADMIN_SESSION_SECRET = "test-admin-session-secret";
+    process.env.API_ADMIN_USER_ID = "user_001";
+
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const noTokenResponse = await fetch(`${baseUrl}/admin/events`);
+      expect(noTokenResponse.status).toBe(401);
+
+      const loginResponse = await fetch(`${baseUrl}/auth/admin/login`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          username: "admin",
+          password: "correct horse battery staple"
+        })
+      });
+      const loginData = await loginResponse.json();
+
+      expect(loginResponse.status).toBe(200);
+      expect(loginData.data.token).toEqual(expect.any(String));
+
+      const adminResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          authorization: `Bearer ${loginData.data.token}`
+        }
+      });
+      expect(adminResponse.status).toBe(200);
+
+      const badTokenResponse = await fetch(`${baseUrl}/admin/events`, {
+        headers: {
+          authorization: "Bearer invalid.token.value"
+        }
+      });
+      expect(badTokenResponse.status).toBe(401);
+    } finally {
+      await close();
+
+      if (previousUsername === undefined) {
+        delete process.env.API_ADMIN_USERNAME;
+      } else {
+        process.env.API_ADMIN_USERNAME = previousUsername;
+      }
+      if (previousPassword === undefined) {
+        delete process.env.API_ADMIN_PASSWORD_SCRYPT;
+      } else {
+        process.env.API_ADMIN_PASSWORD_SCRYPT = previousPassword;
+      }
+      if (previousSecret === undefined) {
+        delete process.env.API_ADMIN_SESSION_SECRET;
+      } else {
+        process.env.API_ADMIN_SESSION_SECRET = previousSecret;
+      }
+      if (previousUserId === undefined) {
+        delete process.env.API_ADMIN_USER_ID;
+      } else {
+        process.env.API_ADMIN_USER_ID = previousUserId;
+      }
+    }
+  });
+
+  it("returns current actor liked and favorited posts", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const likeResponse = await fetch(`${baseUrl}/discover/posts/post_001/like`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mock-user-id": "user_002"
+        },
+        body: JSON.stringify({ liked: true })
+      });
+      expect(likeResponse.status).toBe(200);
+
+      const favoriteResponse = await fetch(
+        `${baseUrl}/discover/posts/post_001/favorite`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-mock-user-id": "user_002"
+          },
+          body: JSON.stringify({ favorited: true })
+        }
+      );
+      expect(favoriteResponse.status).toBe(200);
+
+      const likedPostsResponse = await fetch(
+        `${baseUrl}/discover/me/liked-posts`,
+        {
+          headers: { "x-mock-user-id": "user_002" }
+        }
+      );
+      const likedPostsData = await likedPostsResponse.json();
+      const favoritedPostsResponse = await fetch(
+        `${baseUrl}/discover/me/favorited-posts`,
+        {
+          headers: { "x-mock-user-id": "user_002" }
+        }
+      );
+      const favoritedPostsData = await favoritedPostsResponse.json();
+      const governanceResponse = await fetch(
+        `${baseUrl}/discover/me/governance`,
+        {
+          headers: { "x-mock-user-id": "user_002" }
+        }
+      );
+      const governanceData = await governanceResponse.json();
+
+      expect(likedPostsResponse.status).toBe(200);
+      expect(favoritedPostsResponse.status).toBe(200);
+      expect(likedPostsData.data.items.map((post: { _id: string }) => post._id))
+        .toContain("post_001");
+      expect(
+        favoritedPostsData.data.items.map((post: { _id: string }) => post._id)
+      ).toContain("post_001");
+      expect(governanceData.data.liked_post_count).toBeGreaterThanOrEqual(1);
+      expect(governanceData.data.favorited_post_count).toBeGreaterThanOrEqual(1);
+    } finally {
+      await close();
+    }
+  });
+
   it("serves events list, detail, registration, posts, places, announcements, and validation errors", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 
@@ -132,7 +363,8 @@ describe("api routes", () => {
         {
           method: "POST",
           headers: {
-            "content-type": "application/json"
+            "content-type": "application/json",
+            "x-mock-user-id": "user_002"
           },
           body: JSON.stringify({
             contact_name: "",
@@ -149,7 +381,8 @@ describe("api routes", () => {
       const createPostResponse = await fetch(`${baseUrl}/discover/posts`, {
         method: "POST",
         headers: {
-          "content-type": "application/json"
+          "content-type": "application/json",
+          "x-mock-user-id": "user_002"
         },
         body: JSON.stringify({
           title: "Need a local dentist recommendation",
@@ -161,7 +394,7 @@ describe("api routes", () => {
           image_urls: []
         })
       });
-      expect(createPostResponse.status).toBe(201);
+      expect(createPostResponse.status).toBe(200);
 
       const placesResponse = await fetch(`${baseUrl}/places`);
       const placesData = await placesResponse.json();

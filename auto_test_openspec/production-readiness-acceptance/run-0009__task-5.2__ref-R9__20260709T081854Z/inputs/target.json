@@ -1,0 +1,7 @@
+{
+  "apiBaseUrl": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+  "actors": {
+    "admin": "user_001",
+    "member": "user_002"
+  }
+}

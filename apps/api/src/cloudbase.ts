@@ -1,28 +1,37 @@
 import {
+  AdminLoginRequestSchema,
   AnnouncementListQuerySchema,
   CheckinInputSchema,
   CompleteUploadInputSchema,
   CreateCommentInputSchema,
+  CreateDiscoverTagInputSchema,
   CreateEventInputSchema,
   CreateEventRegistrationInputSchema,
   CreatePlaceInputSchema,
   CreatePostInputSchema,
   CreateUploadRequestInputSchema,
+  DiscoverTagListQuerySchema,
   EventListQuerySchema,
   LoginRequestSchema,
+  MyPostListQuerySchema,
+  WechatMiniappSessionRequestSchema,
   ModeratePostInputSchema,
   PlaceListQuerySchema,
   PlacePoiSearchQuerySchema,
   PostListQuerySchema,
   PrivateUrlRequestInputSchema,
   RelatedPostListQuerySchema,
+  RecordPostShareInputSchema,
   ReportPostInputSchema,
   ReviewEventInputSchema,
+  SetPostFavoriteInputSchema,
+  SetPostLikeInputSchema,
   UpdateEventInputSchema,
   UpdatePlaceInputSchema
 } from "@community-map/shared";
 
 import { apiError, ApiAppError } from "./lib/errors";
+import { verifyAdminBearerToken } from "./lib/admin-auth";
 import { parseOrThrow } from "./lib/http";
 import {
   isProtectedGalleryCompletion,
@@ -31,6 +40,7 @@ import {
 import { searchTencentPlacePois } from "./lib/tencent-map";
 import { createProvider } from "./providers";
 import type { ApiProvider } from "./providers/types";
+import type { WechatMiniappIdentity } from "./providers/types";
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 type CloudbaseEventHandler = (
@@ -105,6 +115,13 @@ const stripApiPrefix = (path: string) => {
 };
 
 const getActorId = (context: CloudbaseContextLike) => {
+  const bearerActorId = verifyAdminBearerToken(
+    getHeaderValue(context, "authorization") ?? ""
+  );
+  if (bearerActorId) {
+    return bearerActorId;
+  }
+
   const headerValue = context.httpContext.headers?.["x-mock-user-id"];
 
   if (Array.isArray(headerValue)) {
@@ -112,6 +129,34 @@ const getActorId = (context: CloudbaseContextLike) => {
   }
 
   return headerValue;
+};
+
+const getHeaderValue = (
+  context: CloudbaseContextLike,
+  name: string
+): string | undefined => {
+  const headers = context.httpContext.headers ?? {};
+  const direct = headers[name] ?? headers[name.toLowerCase()];
+  const value = Array.isArray(direct) ? direct[0] : direct;
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+};
+
+const getWechatMiniappIdentity = (
+  context: CloudbaseContextLike
+): WechatMiniappIdentity | undefined => {
+  const openid = getHeaderValue(context, "x-wx-openid");
+  const appid = getHeaderValue(context, "x-wx-appid");
+  const unionid = getHeaderValue(context, "x-wx-unionid");
+
+  if (!openid || !appid) {
+    return undefined;
+  }
+
+  return {
+    openid,
+    appid,
+    unionid
+  };
 };
 
 const ok = (
@@ -151,7 +196,14 @@ const requireRole = async (
   context: CloudbaseContextLike,
   roles: Array<"community_admin" | "system_admin">
 ) => {
-  const actor = await provider.auth.resolveActor(getActorId(context));
+  const actorId = getActorId(context);
+  const identity = getWechatMiniappIdentity(context);
+
+  if (!actorId && !identity) {
+    throw apiError("UNAUTHORIZED", "Authentication is required.", 401);
+  }
+
+  const actor = await provider.auth.resolveActor(actorId, identity);
 
   if (!roles.some((role) => actor.role_flags.includes(role))) {
     throw apiError("FORBIDDEN", "Insufficient permission.", 403);
@@ -194,7 +246,11 @@ export const main: CloudbaseEventHandler = async (event, context) => {
   const url = new URL(httpContext.url, "http://localhost");
   const pathname = stripApiPrefix(url.pathname);
   const method = httpContext.httpMethod.toUpperCase() as HttpMethod;
-  const actorId = getActorId({
+  let actorId = getActorId({
+    eventID: requestId,
+    httpContext
+  });
+  const identity = getWechatMiniappIdentity({
     eventID: requestId,
     httpContext
   });
@@ -208,6 +264,26 @@ export const main: CloudbaseEventHandler = async (event, context) => {
     if (method === "POST" && pathname === "/auth/login") {
       const input = parseOrThrow(LoginRequestSchema, body);
       return ok(await provider.auth.login(input), requestId);
+    }
+
+    if (method === "POST" && pathname === "/auth/admin/login") {
+      const input = parseOrThrow(AdminLoginRequestSchema, body);
+      return ok(await provider.auth.adminLogin(input), requestId);
+    }
+
+    if (method === "POST" && pathname === "/auth/wechat-miniapp/session") {
+      const input = parseOrThrow(WechatMiniappSessionRequestSchema, body);
+      return ok(
+        await provider.auth.wechatMiniappSession({
+          preferred_language: input.preferred_language,
+          identity
+        }),
+        requestId
+      );
+    }
+
+    if (!actorId && identity) {
+      actorId = (await provider.auth.resolveActor(undefined, identity))._id;
     }
 
     if (method === "GET" && pathname === "/auth/me") {
@@ -282,8 +358,47 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       return ok(await provider.posts.list(query), requestId);
     }
 
+    if (method === "GET" && pathname === "/discover/tags") {
+      const query = parseOrThrow(
+        DiscoverTagListQuerySchema,
+        Object.fromEntries(url.searchParams.entries())
+      );
+      return ok(await provider.posts.listPublicTags(query), requestId);
+    }
+
+    if (method === "POST" && pathname === "/discover/tags") {
+      const input = parseOrThrow(CreateDiscoverTagInputSchema, body);
+      return ok(await provider.posts.createTag(input, actorId), requestId, 201);
+    }
+
     if (method === "GET" && pathname === "/discover/me/governance") {
       return ok(await provider.posts.meGovernance(actorId), requestId);
+    }
+
+    if (method === "GET" && pathname === "/discover/me/liked-posts") {
+      return ok(
+        await provider.posts.listLiked(
+          parseOrThrow(
+            MyPostListQuerySchema,
+            Object.fromEntries(url.searchParams.entries())
+          ),
+          actorId
+        ),
+        requestId
+      );
+    }
+
+    if (method === "GET" && pathname === "/discover/me/favorited-posts") {
+      return ok(
+        await provider.posts.listFavorited(
+          parseOrThrow(
+            MyPostListQuerySchema,
+            Object.fromEntries(url.searchParams.entries())
+          ),
+          actorId
+        ),
+        requestId
+      );
     }
 
     {
@@ -342,9 +457,56 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       }
     }
 
+    {
+      const match = matchRoute("/discover/posts/:id/interaction", pathname);
+
+      if (method === "GET" && match.matched) {
+        return ok(
+          await provider.posts.interaction(match.params.id, actorId),
+          requestId
+        );
+      }
+    }
+
+    {
+      const match = matchRoute("/discover/posts/:id/like", pathname);
+
+      if (method === "POST" && match.matched) {
+        const input = parseOrThrow(SetPostLikeInputSchema, body);
+        return ok(
+          await provider.posts.setLike(match.params.id, input, actorId),
+          requestId
+        );
+      }
+    }
+
+    {
+      const match = matchRoute("/discover/posts/:id/favorite", pathname);
+
+      if (method === "POST" && match.matched) {
+        const input = parseOrThrow(SetPostFavoriteInputSchema, body);
+        return ok(
+          await provider.posts.setFavorite(match.params.id, input, actorId),
+          requestId
+        );
+      }
+    }
+
+    {
+      const match = matchRoute("/discover/posts/:id/share", pathname);
+
+      if (method === "POST" && match.matched) {
+        const input = parseOrThrow(RecordPostShareInputSchema, body);
+        return ok(
+          await provider.posts.recordShare(match.params.id, input, actorId),
+          requestId
+        );
+      }
+    }
+
     if (method === "POST" && pathname === "/discover/posts") {
       const input = parseOrThrow(CreatePostInputSchema, body);
-      return ok(await provider.posts.create(input, actorId), requestId, 201);
+      return ok(await provider.posts.create(input, actorId), requestId);
     }
 
     {

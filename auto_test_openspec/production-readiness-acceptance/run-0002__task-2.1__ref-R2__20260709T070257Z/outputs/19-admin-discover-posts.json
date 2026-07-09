@@ -1,0 +1,52 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/discover/posts?keyword=20260709080320",
+    "actor": "declared-dev-actor"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "items": [
+        {
+          "_id": "post_df0ef099-9858-4814-9795-0b36713a1b6c",
+          "author_user_id": "user_002",
+          "author_display": {
+            "nickname": "Emma",
+            "avatar_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+          },
+          "community_id": "tongzilin",
+          "title": "Production acceptance smoke post 20260709080320",
+          "content": "Created by the production acceptance CloudBase API smoke.",
+          "language": "en",
+          "tag_ids": [
+            "acceptance"
+          ],
+          "location_text": "Tongzilin",
+          "image_file_ids": [],
+          "image_urls": [],
+          "place_id": null,
+          "event_id": "event_71880296-417b-4efe-bf67-af924c4c7ec8",
+          "comment_count": 1,
+          "like_count": 1,
+          "favorite_count": 1,
+          "share_count": 1,
+          "is_pinned": false,
+          "is_featured": false,
+          "is_recommended": false,
+          "is_official": false,
+          "ops_rank": 0,
+          "created_at": "2026-07-09T08:03:23.589Z",
+          "updated_at": "2026-07-09T08:03:25.068Z",
+          "status": "visible",
+          "review_status": "reported"
+        }
+      ],
+      "page": 1,
+      "pageSize": 20,
+      "total": 1
+    },
+    "requestId": "9ab3d9c8-0115-40cd-a68d-73f680701668"
+  }
+}

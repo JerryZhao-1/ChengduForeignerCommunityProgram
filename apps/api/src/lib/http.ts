@@ -22,7 +22,7 @@ export const corsMiddleware = async (ctx: Context, next: Next) => {
     ctx.set("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
     ctx.set(
       "Access-Control-Allow-Headers",
-      "content-type,x-mock-user-id,x-requested-with"
+      "authorization,content-type,x-mock-user-id,x-wx-openid,x-wx-appid,x-wx-unionid,x-requested-with"
     );
   }
 

@@ -1,5 +1,7 @@
 <script lang="ts">
+import { mobileApi } from "@/api/client";
 import { mobileEnv } from "@/config/env";
+import { useAppStore } from "@/stores/app-store";
 
 declare const wx:
   | {
@@ -11,6 +13,7 @@ declare const wx:
 
 export default {
   onLaunch() {
+    const { setUserId } = useAppStore();
     if (
       mobileEnv.apiMode === "cloudbase-function" &&
       typeof wx !== "undefined" &&
@@ -20,6 +23,15 @@ export default {
         env: mobileEnv.cloudbaseEnvId,
         traceUser: true
       });
+
+      void mobileApi.auth
+        .wechatMiniappSession()
+        .then((result) => {
+          setUserId(result.data.user._id);
+        })
+        .catch((error) => {
+          console.warn("Mini Program session initialization failed.", error);
+        });
     }
 
     console.log("Community map mobile app launched.");

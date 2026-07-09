@@ -10,7 +10,6 @@ import type { Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
-import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
 import {
@@ -173,21 +172,30 @@ onReachBottom(loadMore);
 
 <template>
   <view class="page">
-    <view class="top-actions" :style="customTopStyle">
-      <input
-        v-model="keyword"
-        class="search-input"
-        confirm-type="search"
-        :placeholder="copy.searchPlaceholder"
-        @confirm="applySearch"
-      />
-      <button class="plus-button" :aria-label="copy.createPost" @click="openCreate">
-        +
-      </button>
+    <view class="discover-header" :style="customTopStyle">
+      <view class="header-copy">
+        <view class="header-title">{{ copy.feedTitle }}</view>
+        <view class="header-subtitle">{{ copy.feedSubtitle }}</view>
+      </view>
+      <view class="top-actions">
+        <input
+          v-model="keyword"
+          class="search-input"
+          confirm-type="search"
+          :placeholder="copy.searchPlaceholder"
+          @confirm="applySearch"
+        />
+        <button class="plus-button" :aria-label="copy.createPost" @click="openCreate">
+          +
+        </button>
+      </view>
     </view>
 
-    <SectionPanel :title="copy.feedTitle" :subtitle="copy.feedSubtitle">
+    <view class="feed-panel">
       <view class="toolbar">
+        <view class="sort-heading">
+          <text>{{ copy.sortLabel }}</text>
+        </view>
         <view class="sort-tabs">
           <button
             v-for="option in sortOptions"
@@ -295,7 +303,7 @@ onReachBottom(loadMore);
         </button>
         <view v-else class="no-more">{{ copy.noMore }}</view>
       </view>
-    </SectionPanel>
+    </view>
   </view>
 </template>
 
@@ -306,11 +314,44 @@ onReachBottom(loadMore);
   background: #f8fafc;
 }
 
+.discover-header {
+  display: grid;
+  gap: 18rpx;
+  margin: -12rpx 0 20rpx;
+}
+
+.header-copy {
+  display: grid;
+  align-content: center;
+  min-height: 76rpx;
+  padding-right: 220rpx;
+}
+
+.header-title {
+  color: #111827;
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 44rpx;
+}
+
+.header-subtitle {
+  margin-top: 8rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+  line-height: 34rpx;
+}
+
 .top-actions {
   display: flex;
   align-items: center;
   gap: 14rpx;
-  margin: -12rpx 0 12rpx;
+}
+
+.feed-panel {
+  padding: 28rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 16rpx;
+  background: #ffffff;
 }
 
 .search-input {
@@ -348,8 +389,14 @@ onReachBottom(loadMore);
 
 .toolbar {
   display: grid;
-  gap: 14rpx;
+  gap: 12rpx;
   margin-bottom: 20rpx;
+}
+
+.sort-heading {
+  color: #111827;
+  font-size: 26rpx;
+  font-weight: 700;
 }
 
 .sort-tabs {
@@ -362,6 +409,7 @@ onReachBottom(loadMore);
   margin: 0;
   min-height: 60rpx;
   padding: 0 8rpx;
+  border: 1rpx solid #e5e7eb;
   border-radius: 10rpx;
   background: #f3f4f6;
   color: #374151;
@@ -370,9 +418,11 @@ onReachBottom(loadMore);
 }
 
 .sort-tab.active {
-  background: #d1fae5;
-  color: #047857;
+  border-color: #0f766e;
+  background: #0f766e;
+  color: #ffffff;
   font-weight: 700;
+  box-shadow: 0 8rpx 16rpx rgba(15, 118, 110, 0.2);
 }
 
 .tag-filter {

@@ -34,14 +34,32 @@ import type {
   User
 } from "@community-map/shared";
 
+export interface WechatMiniappIdentity {
+  openid: string;
+  appid: string;
+  unionid?: string;
+  preferredLanguage?: "zh" | "en";
+}
+
 export interface ApiProvider {
   auth: {
-    resolveActor(userId?: string): Promise<User>;
+    resolveActor(
+      userId?: string,
+      identity?: WechatMiniappIdentity
+    ): Promise<User>;
     login(input: {
       mock_user_id?: string;
       preferred_language?: "zh" | "en";
     }): Promise<AuthSession>;
+    adminLogin(input: {
+      username: string;
+      password: string;
+    }): Promise<AuthSession>;
     me(userId?: string): Promise<AuthSession>;
+    wechatMiniappSession(input: {
+      preferred_language?: "zh" | "en";
+      identity?: WechatMiniappIdentity;
+    }): Promise<AuthSession>;
   };
   events: {
     list(input: {
@@ -101,6 +119,22 @@ export interface ApiProvider {
       communityId?: string;
     }): Promise<PageResult<Post>>;
     listMine(
+      input: {
+        page?: number;
+        pageSize?: number;
+        communityId?: string;
+      },
+      actorId?: string
+    ): Promise<PageResult<Post>>;
+    listLiked(
+      input: {
+        page?: number;
+        pageSize?: number;
+        communityId?: string;
+      },
+      actorId?: string
+    ): Promise<PageResult<Post>>;
+    listFavorited(
       input: {
         page?: number;
         pageSize?: number;

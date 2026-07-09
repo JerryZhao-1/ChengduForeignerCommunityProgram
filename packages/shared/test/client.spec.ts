@@ -557,6 +557,8 @@ describe("shared api clients", () => {
             comment_count: 0,
             report_count: 0,
             violation_count: 0,
+            liked_post_count: 0,
+            favorited_post_count: 0,
             unread_notification_count: 0
           }
         };

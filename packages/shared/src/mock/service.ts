@@ -715,6 +715,13 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
 
   const buildMeGovernance = (user: User): DiscoverMeGovernance => ({
     ...buildUserGovernanceSummary(user),
+    liked_post_count: state.postInteractions.filter(
+      (interaction) => interaction.actor_user_id === user._id && interaction.liked
+    ).length,
+    favorited_post_count: state.postInteractions.filter(
+      (interaction) =>
+        interaction.actor_user_id === user._id && interaction.favorited
+    ).length,
     unread_notification_count: state.notifications.filter(
       (notification) =>
         notification.user_id === user._id && notification.status === "unread"
@@ -1290,9 +1297,9 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
       },
       recordShare(
         id: string,
-        _input: {
+        _input?: {
           channel?: "wechat" | "moments" | "copy_link" | "system" | "other";
-        } = {},
+        },
         actorId?: string
       ): PostInteractionState {
         const actor = requireUser(actorId);
@@ -1502,6 +1509,53 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         const posts = state.posts.filter(
           (post) =>
             post.author_user_id === actor._id &&
+            (!params.communityId || post.community_id === params.communityId)
+        );
+
+        return paginate(
+          posts.map((post) => this.normalize(post)),
+          params
+        );
+      },
+      listLiked(params: PageParams = {}, actorId?: string) {
+        const actor = requireUser(actorId);
+        assertActorAllowed(actor, "read_mine");
+        const likedPostIds = new Set(
+          state.postInteractions
+            .filter(
+              (interaction) =>
+                interaction.actor_user_id === actor._id && interaction.liked
+            )
+            .map((interaction) => interaction.post_id)
+        );
+        const posts = state.posts.filter(
+          (post) =>
+            likedPostIds.has(post._id) &&
+            isLaunchVisiblePost(post) &&
+            (!params.communityId || post.community_id === params.communityId)
+        );
+
+        return paginate(
+          posts.map((post) => this.normalize(post)),
+          params
+        );
+      },
+      listFavorited(params: PageParams = {}, actorId?: string) {
+        const actor = requireUser(actorId);
+        assertActorAllowed(actor, "read_mine");
+        const favoritedPostIds = new Set(
+          state.postInteractions
+            .filter(
+              (interaction) =>
+                interaction.actor_user_id === actor._id &&
+                interaction.favorited
+            )
+            .map((interaction) => interaction.post_id)
+        );
+        const posts = state.posts.filter(
+          (post) =>
+            favoritedPostIds.has(post._id) &&
+            isLaunchVisiblePost(post) &&
             (!params.communityId || post.community_id === params.communityId)
         );
 

@@ -1,0 +1,37 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/events",
+    "actor": "declared-dev-actor"
+  },
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "_id": "event_71880296-417b-4efe-bf67-af924c4c7ec8",
+      "community_id": "tongzilin",
+      "title_zh": "生产验收烟测活动 20260709080320",
+      "title_en": "Production acceptance smoke event 20260709080320",
+      "summary_zh": "生产验收 API 烟测自动创建。",
+      "summary_en": "Created by production acceptance API smoke.",
+      "content_zh": "用于验证 CloudBase API 目标的报名、票券和核销链路。",
+      "content_en": "Validates registration, ticket, and check-in against the CloudBase API target.",
+      "cover_file_id": null,
+      "cover_cloud_path": null,
+      "cover_url": "https://example.com/public/events/placeholder/cover.jpg",
+      "address_text": "Tongzilin Community Center",
+      "location": {
+        "latitude": 30.618887,
+        "longitude": 104.065468
+      },
+      "start_time": "2027-05-01T10:00:00+08:00",
+      "end_time": "2027-05-01T12:00:00+08:00",
+      "signup_deadline": "2027-04-30T18:00:00+08:00",
+      "capacity": 20,
+      "organizer_user_id": "user_001",
+      "review_status": "draft",
+      "publish_status": "draft"
+    },
+    "requestId": "c661eea0-cb23-4aba-aa37-4e315755da2b"
+  }
+}

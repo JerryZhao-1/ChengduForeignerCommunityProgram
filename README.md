@@ -353,6 +353,16 @@ Admin 和 Mobile 当前都识别这些环境变量：
 
 API 端地点搜索使用这些环境变量：
 
+- `API_ADMIN_USERNAME`
+  - Admin Web 正式登录用户名。
+- `API_ADMIN_PASSWORD_SCRYPT`
+  - Admin Web 登录密码的 scrypt 哈希，使用 `node scripts/hash_admin_password.mjs <password>` 生成。
+- `API_ADMIN_SESSION_SECRET`
+  - Admin Bearer token HMAC 签名密钥。
+- `API_ADMIN_SESSION_TTL_SECONDS`
+  - 可选。Admin token 有效期，默认 `86400`。
+- `API_ADMIN_USER_ID`
+  - 可选。Admin 系统用户 ID，默认 `admin_001`。
 - `TENCENT_MAP_KEY`
   - 腾讯位置服务 WebServiceAPI key，用于 Admin 地点表单的“搜索地标/地址”。
 - `TENCENT_MAP_SECRET_KEY`

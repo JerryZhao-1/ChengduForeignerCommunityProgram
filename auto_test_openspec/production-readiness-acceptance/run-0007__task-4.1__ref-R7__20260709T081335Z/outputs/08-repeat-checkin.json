@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/events/event_091aff2d-75eb-4c43-b0d9-22df7fef6385/checkin",
+    "actor": "declared-dev-actor"
+  },
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": {
+      "code": "CONFLICT",
+      "message": "Ticket is not valid for check-in.",
+      "details": {
+        "reason": "ticket_not_valid",
+        "ticket_status": "used"
+      }
+    },
+    "requestId": "8884582d-8283-4931-8f5d-eb44e66400a1"
+  }
+}

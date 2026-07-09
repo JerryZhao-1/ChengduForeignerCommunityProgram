@@ -1,0 +1,14 @@
+{
+  "required": [
+    "post_created",
+    "comment_created",
+    "like_recorded",
+    "favorite_recorded",
+    "share_recorded",
+    "interaction_state_read",
+    "report_submitted",
+    "admin_post_visible",
+    "admin_report_visible",
+    "admin_analytics_read"
+  ]
+}

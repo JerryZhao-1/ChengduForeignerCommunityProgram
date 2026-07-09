@@ -1,94 +1,87 @@
-import { spawnSync } from "node:child_process";
-import {
-  chmodSync,
-  cpSync,
-  existsSync,
-  mkdirSync,
-  rmSync,
-  writeFileSync
-} from "node:fs";
+import { chmodSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const requireFromApi = createRequire(join(repoRoot, "apps/api/package.json"));
 const functionName = "community-map-api";
 const stageRoot = join(repoRoot, "apps/api/.cloudbase");
 const functionDir = join(stageRoot, functionName);
+const deployStubRoot = join(repoRoot, "apps/api/src/deploy-stubs");
 
-const copyDir = (source, target) => {
-  cpSync(source, target, {
-    recursive: true,
-    filter: (path) =>
-      !path.includes("/node_modules/") &&
-      !path.endsWith(".tsbuildinfo") &&
-      !path.endsWith(".DS_Store")
-  });
-};
-
-const resolveEsbuildBin = () => {
-  const candidates = [
-    join(repoRoot, "apps/api/node_modules/.bin/esbuild"),
-    join(repoRoot, "node_modules/.bin/esbuild"),
-    join(repoRoot, "node_modules/.pnpm/node_modules/.bin/esbuild")
-  ];
-  const esbuildBin = candidates.find((candidate) => existsSync(candidate));
-
-  if (!esbuildBin) {
-    throw new Error(
-      "Could not find esbuild. Run pnpm install before preparing the CloudBase function."
-    );
-  }
-
-  return esbuildBin;
-};
+const esbuild = requireFromApi("esbuild");
 
 rmSync(functionDir, { force: true, recursive: true });
 mkdirSync(functionDir, { recursive: true });
 
-copyDir(join(repoRoot, "apps/api/src"), join(functionDir, "src"));
-copyDir(join(repoRoot, "packages/shared/src"), join(functionDir, "shared/src"));
-
-writeFileSync(
-  join(functionDir, "shared/package.json"),
-  `${JSON.stringify(
+await esbuild.build({
+  entryPoints: ["apps/api/src/http-function.ts"],
+  bundle: true,
+  platform: "node",
+  target: "node18",
+  format: "cjs",
+  minify: true,
+  absWorkingDir: repoRoot,
+  outfile: join(functionDir, "index.cjs"),
+  plugins: [
     {
-      name: "@community-map/shared",
-      version: "0.1.0",
-      private: true,
-      type: "module",
-      exports: {
-        ".": "./src/index.ts"
-      },
-      dependencies: {
-        zod: "^3.24.2"
+      name: "cloudbase-deploy-fallback",
+      setup(build) {
+        build.onResolve({ filter: /^@community-map\/shared$/ }, () => ({
+          path: join(repoRoot, "apps/api/src/deploy-shared.ts")
+        }));
+        build.onResolve(
+          { filter: /^@cloudbase\/(adapter-wx_mp|ai|wx-cloud-client-sdk)$/ },
+          (args) => ({
+            path: join(deployStubRoot, `${args.path.replace("@cloudbase/", "")}.cjs`)
+          })
+        );
+        build.onResolve({ filter: /^mime-db$/ }, () => ({
+          path: join(deployStubRoot, "mime-db.cjs")
+        }));
+        build.onResolve({ filter: /^web-streams-polyfill$/ }, () => ({
+          path: join(deployStubRoot, "web-streams-polyfill.cjs")
+        }));
+        build.onResolve(
+          { filter: /^\.\/tables\/(big5-added|cp936|cp949|cp950|eucjp|shiftjis)\.json$/ },
+          (args) => {
+            if (!args.resolveDir.includes("iconv-lite/encodings")) {
+              return null;
+            }
+
+            return {
+              path: join(deployStubRoot, "empty-table.json")
+            };
+          }
+        );
+        build.onResolve({ filter: /^\.\.\/mock$/ }, (args) => {
+          if (
+            !args.resolveDir.endsWith("apps/api/src/providers/cloudbase")
+          ) {
+            return null;
+          }
+
+          return {
+            path: join(
+              repoRoot,
+              "apps/api/src/providers/cloudbase/deploy-fallback.ts"
+            )
+          };
+        });
+        build.onResolve({ filter: /^\.\/providers$/ }, (args) => {
+          if (!args.resolveDir.endsWith("apps/api/src")) {
+            return null;
+          }
+
+          return {
+            path: join(repoRoot, "apps/api/src/providers/deploy-index.ts")
+          };
+        });
       }
-    },
-    null,
-    2
-  )}\n`
-);
-
-const esbuild = spawnSync(
-  resolveEsbuildBin(),
-  [
-    "apps/api/src/http-function.ts",
-    "--bundle",
-    "--platform=node",
-    "--target=node18",
-    "--format=cjs",
-    "--minify",
-    "--alias:@community-map/shared=./packages/shared/src/index.ts",
-    `--outfile=${join(functionDir, "index.cjs")}`
-  ],
-  {
-    cwd: repoRoot,
-    stdio: "inherit"
-  }
-);
-
-if (esbuild.status !== 0) {
-  throw new Error(`esbuild failed with exit code ${esbuild.status ?? "unknown"}`);
-}
+    }
+  ]
+});
 
 writeFileSync(
   join(functionDir, "package.json"),
@@ -113,7 +106,7 @@ writeFileSync(
     "#!/bin/bash",
     "set -e",
     "export PORT=${PORT:-9000}",
-    "/var/lang/node18/bin/node index.cjs",
+    "node index.cjs",
     ""
   ].join("\n")
 );
@@ -133,7 +126,7 @@ writeFileSync(
     "```",
     "",
     "The function starts self-contained bundled `index.cjs` through `scf_bootstrap`, listens on port 9000, and reuses the canonical Koa `createApp()` route set.",
-    "No runtime dependency install step is required before upload. `src/` and `shared/` are included for source provenance only.",
+    "No runtime dependency install step is required before upload. The deploy directory intentionally contains only runtime files so CloudBase CLI direct ZIP upload stays under the platform size limit.",
     ""
   ].join("\n")
 );

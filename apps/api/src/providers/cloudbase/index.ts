@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import tcb from "@cloudbase/node-sdk";
 import {
@@ -57,8 +57,14 @@ import {
 } from "@community-map/shared";
 
 import { apiError } from "../../lib/errors";
+import {
+  assertAdminLogin,
+  createAdminSession,
+  getAdminUserId,
+  getAdminUsername
+} from "../../lib/admin-auth";
 import { createMockProvider } from "../mock";
-import type { ApiProvider } from "../types";
+import type { ApiProvider, WechatMiniappIdentity } from "../types";
 
 const DEFAULT_COMMUNITY_ID = "tongzilin";
 const MAX_PLACES_FETCH = 1000;
@@ -69,45 +75,14 @@ const POST_MEDIA_BIZ_TYPES = new Set([
   "post_video",
   "post_media"
 ]);
-const PLACEHOLDER_AVATAR_URL = "https://example.com/avatar-placeholder.png";
+const PLACEHOLDER_AVATAR_URL =
+  "https://static.cloudbase.net/cloudbase-logo.svg";
 
 type CloudbaseApp = ReturnType<typeof tcb.init>;
 type CloudbaseDatabase = ReturnType<CloudbaseApp["database"]>;
 type CloudbaseCollection = ReturnType<
   ReturnType<ReturnType<typeof tcb.init>["database"]>["collection"]
 >;
-
-interface CloudbaseDocumentGetResult {
-  data: unknown;
-}
-
-interface CloudbaseListGetResult {
-  data: unknown[];
-}
-
-interface CloudbaseUpdateResult {
-  updated?: number;
-}
-
-interface CloudbaseDocumentReference {
-  get(): Promise<CloudbaseDocumentGetResult>;
-  set(data: object): Promise<unknown>;
-  update(data: object): Promise<CloudbaseUpdateResult>;
-}
-
-interface CloudbaseTransactionQuery {
-  where(query: object): CloudbaseTransactionQuery;
-  limit(limit: number): CloudbaseTransactionQuery;
-  get(): Promise<CloudbaseListGetResult>;
-}
-
-interface CloudbaseTransactionCollection extends CloudbaseTransactionQuery {
-  doc(id: string | number): CloudbaseDocumentReference;
-}
-
-interface CloudbaseTransaction {
-  collection(collectionName: string): CloudbaseTransactionCollection;
-}
 
 interface LiveCloudbaseContext {
   app: CloudbaseApp;
@@ -655,17 +630,6 @@ const normalizeDiscoverAuditRecord = (
   return parsed.success ? parsed.data : null;
 };
 
-const withDocumentId = (id: string, raw: unknown) => {
-  if (!raw || typeof raw !== "object") {
-    return raw;
-  }
-
-  return {
-    ...raw,
-    _id: (raw as { _id?: unknown })._id ?? id
-  };
-};
-
 const readEvents = async (context: LiveCloudbaseContext) => {
   const result = await context.events.limit(MAX_EVENTS_FETCH).get();
   const events = result.data
@@ -695,6 +659,144 @@ const readUsers = async (context: LiveCloudbaseContext) => {
   const result = await context.users.limit(MAX_DISCOVER_FETCH).get();
   return result.data.map(normalizeUser).filter((user): user is User => !!user);
 };
+
+const isLiveMockActorFallbackAllowed = () =>
+  process.env.API_ALLOW_MOCK_ACTOR_HEADER === "true";
+
+const buildWechatUserId = (appid: string, openid: string) => {
+  const digest = createHash("sha256")
+    .update(`${appid}:${openid}`)
+    .digest("hex")
+    .slice(0, 24);
+  return `wx_${digest}`;
+};
+
+const createLiveAuthSession = (user: User) => ({
+  user,
+  token: `cloudbase-miniapp-${user._id}`
+});
+
+const resolveLiveAdminUser = async (context: LiveCloudbaseContext) => {
+  const users = await readUsers(context);
+  const existing = users.find((user) => user._id === getAdminUserId());
+  const user = UserSchema.parse({
+    _id: getAdminUserId(),
+    openid: existing?.openid,
+    unionid: existing?.unionid,
+    nickname: existing?.nickname ?? (getAdminUsername() || "Admin"),
+    avatar_url: existing?.avatar_url ?? PLACEHOLDER_AVATAR_URL,
+    phone: existing?.phone,
+    preferred_language: existing?.preferred_language ?? "zh",
+    role_flags: ["user", "community_admin", "system_admin"],
+    status: "active"
+  });
+
+  await context.users.doc(user._id).set(toCloudbaseSetDocument(user));
+  return user;
+};
+
+const resolveLiveWechatUser = async (
+  context: LiveCloudbaseContext,
+  identity: WechatMiniappIdentity,
+  preferredLanguage?: "zh" | "en"
+) => {
+  const users = await readUsers(context);
+  const existing =
+    users.find((user) => user.openid === identity.openid) ??
+    users.find((user) => user._id === buildWechatUserId(identity.appid, identity.openid));
+  const nowPreferredLanguage =
+    preferredLanguage ?? existing?.preferred_language ?? "zh";
+  const user = UserSchema.parse({
+    _id: existing?._id ?? buildWechatUserId(identity.appid, identity.openid),
+    openid: identity.openid,
+    unionid: identity.unionid ?? existing?.unionid,
+    nickname: existing?.nickname ?? "微信用户",
+    avatar_url: existing?.avatar_url ?? PLACEHOLDER_AVATAR_URL,
+    phone: existing?.phone,
+    preferred_language: nowPreferredLanguage,
+    role_flags: existing?.role_flags ?? ["user"],
+    status: existing?.status ?? "active"
+  });
+
+  await context.users.doc(user._id).set(toCloudbaseSetDocument(user));
+  return user;
+};
+
+const createLiveAuthProvider = (
+  context: LiveCloudbaseContext,
+  fallbackAuth: ApiProvider["auth"]
+): ApiProvider["auth"] => ({
+  async resolveActor(userId, identity) {
+    if (identity) {
+      return resolveLiveWechatUser(context, identity, identity.preferredLanguage);
+    }
+
+    if (!userId) {
+      throw apiError("UNAUTHORIZED", "Authentication is required.", 401);
+    }
+
+    const users = await readUsers(context);
+    const user = users.find((item) => item._id === userId);
+    if (user?.status === "active") {
+      return user;
+    }
+
+    if (isLiveMockActorFallbackAllowed()) {
+      return fallbackAuth.resolveActor(userId);
+    }
+
+    throw apiError("UNAUTHORIZED", "Invalid actor.", 401);
+  },
+  async login(input) {
+    if (isLiveMockActorFallbackAllowed()) {
+      return fallbackAuth.login(input);
+    }
+
+    throw apiError(
+      "UNAUTHORIZED",
+      "Mock login is disabled for CloudBase live mode.",
+      401
+    );
+  },
+  async adminLogin(input) {
+    await assertAdminLogin(input);
+    const user = await resolveLiveAdminUser(context);
+    return createAdminSession(user);
+  },
+  async me(userId) {
+    const users = await readUsers(context);
+    const user = users.find((item) => item._id === userId);
+    if (user?.status === "active") {
+      return createLiveAuthSession(user);
+    }
+    if (isLiveMockActorFallbackAllowed()) {
+      return fallbackAuth.me(userId);
+    }
+    throw apiError("UNAUTHORIZED", "Invalid actor.", 401);
+  },
+  async wechatMiniappSession(input) {
+    if (!input.identity) {
+      if (isLiveMockActorFallbackAllowed()) {
+        return fallbackAuth.login({
+          mock_user_id: "user_001",
+          preferred_language: input.preferred_language
+        });
+      }
+
+      throw apiError("UNAUTHORIZED", "WeChat Mini Program identity is required.", 401);
+    }
+
+    const user = await resolveLiveWechatUser(
+      context,
+      {
+        ...input.identity,
+        preferredLanguage: input.preferred_language
+      },
+      input.preferred_language
+    );
+    return createLiveAuthSession(user);
+  }
+});
 
 const readPlaces = async (context: LiveCloudbaseContext) => {
   const result = await context.places.limit(MAX_PLACES_FETCH).get();
@@ -818,114 +920,101 @@ const createLiveEventsProvider = (
   },
   async createRegistration(eventId, input, actorId) {
     const actor = await fallbackAuth.resolveActor(actorId);
-    const result: unknown = await context.db.runTransaction(
-      async (transaction: CloudbaseTransaction) => {
-        const [eventResult, registrationResult] = await Promise.all([
-          transaction.collection("events").doc(eventId).get(),
-          transaction
-            .collection("event_registrations")
-            .where({ event_id: eventId })
-            .limit(MAX_EVENTS_FETCH)
-            .get()
-        ]);
-        const event = normalizeEvent(eventResult.data);
-        const registrations = Array.isArray(registrationResult.data)
-          ? registrationResult.data
-              .map(normalizeEventRegistration)
-              .filter(
-                (registration): registration is EventRegistration =>
-                  !!registration
-              )
-          : [];
+    const [events, registrationResult] = await Promise.all([
+      readEvents(context),
+      context.eventRegistrations
+        .where({ event_id: eventId })
+        .limit(MAX_EVENTS_FETCH)
+        .get()
+    ]);
+    const event = events.find((item) => item._id === eventId) ?? null;
+    const registrations = registrationResult.data
+      .map(normalizeEventRegistration)
+      .filter(
+        (registration): registration is EventRegistration => !!registration
+      );
 
-        if (!event || !isLaunchVisibleEvent(event)) {
-          throw apiError("NOT_FOUND", "Event not found.", 404);
-        }
+    if (!event || !isLaunchVisibleEvent(event)) {
+      throw apiError("NOT_FOUND", "Event not found.", 404);
+    }
 
-        const now = Date.now();
+    const now = Date.now();
 
-        if (new Date(event.end_time).getTime() <= now) {
-          throw apiError("CONFLICT", "Event has ended.", 409, {
-            reason: "event_ended"
-          });
-        }
+    if (new Date(event.end_time).getTime() <= now) {
+      throw apiError("CONFLICT", "Event has ended.", 409, {
+        reason: "event_ended"
+      });
+    }
 
-        if (new Date(event.signup_deadline).getTime() <= now) {
-          throw apiError("CONFLICT", "Event signup is closed.", 409, {
-            reason: "signup_deadline_passed"
-          });
-        }
+    if (new Date(event.signup_deadline).getTime() <= now) {
+      throw apiError("CONFLICT", "Event signup is closed.", 409, {
+        reason: "signup_deadline_passed"
+      });
+    }
 
-        const hasActiveRegistration = registrations.some(
-          (registration) =>
-            registration.user_id === actor._id &&
-            isActiveRegistration(registration)
-        );
-
-        if (hasActiveRegistration) {
-          throw apiError("CONFLICT", "Registration already exists.", 409, {
-            reason: "already_registered"
-          });
-        }
-
-        const confirmedAttendees = registrations
-          .filter(isActiveRegistration)
-          .reduce((sum, registration) => sum + registration.attendee_count, 0);
-        const currentConfirmedAttendees = Math.max(
-          storedConfirmedAttendeeCount(eventResult.data) ?? 0,
-          confirmedAttendees
-        );
-
-        if (currentConfirmedAttendees + input.attendee_count > event.capacity) {
-          throw apiError("CONFLICT", "Event capacity is full.", 409, {
-            reason: "capacity_exceeded",
-            remaining: Math.max(event.capacity - currentConfirmedAttendees, 0)
-          });
-        }
-
-        const nextConfirmedAttendees =
-          currentConfirmedAttendees + input.attendee_count;
-        const ticketId = `ticket_${randomUUID()}`;
-        const registration: EventRegistration = {
-          _id: `reg_${randomUUID()}`,
-          event_id: eventId,
-          user_id: actor._id,
-          contact_name: input.contact_name,
-          contact_phone: input.contact_phone,
-          attendee_count: input.attendee_count,
-          registration_status: "confirmed",
-          ticket_id: ticketId,
-          source_channel: input.source_channel
-        };
-        const ticket: EventTicket = {
-          _id: ticketId,
-          registration_id: registration._id,
-          ticket_code: `TZL-${Date.now()}`,
-          qr_file_id: `cloud://${registration.ticket_id}`,
-          qr_cloud_path: `${FILE_PATH_RULES.tickets}${registration.ticket_id}.png`,
-          visibility: "private",
-          status: "valid",
-          issued_at: new Date().toISOString(),
-          used_at: null
-        };
-
-        await Promise.all([
-          transaction.collection("events").doc(eventId).update({
-            confirmed_attendee_count: nextConfirmedAttendees
-          }),
-          transaction
-            .collection("event_registrations")
-            .doc(registration._id)
-            .set(toCloudbaseSetDocument(registration)),
-          transaction
-            .collection("event_tickets")
-            .doc(ticket._id)
-            .set(toCloudbaseSetDocument(ticket))
-        ]);
-
-        return { registration, ticket };
-      }
+    const hasActiveRegistration = registrations.some(
+      (registration) =>
+        registration.user_id === actor._id && isActiveRegistration(registration)
     );
+
+    if (hasActiveRegistration) {
+      throw apiError("CONFLICT", "Registration already exists.", 409, {
+        reason: "already_registered"
+      });
+    }
+
+    const confirmedAttendees = registrations
+      .filter(isActiveRegistration)
+      .reduce((sum, registration) => sum + registration.attendee_count, 0);
+    const currentConfirmedAttendees = Math.max(
+      storedConfirmedAttendeeCount(event) ?? 0,
+      confirmedAttendees
+    );
+
+    if (currentConfirmedAttendees + input.attendee_count > event.capacity) {
+      throw apiError("CONFLICT", "Event capacity is full.", 409, {
+        reason: "capacity_exceeded",
+        remaining: Math.max(event.capacity - currentConfirmedAttendees, 0)
+      });
+    }
+
+    const nextConfirmedAttendees =
+      currentConfirmedAttendees + input.attendee_count;
+    const ticketId = `ticket_${randomUUID()}`;
+    const registration: EventRegistration = {
+      _id: `reg_${randomUUID()}`,
+      event_id: eventId,
+      user_id: actor._id,
+      contact_name: input.contact_name,
+      contact_phone: input.contact_phone,
+      attendee_count: input.attendee_count,
+      registration_status: "confirmed",
+      ticket_id: ticketId,
+      source_channel: input.source_channel
+    };
+    const ticket: EventTicket = {
+      _id: ticketId,
+      registration_id: registration._id,
+      ticket_code: `TZL-${Date.now()}`,
+      qr_file_id: `cloud://${registration.ticket_id}`,
+      qr_cloud_path: `${FILE_PATH_RULES.tickets}${registration.ticket_id}.png`,
+      visibility: "private",
+      status: "valid",
+      issued_at: new Date().toISOString(),
+      used_at: null
+    };
+
+    await Promise.all([
+      context.events.doc(eventId).update({
+        confirmed_attendee_count: nextConfirmedAttendees
+      }),
+      context.eventRegistrations
+        .doc(registration._id)
+        .set(toCloudbaseSetDocument(registration)),
+      context.eventTickets.doc(ticket._id).set(toCloudbaseSetDocument(ticket))
+    ]);
+
+    const result: unknown = { registration, ticket };
 
     return EventWithRegistrationSchema.parse(result);
   },
@@ -1921,34 +2010,30 @@ type LiveInteractionMutation =
   | { kind: "favorite"; favorited: boolean }
   | { kind: "share" };
 
-const readTransactionPost = async (
-  transaction: CloudbaseTransaction,
-  postId: string
-) => {
-  const result = await transaction.collection("posts").doc(postId).get();
-  return normalizePost(withDocumentId(postId, result.data));
-};
+const liveInteractionLocks = new Map<string, Promise<void>>();
 
-const readTransactionInteractionRecord = async (
-  transaction: CloudbaseTransaction,
-  postId: string,
-  actorId: string
+const withLiveInteractionLock = async <TResult>(
+  key: string,
+  task: () => Promise<TResult>
 ) => {
-  const result = await transaction
-    .collection("discover_post_interactions")
-    .where({
-      post_id: postId,
-      actor_user_id: actorId
-    })
-    .limit(1)
-    .get();
+  const previous = liveInteractionLocks.get(key) ?? Promise.resolve();
+  let release!: () => void;
+  const current = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const next = previous.catch(() => undefined).then(() => current);
+  liveInteractionLocks.set(key, next);
 
-  return (
-    result.data
-      .map(normalizePostInteractionRecord)
-      .find((record): record is PostInteractionRecord => record !== null) ??
-    null
-  );
+  await previous.catch(() => undefined);
+
+  try {
+    return await task();
+  } finally {
+    release();
+    if (liveInteractionLocks.get(key) === next) {
+      liveInteractionLocks.delete(key);
+    }
+  }
 };
 
 const mutateLivePostInteraction = async (
@@ -1956,110 +2041,123 @@ const mutateLivePostInteraction = async (
   postId: string,
   actor: User,
   mutation: LiveInteractionMutation
-) => {
-  const result: unknown = await context.db.runTransaction(
-    async (transaction: CloudbaseTransaction) => {
-      const post = await readTransactionPost(transaction, postId);
-      if (!post || !isLaunchVisiblePost(post)) {
-        throw apiError("NOT_FOUND", "Post not found.", 404);
-      }
+) =>
+  withLiveInteractionLock(`${postId}:${actor._id}`, async () => {
+  const [posts, recordResult] = await Promise.all([
+    readPosts(context),
+    context.postInteractions
+      .where({
+        post_id: postId,
+        actor_user_id: actor._id
+      })
+      .limit(1)
+      .get()
+  ]);
+  const post = posts.find((item) => item._id === postId) ?? null;
+  if (!post || !isLaunchVisiblePost(post)) {
+    throw apiError("NOT_FOUND", "Post not found.", 404);
+  }
 
-      const existingRecord = await readTransactionInteractionRecord(
-        transaction,
-        post._id,
-        actor._id
-      );
-      const now = new Date().toISOString();
-      const shouldTrackActorState = mutation.kind !== "share";
-      let nextRecord = existingRecord;
-      let shouldWriteRecord = false;
-      let likeDelta = 0;
-      let favoriteDelta = 0;
-      let shareDelta = 0;
+  const existingRecord =
+    recordResult.data
+      .map(normalizePostInteractionRecord)
+      .find((record): record is PostInteractionRecord => record !== null) ??
+    null;
+  const now = new Date().toISOString();
+  const shouldTrackActorState = mutation.kind !== "share";
+  let nextRecord = existingRecord;
+  let shouldWriteRecord = false;
+  let likeDelta = 0;
+  let favoriteDelta = 0;
+  let shareDelta = 0;
 
-      if (shouldTrackActorState && !nextRecord) {
-        nextRecord = PostInteractionRecordSchema.parse({
-          _id: `post_interaction_${post._id}_${actor._id}`,
-          post_id: post._id,
-          actor_user_id: actor._id,
-          liked: false,
-          favorited: false,
-          created_at: now,
-          updated_at: now
-        });
-        shouldWriteRecord = true;
-      }
+  if (shouldTrackActorState && !nextRecord) {
+    nextRecord = PostInteractionRecordSchema.parse({
+      _id: `post_interaction_${post._id}_${actor._id}`,
+      post_id: post._id,
+      actor_user_id: actor._id,
+      liked: false,
+      favorited: false,
+      created_at: now,
+      updated_at: now
+    });
+    shouldWriteRecord = true;
+  }
 
-      if (mutation.kind === "like" && nextRecord) {
-        if (nextRecord.liked !== mutation.liked) {
-          likeDelta = mutation.liked ? 1 : -1;
-          nextRecord = {
-            ...nextRecord,
-            liked: mutation.liked,
-            updated_at: now
-          };
-          shouldWriteRecord = true;
-        }
-      } else if (mutation.kind === "favorite" && nextRecord) {
-        if (nextRecord.favorited !== mutation.favorited) {
-          favoriteDelta = mutation.favorited ? 1 : -1;
-          nextRecord = {
-            ...nextRecord,
-            favorited: mutation.favorited,
-            updated_at: now
-          };
-          shouldWriteRecord = true;
-        }
-      } else if (mutation.kind === "share") {
-        shareDelta = 1;
-      }
-
-      const postChanged =
-        likeDelta !== 0 || favoriteDelta !== 0 || shareDelta !== 0;
-      const nextPost = PostSchema.parse({
-        ...post,
-        like_count: Math.max(0, post.like_count + likeDelta),
-        favorite_count: Math.max(0, post.favorite_count + favoriteDelta),
-        share_count: Math.max(0, post.share_count + shareDelta),
-        updated_at: postChanged ? now : post.updated_at
-      });
-
-      await Promise.all([
-        postChanged
-          ? transaction.collection("posts").doc(post._id).update({
-              like_count: nextPost.like_count,
-              favorite_count: nextPost.favorite_count,
-              share_count: nextPost.share_count,
-              updated_at: nextPost.updated_at
-            })
-          : Promise.resolve(),
-        shouldWriteRecord && nextRecord
-          ? existingRecord
-            ? transaction
-                .collection("discover_post_interactions")
-                .doc(nextRecord._id)
-                .update({
-                  liked: nextRecord.liked,
-                  favorited: nextRecord.favorited,
-                  updated_at: nextRecord.updated_at
-                })
-            : transaction
-                .collection("discover_post_interactions")
-                .doc(nextRecord._id)
-                .set(toCloudbaseSetDocument(nextRecord))
-          : Promise.resolve()
-      ]);
-
-      return buildLiveInteractionState(
-        nextPost,
-        actor,
-        nextRecord ?? undefined
-      );
+  if (mutation.kind === "like" && nextRecord) {
+    if (nextRecord.liked !== mutation.liked) {
+      likeDelta = mutation.liked ? 1 : -1;
+      nextRecord = {
+        ...nextRecord,
+        liked: mutation.liked,
+        updated_at: now
+      };
+      shouldWriteRecord = true;
     }
+  } else if (mutation.kind === "favorite" && nextRecord) {
+    if (nextRecord.favorited !== mutation.favorited) {
+      favoriteDelta = mutation.favorited ? 1 : -1;
+      nextRecord = {
+        ...nextRecord,
+        favorited: mutation.favorited,
+        updated_at: now
+      };
+      shouldWriteRecord = true;
+    }
+  } else if (mutation.kind === "share") {
+    shareDelta = 1;
+  }
+
+  const postChanged =
+    likeDelta !== 0 || favoriteDelta !== 0 || shareDelta !== 0;
+  const nextPost = PostSchema.parse({
+    ...post,
+    like_count: Math.max(0, post.like_count + likeDelta),
+    favorite_count: Math.max(0, post.favorite_count + favoriteDelta),
+    share_count: Math.max(0, post.share_count + shareDelta),
+    updated_at: postChanged ? now : post.updated_at
+  });
+  const postUpdate: Partial<Post> = {
+    updated_at: nextPost.updated_at
+  };
+
+  if (likeDelta !== 0) {
+    postUpdate.like_count = nextPost.like_count;
+  }
+
+  if (favoriteDelta !== 0) {
+    postUpdate.favorite_count = nextPost.favorite_count;
+  }
+
+  if (shareDelta !== 0) {
+    postUpdate.share_count = nextPost.share_count;
+  }
+
+  await Promise.all([
+    postChanged
+      ? context.posts.doc(post._id).update(postUpdate)
+      : Promise.resolve(),
+    shouldWriteRecord && nextRecord
+      ? existingRecord
+        ? context.postInteractions.doc(nextRecord._id).update({
+            liked: nextRecord.liked,
+            favorited: nextRecord.favorited,
+            updated_at: nextRecord.updated_at
+          })
+        : context.postInteractions
+            .doc(nextRecord._id)
+            .set(toCloudbaseSetDocument(nextRecord))
+      : Promise.resolve()
+  ]);
+
+  const result: unknown = buildLiveInteractionState(
+    nextPost,
+    actor,
+    nextRecord ?? undefined
   );
 
   return PostInteractionStateSchema.parse(result);
-};
+  });
 
 const buildLiveFollowState = (
   follows: UserFollowRecord[],
@@ -2169,11 +2267,12 @@ const createLivePostsProvider = (
   ...fallbackPosts,
   async meGovernance(actorId) {
     const actor = await fallbackAuth.resolveActor(actorId);
-    const [posts, comments, reports, auditRecords] = await Promise.all([
+    const [posts, comments, reports, auditRecords, interactions] = await Promise.all([
       readPosts(context),
       readComments(context),
       readDiscoverReportCases(context),
-      readDiscoverAuditRecords(context)
+      readDiscoverAuditRecords(context),
+      readPostInteractions(context)
     ]);
 
     return DiscoverMeGovernanceSchema.parse({
@@ -2184,6 +2283,14 @@ const createLivePostsProvider = (
         reports,
         auditRecords
       ),
+      liked_post_count: interactions.filter(
+        (interaction) =>
+          interaction.actor_user_id === actor._id && interaction.liked
+      ).length,
+      favorited_post_count: interactions.filter(
+        (interaction) =>
+          interaction.actor_user_id === actor._id && interaction.favorited
+      ).length,
       unread_notification_count: 0
     } satisfies DiscoverMeGovernance);
   },
@@ -2403,6 +2510,64 @@ const createLivePostsProvider = (
     );
     const normalized = await Promise.all(
       ownedPosts.map((post) => normalizePostForRead(context, post, comments))
+    );
+
+    return paginate(normalized, input);
+  },
+  async listLiked(input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "read_mine");
+    const [posts, comments, interactions] = await Promise.all([
+      readPosts(context),
+      readComments(context),
+      readPostInteractions(context)
+    ]);
+    const likedPostIds = new Set(
+      interactions
+        .filter(
+          (interaction) =>
+            interaction.actor_user_id === actor._id && interaction.liked
+        )
+        .map((interaction) => interaction.post_id)
+    );
+    const likedPosts = posts.filter(
+      (post) =>
+        likedPostIds.has(post._id) &&
+        isLaunchVisiblePost(post) &&
+        (!input.communityId || post.community_id === input.communityId)
+    );
+    const normalized = await Promise.all(
+      likedPosts.map((post) => normalizePostForRead(context, post, comments))
+    );
+
+    return paginate(normalized, input);
+  },
+  async listFavorited(input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "read_mine");
+    const [posts, comments, interactions] = await Promise.all([
+      readPosts(context),
+      readComments(context),
+      readPostInteractions(context)
+    ]);
+    const favoritedPostIds = new Set(
+      interactions
+        .filter(
+          (interaction) =>
+            interaction.actor_user_id === actor._id && interaction.favorited
+        )
+        .map((interaction) => interaction.post_id)
+    );
+    const favoritedPosts = posts.filter(
+      (post) =>
+        favoritedPostIds.has(post._id) &&
+        isLaunchVisiblePost(post) &&
+        (!input.communityId || post.community_id === input.communityId)
+    );
+    const normalized = await Promise.all(
+      favoritedPosts.map((post) =>
+        normalizePostForRead(context, post, comments)
+      )
     );
 
     return paginate(normalized, input);
@@ -3574,11 +3739,14 @@ export const createCloudbaseProvider = (): ApiProvider => {
     return fallback;
   }
 
+  const auth = createLiveAuthProvider(liveContext, fallback.auth);
+
   return {
     ...fallback,
-    events: createLiveEventsProvider(liveContext, fallback.auth),
+    auth,
+    events: createLiveEventsProvider(liveContext, auth),
     places: createLivePlacesProvider(liveContext),
-    posts: createLivePostsProvider(liveContext, fallback.auth, fallback.posts),
+    posts: createLivePostsProvider(liveContext, auth, fallback.posts),
     files: createLiveFilesProvider(liveContext)
   };
 };

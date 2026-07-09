@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "assertions": {
+    "sourceRegistersNativeShare": true,
+    "sourceSplitsMpAndCopyFallback": true,
+    "shareHandlerDoesNotCopyClipboard": true,
+    "copyFallbackIsExplicitlyLabelled": true,
+    "mpBuildHasNativeShareButton": true,
+    "mpBuildRegistersShareHooks": true,
+    "mpBuildDoesNotCopyClipboardOnPlacesDetail": true
+  },
+  "failed": [],
+  "inspected": {
+    "source": "apps/mobile/src/pages/places/detail.vue",
+    "copy": "apps/mobile/src/pages/places/copy.ts",
+    "wxml": "apps/mobile/dist/build/mp-weixin/pages/places/detail.wxml",
+    "compiledJs": "apps/mobile/dist/build/mp-weixin/pages/places/detail.js"
+  }
+}

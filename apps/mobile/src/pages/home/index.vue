@@ -16,17 +16,32 @@ const announcements = ref<Array<any>>([]);
 const places = ref<Array<any>>([]);
 
 const load = async () => {
-  const [eventsResult, announcementsResult, placesResult] = await Promise.all([
+  const [eventsResult, announcementsResult, placesResult] =
+    await Promise.allSettled([
     mobileApi.events.list(),
     mobileApi.announcements.list(),
     mobileApi.places.list()
   ]);
 
-  events.value = (eventsResult.data.items as Event[])
-    .filter(isPublicEvent)
-    .slice(0, 2);
-  announcements.value = announcementsResult.data.items.slice(0, 2);
-  places.value = placesResult.data.items.slice(0, 2);
+  if (eventsResult.status === "fulfilled") {
+    events.value = (eventsResult.value.data.items as Event[])
+      .filter(isPublicEvent)
+      .slice(0, 2);
+  } else {
+    events.value = [];
+  }
+
+  if (announcementsResult.status === "fulfilled") {
+    announcements.value = announcementsResult.value.data.items.slice(0, 2);
+  } else {
+    announcements.value = [];
+  }
+
+  if (placesResult.status === "fulfilled") {
+    places.value = placesResult.value.data.items.slice(0, 2);
+  } else {
+    places.value = [];
+  }
 };
 
 const open = (url: string) => {

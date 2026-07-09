@@ -1,23 +1,36 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import { useRoute, useRouter } from "vue-router";
+import { ApiClientError } from "@community-map/shared";
 
 import { adminApi } from "@/api/client";
+import { adminAuthToken } from "@/api/auth-token";
 
 const router = useRouter();
+const route = useRoute();
 const loading = ref(false);
 const session = ref<string>("");
 const form = reactive({
-  mock_user_id: "user_001",
-  preferred_language: "zh" as "zh" | "en"
+  username: "",
+  password: ""
 });
 
 const submit = async () => {
   loading.value = true;
   try {
-    const result = await adminApi.auth.login(form);
+    const result = await adminApi.auth.adminLogin(form);
+    adminAuthToken.set(result.data.token);
     session.value = `${result.data.user.nickname} / ${result.data.user.role_flags.join(", ")}`;
-    router.push("/events");
+    const redirect =
+      typeof route.query.redirect === "string" ? route.query.redirect : "/events";
+    router.push(redirect);
+  } catch (error) {
+    const message =
+      error instanceof ApiClientError
+        ? error.message
+        : "登录失败，请稍后重试。";
+    ElMessage.error(message);
   } finally {
     loading.value = false;
   }
@@ -26,20 +39,23 @@ const submit = async () => {
 
 <template>
   <div
-    style="min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, #dbeafe, #f8fafc 55%, #dcfce7)"
+    style="min-height: 100vh; display: grid; place-items: center; background: #f3f4f6"
   >
     <div class="page-card" style="width: 420px">
-      <h2 style="margin-top: 0">后台登录占位</h2>
-      <p style="color: #6b7280">Phase 1 使用 mock 登录，固定后续鉴权接口位置。</p>
+      <h2 style="margin-top: 0">后台登录</h2>
+      <p style="color: #6b7280">使用管理员账号进入桐梓林轻后台。</p>
       <el-form label-position="top">
-        <el-form-item label="Mock 用户 ID">
-          <el-input v-model="form.mock_user_id" />
+        <el-form-item label="用户名">
+          <el-input v-model="form.username" autocomplete="username" />
         </el-form-item>
-        <el-form-item label="语言">
-          <el-select v-model="form.preferred_language" style="width: 100%">
-            <el-option label="中文" value="zh" />
-            <el-option label="English" value="en" />
-          </el-select>
+        <el-form-item label="密码">
+          <el-input
+            v-model="form.password"
+            type="password"
+            autocomplete="current-password"
+            show-password
+            @keyup.enter="submit"
+          />
         </el-form-item>
       </el-form>
       <el-button type="primary" :loading="loading" @click="submit">进入后台</el-button>

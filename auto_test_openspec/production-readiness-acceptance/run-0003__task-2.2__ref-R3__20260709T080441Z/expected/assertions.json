@@ -1,0 +1,20 @@
+{
+  "required": [
+    "identity_document_exists",
+    "identity_document_classifies_local_mock_header",
+    "identity_document_classifies_cloudbase_dev_acceptance",
+    "identity_document_declares_public_launch_blocker",
+    "api_guide_links_identity_classification",
+    "target_declares_actor_header_classification",
+    "admin_actor_can_access_admin_endpoint",
+    "member_actor_is_forbidden_from_admin_endpoint",
+    "no_header_admin_behavior_is_classified"
+  ],
+  "requiredDocSnippets": [
+    "CloudBase dev production-like smoke",
+    "x-mock-user-id",
+    "Allowed only for production-like dev acceptance evidence",
+    "Public launch remains blocked",
+    "CloudBase Auth / WeChat identity"
+  ]
+}

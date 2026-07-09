@@ -1,0 +1,10 @@
+{
+  "apiBaseUrl": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+  "cloudbaseEnvId": "cloud1-d7gxdk8t43bd639c0",
+  "cloudFunctionName": "community-map-api",
+  "actors": {
+    "admin": "user_001",
+    "member": "user_002"
+  },
+  "authClassification": "CloudBase dev acceptance uses documented x-mock-user-id actors; public launch auth remains classified separately by task 2.2."
+}

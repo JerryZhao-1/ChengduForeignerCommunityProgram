@@ -45,7 +45,9 @@
 | 方法   | 路径          | 用途                   | 路由文件                      | 契约文件                                | 业务实现                                              |
 | ------ | ------------- | ---------------------- | ----------------------------- | --------------------------------------- | ----------------------------------------------------- |
 | `POST` | `/auth/login` | 模拟登录并返回会话信息 | `apps/api/src/routes/auth.ts` | `packages/shared/src/contracts/auth.ts` | `packages/shared/src/mock/service.ts` 中 `auth.login` |
+| `POST` | `/auth/admin/login` | Admin 用户名密码登录并返回 Bearer token | `apps/api/src/routes/auth.ts` | `packages/shared/src/contracts/auth.ts` | `apps/api/src/lib/admin-auth.ts` |
 | `GET`  | `/auth/me`    | 获取当前用户会话信息   | `apps/api/src/routes/auth.ts` | `packages/shared/src/contracts/auth.ts` | `packages/shared/src/mock/service.ts` 中 `auth.me`    |
+| `POST` | `/auth/wechat-miniapp/session` | 小程序 CloudBase function 模式下按 WeChat identity 创建/刷新站内用户 session | `apps/api/src/routes/auth.ts` | `packages/shared/src/contracts/auth.ts` | CloudBase live provider 读取 `x-wx-openid` / `x-wx-appid` 并 upsert `users` |
 
 ### 4.2 活动 Events
 
@@ -86,6 +88,8 @@ Events public reads 只返回 `review_status="approved"` 且 `publish_status="pu
 | `POST` | `/discover/tags`                                     | 用户创建 active 标签 | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.createTag`            |
 | `POST` | `/discover/posts`                                    | 创建帖子             | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.create`               |
 | `GET`  | `/discover/me/posts`                                 | 获取我的帖子         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listMine`             |
+| `GET`  | `/discover/me/liked-posts`                           | 获取我的点赞帖子     | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listLiked`            |
+| `GET`  | `/discover/me/favorited-posts`                       | 获取我的收藏帖子     | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listFavorited`        |
 | `GET`  | `/discover/me/comments`                              | 获取我的评论         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listMyComments`       |
 | `GET`  | `/discover/me/comments/:id`                          | 获取我的评论详情     | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.detailMyComment`      |
 | `GET`  | `/discover/me/reports`                               | 获取我的举报         | `apps/api/src/routes/discover.ts` | `packages/shared/src/contracts/discover.ts` | `packages/shared/src/mock/service.ts` 中 `posts.listMyReportCases`    |

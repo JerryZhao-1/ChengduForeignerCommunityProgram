@@ -1,0 +1,37 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/events/event_091aff2d-75eb-4c43-b0d9-22df7fef6385/review",
+    "actor": "declared-dev-actor"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "_id": "event_091aff2d-75eb-4c43-b0d9-22df7fef6385",
+      "community_id": "tongzilin",
+      "title_zh": "活动验收核销 20260709081457",
+      "title_en": "Events acceptance check-in 20260709081457",
+      "summary_zh": "用于生产验收的活动报名和核销链路。",
+      "summary_en": "Production acceptance registration and check-in flow.",
+      "content_zh": "验证活动详情、报名、票券、核销和重复核销反馈。",
+      "content_en": "Validates detail, registration, ticket, check-in, and repeated check-in feedback.",
+      "cover_file_id": null,
+      "cover_cloud_path": null,
+      "cover_url": "https://example.com/public/events/placeholder/cover.jpg",
+      "address_text": "Tongzilin Community Center",
+      "location": {
+        "latitude": 30.618887,
+        "longitude": 104.065468
+      },
+      "start_time": "2027-06-01T10:00:00+08:00",
+      "end_time": "2027-06-01T12:00:00+08:00",
+      "signup_deadline": "2027-05-31T18:00:00+08:00",
+      "capacity": 20,
+      "organizer_user_id": "user_001",
+      "review_status": "approved",
+      "publish_status": "published"
+    },
+    "requestId": "d5366585-624b-4b1e-aadd-1c033363f425"
+  }
+}

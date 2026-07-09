@@ -363,6 +363,86 @@ describe("cloudbase event handler", () => {
     expect(placesBody.data.items).toHaveLength(1);
   });
 
+  it("routes discover interactions through the cloudbase compatibility handler", async () => {
+    const like = await main(
+      { liked: true },
+      {
+        eventID: "req_api_discover_like",
+        httpContext: {
+          url: "http://localhost/api/discover/posts/post_001/like",
+          httpMethod: "POST",
+          headers: {
+            "x-mock-user-id": "user_002"
+          }
+        }
+      } as any
+    );
+    const likeBody = like.body as any;
+
+    expect(like.statusCode).toBe(200);
+    expect(likeBody.success).toBe(true);
+    expect(likeBody.data).toMatchObject({
+      post_id: "post_001",
+      actor_user_id: "user_002",
+      liked: true
+    });
+
+    const favorite = await main(
+      { favorited: true },
+      {
+        eventID: "req_api_discover_favorite",
+        httpContext: {
+          url: "http://localhost/api/discover/posts/post_001/favorite",
+          httpMethod: "POST",
+          headers: {
+            "x-mock-user-id": "user_002"
+          }
+        }
+      } as any
+    );
+
+    expect(favorite.statusCode).toBe(200);
+
+    const share = await main(
+      { channel: "copy_link" },
+      {
+        eventID: "req_api_discover_share",
+        httpContext: {
+          url: "http://localhost/api/discover/posts/post_001/share",
+          httpMethod: "POST",
+          headers: {
+            "x-mock-user-id": "user_002"
+          }
+        }
+      } as any
+    );
+
+    expect(share.statusCode).toBe(200);
+
+    const interaction = await main(
+      {},
+      {
+        eventID: "req_api_discover_interaction",
+        httpContext: {
+          url: "http://localhost/api/discover/posts/post_001/interaction",
+          httpMethod: "GET",
+          headers: {
+            "x-mock-user-id": "user_002"
+          }
+        }
+      } as any
+    );
+    const interactionBody = interaction.body as any;
+
+    expect(interaction.statusCode).toBe(200);
+    expect(interactionBody.data).toMatchObject({
+      post_id: "post_001",
+      actor_user_id: "user_002",
+      liked: true,
+      favorited: true
+    });
+  });
+
   it("keeps places query semantics aligned between mock and cloudbase providers", async () => {
     const mockProvider = createMockProvider();
     const cloudbaseProvider = createCloudbaseProvider();
@@ -1046,6 +1126,7 @@ describe("cloudbase event handler", () => {
       }))
     });
     const collections = {
+      users: createCollection(dataset.users),
       posts: createCollection(livePosts),
       comments: createCollection(liveComments),
       file_assets: createCollection(liveFileAssets),
@@ -1228,7 +1309,7 @@ describe("cloudbase event handler", () => {
       }))
     });
     const collections = {
-      users: createCollection([]),
+      users: createCollection(dataset.users),
       posts: createCollection(livePosts),
       comments: createCollection(liveComments),
       discover_post_interactions: createCollection(liveInteractions),
@@ -1331,6 +1412,48 @@ describe("cloudbase event handler", () => {
         liked: true,
         favorited: true
       });
+
+      await provider.posts.setLike(livePost._id, { liked: false }, "user_002");
+      await provider.posts.setFavorite(
+        livePost._id,
+        { favorited: false },
+        "user_002"
+      );
+      const beforeConcurrent = await provider.posts.interaction(
+        livePost._id,
+        "user_002"
+      );
+      await Promise.all([
+        provider.posts.setLike(livePost._id, { liked: true }, "user_002"),
+        provider.posts.setFavorite(
+          livePost._id,
+          { favorited: true },
+          "user_002"
+        ),
+        provider.posts.recordShare(
+          livePost._id,
+          { channel: "copy_link" },
+          "user_002"
+        )
+      ]);
+      const afterConcurrent = await provider.posts.interaction(
+        livePost._id,
+        "user_002"
+      );
+
+      expect(afterConcurrent).toMatchObject({
+        liked: true,
+        favorited: true
+      });
+      expect(afterConcurrent.like_count).toBe(
+        beforeConcurrent.like_count + 1
+      );
+      expect(afterConcurrent.favorite_count).toBe(
+        beforeConcurrent.favorite_count + 1
+      );
+      expect(afterConcurrent.share_count).toBe(
+        beforeConcurrent.share_count + 1
+      );
 
       const ops = await provider.posts.updateOps(
         livePost._id,
@@ -1455,6 +1578,7 @@ describe("cloudbase event handler", () => {
       }))
     });
     const collections = {
+      users: createCollection(dataset.users),
       posts: createCollection(livePosts),
       comments: createCollection(liveComments),
       file_assets: createCollection([]),

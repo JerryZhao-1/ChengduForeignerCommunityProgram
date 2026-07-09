@@ -7,6 +7,8 @@ import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import { appCopy } from "@/i18n/copy";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
+import DetailActionBar from "./DetailActionBar.vue";
+import DetailContent from "./DetailContent.vue";
 import { getDiscoverEnforcementMessage } from "./enforcement-error";
 import { normalizePostMedia } from "./media";
 
@@ -37,6 +39,8 @@ const statusBarHeight = ref(0);
 const keyboardHeight = ref(0);
 const mediaIndex = ref(0);
 const isFollowing = ref(false);
+const isAuthorSelf = ref(true);
+const isUpdatingFollow = ref(false);
 const postLiked = ref(false);
 const postLikeCount = ref(0);
 const postFavorited = ref(false);
@@ -44,9 +48,7 @@ const postFavoriteCount = ref(0);
 const postShareCount = ref(0);
 const isUpdatingPostInteraction = ref(false);
 const showShare = ref(false);
-
-const forwardIcon =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxZjI5MzciIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTMgNWw4IDYtOCA2Ii8+PHBhdGggZD0iTTIxIDExYy05IDAtMTUgMi0xNyA4Ii8+PC9zdmc+";
+const capsuleSafeRight = ref(0);
 
 const comments = ref<CommentItem[]>([]);
 
@@ -76,8 +78,31 @@ const eventAssociationTitle = computed(() =>
       )
     : ""
 );
+const placeAssociation = computed(() =>
+  associatedPlace.value
+    ? {
+        title: placeAssociationTitle.value,
+        meta: pickLocalized(
+          state.locale,
+          associatedPlace.value.address_zh,
+          associatedPlace.value.address_en
+        ),
+        coverUrl: associatedPlace.value.cover_url ?? ""
+      }
+    : null
+);
+const eventAssociation = computed(() =>
+  associatedEvent.value
+    ? {
+        title: eventAssociationTitle.value,
+        meta: associatedEvent.value.address_text,
+        coverUrl: associatedEvent.value.cover_url ?? ""
+      }
+    : null
+);
 const customNavStyle = computed(() => ({
-  paddingTop: `${statusBarHeight.value}px`
+  paddingTop: `${statusBarHeight.value}px`,
+  "--nav-capsule-safe-right": `${capsuleSafeRight.value}px`
 }));
 const author = computed(() => {
   if (!post.value) {
@@ -89,6 +114,20 @@ const author = computed(() => {
     avatarUrl: post.value.author_display.avatar_url ?? ""
   };
 });
+
+const loadAuthorProfile = async (authorUserId: string) => {
+  isFollowing.value = false;
+  isAuthorSelf.value = true;
+
+  try {
+    const result = await mobileApi.discover.profile(authorUserId);
+    isFollowing.value = result.data.followed_by_actor;
+    isAuthorSelf.value = result.data.is_self;
+  } catch {
+    isFollowing.value = false;
+    isAuthorSelf.value = true;
+  }
+};
 
 const formatTime = (value: string) => {
   const date = new Date(value);
@@ -179,6 +218,7 @@ const loadPost = async (id: string) => {
     postLikeCount.value = result.data.like_count;
     postFavoriteCount.value = result.data.favorite_count;
     postShareCount.value = result.data.share_count;
+    await loadAuthorProfile(result.data.author_user_id);
     await loadPostInteraction(id);
     await loadAssociations(result.data);
     await loadComments(id);
@@ -187,6 +227,8 @@ const loadPost = async (id: string) => {
     comments.value = [];
     associatedPlace.value = null;
     associatedEvent.value = null;
+    isFollowing.value = false;
+    isAuthorSelf.value = true;
     errorMessage.value = copy.value.detailError;
   } finally {
     isLoading.value = false;
@@ -194,7 +236,16 @@ const loadPost = async (id: string) => {
 };
 
 onLoad((query) => {
-  statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight ?? 0;
+  const systemInfo = uni.getSystemInfoSync();
+  statusBarHeight.value = systemInfo.statusBarHeight ?? 0;
+  const miniProgramUni = uni as unknown as {
+    getMenuButtonBoundingClientRect?: () => { left: number };
+  };
+  const menuButtonRect = miniProgramUni.getMenuButtonBoundingClientRect?.();
+  capsuleSafeRight.value =
+    menuButtonRect && systemInfo.windowWidth
+      ? Math.max(systemInfo.windowWidth - menuButtonRect.left + 8, 0)
+      : 0;
   const id = String(query?.id ?? "");
   if (!id) {
     errorMessage.value = copy.value.detailMissing;
@@ -282,12 +333,29 @@ const openCommentActions = () => {
   });
 };
 
-const toggleFollow = () => {
-  isFollowing.value = !isFollowing.value;
-  uni.showToast({
-    title: isFollowing.value ? copy.value.followDone : copy.value.unfollowDone,
-    icon: "none"
-  });
+const toggleFollow = async () => {
+  if (!post.value || isAuthorSelf.value || isUpdatingFollow.value) {
+    return;
+  }
+
+  isUpdatingFollow.value = true;
+  try {
+    const result = await mobileApi.discover.setProfileFollow(
+      post.value.author_user_id,
+      {
+        following: !isFollowing.value
+      }
+    );
+    isFollowing.value = result.data.following;
+    uni.showToast({
+      title: isFollowing.value ? copy.value.followDone : copy.value.unfollowDone,
+      icon: "none"
+    });
+  } catch {
+    uni.showToast({ title: copy.value.followError, icon: "none" });
+  } finally {
+    isUpdatingFollow.value = false;
+  }
 };
 
 const openProfile = (userId?: string) => {
@@ -363,7 +431,7 @@ const shareTitle = computed(
 );
 
 const openShare = () => {
-  showShare.value = true;
+  copyShareLink();
 };
 
 const closeShare = () => {
@@ -387,17 +455,6 @@ const recordPostShare = async (
   }
 };
 
-const onShareTapped = () => {
-  void recordPostShare("wechat");
-  closeShare();
-};
-
-const shareToMoments = () => {
-  uni.showToast({ title: copy.value.shareMomentsHint, icon: "none" });
-  void recordPostShare("moments");
-  closeShare();
-};
-
 const copyShareLink = () => {
   uni.setClipboardData({
     data: sharePath.value,
@@ -409,15 +466,21 @@ const copyShareLink = () => {
   closeShare();
 };
 
-onShareAppMessage(() => ({
-  title: shareTitle.value,
-  path: sharePath.value
-}));
+onShareAppMessage(() => {
+  void recordPostShare("wechat");
+  return {
+    title: shareTitle.value,
+    path: sharePath.value
+  };
+});
 
-onShareTimeline(() => ({
-  title: shareTitle.value,
-  query: `id=${postId.value}`
-}));
+onShareTimeline(() => {
+  void recordPostShare("moments");
+  return {
+    title: shareTitle.value,
+    query: `id=${postId.value}`
+  };
+});
 
 const openReport = () => {
   if (!post.value) {
@@ -469,14 +532,6 @@ const openActions = () => {
             <view class="nav-name">{{ author.name }}</view>
             <view class="nav-id">{{ post?.author_user_id }}</view>
           </view>
-          <button
-            class="nav-follow"
-            :class="{ following: isFollowing }"
-            @click.stop="toggleFollow"
-          >
-            {{ isFollowing ? copy.followingButton : copy.followButton }}
-          </button>
-          <view class="nav-spacer" />
         </template>
         <view v-else class="nav-placeholder">{{ copy.feedTitle }}</view>
       </view>
@@ -494,268 +549,61 @@ const openActions = () => {
         :text="errorMessage"
       />
 
-      <template v-else-if="post">
-        <view v-if="postMedia.length" class="gallery">
-          <swiper
-            class="media-swiper"
-            :current="mediaIndex"
-            :circular="false"
-            @change="onMediaChange"
-          >
-            <swiper-item
-              v-for="media in postMedia"
-              :key="media.url"
-              class="media-slide"
-            >
-              <image
-                v-if="media.kind === 'image'"
-                class="slide-image"
-                :src="media.url"
-                mode="aspectFill"
-              />
-              <video
-                v-else
-                class="slide-video"
-                :src="media.url"
-                controls
-                :autoplay="false"
-                :show-center-play-btn="true"
-                :enable-progress-gesture="true"
-              />
-            </swiper-item>
-          </swiper>
-          <view v-if="postMedia.length > 1" class="media-dots">
-            <view
-              v-for="(media, idx) in postMedia"
-              :key="media.url"
-              class="media-dot"
-              :class="{ active: idx === mediaIndex }"
-            />
-          </view>
-        </view>
-
-        <view class="article-header">
-          <view class="article-title-row">
-            <view class="article-title">{{ post.title }}</view>
-            <view
-              class="more-button"
-              :aria-label="copy.moreActionsLabel"
-              @click.stop="openActions"
-            >
-              <text class="more-dots">⋯</text>
-            </view>
-          </view>
-          <view class="article-meta">
-            <text>{{ getLanguageLabel(post.language) }}</text>
-            <text>{{ post.created_at.slice(0, 10) }}</text>
-            <text>{{ post.location_text || copy.locationFallback }}</text>
-            <text>{{ post.review_status }}</text>
-          </view>
-        </view>
-
-        <view class="content">{{ post.content }}</view>
-
-        <view
-          v-if="
-            associatedPlace ||
-            associatedEvent ||
-            hasUnavailablePlace ||
-            hasUnavailableEvent
-          "
-          class="association-list"
-        >
-          <view
-            v-if="associatedPlace"
-            class="association-card"
-            @click="openAssociatedPlace"
-          >
-            <image
-              v-if="associatedPlace.cover_url"
-              class="association-cover"
-              :src="associatedPlace.cover_url"
-              mode="aspectFill"
-            />
-            <view class="association-main">
-              <view class="association-label">{{
-                copy.placeAssociationLabel
-              }}</view>
-              <view class="association-title">{{ placeAssociationTitle }}</view>
-              <view class="association-meta">{{
-                pickLocalized(
-                  state.locale,
-                  associatedPlace.address_zh,
-                  associatedPlace.address_en
-                )
-              }}</view>
-            </view>
-          </view>
-          <view
-            v-else-if="hasUnavailablePlace"
-            class="association-unavailable"
-          >
-            {{ copy.placeAssociationUnavailable }}
-          </view>
-
-          <view
-            v-if="associatedEvent"
-            class="association-card"
-            @click="openAssociatedEvent"
-          >
-            <image
-              v-if="associatedEvent.cover_url"
-              class="association-cover"
-              :src="associatedEvent.cover_url"
-              mode="aspectFill"
-            />
-            <view class="association-main">
-              <view class="association-label">{{
-                copy.eventAssociationLabel
-              }}</view>
-              <view class="association-title">{{ eventAssociationTitle }}</view>
-              <view class="association-meta">{{
-                associatedEvent.address_text
-              }}</view>
-            </view>
-          </view>
-          <view
-            v-else-if="hasUnavailableEvent"
-            class="association-unavailable"
-          >
-            {{ copy.eventAssociationUnavailable }}
-          </view>
-        </view>
-
-        <view v-if="post.tag_ids.length" class="tags">
-          <text v-for="tag in post.tag_ids" :key="tag" class="tag"
-            >#{{ tag }}</text
-          >
-        </view>
-
-        <view class="comment-box">
-          <view class="comment-heading">
-            <view class="comment-title">
-              {{ copy.commentSectionTitle }} {{ commentCount }}
-            </view>
-            <view class="comment-hint">{{ copy.commentSectionHint }}</view>
-          </view>
-
-          <view class="comment-list">
-            <view
-              v-for="comment in comments"
-              :key="comment.id"
-              class="comment-item"
-            >
-              <image
-                v-if="comment.avatarUrl"
-                class="comment-avatar"
-                :src="comment.avatarUrl"
-                mode="aspectFill"
-                @click.stop="openProfile(comment.authorId)"
-              />
-              <view
-                v-else
-                class="comment-avatar fallback"
-                @click.stop="openProfile(comment.authorId)"
-              >
-                {{ comment.authorName.slice(0, 1).toUpperCase() }}
-              </view>
-              <view class="comment-main">
-                <view
-                  class="comment-name"
-                  @click.stop="openProfile(comment.authorId)"
-                >
-                  {{ comment.authorName }}
-                </view>
-                <view class="comment-text">{{ comment.content }}</view>
-                <view class="comment-time">{{ comment.time }}</view>
-              </view>
-              <view class="comment-actions">
-                <view
-                  class="like-button"
-                  :class="{ liked: comment.liked }"
-                  @click.stop="toggleLike(comment)"
-                >
-                  <text class="like-icon">{{ comment.liked ? "♥" : "♡" }}</text>
-                  <text class="like-count">{{ comment.likeCount }}</text>
-                </view>
-                <view
-                  class="comment-more"
-                  :aria-label="copy.moreActionsLabel"
-                  @click.stop="openCommentActions"
-                >
-                  <text class="more-dots">⋯</text>
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-      </template>
+      <DetailContent
+        v-else-if="post && author"
+        :post="post"
+        :author-name="author.name"
+        :author-avatar-url="author.avatarUrl"
+        :author-initial="author.name.slice(0, 1).toUpperCase()"
+        :is-author-self="isAuthorSelf"
+        :is-following="isFollowing"
+        :is-updating-follow="isUpdatingFollow"
+        :media="postMedia"
+        :media-index="mediaIndex"
+        :language-label="getLanguageLabel(post.language)"
+        :location-label="post.location_text || copy.locationFallback"
+        :place-association="placeAssociation"
+        :event-association="eventAssociation"
+        :has-unavailable-place="hasUnavailablePlace"
+        :has-unavailable-event="hasUnavailableEvent"
+        :place-association-label="copy.placeAssociationLabel"
+        :event-association-label="copy.eventAssociationLabel"
+        :place-association-unavailable="copy.placeAssociationUnavailable"
+        :event-association-unavailable="copy.eventAssociationUnavailable"
+        :comments="comments"
+        :comment-count="commentCount"
+        :follow-button="copy.followButton"
+        :following-button="copy.followingButton"
+        :more-actions-label="copy.moreActionsLabel"
+        :comment-section-title="copy.commentSectionTitle"
+        :comment-section-hint="copy.commentSectionHint"
+        @open-author="openAuthorProfile"
+        @toggle-follow="toggleFollow"
+        @media-change="onMediaChange"
+        @open-actions="openActions"
+        @open-associated-place="openAssociatedPlace"
+        @open-associated-event="openAssociatedEvent"
+        @open-profile="openProfile"
+        @toggle-comment-like="toggleLike"
+        @open-comment-actions="openCommentActions"
+      />
     </view>
 
-    <view
+    <DetailActionBar
       v-if="post"
-      class="comment-bar"
-      :style="{ transform: `translateY(-${keyboardHeight}px)` }"
-    >
-      <view class="comment-bar-field">
-        <text class="comment-pencil">✎</text>
-        <input
-          v-model="commentValue"
-          class="comment-bar-input"
-          :placeholder="copy.commentBarPlaceholder"
-          confirm-type="send"
-          :adjust-position="false"
-          :cursor-spacing="16"
-          @keyboardheightchange="onKeyboardHeightChange"
-          @confirm="submitComment"
-        />
-      </view>
-      <view class="bar-actions">
-        <view
-          class="bar-action"
-          :class="{ liked: postLiked }"
-          @click="togglePostLike"
-        >
-          <text class="bar-icon">{{ postLiked ? "♥" : "♡" }}</text>
-          <text class="bar-count">{{ postLikeCount }}</text>
-        </view>
-        <view
-          class="bar-action"
-          :class="{ favorited: postFavorited }"
-          @click="togglePostFavorite"
-        >
-          <text class="bar-icon">{{ postFavorited ? "★" : "☆" }}</text>
-          <text class="bar-count">{{ postFavoriteCount }}</text>
-        </view>
-        <view class="bar-action" @click="openShare">
-          <image class="bar-icon-img" :src="forwardIcon" mode="aspectFit" />
-          <text class="bar-count">{{ postShareCount }}</text>
-        </view>
-      </view>
-    </view>
-
-    <view v-if="showShare" class="share-mask" @click="closeShare">
-      <view class="share-sheet" @click.stop>
-        <view class="share-title">{{ copy.shareSheetTitle }}</view>
-        <view class="share-options">
-          <button class="share-option" open-type="share" @click="onShareTapped">
-            <view class="share-icon wechat">💬</view>
-            <text class="share-label">{{ copy.shareToFriend }}</text>
-          </button>
-          <view class="share-option" @click="shareToMoments">
-            <view class="share-icon moments">🌐</view>
-            <text class="share-label">{{ copy.shareToMoments }}</text>
-          </view>
-          <view class="share-option" @click="copyShareLink">
-            <view class="share-icon link">🔗</view>
-            <text class="share-label">{{ copy.shareCopyLink }}</text>
-          </view>
-        </view>
-        <view class="share-cancel" @click="closeShare">{{
-          copy.shareCancel
-        }}</view>
-      </view>
-    </view>
+      v-model="commentValue"
+      :placeholder="copy.commentBarPlaceholder"
+      :liked="postLiked"
+      :like-count="postLikeCount"
+      :favorited="postFavorited"
+      :favorite-count="postFavoriteCount"
+      :share-count="postShareCount"
+      @keyboard-height-change="onKeyboardHeightChange"
+      @submit="submitComment"
+      @toggle-like="togglePostLike"
+      @toggle-favorite="togglePostFavorite"
+      @open-share="openShare"
+    />
   </view>
 </template>
 
@@ -779,7 +627,7 @@ const openActions = () => {
   align-items: center;
   gap: 16rpx;
   min-height: 96rpx;
-  padding: 0 24rpx;
+  padding: 0 calc(24rpx + var(--nav-capsule-safe-right, 0px)) 0 24rpx;
 }
 
 .nav-back {
@@ -812,11 +660,6 @@ const openActions = () => {
   min-width: 0;
 }
 
-.nav-spacer {
-  flex: 1;
-  min-width: 0;
-}
-
 .nav-name {
   overflow: hidden;
   color: #111827;
@@ -834,10 +677,72 @@ const openActions = () => {
   font-size: 22rpx;
 }
 
-.nav-follow {
+.detail-card {
+  margin: 24rpx;
+  padding: 28rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 16rpx;
+  background: #ffffff;
+}
+
+.detail-author-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-bottom: 22rpx;
+}
+
+.detail-author-main {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 14rpx;
+}
+
+.detail-author-avatar {
+  flex-shrink: 0;
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #e2e8f0;
+}
+
+.detail-author-avatar.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.detail-author-text {
+  min-width: 0;
+}
+
+.detail-author-name {
+  overflow: hidden;
+  color: #111827;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-author-id {
+  overflow: hidden;
+  margin-top: 4rpx;
+  color: #64748b;
+  font-size: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-follow {
   flex-shrink: 0;
   margin: 0;
-  padding: 0 28rpx;
+  padding: 0 26rpx;
   min-height: 56rpx;
   line-height: 56rpx;
   border-radius: 999rpx;
@@ -846,17 +751,9 @@ const openActions = () => {
   font-size: 26rpx;
 }
 
-.nav-follow.following {
+.detail-follow.following {
   background: #f3f4f6;
   color: #6b7280;
-}
-
-.detail-card {
-  margin: 24rpx;
-  padding: 28rpx;
-  border: 1rpx solid #e5e7eb;
-  border-radius: 16rpx;
-  background: #ffffff;
 }
 
 .gallery {

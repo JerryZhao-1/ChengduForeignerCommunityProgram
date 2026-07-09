@@ -113,6 +113,12 @@
       }
     },
     {
+      "path": "pages/more/my-likes",
+      "style": {
+        "navigationBarTitleText": "我的点赞"
+      }
+    },
+    {
       "path": "pages/more/my-posts",
       "style": {
         "navigationBarTitleText": "我的帖子"

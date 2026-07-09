@@ -89,13 +89,13 @@ describe("launch-readiness shared mock fixtures", () => {
       pageSize: 20
     });
     expect(posts.items.map((post) => post._id)).toEqual([
-      "post_001",
-      "post_002",
-      "post_003",
-      "post_004",
-      "post_005",
+      "post_007",
       "post_006",
-      "post_007"
+      "post_005",
+      "post_004",
+      "post_003",
+      "post_002",
+      "post_001"
     ]);
     expect(service.posts.detail("post_hidden")).toBeNull();
 

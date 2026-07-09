@@ -1,0 +1,8 @@
+{
+  "configPath": "apps/mobile/dist/build/mp-weixin/config/env.js",
+  "clientPath": "apps/mobile/dist/build/mp-weixin/api/client.js",
+  "apiBaseUrl": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+  "cloudbaseEnvId": "cloud1-d7gxdk8t43bd639c0",
+  "cloudFunctionName": "community-map-api",
+  "forbiddenMatches": []
+}

@@ -11,9 +11,14 @@ export const useAppStore = () => {
     state.locale = locale;
   };
 
+  const setUserId = (userId: string) => {
+    state.userId = userId;
+  };
+
   return {
     state: readonly(state),
-    setLocale
+    setLocale,
+    setUserId
   };
 };
 

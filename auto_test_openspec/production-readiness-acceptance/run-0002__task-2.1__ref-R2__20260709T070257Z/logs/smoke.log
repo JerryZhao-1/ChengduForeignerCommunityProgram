@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "created": {
+    "eventId": "event_71880296-417b-4efe-bf67-af924c4c7ec8",
+    "registrationId": "reg_80e5ef95-ad1e-45bb-b8c9-e0cad07a11dc",
+    "ticketId": "ticket_0c4452e8-eb40-440d-a47b-548882e8e69f",
+    "postId": "post_df0ef099-9858-4814-9795-0b36713a1b6c",
+    "commentId": "comment_ac9e386b-cb6d-4b5b-aedd-32036d67ef9b"
+  },
+  "assertions": [
+    "target_url_is_https",
+    "target_url_is_not_localhost_or_lan",
+    "cloudbase_gateway_domain_is_used",
+    "mini_program_build_has_cloudbase_target_config",
+    "mini_program_build_uses_cloudbase_function_requester",
+    "mini_program_build_has_no_local_api_endpoint",
+    "health_ok",
+    "places_public_reads_success_envelope",
+    "places_public_reads_success",
+    "admin_event_create_success_envelope",
+    "event_registration_success_envelope",
+    "events_registration_ticket_checkin_success",
+    "discover_post_create_success_envelope",
+    "discover_comment_create_success_envelope",
+    "discover_create_comment_interaction_report_success",
+    "admin_governance_smoke_success",
+    "expected_assertion_recorded:target_url_is_https",
+    "expected_assertion_recorded:target_url_is_not_localhost_or_lan",
+    "expected_assertion_recorded:cloudbase_gateway_domain_is_used",
+    "expected_assertion_recorded:mini_program_build_uses_cloudbase_function_requester",
+    "expected_assertion_recorded:mini_program_build_has_no_local_api_endpoint",
+    "expected_assertion_recorded:health_ok",
+    "expected_assertion_recorded:places_public_reads_success",
+    "expected_assertion_recorded:events_registration_ticket_checkin_success",
+    "expected_assertion_recorded:discover_create_comment_interaction_report_success",
+    "expected_assertion_recorded:admin_governance_smoke_success"
+  ]
+}

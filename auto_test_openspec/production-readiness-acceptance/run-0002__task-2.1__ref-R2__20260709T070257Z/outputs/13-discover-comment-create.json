@@ -1,0 +1,25 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/discover/posts/post_df0ef099-9858-4814-9795-0b36713a1b6c/comments",
+    "actor": "declared-dev-actor"
+  },
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "_id": "comment_ac9e386b-cb6d-4b5b-aedd-32036d67ef9b",
+      "post_id": "post_df0ef099-9858-4814-9795-0b36713a1b6c",
+      "author_user_id": "user_001",
+      "author_display": {
+        "nickname": "Jerry",
+        "avatar_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+      },
+      "content": "Acceptance smoke comment.",
+      "language": "en",
+      "status": "visible",
+      "created_at": "2026-07-09T08:03:23.978Z"
+    },
+    "requestId": "1f70b502-a087-440c-b9aa-f968af56c4d9"
+  }
+}

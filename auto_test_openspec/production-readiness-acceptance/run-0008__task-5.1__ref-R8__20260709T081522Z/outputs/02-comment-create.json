@@ -1,0 +1,25 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/discover/posts/post_752c80b2-fdc7-403e-bf8d-978b2748d7b5/comments",
+    "actor": "declared-dev-actor"
+  },
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "_id": "comment_5e9a0344-6b45-4447-b839-544675ae8328",
+      "post_id": "post_752c80b2-fdc7-403e-bf8d-978b2748d7b5",
+      "author_user_id": "user_001",
+      "author_display": {
+        "nickname": "Jerry",
+        "avatar_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+      },
+      "content": "Discover acceptance comment.",
+      "language": "en",
+      "status": "visible",
+      "created_at": "2026-07-09T08:17:30.499Z"
+    },
+    "requestId": "e92d8294-29f2-47d2-b364-e476c5f3d07f"
+  }
+}

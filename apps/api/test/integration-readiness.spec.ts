@@ -163,6 +163,8 @@ interface UserGovernance {
 }
 
 interface MeGovernance extends UserGovernance {
+  liked_post_count: number;
+  favorited_post_count: number;
   unread_notification_count: number;
 }
 
@@ -582,16 +584,18 @@ describe("discover integration readiness", () => {
       );
       expect(list.response.status).toBe(200);
       expect(list.body.data.items.map((post) => post._id)).toEqual([
-        "post_001",
-        "post_002",
-        "post_003",
-        "post_004",
-        "post_005",
+        "post_007",
         "post_006",
-        "post_007"
+        "post_005",
+        "post_004",
+        "post_003",
+        "post_002",
+        "post_001"
       ]);
       expect(list.body.data.items[0]).toHaveProperty("created_at");
-      expect(list.body.data.items[0]).toHaveProperty("comment_count", 1);
+      expect(
+        list.body.data.items.find((post) => post._id === "post_001")
+      ).toHaveProperty("comment_count", 1);
       expect(list.body.data.items[0]).toHaveProperty("author_display");
 
       const hidden = await request<ApiFailure>(
@@ -954,7 +958,7 @@ describe("discover integration readiness", () => {
           }
         }
       );
-      expect(create.response.status).toBe(201);
+      expect(create.response.status).toBe(200);
       expect(create.body.data.status).toBe("visible");
       expect(create.body.data.review_status).toBe("visible");
 
@@ -976,7 +980,7 @@ describe("discover integration readiness", () => {
           }
         }
       );
-      expect(associated.response.status).toBe(201);
+      expect(associated.response.status).toBe(200);
       expect(associated.body.data.place_id).toBe("place_002");
       expect(associated.body.data.event_id).toBe("event_001");
 
@@ -1499,7 +1503,7 @@ describe("discover integration readiness", () => {
           body: createPostBody("Warned can post")
         }
       );
-      expect(warnedPost.response.status).toBe(201);
+      expect(warnedPost.response.status).toBe(200);
 
       const warnedComment = await request<ApiSuccess<CommentItem>>(
         baseUrl,
@@ -1678,7 +1682,7 @@ describe("discover integration readiness", () => {
           body: createPostBody("Restored can post")
         }
       );
-      expect(restoredPost.response.status).toBe(201);
+      expect(restoredPost.response.status).toBe(200);
 
       const restoredAuthorPost = await request<ApiSuccess<PostItem>>(
         baseUrl,
@@ -1804,7 +1808,7 @@ describe("discover integration readiness", () => {
           }
         }
       );
-      expect(create.response.status).toBe(201);
+      expect(create.response.status).toBe(200);
       expect(create.body.data).toHaveProperty("image_file_ids", [fileId]);
       expect(create.body.data).toHaveProperty("image_urls");
     } finally {

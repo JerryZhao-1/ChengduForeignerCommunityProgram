@@ -1,0 +1,36 @@
+{
+  "created": {
+    "event_id": "event_091aff2d-75eb-4c43-b0d9-22df7fef6385",
+    "registration_id": "reg_6770dd6b-b401-44eb-a19e-a6072432fd74",
+    "ticket_id": "ticket_f9456b04-0476-49fc-a34a-3c848a820b3c"
+  },
+  "repeatCheckin": {
+    "status": 409,
+    "code": "CONFLICT",
+    "reason": "ticket_not_valid"
+  },
+  "assertions": [
+    "event_create_success_envelope",
+    "event_created",
+    "event_published",
+    "event_detail_success_envelope",
+    "event_detail_read",
+    "registration_success_envelope",
+    "registration_created",
+    "ticket_success_envelope",
+    "ticket_read",
+    "admin_registrations_success_envelope",
+    "admin_registration_list_read",
+    "checkin_success_envelope",
+    "checkin_success",
+    "repeat_checkin_conflict",
+    "expected_assertion_recorded:event_created",
+    "expected_assertion_recorded:event_published",
+    "expected_assertion_recorded:event_detail_read",
+    "expected_assertion_recorded:registration_created",
+    "expected_assertion_recorded:ticket_read",
+    "expected_assertion_recorded:admin_registration_list_read",
+    "expected_assertion_recorded:checkin_success",
+    "expected_assertion_recorded:repeat_checkin_conflict"
+  ]
+}

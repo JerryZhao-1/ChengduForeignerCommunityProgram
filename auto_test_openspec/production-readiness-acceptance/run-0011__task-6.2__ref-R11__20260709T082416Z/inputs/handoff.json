@@ -1,0 +1,16 @@
+{
+  "handoffDocument": "docs/production-acceptance-handoff-2026-07-09.md",
+  "evidenceRoot": "auto_test_openspec/production-readiness-acceptance",
+  "requiredRuns": [
+    "run-0001__task-1.1__ref-R1__20260709T065611Z",
+    "run-0002__task-2.1__ref-R2__20260709T070257Z",
+    "run-0003__task-2.2__ref-R3__20260709T080441Z",
+    "run-0004__task-3.1__ref-R4__20260709T080744Z",
+    "run-0005__task-3.2__ref-R5__20260709T080951Z",
+    "run-0006__task-3.3__ref-R6__20260709T081119Z",
+    "run-0007__task-4.1__ref-R7__20260709T081335Z",
+    "run-0008__task-5.1__ref-R8__20260709T081522Z",
+    "run-0009__task-5.2__ref-R9__20260709T081854Z",
+    "run-0010__task-6.1__ref-R10__20260709T082222Z"
+  ]
+}

@@ -138,6 +138,18 @@ export const discoverContracts = {
     request: MyPostListQuerySchema,
     response: PageResultSchema(PostSchema)
   }),
+  myLikedPosts: defineContract({
+    method: "GET",
+    path: "/discover/me/liked-posts",
+    request: MyPostListQuerySchema,
+    response: PageResultSchema(PostSchema)
+  }),
+  myFavoritedPosts: defineContract({
+    method: "GET",
+    path: "/discover/me/favorited-posts",
+    request: MyPostListQuerySchema,
+    response: PageResultSchema(PostSchema)
+  }),
   myComments: defineContract({
     method: "GET",
     path: "/discover/me/comments",

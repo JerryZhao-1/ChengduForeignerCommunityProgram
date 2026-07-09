@@ -1,0 +1,57 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/discover/reports?pageSize=20",
+    "actor": "declared-dev-actor"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "items": [
+        {
+          "_id": "report_b62d6edb-9772-4886-8277-6e9aa99205d3",
+          "community_id": "tongzilin",
+          "target_type": "post",
+          "target_id": "post_df0ef099-9858-4814-9795-0b36713a1b6c",
+          "post_id": "post_df0ef099-9858-4814-9795-0b36713a1b6c",
+          "comment_id": null,
+          "reporter_user_id": "user_001",
+          "reason": "spam-or-scam",
+          "description": "Production acceptance smoke report.",
+          "evidence_file_ids": [],
+          "evidence": [],
+          "status": "open",
+          "handler_user_id": null,
+          "resolution_note": null,
+          "created_at": "2026-07-09T08:03:25.193Z",
+          "updated_at": "2026-07-09T08:03:25.193Z",
+          "resolved_at": null
+        },
+        {
+          "_id": "report_71ed0d20-1060-4845-a261-429237e73858",
+          "community_id": "tongzilin",
+          "target_type": "post",
+          "target_id": "post_752c80b2-fdc7-403e-bf8d-978b2748d7b5",
+          "post_id": "post_752c80b2-fdc7-403e-bf8d-978b2748d7b5",
+          "comment_id": null,
+          "reporter_user_id": "user_001",
+          "reason": "spam-or-scam",
+          "description": "Production acceptance Discover report.",
+          "evidence_file_ids": [],
+          "evidence": [],
+          "status": "open",
+          "handler_user_id": null,
+          "resolution_note": null,
+          "created_at": "2026-07-09T08:17:32.208Z",
+          "updated_at": "2026-07-09T08:17:32.208Z",
+          "resolved_at": null
+        }
+      ],
+      "page": 1,
+      "pageSize": 20,
+      "total": 2
+    },
+    "requestId": "6b98d346-d441-49cc-ab2a-13a4039dc551"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "assertions": [
+    "post_created",
+    "initial_interaction_state_read",
+    "concurrent_like_favorite_share_completed",
+    "final_liked_preserved",
+    "final_favorited_preserved",
+    "final_share_count_incremented",
+    "expected_assertion_recorded:post_created",
+    "expected_assertion_recorded:initial_interaction_state_read",
+    "expected_assertion_recorded:concurrent_like_favorite_share_completed",
+    "expected_assertion_recorded:final_liked_preserved",
+    "expected_assertion_recorded:final_favorited_preserved",
+    "expected_assertion_recorded:final_share_count_incremented"
+  ]
+}

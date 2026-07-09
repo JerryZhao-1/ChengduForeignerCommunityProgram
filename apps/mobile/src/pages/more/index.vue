@@ -40,16 +40,14 @@ const unreadCount = computed(
   () => governance.value?.unread_notification_count ?? 0
 );
 
+const followerCount = computed(() => profile.value?.stats.follower_count ?? 0);
+const followingCount = computed(() => profile.value?.stats.following_count ?? 0);
+
 const quickLinks = computed(() => [
   {
     label: copy.value.profile,
     url: `/pages/more/profile?id=${state.userId}`,
     icon: "/static/icons/profile.svg"
-  },
-  {
-    label: copy.value.myPosts,
-    url: "/pages/more/my-posts",
-    icon: "/static/icons/posts.svg"
   },
   {
     label: copy.value.notifications,
@@ -62,9 +60,14 @@ const quickLinks = computed(() => [
     icon: "/static/icons/registrations.svg"
   },
   {
-    label: copy.value.favorites,
-    url: "/pages/more/my-favorites",
-    icon: "/static/icons/favorites.svg"
+    label: copy.value.comments,
+    url: "/pages/more/my-comments",
+    icon: "/static/icons/posts.svg"
+  },
+  {
+    label: copy.value.reports,
+    url: "/pages/more/my-reports",
+    icon: "/static/icons/posts.svg"
   },
   {
     label: copy.value.language,
@@ -135,19 +138,31 @@ onPullDownRefresh(loadGovernance);
       </view>
 
       <view class="profile">
-        <image
-          v-if="governance.user.avatar_url"
-          class="avatar"
-          :src="governance.user.avatar_url"
-          mode="aspectFill"
-        />
-        <view v-else class="avatar fallback">
-          {{ governance.user.nickname.slice(0, 1).toUpperCase() }}
+        <view class="profile-main">
+          <image
+            v-if="governance.user.avatar_url"
+            class="avatar"
+            :src="governance.user.avatar_url"
+            mode="aspectFill"
+          />
+          <view v-else class="avatar fallback">
+            {{ governance.user.nickname.slice(0, 1).toUpperCase() }}
+          </view>
+          <view class="identity">
+            <view class="name">{{ governance.user.nickname }}</view>
+            <view class="status">
+              {{ statusCopy[governance.enforcement.status] }}
+            </view>
+          </view>
         </view>
-        <view class="identity">
-          <view class="name">{{ governance.user.nickname }}</view>
-          <view class="status">
-            {{ statusCopy[governance.enforcement.status] }}
+        <view class="follow-stats">
+          <view class="follow-stat" @click="navigateToFollowList('followers')">
+            <view class="follow-value">{{ followerCount }}</view>
+            <view class="follow-label">{{ copy.followers }}</view>
+          </view>
+          <view class="follow-stat" @click="navigateToFollowList('following')">
+            <view class="follow-value">{{ followingCount }}</view>
+            <view class="follow-label">{{ copy.following }}</view>
           </view>
         </view>
       </view>
@@ -157,21 +172,13 @@ onPullDownRefresh(loadGovernance);
           <view class="stat-value">{{ governance.post_count }}</view>
           <view class="stat-label">{{ copy.posts }}</view>
         </view>
-        <view class="stat" @click="navigateTo('/pages/more/my-comments')">
-          <view class="stat-value">{{ governance.comment_count }}</view>
-          <view class="stat-label">{{ copy.comments }}</view>
+        <view class="stat" @click="navigateTo('/pages/more/my-likes')">
+          <view class="stat-value">{{ governance.liked_post_count }}</view>
+          <view class="stat-label">{{ copy.likes }}</view>
         </view>
-        <view class="stat" @click="navigateTo('/pages/more/my-reports')">
-          <view class="stat-value">{{ governance.report_count }}</view>
-          <view class="stat-label">{{ copy.reports }}</view>
-        </view>
-        <view class="stat" @click="navigateToFollowList('followers')">
-          <view class="stat-value">{{ profile?.stats.follower_count ?? 0 }}</view>
-          <view class="stat-label">{{ copy.followers }}</view>
-        </view>
-        <view class="stat" @click="navigateToFollowList('following')">
-          <view class="stat-value">{{ profile?.stats.following_count ?? 0 }}</view>
-          <view class="stat-label">{{ copy.following }}</view>
+        <view class="stat" @click="navigateTo('/pages/more/my-favorites')">
+          <view class="stat-value">{{ governance.favorited_post_count }}</view>
+          <view class="stat-label">{{ copy.favoritePosts }}</view>
         </view>
       </view>
 
@@ -193,16 +200,20 @@ onPullDownRefresh(loadGovernance);
 
 <style scoped>
 .page {
+  position: relative;
   min-height: 100vh;
   padding: 24rpx;
   background: #f8fafc;
 }
 
 .topbar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 72rpx;
   margin-bottom: 22rpx;
+  padding-right: 92rpx;
 }
 
 .page-title {
@@ -212,10 +223,13 @@ onPullDownRefresh(loadGovernance);
 }
 
 .bell {
-  position: relative;
+  position: absolute;
+  top: 0;
+  right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
   width: 72rpx;
   height: 72rpx;
   padding: 0;
@@ -295,11 +309,21 @@ onPullDownRefresh(loadGovernance);
 .profile {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 20rpx;
   padding: 24rpx;
 }
 
+.profile-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  gap: 20rpx;
+}
+
 .avatar {
+  flex-shrink: 0;
   width: 112rpx;
   height: 112rpx;
   border-radius: 50%;
@@ -316,6 +340,7 @@ onPullDownRefresh(loadGovernance);
 }
 
 .identity {
+  flex: 1;
   min-width: 0;
 }
 
@@ -339,9 +364,35 @@ onPullDownRefresh(loadGovernance);
   font-size: 22rpx;
 }
 
+.follow-stats {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 22rpx;
+  padding-left: 12rpx;
+}
+
+.follow-stat {
+  min-width: 74rpx;
+  text-align: center;
+}
+
+.follow-value {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.follow-label {
+  margin-top: 4rpx;
+  color: #6b7280;
+  font-size: 22rpx;
+}
+
 .stats {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   overflow: hidden;
 }
 

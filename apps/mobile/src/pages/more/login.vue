@@ -2,14 +2,21 @@
 import { ref } from "vue";
 
 import { mobileApi } from "@/api/client";
+import { mobileEnv } from "@/config/env";
+import { useAppStore } from "@/stores/app-store";
 
 const session = ref("");
+const { setUserId } = useAppStore();
 
 const login = async () => {
-  const result = await mobileApi.auth.login({
-    mock_user_id: "user_001",
-    preferred_language: "zh"
-  });
+  const result =
+    mobileEnv.apiMode === "cloudbase-function"
+      ? await mobileApi.auth.wechatMiniappSession({ preferred_language: "zh" })
+      : await mobileApi.auth.login({
+          mock_user_id: "user_001",
+          preferred_language: "zh"
+        });
+  setUserId(result.data.user._id);
   session.value = `${result.data.user.nickname} / ${result.data.token}`;
 };
 </script>

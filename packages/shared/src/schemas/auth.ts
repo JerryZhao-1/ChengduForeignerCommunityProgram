@@ -7,3 +7,12 @@ export const LoginRequestSchema = z.object({
   mock_user_id: z.string().optional(),
   preferred_language: LocaleSchema.optional()
 });
+
+export const AdminLoginRequestSchema = z.object({
+  username: z.string().trim().min(1),
+  password: z.string().min(1)
+});
+
+export const WechatMiniappSessionRequestSchema = z.object({
+  preferred_language: LocaleSchema.optional()
+});

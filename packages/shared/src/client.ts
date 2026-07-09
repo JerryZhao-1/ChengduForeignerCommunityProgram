@@ -19,6 +19,7 @@ export interface HttpRequester {
 export interface HttpClientOptions {
   baseUrl: string;
   actorId?: string;
+  getAuthToken?: () => string | undefined;
   requester: HttpRequester;
 }
 
@@ -141,18 +142,29 @@ export const createHttpClient = (
     method: RequestMethod,
     path: string,
     body?: RequestBody
-  ) =>
-    options.requester<TResponse>(
+  ) => {
+    const authToken = options.getAuthToken?.();
+    const headers = {
+      ...(options.actorId ? { "x-mock-user-id": options.actorId } : {}),
+      ...(authToken ? { authorization: `Bearer ${authToken}` } : {})
+    };
+
+    return options.requester<TResponse>(
       method,
       buildUrl(options.baseUrl, path),
       body,
-      options.actorId ? { "x-mock-user-id": options.actorId } : undefined
+      Object.keys(headers).length > 0 ? headers : undefined
     );
+  };
 
   return {
     auth: {
       login: (input) => request("POST", apiPaths.auth.login, input),
-      me: () => request("GET", apiPaths.auth.me)
+      adminLogin: (input) =>
+        request("POST", apiPaths.auth.adminLogin, input),
+      me: () => request("GET", apiPaths.auth.me),
+      wechatMiniappSession: (input = {}) =>
+        request("POST", apiPaths.auth.wechatMiniappSession, input)
     },
     events: {
       list: (query) => {
@@ -208,6 +220,14 @@ export const createHttpClient = (
       myPosts: (query) => {
         const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.discover.myPosts}${suffix}`);
+      },
+      myLikedPosts: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.discover.myLikedPosts}${suffix}`);
+      },
+      myFavoritedPosts: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.discover.myFavoritedPosts}${suffix}`);
       },
       myComments: (query) => {
         const suffix = buildQuerySuffix(query);

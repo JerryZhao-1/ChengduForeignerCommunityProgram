@@ -1,0 +1,36 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/events/event_71880296-417b-4efe-bf67-af924c4c7ec8/registrations",
+    "actor": "declared-dev-actor"
+  },
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "registration": {
+        "_id": "reg_80e5ef95-ad1e-45bb-b8c9-e0cad07a11dc",
+        "event_id": "event_71880296-417b-4efe-bf67-af924c4c7ec8",
+        "user_id": "user_002",
+        "contact_name": "Acceptance Smoke User",
+        "contact_phone": "13009080320",
+        "attendee_count": 1,
+        "registration_status": "confirmed",
+        "ticket_id": "ticket_0c4452e8-eb40-440d-a47b-548882e8e69f",
+        "source_channel": "miniapp"
+      },
+      "ticket": {
+        "_id": "ticket_0c4452e8-eb40-440d-a47b-548882e8e69f",
+        "registration_id": "reg_80e5ef95-ad1e-45bb-b8c9-e0cad07a11dc",
+        "ticket_code": "TZL-1783584202387",
+        "qr_file_id": "cloud://ticket_0c4452e8-eb40-440d-a47b-548882e8e69f",
+        "qr_cloud_path": "private/tickets/ticket_0c4452e8-eb40-440d-a47b-548882e8e69f.png",
+        "visibility": "private",
+        "status": "valid",
+        "issued_at": "2026-07-09T08:03:22.387Z",
+        "used_at": null
+      }
+    },
+    "requestId": "3143ab3f-8b03-4e84-bd23-3b920c99e20b"
+  }
+}

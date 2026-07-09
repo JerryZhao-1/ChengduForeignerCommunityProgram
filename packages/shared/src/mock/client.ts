@@ -46,7 +46,14 @@ export interface CommunityMapApiClient {
       mock_user_id?: string;
       preferred_language?: "zh" | "en";
     }): Promise<ApiResult<AuthSession>>;
+    adminLogin(input: {
+      username: string;
+      password: string;
+    }): Promise<ApiResult<AuthSession>>;
     me(): Promise<ApiResult<AuthSession>>;
+    wechatMiniappSession(input?: {
+      preferred_language?: "zh" | "en";
+    }): Promise<ApiResult<AuthSession>>;
   };
   events: {
     list(query?: {
@@ -126,6 +133,16 @@ export interface CommunityMapApiClient {
       event_id?: string | null;
     }): Promise<ApiResult<Post>>;
     myPosts(query?: {
+      page?: number;
+      pageSize?: number;
+      communityId?: string;
+    }): Promise<ApiResult<PageResult<Post>>>;
+    myLikedPosts(query?: {
+      page?: number;
+      pageSize?: number;
+      communityId?: string;
+    }): Promise<ApiResult<PageResult<Post>>>;
+    myFavoritedPosts(query?: {
       page?: number;
       pageSize?: number;
       communityId?: string;
@@ -402,8 +419,19 @@ export const createMockClient = (
       async login(input) {
         return ok(service.auth.login(input));
       },
+      async adminLogin() {
+        return ok(service.auth.login({ mock_user_id: actorId ?? "user_001" }));
+      },
       async me() {
         return ok(service.auth.me(actorId));
+      },
+      async wechatMiniappSession(input) {
+        return ok(
+          service.auth.login({
+            mock_user_id: actorId,
+            preferred_language: input?.preferred_language
+          })
+        );
       }
     },
     events: {
@@ -475,6 +503,12 @@ export const createMockClient = (
       },
       async myPosts(query) {
         return ok(service.posts.listMine(query, actorId));
+      },
+      async myLikedPosts(query) {
+        return ok(service.posts.listLiked(query, actorId));
+      },
+      async myFavoritedPosts(query) {
+        return ok(service.posts.listFavorited(query, actorId));
       },
       async myComments(query) {
         return ok(service.posts.listMyComments(query, actorId));

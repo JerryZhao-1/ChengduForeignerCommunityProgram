@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api/admin/places",
+    "actor": "declared-dev-actor"
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": {
+      "code": "FORBIDDEN",
+      "message": "Insufficient permission."
+    },
+    "requestId": "528458b7-2e12-41bd-8b61-8f0f7040a412"
+  }
+}

@@ -103,11 +103,14 @@ const createCloudbaseFunctionRequester = (): HttpRequester => {
   };
 };
 
+const actorId =
+  mobileEnv.apiMode === "cloudbase-function" ? undefined : mobileEnv.actorId;
+
 export const mobileApi =
   mobileEnv.apiMode === "mock"
     ? createMockClient({ actorId: mobileEnv.actorId })
     : createHttpClient({
-        actorId: mobileEnv.actorId,
+        actorId,
         baseUrl: mobileEnv.apiBaseUrl,
         requester:
           mobileEnv.apiMode === "cloudbase-function"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { onLoad, onShareAppMessage } from "@dcloudio/uni-app";
+import { onLoad, onShareAppMessage, onShareTimeline } from "@dcloudio/uni-app";
 import type { PlaceDetail, Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
@@ -169,6 +169,12 @@ onShareAppMessage(() => ({
   imageUrl: shareImageUrl.value
 }));
 
+onShareTimeline(() => ({
+  title: shareTitle.value,
+  query: place.value ? `id=${encodeURIComponent(place.value._id)}` : "",
+  imageUrl: shareImageUrl.value
+}));
+
 const openNavigation = () => {
   if (!place.value || !canOpenNavigation.value) {
     uni.showToast({
@@ -230,6 +236,16 @@ const shareCurrentPlace = () => {
   uni.showShareMenu?.({
     menus: ["shareAppMessage", "shareTimeline"]
   });
+};
+
+const copyCurrentPlaceLink = () => {
+  if (place.value?.supports_share === false) {
+    uni.showToast({
+      title: detailCopy.value.shareUnavailable,
+      icon: "none"
+    });
+    return;
+  }
 
   const link = sharePath.value;
   uni.setClipboardData?.({
@@ -260,6 +276,11 @@ const shareButtonLabel = computed(() =>
   place.value?.supports_share === false
     ? detailCopy.value.shareUnavailable
     : detailCopy.value.shareEntry
+);
+const shareCopyButtonLabel = computed(() =>
+  place.value?.supports_share === false
+    ? detailCopy.value.shareUnavailable
+    : detailCopy.value.shareCopyEntry
 );
 
 const markExternalImageFailed = (url: string) => {
@@ -399,6 +420,7 @@ const openRelatedPost = (id: string) => {
             isFavorite ? detailCopy.favoriteActive : detailCopy.favoriteEntry
           }}
         </button>
+        <!-- #ifdef MP-WEIXIN -->
         <button
           class="place-action ghost"
           open-type="share"
@@ -407,6 +429,16 @@ const openRelatedPost = (id: string) => {
         >
           {{ shareButtonLabel }}
         </button>
+        <!-- #endif -->
+        <!-- #ifndef MP-WEIXIN -->
+        <button
+          class="place-action ghost"
+          :disabled="place.supports_share === false"
+          @click="copyCurrentPlaceLink"
+        >
+          {{ shareCopyButtonLabel }}
+        </button>
+        <!-- #endif -->
       </view>
       <view v-if="shareSummary" class="share-summary">{{ shareSummary }}</view>
       <view v-if="relatedPosts.length" class="related-section">

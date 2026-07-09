@@ -1,0 +1,12 @@
+{
+  "environmentClassification": "CloudBase dev HTTPS gateway; eligible as production-like API target only after WeChat account/domain and true-device evidence are added by later tasks",
+  "apiMode": "cloudbase-function",
+  "apiBaseUrl": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+  "cloudbaseEnvId": "cloud1-d7gxdk8t43bd639c0",
+  "cloudFunctionName": "community-map-api",
+  "actors": {
+    "admin": "user_001",
+    "member": "user_002"
+  },
+  "authClassification": "Uses existing dev x-mock-user-id actors for API smoke. Production identity replacement/classification is covered by task 2.2."
+}

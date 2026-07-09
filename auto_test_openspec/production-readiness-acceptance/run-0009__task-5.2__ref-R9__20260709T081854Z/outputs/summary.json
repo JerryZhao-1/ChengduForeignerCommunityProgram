@@ -1,0 +1,35 @@
+{
+  "post_id": "post_70fc8aa1-1f34-4674-abe2-75d5ad9d4fe3",
+  "initial": {
+    "post_id": "post_70fc8aa1-1f34-4674-abe2-75d5ad9d4fe3",
+    "actor_user_id": "user_001",
+    "liked": false,
+    "favorited": false,
+    "like_count": 0,
+    "favorite_count": 0,
+    "share_count": 0
+  },
+  "finalState": {
+    "post_id": "post_70fc8aa1-1f34-4674-abe2-75d5ad9d4fe3",
+    "actor_user_id": "user_001",
+    "liked": true,
+    "favorited": true,
+    "like_count": 1,
+    "favorite_count": 1,
+    "share_count": 1
+  },
+  "assertions": [
+    "post_created",
+    "initial_interaction_state_read",
+    "concurrent_like_favorite_share_completed",
+    "final_liked_preserved",
+    "final_favorited_preserved",
+    "final_share_count_incremented",
+    "expected_assertion_recorded:post_created",
+    "expected_assertion_recorded:initial_interaction_state_read",
+    "expected_assertion_recorded:concurrent_like_favorite_share_completed",
+    "expected_assertion_recorded:final_liked_preserved",
+    "expected_assertion_recorded:final_favorited_preserved",
+    "expected_assertion_recorded:final_share_count_incremented"
+  ]
+}

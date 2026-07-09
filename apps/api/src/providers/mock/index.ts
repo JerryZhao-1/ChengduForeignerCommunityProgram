@@ -7,6 +7,7 @@ import {
 } from "@community-map/shared";
 
 import { apiError } from "../../lib/errors";
+import { assertAdminLogin, createAdminSession } from "../../lib/admin-auth";
 import type { ApiProvider } from "../types";
 
 const withMockErrors = async <TValue>(
@@ -34,8 +35,22 @@ export const createMockProvider = (): ApiProvider => {
       async login(input) {
         return withMockErrors(() => service.auth.login(input));
       },
+      async adminLogin(input) {
+        await assertAdminLogin(input);
+        return withMockErrors(() =>
+          createAdminSession(service.auth.me("user_001").user)
+        );
+      },
       async me(userId) {
         return withMockErrors(() => service.auth.me(userId));
+      },
+      async wechatMiniappSession(input) {
+        return withMockErrors(() =>
+          service.auth.login({
+            mock_user_id: "user_001",
+            preferred_language: input.preferred_language
+          })
+        );
       }
     },
     events: {
@@ -95,6 +110,14 @@ export const createMockProvider = (): ApiProvider => {
       },
       async listMine(input, actorId) {
         return withMockErrors(() => service.posts.listMine(input, actorId));
+      },
+      async listLiked(input, actorId) {
+        return withMockErrors(() => service.posts.listLiked(input, actorId));
+      },
+      async listFavorited(input, actorId) {
+        return withMockErrors(() =>
+          service.posts.listFavorited(input, actorId)
+        );
       },
       async listRelatedByPlace(input) {
         return withMockErrors(() =>

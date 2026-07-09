@@ -1,0 +1,12 @@
+{
+  "required": [
+    "event_created",
+    "event_published",
+    "event_detail_read",
+    "registration_created",
+    "ticket_read",
+    "admin_registration_list_read",
+    "checkin_success",
+    "repeat_checkin_conflict"
+  ]
+}

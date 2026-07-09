@@ -1,0 +1,40 @@
+{
+  "target": {
+    "environmentClassification": "CloudBase dev HTTPS gateway; production-like dev acceptance target, not public production auth approval",
+    "apiMode": "cloudbase-function",
+    "apiBaseUrl": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+    "cloudbaseEnvId": "cloud1-d7gxdk8t43bd639c0",
+    "cloudFunctionName": "community-map-api",
+    "authClassification": "Documented dev x-mock-user-id actors are allowed only for CloudBase dev production-like smoke. Public launch requires CloudBase/WeChat identity and durable role mapping."
+  },
+  "noHeaderAdminBehavior": {
+    "status": 200,
+    "acceptedAsProductionAuth": false,
+    "classification": "public_launch_blocker_documented"
+  },
+  "assertions": [
+    "identity_document_exists",
+    "identity_doc_contains:CloudBase dev production-like smoke",
+    "identity_doc_contains:x-mock-user-id",
+    "identity_doc_contains:Allowed only for production-like dev acceptance evidence",
+    "identity_doc_contains:Public launch remains blocked",
+    "identity_doc_contains:CloudBase Auth / WeChat identity",
+    "identity_document_classifies_local_mock_header",
+    "identity_document_classifies_cloudbase_dev_acceptance",
+    "identity_document_declares_public_launch_blocker",
+    "api_guide_links_identity_classification",
+    "target_declares_actor_header_classification",
+    "admin_actor_can_access_admin_endpoint",
+    "member_actor_is_forbidden_from_admin_endpoint",
+    "no_header_admin_behavior_is_classified",
+    "expected_assertion_recorded:identity_document_exists",
+    "expected_assertion_recorded:identity_document_classifies_local_mock_header",
+    "expected_assertion_recorded:identity_document_classifies_cloudbase_dev_acceptance",
+    "expected_assertion_recorded:identity_document_declares_public_launch_blocker",
+    "expected_assertion_recorded:api_guide_links_identity_classification",
+    "expected_assertion_recorded:target_declares_actor_header_classification",
+    "expected_assertion_recorded:admin_actor_can_access_admin_endpoint",
+    "expected_assertion_recorded:member_actor_is_forbidden_from_admin_endpoint",
+    "expected_assertion_recorded:no_header_admin_behavior_is_classified"
+  ]
+}

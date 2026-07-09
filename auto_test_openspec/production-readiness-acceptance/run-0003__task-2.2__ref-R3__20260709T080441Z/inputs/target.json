@@ -1,0 +1,14 @@
+{
+  "environmentClassification": "CloudBase dev HTTPS gateway; production-like dev acceptance target, not public production auth approval",
+  "apiMode": "cloudbase-function",
+  "apiBaseUrl": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+  "cloudbaseEnvId": "cloud1-d7gxdk8t43bd639c0",
+  "cloudFunctionName": "community-map-api",
+  "actors": {
+    "admin": "user_001",
+    "member": "user_002"
+  },
+  "authClassification": "Documented dev x-mock-user-id actors are allowed only for CloudBase dev production-like smoke. Public launch requires CloudBase/WeChat identity and durable role mapping.",
+  "identityDocument": "docs/production-acceptance-identity.md",
+  "apiGuideDocument": "docs/API接口使用手册.md"
+}

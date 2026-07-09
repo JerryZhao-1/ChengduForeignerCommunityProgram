@@ -183,6 +183,24 @@ export const registerDiscoverRoutes = (router: Router) => {
     sendSuccess(ctx, data);
   });
 
+  router.get("/discover/me/liked-posts", async (ctx) => {
+    const query = parseOrThrow(MyPostListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listLiked(
+      query,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
+  router.get("/discover/me/favorited-posts", async (ctx) => {
+    const query = parseOrThrow(MyPostListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listFavorited(
+      query,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
   router.get("/discover/me/comments", async (ctx) => {
     const query = parseOrThrow(MyCommentListQuerySchema, ctx.query);
     const data = await ctx.state.provider.posts.listMyComments(
@@ -236,7 +254,7 @@ export const registerDiscoverRoutes = (router: Router) => {
       input,
       ctx.state.actor._id
     );
-    sendSuccess(ctx, post, 201);
+    sendSuccess(ctx, post);
   });
 
   router.post("/discover/posts/:id/comments", async (ctx) => {
