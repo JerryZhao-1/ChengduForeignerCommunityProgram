@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { onLoad, onPullDownRefresh, onShow } from "@dcloudio/uni-app";
 import type {
   DiscoverMeGovernance,
+  PublicProfile,
   UserEnforcementState
 } from "@community-map/shared";
 
@@ -14,6 +15,7 @@ import { useAppStore } from "@/stores/app-store";
 const { state } = useAppStore();
 const copy = computed(() => appCopy[state.locale].me);
 const governance = ref<DiscoverMeGovernance | null>(null);
+const profile = ref<PublicProfile | null>(null);
 const isLoading = ref(true);
 const errorMessage = ref("");
 
@@ -39,23 +41,35 @@ const unreadCount = computed(
 );
 
 const quickLinks = computed(() => [
-  { label: copy.value.profile, url: "/pages/more/profile", icon: "P" },
-  { label: copy.value.myPosts, url: "/pages/more/my-posts", icon: "M" },
+  {
+    label: copy.value.profile,
+    url: `/pages/more/profile?id=${state.userId}`,
+    icon: "/static/icons/profile.svg"
+  },
+  {
+    label: copy.value.myPosts,
+    url: "/pages/more/my-posts",
+    icon: "/static/icons/posts.svg"
+  },
   {
     label: copy.value.notifications,
     url: "/pages/more/notifications",
-    icon: "N"
+    icon: "/static/icons/notifications.svg"
   },
   {
     label: copy.value.registrations,
     url: "/pages/more/my-registrations",
-    icon: "R"
+    icon: "/static/icons/registrations.svg"
   },
-  { label: copy.value.favorites, url: "/pages/more/my-favorites", icon: "F" },
+  {
+    label: copy.value.favorites,
+    url: "/pages/more/my-favorites",
+    icon: "/static/icons/favorites.svg"
+  },
   {
     label: copy.value.language,
     url: "/pages/more/language-settings",
-    icon: "L"
+    icon: "/static/icons/language.svg"
   }
 ]);
 
@@ -64,8 +78,12 @@ const loadGovernance = async () => {
   errorMessage.value = "";
 
   try {
-    const result = await mobileApi.discover.meGovernance();
-    governance.value = result.data;
+    const [governanceResult, profileResult] = await Promise.all([
+      mobileApi.discover.meGovernance(),
+      mobileApi.discover.profile(state.userId)
+    ]);
+    governance.value = governanceResult.data;
+    profile.value = profileResult.data;
   } catch {
     governance.value = null;
     errorMessage.value = copy.value.error;
@@ -77,6 +95,12 @@ const loadGovernance = async () => {
 
 const navigateTo = (url: string) => {
   uni.navigateTo({ url });
+};
+
+const navigateToFollowList = (type: "followers" | "following") => {
+  uni.navigateTo({
+    url: `/pages/more/follows?id=${state.userId}&type=${type}`
+  });
 };
 
 onLoad(loadGovernance);
@@ -93,7 +117,7 @@ onPullDownRefresh(loadGovernance);
         :aria-label="copy.notificationLabel"
         @click="navigateTo('/pages/more/notifications')"
       >
-        <text class="bell-icon">N</text>
+        <image class="bell-icon" src="/static/icons/notifications.svg" mode="aspectFit" />
         <text v-if="unreadCount > 0" class="badge">{{ unreadCount }}</text>
       </button>
     </view>
@@ -129,17 +153,25 @@ onPullDownRefresh(loadGovernance);
       </view>
 
       <view class="stats">
-        <view class="stat">
+        <view class="stat" @click="navigateTo('/pages/more/my-posts')">
           <view class="stat-value">{{ governance.post_count }}</view>
           <view class="stat-label">{{ copy.posts }}</view>
         </view>
-        <view class="stat">
+        <view class="stat" @click="navigateTo('/pages/more/my-comments')">
           <view class="stat-value">{{ governance.comment_count }}</view>
           <view class="stat-label">{{ copy.comments }}</view>
         </view>
-        <view class="stat">
+        <view class="stat" @click="navigateTo('/pages/more/my-reports')">
           <view class="stat-value">{{ governance.report_count }}</view>
           <view class="stat-label">{{ copy.reports }}</view>
+        </view>
+        <view class="stat" @click="navigateToFollowList('followers')">
+          <view class="stat-value">{{ profile?.stats.follower_count ?? 0 }}</view>
+          <view class="stat-label">{{ copy.followers }}</view>
+        </view>
+        <view class="stat" @click="navigateToFollowList('following')">
+          <view class="stat-value">{{ profile?.stats.following_count ?? 0 }}</view>
+          <view class="stat-label">{{ copy.following }}</view>
         </view>
       </view>
 
@@ -150,7 +182,7 @@ onPullDownRefresh(loadGovernance);
           class="link"
           @click="navigateTo(link.url)"
         >
-          <text class="link-icon">{{ link.icon }}</text>
+          <image class="link-icon" :src="link.icon" mode="aspectFit" />
           <text class="link-label">{{ link.label }}</text>
           <text class="link-arrow">&gt;</text>
         </button>
@@ -198,7 +230,8 @@ onPullDownRefresh(loadGovernance);
 }
 
 .bell-icon {
-  font-size: 34rpx;
+  width: 34rpx;
+  height: 34rpx;
 }
 
 .badge {
@@ -308,7 +341,7 @@ onPullDownRefresh(loadGovernance);
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   overflow: hidden;
 }
 
@@ -317,7 +350,7 @@ onPullDownRefresh(loadGovernance);
   text-align: center;
 }
 
-.stat + .stat {
+.stat:not(:first-child) {
   border-left: 1rpx solid #e5e7eb;
 }
 
@@ -360,9 +393,8 @@ onPullDownRefresh(loadGovernance);
 }
 
 .link-icon {
-  color: #0f766e;
-  font-size: 28rpx;
-  text-align: center;
+  width: 34rpx;
+  height: 34rpx;
 }
 
 .link-label {

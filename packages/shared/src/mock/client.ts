@@ -3,6 +3,8 @@ import type {
   AuthSession,
   Comment,
   DiscoverAuditRecord,
+  DiscoverAnalytics,
+  DiscoverTag,
   DiscoverMeGovernance,
   DiscoverReportCase,
   DiscoverUserGovernanceDetail,
@@ -23,7 +25,11 @@ import type {
   PlaceListItem,
   PlaceMapMarker,
   PlacePoiSearchItem,
-  Post
+  Post,
+  PostInteractionState,
+  ProfileFollowListItem,
+  ProfileFollowState,
+  PublicProfile
 } from "../types/entities";
 import type { ApiResult, PageResult } from "../types/common";
 
@@ -70,8 +76,44 @@ export interface CommunityMapApiClient {
       pageSize?: number;
       communityId?: string;
       keyword?: string;
+      tag?: string;
+      sort?: "latest" | "likes" | "favorites" | "comments";
     }): Promise<ApiResult<PageResult<Post>>>;
     detailPost(id: string): Promise<ApiResult<Post>>;
+    postInteraction(id: string): Promise<ApiResult<PostInteractionState>>;
+    setPostLike(
+      id: string,
+      input: { liked: boolean }
+    ): Promise<ApiResult<PostInteractionState>>;
+    setPostFavorite(
+      id: string,
+      input: { favorited: boolean }
+    ): Promise<ApiResult<PostInteractionState>>;
+    recordPostShare(
+      id: string,
+      input?: {
+        channel?: "wechat" | "moments" | "copy_link" | "system" | "other";
+      }
+    ): Promise<ApiResult<PostInteractionState>>;
+    profile(userId: string): Promise<ApiResult<PublicProfile>>;
+    setProfileFollow(
+      userId: string,
+      input: { following: boolean }
+    ): Promise<ApiResult<ProfileFollowState>>;
+    listProfileFollowers(
+      userId: string,
+      query?: { page?: number; pageSize?: number }
+    ): Promise<ApiResult<PageResult<ProfileFollowListItem>>>;
+    listProfileFollowing(
+      userId: string,
+      query?: { page?: number; pageSize?: number }
+    ): Promise<ApiResult<PageResult<ProfileFollowListItem>>>;
+    listTags(query?: {
+      page?: number;
+      pageSize?: number;
+      keyword?: string;
+    }): Promise<ApiResult<PageResult<DiscoverTag>>>;
+    createTag(input: { label: string }): Promise<ApiResult<DiscoverTag>>;
     createPost(input: {
       title: string;
       content: string;
@@ -88,6 +130,16 @@ export interface CommunityMapApiClient {
       pageSize?: number;
       communityId?: string;
     }): Promise<ApiResult<PageResult<Post>>>;
+    myComments(query?: {
+      page?: number;
+      pageSize?: number;
+    }): Promise<ApiResult<PageResult<Comment>>>;
+    myCommentDetail(id: string): Promise<ApiResult<Comment>>;
+    myReports(query?: {
+      page?: number;
+      pageSize?: number;
+    }): Promise<ApiResult<PageResult<DiscoverReportCase>>>;
+    myReportDetail(id: string): Promise<ApiResult<DiscoverReportCase>>;
     listPlaceRelatedPosts(
       placeId: string,
       query?: { page?: number; pageSize?: number; communityId?: string }
@@ -210,6 +262,24 @@ export interface CommunityMapApiClient {
       id: string,
       input: { review_status: Post["review_status"]; reason?: string }
     ): Promise<ApiResult<Post>>;
+    updateDiscoverPostOps(
+      id: string,
+      input: Partial<
+        Pick<
+          Post,
+          | "is_pinned"
+          | "is_featured"
+          | "is_recommended"
+          | "is_official"
+          | "ops_rank"
+        >
+      > & { reason?: string }
+    ): Promise<ApiResult<Post>>;
+    listDiscoverTags(): Promise<ApiResult<PageResult<DiscoverTag>>>;
+    upsertDiscoverTag(
+      id: string,
+      input: { label_zh: string; label_en: string; status?: "active" | "hidden" }
+    ): Promise<ApiResult<DiscoverTag>>;
     listDiscoverPosts(query?: {
       page?: number;
       pageSize?: number;
@@ -269,10 +339,13 @@ export interface CommunityMapApiClient {
     listDiscoverAudit(query?: {
       page?: number;
       pageSize?: number;
-      targetType?: "post" | "comment" | "report" | "user";
+      targetType?: "post" | "comment" | "report" | "user" | "tag";
       targetId?: string;
       actorUserId?: string;
     }): Promise<ApiResult<PageResult<DiscoverAuditRecord>>>;
+    discoverAnalytics(query?: {
+      windowDays?: number;
+    }): Promise<ApiResult<DiscoverAnalytics>>;
     createPlace(input: Partial<Place>): Promise<ApiResult<Place>>;
     updatePlace(id: string, input: Partial<Place>): Promise<ApiResult<Place>>;
     deletePlace(id: string): Promise<ApiResult<DeletePlaceResponse>>;
@@ -359,11 +432,63 @@ export const createMockClient = (
       async detailPost(id) {
         return ok(service.posts.detail(id) as Post);
       },
+      async postInteraction(id) {
+        return ok(service.posts.interaction(id, actorId));
+      },
+      async setPostLike(id, input) {
+        return ok(service.posts.setLike(id, input, actorId));
+      },
+      async setPostFavorite(id, input) {
+        return ok(service.posts.setFavorite(id, input, actorId));
+      },
+      async recordPostShare(id, input = {}) {
+        return ok(service.posts.recordShare(id, input, actorId));
+      },
+      async profile(userId) {
+        return ok(service.posts.profile(userId, actorId) as PublicProfile);
+      },
+      async setProfileFollow(userId, input) {
+        return ok(service.posts.setProfileFollow(userId, input, actorId));
+      },
+      async listProfileFollowers(userId, query) {
+        const data = service.posts.listProfileFollowers(userId, query, actorId);
+        if (!data) {
+          throw new MockServiceError("NOT_FOUND", "Profile not found.", 404);
+        }
+        return ok(data);
+      },
+      async listProfileFollowing(userId, query) {
+        const data = service.posts.listProfileFollowing(userId, query, actorId);
+        if (!data) {
+          throw new MockServiceError("NOT_FOUND", "Profile not found.", 404);
+        }
+        return ok(data);
+      },
+      async listTags(query) {
+        return ok(service.posts.listPublicTags(query));
+      },
+      async createTag(input) {
+        return ok(service.posts.createTag(input, actorId));
+      },
       async createPost(input) {
         return ok(service.posts.create(input, actorId));
       },
       async myPosts(query) {
         return ok(service.posts.listMine(query, actorId));
+      },
+      async myComments(query) {
+        return ok(service.posts.listMyComments(query, actorId));
+      },
+      async myCommentDetail(id) {
+        return ok(service.posts.detailMyComment(id, actorId) as Comment);
+      },
+      async myReports(query) {
+        return ok(service.posts.listMyReportCases(query, actorId));
+      },
+      async myReportDetail(id) {
+        return ok(
+          service.posts.detailMyReportCase(id, actorId) as DiscoverReportCase
+        );
       },
       async listPlaceRelatedPosts(placeId, query) {
         const data = service.posts.listRelatedByPlace(placeId, query);
@@ -530,6 +655,15 @@ export const createMockClient = (
       async moderatePost(id, input) {
         return ok(service.posts.moderate(id, input, actorId) as Post);
       },
+      async updateDiscoverPostOps(id, input) {
+        return ok(service.posts.updateOps(id, input, actorId) as Post);
+      },
+      async listDiscoverTags() {
+        return ok(service.posts.listTags(actorId));
+      },
+      async upsertDiscoverTag(id, input) {
+        return ok(service.posts.upsertTag(id, input, actorId));
+      },
       async listDiscoverPosts(query) {
         return ok(service.posts.listAdmin(query, actorId));
       },
@@ -578,6 +712,9 @@ export const createMockClient = (
       },
       async listDiscoverAudit(query) {
         return ok(service.posts.listAuditRecords(query, actorId));
+      },
+      async discoverAnalytics(query) {
+        return ok(service.posts.analytics(query, actorId));
       },
       async createPlace(input) {
         return ok(service.places.create(input));

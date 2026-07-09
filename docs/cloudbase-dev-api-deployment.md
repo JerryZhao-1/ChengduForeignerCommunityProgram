@@ -1,6 +1,6 @@
 # CloudBase Dev API Deployment Evidence
 
-Last updated: 2026-07-02
+Last updated: 2026-07-09
 
 ## Scope
 
@@ -158,6 +158,38 @@ Important boundary:
 - They do not prove CloudBase live collection persistence for events, discover posts, comments, file assets, notifications, or production auth.
 - Non-places modules must not be marked live-accepted until their real CloudBase collections, data state, request evidence, and remaining blockers are documented.
 
+## 2026-07-09 Discover Social Ops Provider Readiness
+
+The `launch-discover-social-ops` implementation extends the CloudBase live provider for Discover beyond the earlier fallback parity baseline. This is provider/code readiness plus local test evidence, not a new online deployment claim.
+
+Live provider paths now implemented:
+
+| Area | CloudBase collections / source | Boundary |
+| --- | --- | --- |
+| Public posts/comments | `posts`, `comments`, `file_assets` | Existing visible-only feed/detail/comment behavior remains enforced |
+| Social interactions | `discover_post_interactions` + post counters | Like/favorite writes are idempotent per actor/post; share increments `share_count` |
+| Profiles/follow | `users`, `posts`, `discover_user_follows` | Public profile stats and follow state use current fallback actor resolution |
+| Content ops | `posts`, `discover_audit_records` | Admin can update `is_pinned`, `is_featured`, `is_recommended`, `is_official`, `ops_rank` |
+| Tags | `discover_tags`, `posts`, `discover_audit_records` | Admin tag upsert records audit and reports current post count |
+| Analytics | `posts`, `comments`, `discover_report_cases`, `discover_post_interactions` | Aggregates posts, comments, reports, engagement, active authors, places and events |
+| Governance | `discover_report_cases`, `discover_audit_records` | Existing report case and audit paths remain the durable governance record |
+
+Validation evidence:
+
+- `auto_test_openspec/launch-discover-social-ops/run-0001__task-1.1__ref-R1__20260708T160605Z/`
+- `auto_test_openspec/launch-discover-social-ops/run-0002__task-1.2__ref-R2__20260708T161007Z/`
+- `auto_test_openspec/launch-discover-social-ops/run-0003__task-1.3__ref-R3__20260708T161406Z/`
+- `auto_test_openspec/launch-discover-social-ops/run-0006__task-3.1__ref-R6__20260708T162443Z/`
+- `auto_test_openspec/launch-discover-social-ops/run-0007__task-3.2__ref-R7__20260708T162825Z/`
+- `auto_test_openspec/launch-discover-social-ops/run-0008__task-4.1__ref-R8__20260708T163117Z/`
+
+Important boundary:
+
+- These bundles verify shared contracts, local API routes/providers, Admin/Mobile type safety, and CloudBase provider behavior in tests.
+- They do not replace a live CloudBase `/api` smoke against deployed code and real dev collections.
+- Auth still uses the current project actor fallback for provider checks; production auth remains separate release work.
+- Social notification delivery for like/follow/share events is not live-accepted. Existing Discover moderation/comment notifications still follow the current fallback-backed notification path unless separately verified.
+
 ## Places Live Acceptance Evidence
 
 CloudBase dev live places acceptance was advanced on 2026-06-23 against:
@@ -206,7 +238,8 @@ auto_test_openspec/complete-cloudbase-dev-places-live-acceptance/
 
 ## Remaining Work
 
-- Complete non-places live providers for events, discover, comments, announcements, notifications, auth, and files.
+- Complete online smoke, collection index verification, and security-rule verification for events, discover social/ops, announcements, notifications, auth, and files before declaring production readiness.
+- Add or verify live notification delivery for social events if product scope requires notification fanout beyond current moderation/comment notification behavior.
 - Decide final production auth/security rules before any production exposure.
 
 ## 2026-06-30 Precreate Gallery Upload Deployment Evidence

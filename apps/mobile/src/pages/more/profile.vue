@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
-import type { Post } from "@community-map/shared";
+import type { Post, PublicProfile } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import { appCopy } from "@/i18n/copy";
@@ -23,33 +23,29 @@ const copy = computed(() => appCopy[state.locale].profile);
 
 const targetUserId = ref(state.userId);
 const statusBarHeight = ref(0);
-const posts = ref<Post[]>([]);
-const selfProfile = ref<ProfileInfo | null>(null);
+const profileData = ref<PublicProfile | null>(null);
 const activeTab = ref<"grid" | "reels">("grid");
 const isFollowing = ref(false);
+const isLoading = ref(true);
+const errorMessage = ref("");
+const isUpdatingFollow = ref(false);
 
 const customNavStyle = computed(() => ({
   paddingTop: `${statusBarHeight.value}px`
 }));
 
 const isSelf = computed(() => targetUserId.value === state.userId);
-const sourcePost = computed(() =>
-  posts.value.find((post) => post.author_user_id === targetUserId.value)
-);
 const profile = computed<ProfileInfo>(() => {
-  if (isSelf.value && selfProfile.value) {
-    return selfProfile.value;
-  }
-
-  const author = sourcePost.value?.author_display;
+  const user = profileData.value?.user;
+  const stats = profileData.value?.stats;
   return {
-    name: author?.nickname || targetUserId.value,
+    name: user?.nickname || targetUserId.value,
     handle: targetUserId.value,
-    avatarUrl: author?.avatar_url ?? "",
+    avatarUrl: user?.avatar_url ?? "",
     bioZh: "",
     bioEn: "",
-    followers: 0,
-    following: 0
+    followers: stats?.follower_count ?? 0,
+    following: stats?.following_count ?? 0
   };
 });
 
@@ -58,17 +54,15 @@ const bio = computed(() => {
   return value || copy.value.bioFallback;
 });
 
-const userPosts = computed(() =>
-  posts.value.filter((post) => post.author_user_id === targetUserId.value)
-);
+const userPosts = computed(() => profileData.value?.posts ?? []);
 
 const isVideoPost = (post: Post) => getFirstMedia(post)?.kind === "video";
-const reelPosts = computed(() => userPosts.value.filter(isVideoPost));
+const reelPosts = computed(() => profileData.value?.video_posts ?? []);
 const gridItems = computed(() =>
   activeTab.value === "grid" ? userPosts.value : reelPosts.value
 );
 
-const postCount = computed(() => userPosts.value.length);
+const postCount = computed(() => profileData.value?.stats.post_count ?? 0);
 
 const formatCount = (value: number) => {
   if (value >= 10000) {
@@ -82,38 +76,18 @@ const formatCount = (value: number) => {
 
 const getThumb = (post: Post) => getFirstMedia(post)?.url ?? "";
 
-const loadPosts = async () => {
+const loadProfile = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
   try {
-    const result = await mobileApi.discover.listPosts({
-      communityId: state.communityId,
-      page: 1,
-      pageSize: 50
-    });
-    posts.value = result.data.items;
+    const result = await mobileApi.discover.profile(targetUserId.value);
+    profileData.value = result.data;
+    isFollowing.value = result.data.followed_by_actor;
   } catch {
-    posts.value = [];
-  }
-};
-
-const loadSelfProfile = async () => {
-  if (!isSelf.value) {
-    selfProfile.value = null;
-    return;
-  }
-
-  try {
-    const result = await mobileApi.auth.me();
-    selfProfile.value = {
-      name: result.data.user.nickname,
-      handle: result.data.user._id,
-      avatarUrl: result.data.user.avatar_url,
-      bioZh: "",
-      bioEn: "",
-      followers: 0,
-      following: 0
-    };
-  } catch {
-    selfProfile.value = null;
+    profileData.value = null;
+    errorMessage.value = copy.value.unavailable;
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -123,8 +97,7 @@ onLoad((query) => {
   if (id) {
     targetUserId.value = id;
   }
-  loadSelfProfile();
-  loadPosts();
+  loadProfile();
 });
 
 const goBack = () => {
@@ -140,12 +113,46 @@ const openPost = (id: string) => {
   uni.navigateTo({ url: `/pages/discover/detail?id=${id}` });
 };
 
-const toggleFollow = () => {
-  isFollowing.value = !isFollowing.value;
-  uni.showToast({
-    title: isFollowing.value ? copy.value.followDone : copy.value.unfollowDone,
-    icon: "none"
+const openFollowList = (type: "followers" | "following") => {
+  uni.navigateTo({
+    url: `/pages/more/follows?id=${targetUserId.value}&type=${type}`
   });
+};
+
+const toggleFollow = async () => {
+  if (isSelf.value || isUpdatingFollow.value) {
+    return;
+  }
+
+  isUpdatingFollow.value = true;
+  try {
+    const result = await mobileApi.discover.setProfileFollow(
+      targetUserId.value,
+      {
+        following: !isFollowing.value
+      }
+    );
+    isFollowing.value = result.data.following;
+    if (profileData.value) {
+      profileData.value = {
+        ...profileData.value,
+        followed_by_actor: result.data.following,
+        stats: {
+          ...profileData.value.stats,
+          follower_count: result.data.follower_count,
+          following_count: result.data.following_count
+        }
+      };
+    }
+    uni.showToast({
+      title: isFollowing.value ? copy.value.followDone : copy.value.unfollowDone,
+      icon: "none"
+    });
+  } catch {
+    uni.showToast({ title: copy.value.followError, icon: "none" });
+  } finally {
+    isUpdatingFollow.value = false;
+  }
 };
 
 const shareProfile = () => {
@@ -172,7 +179,12 @@ const editProfile = () => {
       </view>
     </view>
 
-    <view class="cover">
+    <view v-if="isLoading" class="state-message">{{ copy.loading }}</view>
+    <view v-else-if="errorMessage" class="state-message error">
+      {{ errorMessage }}
+    </view>
+
+    <view v-else class="cover">
       <view class="cover-top">
         <image
           v-if="profile.avatarUrl"
@@ -206,6 +218,7 @@ const editProfile = () => {
           <button
             class="action-btn primary"
             :class="{ followed: isFollowing }"
+            :disabled="isUpdatingFollow"
             @click="toggleFollow"
           >
             {{ isFollowing ? copy.followed : copy.follow }}
@@ -217,24 +230,24 @@ const editProfile = () => {
       </view>
     </view>
 
-    <view class="stats-card">
+    <view v-if="!isLoading && !errorMessage" class="stats-card">
       <view class="stat">
         <view class="stat-value">{{ formatCount(postCount) }}</view>
         <view class="stat-label">{{ copy.posts }}</view>
       </view>
       <view class="stat-divider" />
-      <view class="stat">
+      <view class="stat" @click="openFollowList('followers')">
         <view class="stat-value">{{ formatCount(profile.followers) }}</view>
         <view class="stat-label">{{ copy.followers }}</view>
       </view>
       <view class="stat-divider" />
-      <view class="stat">
+      <view class="stat" @click="openFollowList('following')">
         <view class="stat-value">{{ formatCount(profile.following) }}</view>
         <view class="stat-label">{{ copy.following }}</view>
       </view>
     </view>
 
-    <view class="tabs">
+    <view v-if="!isLoading && !errorMessage" class="tabs">
       <view
         class="tab"
         :class="{ active: activeTab === 'grid' }"
@@ -251,7 +264,7 @@ const editProfile = () => {
       </view>
     </view>
 
-    <view v-if="gridItems.length" class="list">
+    <view v-if="!isLoading && !errorMessage && gridItems.length" class="list">
       <view
         v-for="post in gridItems"
         :key="post._id"
@@ -271,7 +284,9 @@ const editProfile = () => {
         <view class="card-title">{{ post.title }}</view>
       </view>
     </view>
-    <view v-else class="empty">{{ copy.emptyPosts }}</view>
+    <view v-else-if="!isLoading && !errorMessage" class="empty">
+      {{ copy.emptyPosts }}
+    </view>
   </view>
 </template>
 
@@ -280,6 +295,17 @@ const editProfile = () => {
   min-height: 100vh;
   padding-bottom: 40rpx;
   background: #f5f7f6;
+}
+
+.state-message {
+  padding: 80rpx 32rpx;
+  color: #6b7280;
+  font-size: 28rpx;
+  text-align: center;
+}
+
+.state-message.error {
+  color: #b45309;
 }
 
 .custom-nav {

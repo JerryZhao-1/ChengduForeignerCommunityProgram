@@ -3,6 +3,8 @@ import type {
   AuthSession,
   Comment,
   DiscoverAuditRecord,
+  DiscoverAnalytics,
+  DiscoverTag,
   DiscoverMeGovernance,
   DiscoverReportCase,
   DiscoverUserGovernanceDetail,
@@ -24,6 +26,10 @@ import type {
   PlaceListItem,
   PlaceMapMarker,
   Post,
+  PostInteractionState,
+  ProfileFollowListItem,
+  ProfileFollowState,
+  PublicProfile,
   UserEnforcementState,
   User
 } from "@community-map/shared";
@@ -90,6 +96,8 @@ export interface ApiProvider {
       page?: number;
       pageSize?: number;
       keyword?: string;
+      tag?: string;
+      sort?: "latest" | "likes" | "favorites" | "comments";
       communityId?: string;
     }): Promise<PageResult<Post>>;
     listMine(
@@ -127,6 +135,46 @@ export interface ApiProvider {
       actorId?: string
     ): Promise<PageResult<Post>>;
     detail(id: string): Promise<Post | null>;
+    interaction(id: string, actorId?: string): Promise<PostInteractionState>;
+    setLike(
+      id: string,
+      input: { liked: boolean },
+      actorId?: string
+    ): Promise<PostInteractionState>;
+    setFavorite(
+      id: string,
+      input: { favorited: boolean },
+      actorId?: string
+    ): Promise<PostInteractionState>;
+    recordShare(
+      id: string,
+      input: {
+        channel?: "wechat" | "moments" | "copy_link" | "system" | "other";
+      },
+      actorId?: string
+    ): Promise<PostInteractionState>;
+    profile(userId: string, actorId?: string): Promise<PublicProfile | null>;
+    setProfileFollow(
+      userId: string,
+      input: { following: boolean },
+      actorId?: string
+    ): Promise<ProfileFollowState>;
+    listProfileFollowers(
+      userId: string,
+      input: { page?: number; pageSize?: number },
+      actorId?: string
+    ): Promise<PageResult<ProfileFollowListItem> | null>;
+    listProfileFollowing(
+      userId: string,
+      input: { page?: number; pageSize?: number },
+      actorId?: string
+    ): Promise<PageResult<ProfileFollowListItem> | null>;
+    listPublicTags(input: {
+      page?: number;
+      pageSize?: number;
+      keyword?: string;
+    }): Promise<PageResult<DiscoverTag>>;
+    createTag(input: { label: string }, actorId?: string): Promise<DiscoverTag>;
     listComments(
       postId: string,
       input: { page?: number; pageSize?: number }
@@ -142,6 +190,11 @@ export interface ApiProvider {
       },
       actorId?: string
     ): Promise<PageResult<Comment>>;
+    listMyComments(
+      input: { page?: number; pageSize?: number },
+      actorId?: string
+    ): Promise<PageResult<Comment>>;
+    detailMyComment(id: string, actorId?: string): Promise<Comment | null>;
     create(input: Partial<Post>, actorId?: string): Promise<Post>;
     createComment(
       postId: string,
@@ -172,6 +225,26 @@ export interface ApiProvider {
       input: { review_status: Post["review_status"]; reason?: string },
       actorId?: string
     ): Promise<Post | null>;
+    updateOps(
+      id: string,
+      input: Partial<
+        Pick<
+          Post,
+          | "is_pinned"
+          | "is_featured"
+          | "is_recommended"
+          | "is_official"
+          | "ops_rank"
+        >
+      > & { reason?: string },
+      actorId?: string
+    ): Promise<Post | null>;
+    listTags(actorId?: string): Promise<PageResult<DiscoverTag>>;
+    upsertTag(
+      id: string,
+      input: { label_zh: string; label_en: string; status?: "active" | "hidden" },
+      actorId?: string
+    ): Promise<DiscoverTag>;
     moderateComment(
       id: string,
       input: { status: Comment["status"]; reason?: string },
@@ -187,6 +260,14 @@ export interface ApiProvider {
       },
       actorId?: string
     ): Promise<PageResult<DiscoverReportCase>>;
+    listMyReportCases(
+      input: { page?: number; pageSize?: number },
+      actorId?: string
+    ): Promise<PageResult<DiscoverReportCase>>;
+    detailMyReportCase(
+      id: string,
+      actorId?: string
+    ): Promise<DiscoverReportCase | null>;
     detailReportCase(
       id: string,
       actorId?: string
@@ -227,12 +308,16 @@ export interface ApiProvider {
       input: {
         page?: number;
         pageSize?: number;
-        targetType?: "post" | "comment" | "report" | "user";
+        targetType?: "post" | "comment" | "report" | "user" | "tag";
         targetId?: string;
         actorUserId?: string;
       },
       actorId?: string
     ): Promise<PageResult<DiscoverAuditRecord>>;
+    analytics(
+      input: { windowDays?: number },
+      actorId?: string
+    ): Promise<DiscoverAnalytics>;
   };
   places: {
     list(input: {

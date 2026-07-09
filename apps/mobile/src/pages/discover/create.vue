@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
-import type { Event, PlaceListItem } from "@community-map/shared";
+import type { DiscoverTag, Event, PlaceListItem } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import { uploadPostMedia } from "@/api/post-media-upload";
@@ -18,7 +18,6 @@ const form = reactive({
   title: "",
   content: "",
   language: "en" as "zh" | "en",
-  tagsText: "",
   location_text: "",
   imageUrlsText: "",
   place_id: null as string | null,
@@ -29,6 +28,10 @@ const isSubmitting = ref(false);
 const isPickingMedia = ref(false);
 const places = ref<PlaceListItem[]>([]);
 const events = ref<Event[]>([]);
+const tagInput = ref("");
+const selectedTags = ref<DiscoverTag[]>([]);
+const tagSuggestions = ref<DiscoverTag[]>([]);
+const isLoadingTags = ref(false);
 
 interface SelectedMedia {
   id: string;
@@ -66,11 +69,23 @@ const selectedEventLabel = computed(() => {
     : copy.value.associationNone;
 });
 
-const parseTags = () =>
-  form.tagsText
-    .split(/[,，\n]/)
-    .map((tag) => tag.trim())
-    .filter(Boolean);
+const normalizeTagLabel = (value: string) =>
+  value.trim().replace(/^#+/, "").replace(/\s+/g, "-").toLowerCase();
+
+const tagSuggestionItems = computed(() => {
+  const typed = normalizeTagLabel(tagInput.value);
+  const selectedIds = new Set(selectedTags.value.map((tag) => tag._id));
+  const suggestions = tagSuggestions.value.filter(
+    (tag) => !selectedIds.has(tag._id)
+  );
+  const hasExact = suggestions.some((tag) => tag._id === typed);
+
+  return {
+    suggestions,
+    canCreate: Boolean(typed) && !hasExact && !selectedIds.has(typed),
+    typed
+  };
+});
 
 const parseImageUrls = () =>
   form.imageUrlsText
@@ -110,6 +125,56 @@ const showValidation = (title: string) => {
     title,
     icon: "none"
   });
+};
+
+const loadTagSuggestions = async () => {
+  isLoadingTags.value = true;
+  try {
+    const result = await mobileApi.discover.listTags({
+      keyword: tagInput.value.trim() || undefined,
+      pageSize: 12
+    });
+    tagSuggestions.value = result.data.items;
+  } catch {
+    tagSuggestions.value = [];
+  } finally {
+    isLoadingTags.value = false;
+  }
+};
+
+watch(tagInput, () => {
+  void loadTagSuggestions();
+});
+
+const addTag = (tag: DiscoverTag) => {
+  if (!selectedTags.value.some((item) => item._id === tag._id)) {
+    selectedTags.value = [...selectedTags.value, tag];
+  }
+  tagInput.value = "";
+};
+
+const createAndAddTag = async (label: string) => {
+  const normalized = normalizeTagLabel(label);
+  if (!normalized) {
+    return;
+  }
+
+  const existing = tagSuggestions.value.find((tag) => tag._id === normalized);
+  if (existing) {
+    addTag(existing);
+    return;
+  }
+
+  try {
+    const result = await mobileApi.discover.createTag({ label: normalized });
+    addTag(result.data);
+  } catch {
+    showValidation(copy.value.tagCreateError);
+  }
+};
+
+const removeTag = (id: string) => {
+  selectedTags.value = selectedTags.value.filter((tag) => tag._id !== id);
 };
 
 const fileNameFromPath = (path: string, kind: "image" | "video") => {
@@ -207,6 +272,7 @@ onLoad((query) => {
   form.place_id = String(query?.placeId ?? "").trim() || null;
   form.event_id = String(query?.eventId ?? "").trim() || null;
   void loadAssociationOptions();
+  void loadTagSuggestions();
 });
 
 const submit = async () => {
@@ -216,7 +282,6 @@ const submit = async () => {
 
   const title = form.title.trim();
   const content = form.content.trim();
-  const tagIds = parseTags();
   const imageUrls = parseImageUrls();
   const isUploadingMedia = selectedMedia.value.some((item) => item.isUploading);
   const failedMedia = selectedMedia.value.filter((item) => item.error);
@@ -233,6 +298,12 @@ const submit = async () => {
     showValidation(copy.value.contentRequired);
     return;
   }
+
+  if (tagInput.value.trim()) {
+    await createAndAddTag(tagInput.value);
+  }
+
+  const tagIds = selectedTags.value.map((tag) => tag._id);
 
   if (!tagIds.length) {
     showValidation(copy.value.tagsRequired);
@@ -330,11 +401,42 @@ const submit = async () => {
 
       <view class="field-group">
         <view class="label">{{ copy.tagsLabel }}</view>
+        <view v-if="selectedTags.length" class="selected-tags">
+          <button
+            v-for="tag in selectedTags"
+            :key="tag._id"
+            class="tag-chip"
+            @click="removeTag(tag._id)"
+          >
+            #{{ tag._id }} ×
+          </button>
+        </view>
         <input
-          v-model="form.tagsText"
+          v-model="tagInput"
           class="input"
           :placeholder="copy.tagsPlaceholder"
+          confirm-type="done"
+          @confirm="createAndAddTag(tagInput)"
         />
+        <view v-if="tagInput || tagSuggestionItems.suggestions.length" class="tag-suggestions">
+          <view v-if="isLoadingTags" class="tag-hint">{{ copy.tagLoading }}</view>
+          <button
+            v-for="tag in tagSuggestionItems.suggestions"
+            :key="tag._id"
+            class="tag-option"
+            @click="addTag(tag)"
+          >
+            <text>#{{ tag._id }}</text>
+            <text class="tag-name">{{ tag.label_zh }} / {{ tag.label_en }}</text>
+          </button>
+          <button
+            v-if="tagSuggestionItems.canCreate"
+            class="tag-option create"
+            @click="createAndAddTag(tagSuggestionItems.typed)"
+          >
+            {{ copy.tagCreatePrefix }} #{{ tagSuggestionItems.typed }}
+          </button>
+        </view>
       </view>
 
       <view class="field-group">
@@ -456,6 +558,67 @@ const submit = async () => {
 
 .input {
   min-height: 78rpx;
+}
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-bottom: 12rpx;
+}
+
+.tag-chip {
+  margin: 0;
+  min-height: 52rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  background: #e6f4ff;
+  color: #0052d9;
+  font-size: 24rpx;
+  line-height: 52rpx;
+}
+
+.tag-suggestions {
+  display: grid;
+  gap: 8rpx;
+  margin-top: 10rpx;
+  padding: 10rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 12rpx;
+  background: #ffffff;
+}
+
+.tag-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14rpx;
+  margin: 0;
+  min-height: 58rpx;
+  padding: 0 14rpx;
+  border-radius: 10rpx;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 24rpx;
+  line-height: 58rpx;
+  text-align: left;
+}
+
+.tag-option.create {
+  justify-content: flex-start;
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.tag-name,
+.tag-hint {
+  color: #64748b;
+  font-size: 22rpx;
+}
+
+.tag-chip::after,
+.tag-option::after {
+  border: 0;
 }
 
 .picker-field {

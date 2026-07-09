@@ -71,8 +71,54 @@ interface PostItem {
   title: string;
   place_id: string | null;
   event_id: string | null;
+  like_count: number;
+  favorite_count: number;
+  share_count: number;
+  is_pinned: boolean;
+  is_featured: boolean;
+  is_recommended: boolean;
+  is_official: boolean;
+  ops_rank: number;
   status: string;
   review_status: string;
+}
+
+interface PostInteractionState {
+  post_id: string;
+  actor_user_id: string;
+  liked: boolean;
+  favorited: boolean;
+  like_count: number;
+  favorite_count: number;
+  share_count: number;
+}
+
+interface PublicProfile {
+  user: {
+    _id: string;
+    nickname: string;
+    avatar_url: string | null;
+    preferred_language: string;
+    status: string;
+  };
+  stats: {
+    post_count: number;
+    video_post_count: number;
+    follower_count: number;
+    following_count: number;
+  };
+  followed_by_actor: boolean;
+  is_self: boolean;
+  posts: PostItem[];
+  video_posts: PostItem[];
+}
+
+interface ProfileFollowState {
+  follower_user_id: string;
+  followed_user_id: string;
+  following: boolean;
+  follower_count: number;
+  following_count: number;
 }
 
 interface CommentItem {
@@ -127,6 +173,38 @@ interface AuditRecord {
   target_id: string;
   actor_user_id: string;
   reason: string | null;
+}
+
+interface DiscoverTag {
+  _id: string;
+  label_zh: string;
+  label_en: string;
+  status: "active" | "hidden";
+  post_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DiscoverAnalytics {
+  window_days: number;
+  post_count: number;
+  comment_count: number;
+  report_count: number;
+  open_report_count: number;
+  pending_workload_count: number;
+  average_moderation_hours: number | null;
+  engagement: {
+    like_count: number;
+    favorite_count: number;
+    share_count: number;
+  };
+  active_authors: Array<{
+    user_id: string;
+    post_count: number;
+    comment_count: number;
+  }>;
+  popular_places: Array<{ place_id: string; post_count: number }>;
+  popular_events: Array<{ event_id: string; post_count: number }>;
 }
 
 interface NotificationItem {
@@ -522,6 +600,332 @@ describe("discover integration readiness", () => {
       );
       expect(hidden.response.status).toBe(404);
       expect(hidden.body.error.code).toBe("NOT_FOUND");
+
+      const initialDetail = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_001"
+      );
+      const initialInteraction =
+        await request<ApiSuccess<PostInteractionState>>(
+          baseUrl,
+          "/discover/posts/post_001/interaction",
+          { actorId: "user_002" }
+        );
+      expect(initialInteraction.response.status).toBe(200);
+      expect(initialInteraction.body.data).toMatchObject({
+        post_id: "post_001",
+        actor_user_id: "user_002",
+        liked: false,
+        favorited: false,
+        like_count: initialDetail.body.data.like_count,
+        favorite_count: initialDetail.body.data.favorite_count,
+        share_count: initialDetail.body.data.share_count
+      });
+
+      const liked = await request<ApiSuccess<PostInteractionState>>(
+        baseUrl,
+        "/discover/posts/post_001/like",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { liked: true }
+        }
+      );
+      const likedAgain = await request<ApiSuccess<PostInteractionState>>(
+        baseUrl,
+        "/discover/posts/post_001/like",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { liked: true }
+        }
+      );
+      expect(liked.body.data.like_count).toBe(
+        initialDetail.body.data.like_count + 1
+      );
+      expect(likedAgain.body.data.like_count).toBe(liked.body.data.like_count);
+
+      const favorited = await request<ApiSuccess<PostInteractionState>>(
+        baseUrl,
+        "/discover/posts/post_001/favorite",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { favorited: true }
+        }
+      );
+      const favoritedAgain = await request<ApiSuccess<PostInteractionState>>(
+        baseUrl,
+        "/discover/posts/post_001/favorite",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { favorited: true }
+        }
+      );
+      expect(favorited.body.data.favorite_count).toBe(
+        initialDetail.body.data.favorite_count + 1
+      );
+      expect(favoritedAgain.body.data.favorite_count).toBe(
+        favorited.body.data.favorite_count
+      );
+
+      const shared = await request<ApiSuccess<PostInteractionState>>(
+        baseUrl,
+        "/discover/posts/post_001/share",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { channel: "wechat" }
+        }
+      );
+      expect(shared.body.data.share_count).toBe(
+        initialDetail.body.data.share_count + 1
+      );
+
+      const refreshedInteraction =
+        await request<ApiSuccess<PostInteractionState>>(
+          baseUrl,
+          "/discover/posts/post_001/interaction",
+          { actorId: "user_002" }
+        );
+      const refreshedDetail = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/discover/posts/post_001"
+      );
+      expect(refreshedInteraction.body.data).toMatchObject({
+        liked: true,
+        favorited: true,
+        like_count: refreshedDetail.body.data.like_count,
+        favorite_count: refreshedDetail.body.data.favorite_count,
+        share_count: refreshedDetail.body.data.share_count
+      });
+
+      const unliked = await request<ApiSuccess<PostInteractionState>>(
+        baseUrl,
+        "/discover/posts/post_001/like",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { liked: false }
+        }
+      );
+      const unlikedAgain = await request<ApiSuccess<PostInteractionState>>(
+        baseUrl,
+        "/discover/posts/post_001/like",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { liked: false }
+        }
+      );
+      expect(unliked.body.data.like_count).toBe(
+        initialDetail.body.data.like_count
+      );
+      expect(unlikedAgain.body.data.like_count).toBe(
+        unliked.body.data.like_count
+      );
+
+      const hiddenInteraction = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts/post_hidden/interaction",
+        { actorId: "user_002" }
+      );
+      expect(hiddenInteraction.response.status).toBe(404);
+      expect(hiddenInteraction.body.error.code).toBe("NOT_FOUND");
+
+      const unauthorizedInteraction = await request<ApiFailure>(
+        baseUrl,
+        "/discover/posts/post_001/interaction",
+        { actorId: "user_inactive" }
+      );
+      expect(unauthorizedInteraction.response.status).toBe(401);
+      expect(unauthorizedInteraction.body.error.code).toBe("UNAUTHORIZED");
+
+      const initialProfile = await request<ApiSuccess<PublicProfile>>(
+        baseUrl,
+        "/discover/profiles/user_002",
+        { actorId: "user_001" }
+      );
+      expect(initialProfile.response.status).toBe(200);
+      expect(initialProfile.body.data.user).toMatchObject({
+        _id: "user_002",
+        nickname: "Emma",
+        status: "active"
+      });
+      expect(initialProfile.body.data.posts.every(
+        (post) => post.author_user_id === "user_002"
+      )).toBe(true);
+      expect(initialProfile.body.data.followed_by_actor).toBe(false);
+
+      const followed = await request<ApiSuccess<ProfileFollowState>>(
+        baseUrl,
+        "/discover/profiles/user_002/follow",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: { following: true }
+        }
+      );
+      const followedAgain = await request<ApiSuccess<ProfileFollowState>>(
+        baseUrl,
+        "/discover/profiles/user_002/follow",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: { following: true }
+        }
+      );
+      expect(followed.body.data).toMatchObject({
+        follower_user_id: "user_001",
+        followed_user_id: "user_002",
+        following: true
+      });
+      expect(followedAgain.body.data.follower_count).toBe(
+        followed.body.data.follower_count
+      );
+
+      const followedProfile = await request<ApiSuccess<PublicProfile>>(
+        baseUrl,
+        "/discover/profiles/user_002",
+        { actorId: "user_001" }
+      );
+      expect(followedProfile.body.data.followed_by_actor).toBe(true);
+      expect(followedProfile.body.data.stats.follower_count).toBe(
+        followed.body.data.follower_count
+      );
+
+      const unfollowed = await request<ApiSuccess<ProfileFollowState>>(
+        baseUrl,
+        "/discover/profiles/user_002/follow",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: { following: false }
+        }
+      );
+      expect(unfollowed.body.data.following).toBe(false);
+      expect(unfollowed.body.data.follower_count).toBe(
+        initialProfile.body.data.stats.follower_count
+      );
+
+      const selfFollow = await request<ApiFailure>(
+        baseUrl,
+        "/discover/profiles/user_001/follow",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: { following: true }
+        }
+      );
+      expect(selfFollow.response.status).toBe(409);
+      expect(selfFollow.body.error.code).toBe("CONFLICT");
+
+      const inactiveProfile = await request<ApiFailure>(
+        baseUrl,
+        "/discover/profiles/user_inactive",
+        { actorId: "user_001" }
+      );
+      expect(inactiveProfile.response.status).toBe(404);
+      expect(inactiveProfile.body.error.code).toBe("NOT_FOUND");
+
+      const opsUpdate = await request<ApiSuccess<PostItem>>(
+        baseUrl,
+        "/admin/discover/posts/post_001/ops",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            is_featured: true,
+            is_recommended: true,
+            is_official: true,
+            ops_rank: 7,
+            reason: "Feature launch social ops"
+          }
+        }
+      );
+      expect(opsUpdate.response.status).toBe(200);
+      expect(opsUpdate.body.data).toMatchObject({
+        is_featured: true,
+        is_recommended: true,
+        is_official: true,
+        ops_rank: 7
+      });
+
+      const forbiddenOps = await request<ApiFailure>(
+        baseUrl,
+        "/admin/discover/posts/post_001/ops",
+        {
+          method: "POST",
+          actorId: "user_002",
+          body: { is_featured: false }
+        }
+      );
+      expect(forbiddenOps.response.status).toBe(403);
+      expect(forbiddenOps.body.error.code).toBe("FORBIDDEN");
+
+      const tag = await request<ApiSuccess<DiscoverTag>>(
+        baseUrl,
+        "/admin/discover/tags/coffee",
+        {
+          method: "POST",
+          actorId: "user_001",
+          body: {
+            label_zh: "咖啡",
+            label_en: "Coffee",
+            status: "active"
+          }
+        }
+      );
+      expect(tag.response.status).toBe(200);
+      expect(tag.body.data).toMatchObject({
+        _id: "coffee",
+        status: "active"
+      });
+
+      const tags = await request<ApiSuccess<PageResult<DiscoverTag>>>(
+        baseUrl,
+        "/admin/discover/tags",
+        { actorId: "user_001" }
+      );
+      expect(tags.body.data.items.map((item) => item._id)).toContain("coffee");
+      expect(
+        tags.body.data.items.find((item) => item._id === "coffee")?.post_count
+      ).toBeGreaterThanOrEqual(0);
+
+      const opsAudit = await request<ApiSuccess<PageResult<AuditRecord>>>(
+        baseUrl,
+        "/admin/discover/audit?targetType=tag&targetId=coffee",
+        { actorId: "user_001" }
+      );
+      expect(opsAudit.body.data.items[0]).toMatchObject({
+        action: "upsert_tag",
+        target_type: "tag",
+        target_id: "coffee"
+      });
+
+      const analytics = await request<ApiSuccess<DiscoverAnalytics>>(
+        baseUrl,
+        "/admin/discover/analytics?windowDays=90",
+        { actorId: "user_001" }
+      );
+      expect(analytics.response.status).toBe(200);
+      expect(analytics.body.data).toMatchObject({
+        window_days: 90
+      });
+      expect(analytics.body.data.post_count).toBeGreaterThanOrEqual(0);
+      expect(analytics.body.data.engagement.like_count).toBeGreaterThanOrEqual(
+        0
+      );
+      expect(Array.isArray(analytics.body.data.active_authors)).toBe(true);
+
+      const forbiddenAnalytics = await request<ApiFailure>(
+        baseUrl,
+        "/admin/discover/analytics",
+        { actorId: "user_002" }
+      );
+      expect(forbiddenAnalytics.response.status).toBe(403);
+      expect(forbiddenAnalytics.body.error.code).toBe("FORBIDDEN");
 
       const mine = await request<ApiSuccess<PageResult<PostItem>>>(
         baseUrl,

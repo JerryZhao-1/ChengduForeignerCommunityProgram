@@ -119,10 +119,40 @@
       }
     },
     {
+      "path": "pages/more/my-comments",
+      "style": {
+        "navigationBarTitleText": "我的评论"
+      }
+    },
+    {
+      "path": "pages/more/my-comment-detail",
+      "style": {
+        "navigationBarTitleText": "评论详情"
+      }
+    },
+    {
+      "path": "pages/more/my-reports",
+      "style": {
+        "navigationBarTitleText": "我的举报"
+      }
+    },
+    {
+      "path": "pages/more/my-report-detail",
+      "style": {
+        "navigationBarTitleText": "举报详情"
+      }
+    },
+    {
       "path": "pages/more/profile",
       "style": {
         "navigationBarTitleText": "个人主页",
         "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/more/follows",
+      "style": {
+        "navigationBarTitleText": "关注列表"
       }
     },
     {

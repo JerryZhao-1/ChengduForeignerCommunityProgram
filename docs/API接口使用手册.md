@@ -13,14 +13,14 @@
   - Shared contract / schema 覆盖当前已实现接口。
   - Places 主链路已覆盖 list、map markers、detail、admin list/create/update/delete、gallery metadata、志愿者导入草稿边界。
   - Events 基础闭环已覆盖 list、detail、registration、ticket、admin create/update/review/checkin。
-  - Discover 基础闭环已覆盖 feed、detail、create、comment、report、admin moderation、report case list/detail/resolve。
+  - Discover 闭环已覆盖 feed、detail、create、comment、report、social interaction、profile/follow、admin moderation、report case list/detail/resolve、ops、tags、analytics。
   - Files 基础流已覆盖 upload request、complete、private url、post media multipart、report evidence multipart。
   - Auth、announcements、notifications 有最低可用接口。
   - 6.19-6.21 local/API readiness 已覆盖 events、discover、files、notifications、auth/role 的关键负路径和 CloudBase handler fallback parity。
 - 未完善 / 不应宣称线上完成：
-  - CloudBase dev live acceptance 仍需补齐线上 smoke 证据，尤其是 discover report case 集合、索引、安全规则和 storage 临时 URL 权限。
-  - 线上 `/api` route、prod env、生产数据库权限规则尚未完成验收。
-  - CloudBase MCP 未重新登录和 live smoke test 前，不能把微信云数据库标记为“已验证可连接”。
+  - Discover social/profile/ops/analytics 已有 CloudBase live provider 实现和本地 provider 测试，但仍需补齐线上 `/api` smoke、集合索引和安全规则证据。
+  - Social notification 的线上投递仍未完成独立 live 验收；当前不应把通知投递视为生产完成。
+  - Prod env、生产数据库权限规则尚未完成验收。
 
 使用建议：
 
@@ -774,6 +774,11 @@ Post 字段：
 | `like_count`     | number      | 点赞数       |
 | `favorite_count` | number      | 收藏数       |
 | `share_count`    | number      | 分享数       |
+| `is_pinned`      | boolean     | 运营置顶标记 |
+| `is_featured`    | boolean     | 运营精选标记 |
+| `is_recommended` | boolean     | 运营推荐标记 |
+| `is_official`    | boolean     | 官方内容标记 |
+| `ops_rank`       | number      | 运营排序权重 |
 | `author_display` | object      | 作者展示快照 |
 | `status`         | string      | 内容状态     |
 | `review_status`  | string      | 审核状态     |
@@ -797,6 +802,84 @@ curl 'http://127.0.0.1:8787/discover/posts?page=1&pageSize=10'
 ```bash
 curl http://127.0.0.1:8787/discover/posts/post_001
 ```
+
+### GET `/discover/posts/:id/interaction`
+
+用途：获取当前 actor 对帖子的点赞、收藏状态，以及帖子当前互动计数。
+
+权限：需要当前 actor。
+
+响应 data：`PostInteractionState`
+
+| 字段             | 类型    | 说明             |
+| ---------------- | ------- | ---------------- |
+| `post_id`        | string  | 帖子 ID          |
+| `actor_user_id`  | string  | 当前 actor       |
+| `liked`          | boolean | 是否已点赞       |
+| `favorited`      | boolean | 是否已收藏       |
+| `like_count`     | number  | 最新点赞数       |
+| `favorite_count` | number  | 最新收藏数       |
+| `share_count`    | number  | 最新分享数       |
+
+### POST `/discover/posts/:id/like`
+
+用途：点赞或取消点赞。重复提交同一状态保持幂等，计数不会重复累加。
+
+权限：需要当前 actor。
+
+Body：`{ "liked": true }`
+
+响应 data：`PostInteractionState`
+
+### POST `/discover/posts/:id/favorite`
+
+用途：收藏或取消收藏。重复提交同一状态保持幂等，计数不会重复累加。
+
+权限：需要当前 actor。
+
+Body：`{ "favorited": true }`
+
+响应 data：`PostInteractionState`
+
+### POST `/discover/posts/:id/share`
+
+用途：记录一次分享并递增 `share_count`。Mobile detail 页当前传入 `wechat`、`moments`、`copy_link`，也支持 `system` / `other`。
+
+权限：需要当前 actor。
+
+Body：`{ "channel": "wechat|moments|copy_link|system|other" }`
+
+响应 data：`PostInteractionState`
+
+### GET `/discover/profiles/:userId`
+
+用途：获取公开个人主页，包括用户公开资料、公开帖子、视频帖、粉丝/关注统计和当前 actor 是否已关注。
+
+权限：需要当前 actor。
+
+响应 data：`PublicProfile`
+
+| 字段                  | 类型      | 说明                     |
+| --------------------- | --------- | ------------------------ |
+| `user`                | object    | 公开用户字段             |
+| `stats.post_count`    | number    | 公开帖子数               |
+| `stats.video_post_count` | number | 当前按视频媒体识别的帖子数 |
+| `stats.follower_count` | number   | 粉丝数                   |
+| `stats.following_count` | number  | 关注数                   |
+| `followed_by_actor`   | boolean   | 当前 actor 是否已关注    |
+| `is_self`             | boolean   | 是否为当前 actor 本人    |
+| `posts`               | `Post[]`  | 公开帖子                 |
+| `video_posts`         | `Post[]`  | 视频帖子                 |
+
+### POST `/discover/profiles/:userId/follow`
+
+用途：关注或取消关注用户。不能关注自己。
+
+权限：需要当前 actor。
+
+Body：`{ "following": true }`
+
+响应 data：`ProfileFollowState`，包含 `following`、`follower_count`、`following_count`。
 
 ### POST `/discover/posts`
 
@@ -1013,6 +1096,47 @@ curl -X POST http://127.0.0.1:8787/admin/discover/posts/post_001/moderation \
   -d '{"review_status":"hidden","reason":"spam"}'
 ```
 
+### POST `/admin/discover/posts/:id/ops`
+
+用途：管理端设置帖子运营属性。Admin `PostsPage` 的“运营”页和帖子队列操作按钮调用此接口。
+
+权限：`community_admin` 或 `system_admin`。
+
+Body：
+
+| 字段             | 类型    | 必填 | 说明         |
+| ---------------- | ------- | ---- | ------------ |
+| `is_pinned`      | boolean | 否   | 置顶         |
+| `is_featured`    | boolean | 否   | 精选         |
+| `is_recommended` | boolean | 否   | 推荐         |
+| `is_official`    | boolean | 否   | 官方内容     |
+| `ops_rank`       | number  | 否   | 排序权重     |
+| `reason`         | string  | 否   | 审计原因     |
+
+响应 data：`Post`
+
+说明：未传字段保持原值；成功后写入 audit record，`target_type="post"`。
+
+### GET `/admin/discover/tags`
+
+用途：管理端读取 Discover 标签列表和每个标签的当前帖子计数。
+
+权限：`community_admin` 或 `system_admin`。
+
+响应 data：分页 `DiscoverTag[]`。当前接口不分页输入，响应保持统一 page envelope。
+
+### POST `/admin/discover/tags/:id`
+
+用途：管理端新建或更新 Discover 标签。`id` 由调用方传入，用于稳定引用帖子 `tag_ids`。
+
+权限：`community_admin` 或 `system_admin`。
+
+Body：`{ "label_zh": "公告", "label_en": "Notice", "status": "active|hidden" }`
+
+响应 data：`DiscoverTag`
+
+说明：成功后写入 audit record，`target_type="tag"`。
+
 ### POST `/admin/discover/comments/:id/moderation`
 
 用途：管理端隐藏、恢复或删除评论。
@@ -1071,9 +1195,27 @@ Body：`{ "status": "active|warned|muted|banned", "reason": "...", "notes": "...
 
 权限：`community_admin` 或 `system_admin`。
 
-Query：`page`、`pageSize`、`targetType=post|comment|report|user`、`targetId`、`actorUserId`。
+Query：`page`、`pageSize`、`targetType=post|comment|report|user|tag`、`targetId`、`actorUserId`。
 
 响应 data：分页 `DiscoverAuditRecord[]`。每条记录包含 actor、target、action、reason、previous_state、next_state 和 created_at。
+
+### GET `/admin/discover/analytics`
+
+用途：管理端 Discover 运营分析，用于 Admin “分析”页。
+
+权限：`community_admin` 或 `system_admin`。
+
+Query：
+
+| 字段         | 类型   | 默认值 | 说明                 |
+| ------------ | ------ | ------ | -------------------- |
+| `windowDays` | number | `30`   | 统计窗口，1 到 90 天 |
+
+响应 data：`DiscoverAnalytics`，包含 `post_count`、`comment_count`、`report_count`、`open_report_count`、`pending_workload_count`、`average_moderation_hours`、`engagement`、`active_authors`、`popular_places`、`popular_events`。
+
+### Discover CloudBase 边界
+
+CloudBase live provider 现在覆盖 `posts`、`comments`、`discover_post_interactions`、`discover_user_follows`、`discover_tags`、`discover_report_cases` 和 `discover_audit_records` 的核心读写，并复用 actor/enforcement 校验。当前仍需线上 `/api` smoke、集合索引和安全规则验收；auth actor 解析仍依赖项目当前 fallback/mock actor 机制，social notification 的 live 投递未声明完成。
 
 ## 9. Places
 
@@ -1803,6 +1945,10 @@ curl -X POST http://127.0.0.1:8787/files/private-url \
 | Events   | `GET`    | `/admin/events/:id/registrations`      | admin       | 查看活动报名           |
 | Events   | `POST`   | `/admin/events/:id/checkin`            | admin       | 核销票据               |
 | Discover | `POST`   | `/admin/discover/posts/:id/moderation` | admin       | 审核/治理帖子          |
+| Discover | `POST`   | `/admin/discover/posts/:id/ops`        | admin       | 更新运营位             |
+| Discover | `GET`    | `/admin/discover/tags`                 | admin       | 标签列表               |
+| Discover | `POST`   | `/admin/discover/tags/:id`             | admin       | 新建/更新标签          |
+| Discover | `GET`    | `/admin/discover/analytics`            | admin       | 运营分析               |
 | Places   | `GET`    | `/admin/places`                        | admin       | 地点列表               |
 | Places   | `POST`   | `/admin/places`                        | admin       | 创建地点               |
 | Places   | `PATCH`  | `/admin/places/:id`                    | admin       | 更新地点               |

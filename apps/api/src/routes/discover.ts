@@ -6,17 +6,29 @@ import {
   AdminDiscoverReportListQuerySchema,
   AdminDiscoverUserListQuerySchema,
   CommentListQuerySchema,
+  CreateDiscoverTagInputSchema,
   CreateCommentInputSchema,
   CreatePostInputSchema,
+  DiscoverTagListQuerySchema,
+  DiscoverPostOpsInputSchema,
+  DiscoverAnalyticsQuerySchema,
   EnforceUserInputSchema,
   ModeratePostInputSchema,
   ModerateCommentInputSchema,
+  MyCommentListQuerySchema,
   MyPostListQuerySchema,
+  MyReportListQuerySchema,
   PostListQuerySchema,
+  ProfileFollowListQuerySchema,
+  RecordPostShareInputSchema,
   RelatedPostListQuerySchema,
   ReportCommentInputSchema,
   ResolveReportInputSchema,
-  ReportPostInputSchema
+  ReportPostInputSchema,
+  SetProfileFollowInputSchema,
+  SetPostFavoriteInputSchema,
+  SetPostLikeInputSchema,
+  UpsertDiscoverTagInputSchema
 } from "@community-map/shared";
 
 import { requireRole } from "../lib/auth";
@@ -24,6 +36,21 @@ import { apiError } from "../lib/errors";
 import { parseOrThrow, sendSuccess } from "../lib/http";
 
 export const registerDiscoverRoutes = (router: Router) => {
+  router.get("/discover/tags", async (ctx) => {
+    const query = parseOrThrow(DiscoverTagListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listPublicTags(query);
+    sendSuccess(ctx, data);
+  });
+
+  router.post("/discover/tags", async (ctx) => {
+    const input = parseOrThrow(CreateDiscoverTagInputSchema, ctx.request.body);
+    const tag = await ctx.state.provider.posts.createTag(
+      input,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, tag, 201);
+  });
+
   router.get("/discover/posts", async (ctx) => {
     const query = parseOrThrow(PostListQuerySchema, ctx.query);
     const data = await ctx.state.provider.posts.list(query);
@@ -36,6 +63,91 @@ export const registerDiscoverRoutes = (router: Router) => {
       throw apiError("NOT_FOUND", "Post not found.", 404);
     }
     sendSuccess(ctx, post);
+  });
+
+  router.get("/discover/posts/:id/interaction", async (ctx) => {
+    const data = await ctx.state.provider.posts.interaction(
+      ctx.params.id,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
+  router.post("/discover/posts/:id/like", async (ctx) => {
+    const input = parseOrThrow(SetPostLikeInputSchema, ctx.request.body);
+    const data = await ctx.state.provider.posts.setLike(
+      ctx.params.id,
+      input,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
+  router.post("/discover/posts/:id/favorite", async (ctx) => {
+    const input = parseOrThrow(SetPostFavoriteInputSchema, ctx.request.body);
+    const data = await ctx.state.provider.posts.setFavorite(
+      ctx.params.id,
+      input,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
+  router.post("/discover/posts/:id/share", async (ctx) => {
+    const input = parseOrThrow(RecordPostShareInputSchema, ctx.request.body);
+    const data = await ctx.state.provider.posts.recordShare(
+      ctx.params.id,
+      input,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
+  router.get("/discover/profiles/:userId", async (ctx) => {
+    const data = await ctx.state.provider.posts.profile(
+      ctx.params.userId,
+      ctx.state.actor._id
+    );
+    if (!data) {
+      throw apiError("NOT_FOUND", "Profile not found.", 404);
+    }
+    sendSuccess(ctx, data);
+  });
+
+  router.post("/discover/profiles/:userId/follow", async (ctx) => {
+    const input = parseOrThrow(SetProfileFollowInputSchema, ctx.request.body);
+    const data = await ctx.state.provider.posts.setProfileFollow(
+      ctx.params.userId,
+      input,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
+  router.get("/discover/profiles/:userId/followers", async (ctx) => {
+    const query = parseOrThrow(ProfileFollowListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listProfileFollowers(
+      ctx.params.userId,
+      query,
+      ctx.state.actor._id
+    );
+    if (!data) {
+      throw apiError("NOT_FOUND", "Profile not found.", 404);
+    }
+    sendSuccess(ctx, data);
+  });
+
+  router.get("/discover/profiles/:userId/following", async (ctx) => {
+    const query = parseOrThrow(ProfileFollowListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listProfileFollowing(
+      ctx.params.userId,
+      query,
+      ctx.state.actor._id
+    );
+    if (!data) {
+      throw apiError("NOT_FOUND", "Profile not found.", 404);
+    }
+    sendSuccess(ctx, data);
   });
 
   router.get("/discover/places/:placeId/posts", async (ctx) => {
@@ -69,6 +181,46 @@ export const registerDiscoverRoutes = (router: Router) => {
       ctx.state.actor._id
     );
     sendSuccess(ctx, data);
+  });
+
+  router.get("/discover/me/comments", async (ctx) => {
+    const query = parseOrThrow(MyCommentListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listMyComments(
+      query,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
+  router.get("/discover/me/comments/:id", async (ctx) => {
+    const comment = await ctx.state.provider.posts.detailMyComment(
+      ctx.params.id,
+      ctx.state.actor._id
+    );
+    if (!comment) {
+      throw apiError("NOT_FOUND", "Comment not found.", 404);
+    }
+    sendSuccess(ctx, comment);
+  });
+
+  router.get("/discover/me/reports", async (ctx) => {
+    const query = parseOrThrow(MyReportListQuerySchema, ctx.query);
+    const data = await ctx.state.provider.posts.listMyReportCases(
+      query,
+      ctx.state.actor._id
+    );
+    sendSuccess(ctx, data);
+  });
+
+  router.get("/discover/me/reports/:id", async (ctx) => {
+    const report = await ctx.state.provider.posts.detailMyReportCase(
+      ctx.params.id,
+      ctx.state.actor._id
+    );
+    if (!report) {
+      throw apiError("NOT_FOUND", "Report not found.", 404);
+    }
+    sendSuccess(ctx, report);
   });
 
   router.get("/discover/me/governance", async (ctx) => {
@@ -211,6 +363,46 @@ export const registerDiscoverRoutes = (router: Router) => {
   );
 
   router.post(
+    "/admin/discover/posts/:id/ops",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const input = parseOrThrow(DiscoverPostOpsInputSchema, ctx.request.body);
+      const post = await ctx.state.provider.posts.updateOps(
+        ctx.params.id,
+        input,
+        ctx.state.actor._id
+      );
+      if (!post) {
+        throw apiError("NOT_FOUND", "Post not found.", 404);
+      }
+      sendSuccess(ctx, post);
+    }
+  );
+
+  router.get(
+    "/admin/discover/tags",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const data = await ctx.state.provider.posts.listTags(ctx.state.actor._id);
+      sendSuccess(ctx, data);
+    }
+  );
+
+  router.post(
+    "/admin/discover/tags/:id",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const input = parseOrThrow(UpsertDiscoverTagInputSchema, ctx.request.body);
+      const tag = await ctx.state.provider.posts.upsertTag(
+        ctx.params.id,
+        input,
+        ctx.state.actor._id
+      );
+      sendSuccess(ctx, tag);
+    }
+  );
+
+  router.post(
     "/admin/discover/comments/:id/moderation",
     requireRole("community_admin", "system_admin"),
     async (ctx) => {
@@ -295,6 +487,19 @@ export const registerDiscoverRoutes = (router: Router) => {
     async (ctx) => {
       const query = parseOrThrow(AdminDiscoverAuditListQuerySchema, ctx.query);
       const data = await ctx.state.provider.posts.listAuditRecords(
+        query,
+        ctx.state.actor._id
+      );
+      sendSuccess(ctx, data);
+    }
+  );
+
+  router.get(
+    "/admin/discover/analytics",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const query = parseOrThrow(DiscoverAnalyticsQuerySchema, ctx.query);
+      const data = await ctx.state.provider.posts.analytics(
         query,
         ctx.state.actor._id
       );

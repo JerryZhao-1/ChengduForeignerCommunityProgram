@@ -1168,6 +1168,246 @@ describe("cloudbase event handler", () => {
     }
   });
 
+  it("persists live CloudBase discover social interactions idempotently", async () => {
+    const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+    const previousEnvId = process.env.CLOUDBASE_ENV_ID;
+    const dataset = createMockDataset();
+    const livePost = {
+      ...dataset.posts.find((post) => post._id === "post_001")!,
+      image_file_ids: ["cloud://test-env/public/posts/post_001/video.mp4"],
+      image_urls: []
+    };
+    const livePosts = [livePost];
+    const liveComments = dataset.comments.filter(
+      (comment) => comment.post_id === livePost._id
+    );
+    const liveInteractions: Array<{ _id: string } & Record<string, unknown>> =
+      [];
+    const liveTags: Array<{ _id: string } & Record<string, unknown>> = [];
+    const liveAuditRecords: Array<{ _id: string } & Record<string, unknown>> =
+      [];
+    const createCollection = <TItem extends { _id: string }>(
+      items: TItem[]
+    ) => ({
+      where: vi.fn((query: Partial<TItem>) => ({
+        limit: vi.fn(() => ({
+          get: vi.fn(async () => ({
+            data: items.filter((item) =>
+              Object.entries(query).every(
+                ([key, value]) => item[key as keyof TItem] === value
+              )
+            )
+          }))
+        }))
+      })),
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({ data: items }))
+      })),
+      doc: vi.fn((id: string) => ({
+        get: vi.fn(async () => ({
+          data: items.find((item) => item._id === id) ?? null
+        })),
+        set: vi.fn(async (payload: Omit<TItem, "_id">) => {
+          const existingIndex = items.findIndex((item) => item._id === id);
+          const nextItem = { _id: id, ...payload } as TItem;
+          if (existingIndex >= 0) {
+            items[existingIndex] = nextItem;
+          } else {
+            items.unshift(nextItem);
+          }
+          return { requestId: `req_set_${id}` };
+        }),
+        update: vi.fn(async (payload: Partial<TItem>) => {
+          const existing = items.find((item) => item._id === id);
+          if (existing) {
+            Object.assign(existing, payload);
+            return { updated: 1 };
+          }
+          return { updated: 0 };
+        })
+      }))
+    });
+    const collections = {
+      users: createCollection([]),
+      posts: createCollection(livePosts),
+      comments: createCollection(liveComments),
+      discover_post_interactions: createCollection(liveInteractions),
+      discover_user_follows: createCollection([]),
+      discover_tags: createCollection(liveTags),
+      file_assets: createCollection([]),
+      discover_report_cases: createCollection([]),
+      discover_audit_records: createCollection(liveAuditRecords)
+    };
+    const emptyCollection = createCollection([]);
+    const collectionFor = (name: string) =>
+      collections[name as keyof typeof collections] ?? emptyCollection;
+    type FakeTransaction = {
+      collection: typeof collectionFor;
+    };
+    const transaction: FakeTransaction = {
+      collection: collectionFor
+    };
+    const database = {
+      collection: collectionFor,
+      runTransaction: vi.fn(
+        async <TResult>(
+          handler: (nextTransaction: FakeTransaction) => Promise<TResult>
+        ) => handler(transaction)
+      )
+    };
+    const initCloudbase = vi.fn(() => ({
+      database: () => database,
+      getTempFileURL: vi.fn(async ({ fileList }: { fileList: string[] }) => ({
+        fileList: fileList.map((fileID) => ({
+          fileID,
+          tempFileURL: "https://cdn.example.com/post-video.mp4"
+        }))
+      }))
+    }));
+
+    try {
+      vi.resetModules();
+      vi.doMock("@cloudbase/node-sdk", () => ({
+        default: {
+          init: initCloudbase
+        }
+      }));
+      process.env.CLOUDBASE_PROVIDER_MODE = "live";
+      process.env.CLOUDBASE_ENV_ID = "test-env";
+
+      const { createCloudbaseProvider: createLiveProvider } =
+        await import("../src/providers/cloudbase");
+      const provider = createLiveProvider();
+      const initial = await provider.posts.interaction(
+        livePost._id,
+        "user_002"
+      );
+      const liked = await provider.posts.setLike(
+        livePost._id,
+        { liked: true },
+        "user_002"
+      );
+      const likedAgain = await provider.posts.setLike(
+        livePost._id,
+        { liked: true },
+        "user_002"
+      );
+      const favorited = await provider.posts.setFavorite(
+        livePost._id,
+        { favorited: true },
+        "user_002"
+      );
+      const shared = await provider.posts.recordShare(
+        livePost._id,
+        { channel: "wechat" },
+        "user_002"
+      );
+      const refreshed = await provider.posts.interaction(
+        livePost._id,
+        "user_002"
+      );
+
+      expect(initial).toMatchObject({
+        post_id: livePost._id,
+        actor_user_id: "user_002",
+        liked: false,
+        favorited: false
+      });
+      expect(liked.like_count).toBe(initial.like_count + 1);
+      expect(likedAgain.like_count).toBe(liked.like_count);
+      expect(favorited.favorite_count).toBe(initial.favorite_count + 1);
+      expect(shared.share_count).toBe(initial.share_count + 1);
+      expect(refreshed).toMatchObject({
+        liked: true,
+        favorited: true,
+        like_count: liked.like_count,
+        favorite_count: favorited.favorite_count,
+        share_count: shared.share_count
+      });
+      expect(liveInteractions).toHaveLength(1);
+      expect(liveInteractions[0]).toMatchObject({
+        post_id: livePost._id,
+        actor_user_id: "user_002",
+        liked: true,
+        favorited: true
+      });
+
+      const ops = await provider.posts.updateOps(
+        livePost._id,
+        {
+          is_featured: true,
+          is_recommended: true,
+          ops_rank: 9,
+          reason: "CloudBase social ops smoke"
+        },
+        "user_001"
+      );
+      expect(ops).toMatchObject({
+        is_featured: true,
+        is_recommended: true,
+        ops_rank: 9
+      });
+
+      const tag = await provider.posts.upsertTag(
+        "coffee-live",
+        {
+          label_zh: "咖啡",
+          label_en: "Coffee",
+          status: "active"
+        },
+        "user_001"
+      );
+      const tags = await provider.posts.listTags("user_001");
+      expect(tag._id).toBe("coffee-live");
+      expect(tags.items.map((item) => item._id)).toContain("coffee-live");
+
+      const profile = await provider.posts.profile("user_001", "user_002");
+      expect(profile?.posts[0]).toMatchObject({
+        _id: livePost._id,
+        comment_count: liveComments.length
+      });
+      expect(profile?.posts[0].image_urls).toContain(
+        "https://cdn.example.com/post-video.mp4"
+      );
+      expect(profile?.video_posts.map((post) => post._id)).toContain(
+        livePost._id
+      );
+
+      const analytics = await provider.posts.analytics(
+        { windowDays: 90 },
+        "user_001"
+      );
+      expect(analytics).toMatchObject({
+        window_days: 90
+      });
+      expect(analytics.engagement.share_count).toBeGreaterThanOrEqual(0);
+      expect(liveAuditRecords.map((record) => record.action)).toEqual(
+        expect.arrayContaining(["update_post_ops", "upsert_tag"])
+      );
+
+      await expect(
+        provider.posts.interaction("post_hidden", "user_002")
+      ).rejects.toMatchObject({
+        code: "NOT_FOUND"
+      });
+    } finally {
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+
+      if (previousEnvId === undefined) {
+        delete process.env.CLOUDBASE_ENV_ID;
+      } else {
+        process.env.CLOUDBASE_ENV_ID = previousEnvId;
+      }
+
+      vi.doUnmock("@cloudbase/node-sdk");
+      vi.resetModules();
+    }
+  });
+
   it("uses live CloudBase collections for admin discover governance", async () => {
     const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
     const previousEnvId = process.env.CLOUDBASE_ENV_ID;

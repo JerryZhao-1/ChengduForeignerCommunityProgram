@@ -143,6 +143,32 @@ describe("launch-readiness shared mock fixtures", () => {
     });
   });
 
+  it("classifies profile video posts from media URLs instead of tags", () => {
+    const dataset = createMockDataset();
+    const service = createMockService({
+      posts: [
+        ...dataset.posts,
+        {
+          ...dataset.posts[1],
+          _id: "post_media_video",
+          author_user_id: "user_002",
+          tag_ids: ["coffee"],
+          image_urls: ["https://example.com/uploads/community-clip.mp4"],
+          image_file_ids: []
+        }
+      ]
+    });
+
+    const profile = service.posts.profile("user_002", "user_001");
+
+    expect(profile?.video_posts.map((post) => post._id)).toContain(
+      "post_media_video"
+    );
+    expect(profile?.stats.video_post_count).toBe(
+      profile?.video_posts.length
+    );
+  });
+
   it("exposes admin event rows with management states and ticket joins", () => {
     const service = createMockService();
 

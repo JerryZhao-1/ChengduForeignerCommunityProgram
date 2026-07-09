@@ -93,7 +93,7 @@ pnpm --filter @community-map/api dev:cloudbase
 - 该命令运行 `apps/api/src/http-function.ts`，复用和正式 CloudBase HTTP 函数包一致的 Koa `createApp()` 路由集合。
 - 旧的 `apps/api/src/cloudbase.ts` 只保留为兼容入口，不应用作完整 API / Admin / Places 验收依据。
 - `API_PROVIDER=mock` 是默认模式。
-- `API_PROVIDER=cloudbase` 会尝试使用 CloudBase provider；CloudBase dev `community-map-api` HTTP function 和 `/api` route 已完成基础 smoke，当前 live provider 覆盖 places、events、discover core posts/comments 与通用 files 记录路径；discover 生产 readiness 仍需 CloudBase 集合、索引、安全规则和在线 smoke 证据。
+- `API_PROVIDER=cloudbase` 会尝试使用 CloudBase provider；CloudBase dev `community-map-api` HTTP function 和 `/api` route 已完成基础 smoke，当前 live provider 覆盖 places、events、discover posts/comments、social interactions、profile follow、content ops、tags、analytics 与通用 files 记录路径；discover 生产 readiness 仍需 CloudBase 集合索引、安全规则、social notification 投递和在线 smoke 证据。
 - 本地演示新增地点时，确保 `status=published`，否则前台 public list 不展示。
 
 ### 2. 运行后台管理端

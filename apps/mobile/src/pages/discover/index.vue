@@ -31,12 +31,21 @@ const isLoadingMore = ref(false);
 const errorMessage = ref("");
 const statusBarHeight = ref(0);
 const hasLoaded = ref(false);
+const keyword = ref("");
+const selectedTag = ref("");
+const sort = ref<"latest" | "likes" | "favorites" | "comments">("latest");
 
 const copy = computed(() => appCopy[state.locale].discover);
 const hasMore = computed(() => posts.value.length < total.value);
 const customTopStyle = computed(() => ({
   paddingTop: `${statusBarHeight.value}px`
 }));
+const sortOptions = computed(() => [
+  { value: "latest" as const, label: copy.value.sortLatest },
+  { value: "likes" as const, label: copy.value.sortLikes },
+  { value: "favorites" as const, label: copy.value.sortFavorites },
+  { value: "comments" as const, label: copy.value.sortComments }
+]);
 
 const getLanguageLabel = (language: Post["language"]) =>
   language === "zh" ? copy.value.languageZh : copy.value.languageEn;
@@ -75,7 +84,10 @@ const loadPosts = async (nextPage = 1, append = false) => {
     const result = await mobileApi.discover.listPosts({
       communityId: state.communityId,
       page: nextPage,
-      pageSize
+      pageSize,
+      keyword: keyword.value.trim() || undefined,
+      tag: selectedTag.value || undefined,
+      sort: sort.value
     });
     const items = result.data.items;
 
@@ -102,6 +114,26 @@ const refresh = () => {
   loadPosts(1);
 };
 
+const applySearch = () => {
+  page.value = 1;
+  loadPosts(1);
+};
+
+const clearTagFilter = () => {
+  selectedTag.value = "";
+  applySearch();
+};
+
+const selectSort = (value: typeof sort.value) => {
+  sort.value = value;
+  applySearch();
+};
+
+const filterByTag = (tag: string) => {
+  selectedTag.value = tag;
+  applySearch();
+};
+
 const loadMore = () => {
   if (!hasMore.value) {
     return;
@@ -118,12 +150,6 @@ const openDetail = (id: string) => {
 const openCreate = () => {
   uni.navigateTo({
     url: "/pages/discover/create"
-  });
-};
-
-const openSearch = () => {
-  uni.navigateTo({
-    url: "/pages/discover/search"
   });
 };
 
@@ -148,14 +174,35 @@ onReachBottom(loadMore);
 <template>
   <view class="page">
     <view class="top-actions" :style="customTopStyle">
-      <button class="search-icon-button" :aria-label="copy.searchIconLabel" @click="openSearch">
-        ⌕
+      <input
+        v-model="keyword"
+        class="search-input"
+        confirm-type="search"
+        :placeholder="copy.searchPlaceholder"
+        @confirm="applySearch"
+      />
+      <button class="plus-button" :aria-label="copy.createPost" @click="openCreate">
+        +
       </button>
     </view>
 
     <SectionPanel :title="copy.feedTitle" :subtitle="copy.feedSubtitle">
-      <view class="actions">
-        <button class="primary" @click="openCreate">{{ copy.createPost }}</button>
+      <view class="toolbar">
+        <view class="sort-tabs">
+          <button
+            v-for="option in sortOptions"
+            :key="option.value"
+            class="sort-tab"
+            :class="{ active: sort === option.value }"
+            @click="selectSort(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </view>
+        <view v-if="selectedTag" class="tag-filter">
+          <text>#{{ selectedTag }}</text>
+          <button class="clear-tag" @click="clearTagFilter">×</button>
+        </view>
       </view>
 
       <AsyncStateCard v-if="isLoading && !posts.length" variant="loading" :text="copy.loading" />
@@ -223,7 +270,14 @@ onReachBottom(loadMore);
               </text>
             </view>
             <view v-if="post.tag_ids.length" class="tags">
-              <text v-for="tag in getVisibleTags(post)" :key="tag" class="tag">#{{ tag }}</text>
+              <text
+                v-for="tag in getVisibleTags(post)"
+                :key="tag"
+                class="tag"
+                @click.stop="filterByTag(tag)"
+              >
+                #{{ tag }}
+              </text>
               <text v-if="getHiddenTagCount(post)" class="tag more">
                 +{{ getHiddenTagCount(post) }} {{ copy.moreTags }}
               </text>
@@ -254,11 +308,25 @@ onReachBottom(loadMore);
 
 .top-actions {
   display: flex;
-  justify-content: flex-start;
+  align-items: center;
+  gap: 14rpx;
   margin: -12rpx 0 12rpx;
 }
 
-.search-icon-button {
+.search-input {
+  flex: 1;
+  height: 72rpx;
+  box-sizing: border-box;
+  padding: 0 24rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #111827;
+  font-size: 26rpx;
+  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.06);
+}
+
+.plus-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -267,27 +335,82 @@ onReachBottom(loadMore);
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #ffffff;
-  color: #111827;
+  background: #0f766e;
+  color: #ffffff;
   font-size: 42rpx;
   line-height: 72rpx;
   box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.08);
 }
 
-.actions {
+.plus-button::after {
+  border: 0;
+}
+
+.toolbar {
+  display: grid;
+  gap: 14rpx;
   margin-bottom: 20rpx;
 }
 
-.primary,
+.sort-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10rpx;
+}
+
+.sort-tab {
+  margin: 0;
+  min-height: 60rpx;
+  padding: 0 8rpx;
+  border-radius: 10rpx;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 23rpx;
+  line-height: 60rpx;
+}
+
+.sort-tab.active {
+  background: #d1fae5;
+  color: #047857;
+  font-weight: 700;
+}
+
+.tag-filter {
+  display: inline-flex;
+  justify-self: flex-start;
+  align-items: center;
+  gap: 8rpx;
+  padding: 6rpx 8rpx 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #e6f4ff;
+  color: #0052d9;
+  font-size: 24rpx;
+}
+
+.clear-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: rgba(0, 82, 217, 0.12);
+  color: #0052d9;
+  font-size: 30rpx;
+  line-height: 44rpx;
+}
+
+.clear-tag::after,
+.sort-tab::after {
+  border: 0;
+}
+
 .retry,
 .load-more {
   border-radius: 10rpx;
   font-size: 26rpx;
-}
-
-.primary {
-  background: #1d4ed8;
-  color: white;
 }
 
 .status-block {

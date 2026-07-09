@@ -3,6 +3,7 @@ import {
   createFetchRequester,
   createHttpClient,
   createMockClient,
+  createMockService,
   apiPaths,
   type HttpRequester
 } from "@community-map/shared";
@@ -184,6 +185,245 @@ describe("shared api clients", () => {
     expect(requester).toHaveBeenCalledWith(
       "GET",
       "http://localhost:8787/discover/me/posts",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+  });
+
+  it("keeps mock and http client signatures aligned for discover interactions", async () => {
+    const mockClient = createMockClient({ actorId: "user_001" });
+    const requester = vi.fn(
+      async (method: string, url: string, body: unknown) => ({
+        success: true,
+        requestId: "req_interaction",
+        data: {
+          post_id: String(url).includes("/post_http_001/")
+            ? "post_http_001"
+            : "post_001",
+          actor_user_id: "user_001",
+          liked:
+            method === "POST" && String(url).endsWith("/like")
+              ? (body as { liked?: boolean }).liked === true
+              : false,
+          favorited:
+            method === "POST" && String(url).endsWith("/favorite")
+              ? (body as { favorited?: boolean }).favorited === true
+              : false,
+          like_count: 1,
+          favorite_count: 1,
+          share_count: String(url).endsWith("/share") ? 2 : 1
+        }
+      })
+    );
+    const httpClient = createHttpClient({
+      actorId: "user_001",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    const mockInteraction = await mockClient.discover.postInteraction(
+      "post_001"
+    );
+    const mockLike = await mockClient.discover.setPostLike("post_001", {
+      liked: true
+    });
+    const httpInteraction =
+      await httpClient.discover.postInteraction("post_http_001");
+    const httpLike = await httpClient.discover.setPostLike("post_http_001", {
+      liked: true
+    });
+    await httpClient.discover.setPostFavorite("post_http_001", {
+      favorited: false
+    });
+    await httpClient.discover.recordPostShare("post_http_001", {
+      channel: "wechat"
+    });
+    await httpClient.discover.profile("user_002");
+    await httpClient.discover.setProfileFollow("user_002", {
+      following: true
+    });
+
+    expect(mockInteraction.data.post_id).toBe("post_001");
+    expect(mockLike.data.liked).toBe(true);
+    expect(httpInteraction.data.post_id).toBe("post_http_001");
+    expect(httpLike.data.liked).toBe(true);
+    expect(apiPaths.discover.postInteraction("post_001")).toBe(
+      "/discover/posts/post_001/interaction"
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/posts/post_http_001/interaction",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "POST",
+      "http://localhost:8787/discover/posts/post_http_001/like",
+      { liked: true },
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "POST",
+      "http://localhost:8787/discover/posts/post_http_001/favorite",
+      { favorited: false },
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "POST",
+      "http://localhost:8787/discover/posts/post_http_001/share",
+      { channel: "wechat" },
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/profiles/user_002",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "POST",
+      "http://localhost:8787/discover/profiles/user_002/follow",
+      { following: true },
+      { "x-mock-user-id": "user_001" }
+    );
+  });
+
+  it("supports discover search sorting, public tags, my content, and follow lists", async () => {
+    const service = createMockService();
+
+    const likesBefore = service.posts.list({
+      sort: "likes",
+      pageSize: 3
+    });
+    expect(likesBefore.items[0]._id).toBe("post_006");
+
+    service.posts.updateOps("post_001", { is_pinned: true }, "user_001");
+    const likesAfterPin = service.posts.list({
+      sort: "likes",
+      pageSize: 3
+    });
+    expect(likesAfterPin.items[0]._id).toBe("post_001");
+
+    const filteredPinned = service.posts.list({
+      keyword: "tennis",
+      sort: "likes",
+      pageSize: 3
+    });
+    expect(filteredPinned.items.map((post) => post._id)).not.toContain(
+      "post_001"
+    );
+    expect(filteredPinned.items[0]._id).toBe("post_002");
+
+    const coffeeTags = service.posts.listPublicTags({
+      keyword: "cof"
+    });
+    expect(coffeeTags.items.map((tag) => tag._id)).toContain("coffee");
+
+    const createdTag = service.posts.createTag(
+      {
+        label: "#book club"
+      },
+      "user_002"
+    );
+    expect(createdTag).toMatchObject({
+      _id: "book-club",
+      status: "active"
+    });
+
+    const myComments = service.posts.listMyComments({}, "user_002");
+    expect(myComments.items[0]._id).toBe("comment_001");
+    const myComment = service.posts.detailMyComment("comment_001", "user_002");
+    expect(myComment?.post_id).toBe("post_001");
+
+    const myReports = service.posts.listMyReportCases({}, "user_002");
+    expect(myReports.items[0]._id).toBe("report_001");
+    const myReport = service.posts.detailMyReportCase("report_001", "user_002");
+    expect(myReport?.reporter_user_id).toBe("user_002");
+
+    service.posts.setProfileFollow(
+      "user_001",
+      {
+        following: true
+      },
+      "user_002"
+    );
+    service.posts.setProfileFollow(
+      "user_002",
+      {
+        following: true
+      },
+      "user_001"
+    );
+    const followers = service.posts.listProfileFollowers(
+      "user_001",
+      {},
+      "user_001"
+    );
+    expect(followers?.items[0]).toMatchObject({
+      mutual: true,
+      followed_by_actor: true,
+      follows_actor: true
+    });
+  });
+
+  it("serializes new discover query and profile utility endpoints", async () => {
+    const requester = vi.fn(async () => ({
+      success: true,
+      requestId: "req_discover_new",
+      data: { items: [], page: 1, pageSize: 20, total: 0 }
+    }));
+    const httpClient = createHttpClient({
+      actorId: "user_001",
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    await httpClient.discover.listPosts({
+      keyword: "coffee",
+      tag: "coffee",
+      sort: "favorites"
+    });
+    await httpClient.discover.listTags({ keyword: "cof" });
+    await httpClient.discover.listProfileFollowers("user_002");
+    await httpClient.discover.listProfileFollowing("user_002", {
+      page: 2
+    });
+    await httpClient.discover.myComments();
+    await httpClient.discover.myReports();
+
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/posts?keyword=coffee&tag=coffee&sort=favorites",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/tags?keyword=cof",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/profiles/user_002/followers",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/profiles/user_002/following?page=2",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/me/comments",
+      undefined,
+      { "x-mock-user-id": "user_001" }
+    );
+    expect(requester).toHaveBeenCalledWith(
+      "GET",
+      "http://localhost:8787/discover/me/reports",
       undefined,
       { "x-mock-user-id": "user_001" }
     );

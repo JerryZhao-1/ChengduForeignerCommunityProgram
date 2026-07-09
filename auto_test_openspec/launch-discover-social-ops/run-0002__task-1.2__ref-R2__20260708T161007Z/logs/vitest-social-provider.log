@@ -1,0 +1,15 @@
+Running discover social provider validation
+Repo: /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/contracts.spec.ts (19 tests) 8ms
+ ✓ packages/shared/test/client.spec.ts (20 tests) 12ms
+ ✓ apps/api/test/cloudbase.spec.ts (17 tests) 86ms
+ ✓ apps/api/test/integration-readiness.spec.ts (10 tests) 82ms
+
+ Test Files  4 passed (4)
+      Tests  66 passed (66)
+   Start at  00:10:34
+   Duration  624ms (transform 342ms, setup 0ms, collect 1.15s, tests 188ms, environment 0ms, prepare 129ms)
+

@@ -1,0 +1,14 @@
+Running admin ops CLI validation
+Repo: /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/contracts.spec.ts (19 tests) 7ms
+ ✓ packages/shared/test/client.spec.ts (20 tests) 10ms
+ ✓ apps/api/test/integration-readiness.spec.ts (10 tests) 80ms
+
+ Test Files  3 passed (3)
+      Tests  49 passed (49)
+   Start at  00:25:25
+   Duration  515ms (transform 200ms, setup 0ms, collect 578ms, tests 97ms, environment 0ms, prepare 88ms)
+

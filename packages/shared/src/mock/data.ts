@@ -2,6 +2,7 @@ import type {
   Announcement,
   Comment,
   DiscoverAuditRecord,
+  DiscoverTag,
   DiscoverReportCase,
   Event,
   EventRegistration,
@@ -10,6 +11,8 @@ import type {
   Notification,
   Place,
   Post,
+  PostInteractionRecord,
+  UserFollowRecord,
   User
 } from "../types/entities";
 
@@ -20,9 +23,12 @@ export interface MockDataset {
   tickets: EventTicket[];
   places: Place[];
   posts: Post[];
+  postInteractions: PostInteractionRecord[];
+  userFollows: UserFollowRecord[];
   comments: Comment[];
   reportCases: DiscoverReportCase[];
   auditRecords: DiscoverAuditRecord[];
+  discoverTags: DiscoverTag[];
   userEnforcements: Record<
     string,
     {
@@ -419,6 +425,11 @@ export const createMockDataset = (): MockDataset => ({
       like_count: 12,
       favorite_count: 3,
       share_count: 2,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: "2026-03-28T09:00:00+08:00",
       updated_at: "2026-03-28T09:00:00+08:00",
       status: "visible",
@@ -449,6 +460,11 @@ export const createMockDataset = (): MockDataset => ({
       like_count: 24,
       favorite_count: 8,
       share_count: 4,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: "2026-03-28T10:00:00+08:00",
       updated_at: "2026-03-28T10:00:00+08:00",
       status: "visible",
@@ -479,6 +495,11 @@ export const createMockDataset = (): MockDataset => ({
       like_count: 31,
       favorite_count: 12,
       share_count: 5,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: "2026-03-29T08:30:00+08:00",
       updated_at: "2026-03-29T08:30:00+08:00",
       status: "visible",
@@ -510,6 +531,11 @@ export const createMockDataset = (): MockDataset => ({
       like_count: 47,
       favorite_count: 18,
       share_count: 7,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: "2026-03-30T14:20:00+08:00",
       updated_at: "2026-03-30T14:20:00+08:00",
       status: "visible",
@@ -540,6 +566,11 @@ export const createMockDataset = (): MockDataset => ({
       like_count: 19,
       favorite_count: 6,
       share_count: 3,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: "2026-03-31T16:45:00+08:00",
       updated_at: "2026-03-31T16:45:00+08:00",
       status: "visible",
@@ -576,6 +607,11 @@ export const createMockDataset = (): MockDataset => ({
       like_count: 56,
       favorite_count: 21,
       share_count: 9,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: "2026-04-01T11:10:00+08:00",
       updated_at: "2026-04-01T11:10:00+08:00",
       status: "visible",
@@ -604,6 +640,11 @@ export const createMockDataset = (): MockDataset => ({
       like_count: 8,
       favorite_count: 1,
       share_count: 2,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: "2026-04-02T18:00:00+08:00",
       updated_at: "2026-04-02T18:00:00+08:00",
       status: "visible",
@@ -631,6 +672,11 @@ export const createMockDataset = (): MockDataset => ({
       like_count: 0,
       favorite_count: 0,
       share_count: 0,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: "2026-04-03T09:00:00+08:00",
       updated_at: "2026-04-03T09:00:00+08:00",
       status: "hidden",
@@ -658,12 +704,19 @@ export const createMockDataset = (): MockDataset => ({
       like_count: 0,
       favorite_count: 0,
       share_count: 0,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: "2026-04-03T10:00:00+08:00",
       updated_at: "2026-04-03T10:00:00+08:00",
       status: "deleted",
       review_status: "deleted"
     }
   ],
+  postInteractions: [],
+  userFollows: [],
   comments: [
     {
       _id: "comment_001",
@@ -713,6 +766,26 @@ export const createMockDataset = (): MockDataset => ({
       previous_state: { status: "visible", review_status: "visible" },
       next_state: { status: "hidden", review_status: "hidden" },
       created_at: "2026-04-03T09:10:00+08:00"
+    }
+  ],
+  discoverTags: [
+    {
+      _id: "help",
+      label_zh: "求助",
+      label_en: "Help",
+      status: "active",
+      post_count: 0,
+      created_at: "2026-03-01T00:00:00+08:00",
+      updated_at: "2026-03-01T00:00:00+08:00"
+    },
+    {
+      _id: "coffee",
+      label_zh: "咖啡",
+      label_en: "Coffee",
+      status: "active",
+      post_count: 0,
+      created_at: "2026-03-01T00:00:00+08:00",
+      updated_at: "2026-03-01T00:00:00+08:00"
     }
   ],
   userEnforcements: {

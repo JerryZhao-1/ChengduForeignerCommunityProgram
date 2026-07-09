@@ -42,6 +42,7 @@ const postLikeCount = ref(0);
 const postFavorited = ref(false);
 const postFavoriteCount = ref(0);
 const postShareCount = ref(0);
+const isUpdatingPostInteraction = ref(false);
 const showShare = ref(false);
 
 const forwardIcon =
@@ -144,6 +145,30 @@ const loadComments = async (id: string) => {
   comments.value = result.data.items.map(toCommentItem);
 };
 
+const applyPostInteraction = (interaction: {
+  liked: boolean;
+  favorited: boolean;
+  like_count: number;
+  favorite_count: number;
+  share_count: number;
+}) => {
+  postLiked.value = interaction.liked;
+  postFavorited.value = interaction.favorited;
+  postLikeCount.value = interaction.like_count;
+  postFavoriteCount.value = interaction.favorite_count;
+  postShareCount.value = interaction.share_count;
+};
+
+const loadPostInteraction = async (id: string) => {
+  try {
+    const result = await mobileApi.discover.postInteraction(id);
+    applyPostInteraction(result.data);
+  } catch {
+    postLiked.value = false;
+    postFavorited.value = false;
+  }
+};
+
 const loadPost = async (id: string) => {
   isLoading.value = true;
   errorMessage.value = "";
@@ -154,6 +179,7 @@ const loadPost = async (id: string) => {
     postLikeCount.value = result.data.like_count;
     postFavoriteCount.value = result.data.favorite_count;
     postShareCount.value = result.data.share_count;
+    await loadPostInteraction(id);
     await loadAssociations(result.data);
     await loadComments(id);
   } catch {
@@ -295,23 +321,39 @@ const openAssociatedEvent = () => {
   });
 };
 
-const togglePostLike = () => {
-  if (postLiked.value) {
-    postLiked.value = false;
-    postLikeCount.value = Math.max(0, postLikeCount.value - 1);
-  } else {
-    postLiked.value = true;
-    postLikeCount.value += 1;
+const togglePostLike = async () => {
+  if (!post.value || isUpdatingPostInteraction.value) {
+    return;
+  }
+
+  isUpdatingPostInteraction.value = true;
+  try {
+    const result = await mobileApi.discover.setPostLike(post.value._id, {
+      liked: !postLiked.value
+    });
+    applyPostInteraction(result.data);
+  } catch {
+    uni.showToast({ title: copy.value.detailError, icon: "none" });
+  } finally {
+    isUpdatingPostInteraction.value = false;
   }
 };
 
-const togglePostFavorite = () => {
-  if (postFavorited.value) {
-    postFavorited.value = false;
-    postFavoriteCount.value = Math.max(0, postFavoriteCount.value - 1);
-  } else {
-    postFavorited.value = true;
-    postFavoriteCount.value += 1;
+const togglePostFavorite = async () => {
+  if (!post.value || isUpdatingPostInteraction.value) {
+    return;
+  }
+
+  isUpdatingPostInteraction.value = true;
+  try {
+    const result = await mobileApi.discover.setPostFavorite(post.value._id, {
+      favorited: !postFavorited.value
+    });
+    applyPostInteraction(result.data);
+  } catch {
+    uni.showToast({ title: copy.value.detailError, icon: "none" });
+  } finally {
+    isUpdatingPostInteraction.value = false;
   }
 };
 
@@ -328,13 +370,31 @@ const closeShare = () => {
   showShare.value = false;
 };
 
+const recordPostShare = async (
+  channel: "wechat" | "moments" | "copy_link" | "system" | "other"
+) => {
+  if (!post.value) {
+    return;
+  }
+
+  try {
+    const result = await mobileApi.discover.recordPostShare(post.value._id, {
+      channel
+    });
+    applyPostInteraction(result.data);
+  } catch {
+    uni.showToast({ title: copy.value.shareError, icon: "none" });
+  }
+};
+
 const onShareTapped = () => {
-  postShareCount.value += 1;
+  void recordPostShare("wechat");
   closeShare();
 };
 
 const shareToMoments = () => {
   uni.showToast({ title: copy.value.shareMomentsHint, icon: "none" });
+  void recordPostShare("moments");
   closeShare();
 };
 
@@ -343,9 +403,9 @@ const copyShareLink = () => {
     data: sharePath.value,
     success: () => {
       uni.showToast({ title: copy.value.shareLinkCopied, icon: "none" });
+      void recordPostShare("copy_link");
     }
   });
-  postShareCount.value += 1;
   closeShare();
 };
 

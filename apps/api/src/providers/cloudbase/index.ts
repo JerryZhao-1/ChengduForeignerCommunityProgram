@@ -13,6 +13,10 @@ import {
   FileAssetSchema,
   PlaceSchema,
   PostSchema,
+  PostInteractionRecordSchema,
+  PostInteractionStateSchema,
+  DiscoverTagSchema,
+  UserFollowRecordSchema,
   CommentSchema,
   DiscoverAuditRecordSchema,
   DiscoverReportCaseSchema,
@@ -21,6 +25,7 @@ import {
   DiscoverUserGovernanceSummarySchema,
   UserEnforcementStateSchema,
   UserSchema,
+  postHasVideoMedia,
   type Event,
   type EventAdminListItem,
   type DiscoverAuditRecord,
@@ -40,7 +45,14 @@ import {
   type PlaceListItem,
   type PlaceMapMarker,
   type Post,
+  type PostInteractionRecord,
+  type PostInteractionState,
+  type DiscoverTag,
+  type ProfileFollowListItem,
+  type ProfileFollowState,
+  type PublicProfile,
   type User,
+  type UserFollowRecord,
   type UserEnforcementState
 } from "@community-map/shared";
 
@@ -57,6 +69,7 @@ const POST_MEDIA_BIZ_TYPES = new Set([
   "post_video",
   "post_media"
 ]);
+const PLACEHOLDER_AVATAR_URL = "https://example.com/avatar-placeholder.png";
 
 type CloudbaseApp = ReturnType<typeof tcb.init>;
 type CloudbaseDatabase = ReturnType<CloudbaseApp["database"]>;
@@ -99,12 +112,16 @@ interface CloudbaseTransaction {
 interface LiveCloudbaseContext {
   app: CloudbaseApp;
   db: CloudbaseDatabase;
+  users: CloudbaseCollection;
   events: CloudbaseCollection;
   eventRegistrations: CloudbaseCollection;
   eventTickets: CloudbaseCollection;
   places: CloudbaseCollection;
   posts: CloudbaseCollection;
   comments: CloudbaseCollection;
+  postInteractions: CloudbaseCollection;
+  userFollows: CloudbaseCollection;
+  discoverTags: CloudbaseCollection;
   fileAssets: CloudbaseCollection;
   discoverReportCases: CloudbaseCollection;
   discoverAuditRecords: CloudbaseCollection;
@@ -139,6 +156,46 @@ const paginate = <TItem>(
 
 const keywordMatch = (value: string, keyword?: string) =>
   !keyword || value.toLowerCase().includes(keyword.toLowerCase());
+
+const normalizeTagId = (value: string) =>
+  value
+    .trim()
+    .replace(/^#+/, "")
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+
+const discoverSortValue = (
+  post: Post,
+  sort: "latest" | "likes" | "favorites" | "comments" = "latest"
+) => {
+  if (sort === "likes") {
+    return post.like_count;
+  }
+  if (sort === "favorites") {
+    return post.favorite_count;
+  }
+  if (sort === "comments") {
+    return post.comment_count;
+  }
+  return Date.parse(post.created_at);
+};
+
+const sortDiscoverPosts = (
+  posts: Post[],
+  sort: "latest" | "likes" | "favorites" | "comments" = "latest"
+) =>
+  [...posts].sort((left, right) => {
+    if (left.is_pinned !== right.is_pinned) {
+      return left.is_pinned ? -1 : 1;
+    }
+
+    const valueDelta = discoverSortValue(right, sort) - discoverSortValue(left, sort);
+    if (valueDelta !== 0) {
+      return valueDelta;
+    }
+
+    return Date.parse(right.created_at) - Date.parse(left.created_at);
+  });
 
 const isAdmin = (user: { role_flags: string[] }) =>
   user.role_flags.includes("community_admin") ||
@@ -479,12 +536,16 @@ const createLiveContext = (): LiveCloudbaseContext | null => {
   return {
     app,
     db,
+    users: db.collection("users"),
     events: db.collection("events"),
     eventRegistrations: db.collection("event_registrations"),
     eventTickets: db.collection("event_tickets"),
     places: db.collection("places"),
     posts: db.collection("posts"),
     comments: db.collection("comments"),
+    postInteractions: db.collection("discover_post_interactions"),
+    userFollows: db.collection("discover_user_follows"),
+    discoverTags: db.collection("discover_tags"),
     fileAssets: db.collection("file_assets"),
     discoverReportCases: db.collection("discover_report_cases"),
     discoverAuditRecords: db.collection("discover_audit_records")
@@ -503,6 +564,11 @@ const normalizeEventRegistration = (raw: unknown): EventRegistration | null => {
 
 const normalizeEventTicket = (raw: unknown): EventTicket | null => {
   const parsed = EventTicketSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizeUser = (raw: unknown): User | null => {
+  const parsed = UserSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;
 };
 
@@ -529,6 +595,11 @@ const normalizePost = (raw: unknown): Post | null => {
     like_count: item.like_count ?? 0,
     favorite_count: item.favorite_count ?? 0,
     share_count: item.share_count ?? 0,
+    is_pinned: item.is_pinned ?? false,
+    is_featured: item.is_featured ?? false,
+    is_recommended: item.is_recommended ?? false,
+    is_official: item.is_official ?? false,
+    ops_rank: item.ops_rank ?? 0,
     created_at: item.created_at ?? new Date(0).toISOString(),
     updated_at: item.updated_at ?? item.created_at ?? new Date(0).toISOString()
   });
@@ -545,6 +616,23 @@ const normalizeComment = (raw: unknown): Comment | null => {
     ...item,
     status: item.status ?? "visible"
   });
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizePostInteractionRecord = (
+  raw: unknown
+): PostInteractionRecord | null => {
+  const parsed = PostInteractionRecordSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizeUserFollowRecord = (raw: unknown): UserFollowRecord | null => {
+  const parsed = UserFollowRecordSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizeDiscoverTag = (raw: unknown): DiscoverTag | null => {
+  const parsed = DiscoverTagSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;
 };
 
@@ -565,6 +653,17 @@ const normalizeDiscoverAuditRecord = (
 ): DiscoverAuditRecord | null => {
   const parsed = DiscoverAuditRecordSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;
+};
+
+const withDocumentId = (id: string, raw: unknown) => {
+  if (!raw || typeof raw !== "object") {
+    return raw;
+  }
+
+  return {
+    ...raw,
+    _id: (raw as { _id?: unknown })._id ?? id
+  };
 };
 
 const readEvents = async (context: LiveCloudbaseContext) => {
@@ -592,6 +691,11 @@ const readEventTickets = async (context: LiveCloudbaseContext) => {
     .filter((ticket): ticket is EventTicket => !!ticket);
 };
 
+const readUsers = async (context: LiveCloudbaseContext) => {
+  const result = await context.users.limit(MAX_DISCOVER_FETCH).get();
+  return result.data.map(normalizeUser).filter((user): user is User => !!user);
+};
+
 const readPlaces = async (context: LiveCloudbaseContext) => {
   const result = await context.places.limit(MAX_PLACES_FETCH).get();
   return result.data
@@ -609,6 +713,29 @@ const readComments = async (context: LiveCloudbaseContext) => {
   return result.data
     .map(normalizeComment)
     .filter((comment): comment is Comment => !!comment);
+};
+
+const readPostInteractions = async (context: LiveCloudbaseContext) => {
+  const result = await context.postInteractions.limit(MAX_DISCOVER_FETCH).get();
+  return result.data
+    .map(normalizePostInteractionRecord)
+    .filter(
+      (record): record is PostInteractionRecord => record !== null
+    );
+};
+
+const readUserFollows = async (context: LiveCloudbaseContext) => {
+  const result = await context.userFollows.limit(MAX_DISCOVER_FETCH).get();
+  return result.data
+    .map(normalizeUserFollowRecord)
+    .filter((record): record is UserFollowRecord => record !== null);
+};
+
+const readDiscoverTags = async (context: LiveCloudbaseContext) => {
+  const result = await context.discoverTags.limit(MAX_DISCOVER_FETCH).get();
+  return result.data
+    .map(normalizeDiscoverTag)
+    .filter((tag): tag is DiscoverTag => tag !== null);
 };
 
 const readFileAssets = async (context: LiveCloudbaseContext) => {
@@ -1765,6 +1892,275 @@ const addLiveAuditRecord = async (
   return record;
 };
 
+const buildLiveInteractionState = (
+  post: Post,
+  actor: User,
+  record?: PostInteractionRecord
+): PostInteractionState =>
+  PostInteractionStateSchema.parse({
+    post_id: post._id,
+    actor_user_id: actor._id,
+    liked: record?.liked ?? false,
+    favorited: record?.favorited ?? false,
+    like_count: Math.max(0, post.like_count),
+    favorite_count: Math.max(0, post.favorite_count),
+    share_count: Math.max(0, post.share_count)
+  });
+
+const findLiveInteractionRecord = (
+  records: PostInteractionRecord[],
+  postId: string,
+  actorId: string
+) =>
+  records.find(
+    (record) => record.post_id === postId && record.actor_user_id === actorId
+  );
+
+type LiveInteractionMutation =
+  | { kind: "like"; liked: boolean }
+  | { kind: "favorite"; favorited: boolean }
+  | { kind: "share" };
+
+const readTransactionPost = async (
+  transaction: CloudbaseTransaction,
+  postId: string
+) => {
+  const result = await transaction.collection("posts").doc(postId).get();
+  return normalizePost(withDocumentId(postId, result.data));
+};
+
+const readTransactionInteractionRecord = async (
+  transaction: CloudbaseTransaction,
+  postId: string,
+  actorId: string
+) => {
+  const result = await transaction
+    .collection("discover_post_interactions")
+    .where({
+      post_id: postId,
+      actor_user_id: actorId
+    })
+    .limit(1)
+    .get();
+
+  return (
+    result.data
+      .map(normalizePostInteractionRecord)
+      .find((record): record is PostInteractionRecord => record !== null) ??
+    null
+  );
+};
+
+const mutateLivePostInteraction = async (
+  context: LiveCloudbaseContext,
+  postId: string,
+  actor: User,
+  mutation: LiveInteractionMutation
+) => {
+  const result: unknown = await context.db.runTransaction(
+    async (transaction: CloudbaseTransaction) => {
+      const post = await readTransactionPost(transaction, postId);
+      if (!post || !isLaunchVisiblePost(post)) {
+        throw apiError("NOT_FOUND", "Post not found.", 404);
+      }
+
+      const existingRecord = await readTransactionInteractionRecord(
+        transaction,
+        post._id,
+        actor._id
+      );
+      const now = new Date().toISOString();
+      const shouldTrackActorState = mutation.kind !== "share";
+      let nextRecord = existingRecord;
+      let shouldWriteRecord = false;
+      let likeDelta = 0;
+      let favoriteDelta = 0;
+      let shareDelta = 0;
+
+      if (shouldTrackActorState && !nextRecord) {
+        nextRecord = PostInteractionRecordSchema.parse({
+          _id: `post_interaction_${post._id}_${actor._id}`,
+          post_id: post._id,
+          actor_user_id: actor._id,
+          liked: false,
+          favorited: false,
+          created_at: now,
+          updated_at: now
+        });
+        shouldWriteRecord = true;
+      }
+
+      if (mutation.kind === "like" && nextRecord) {
+        if (nextRecord.liked !== mutation.liked) {
+          likeDelta = mutation.liked ? 1 : -1;
+          nextRecord = {
+            ...nextRecord,
+            liked: mutation.liked,
+            updated_at: now
+          };
+          shouldWriteRecord = true;
+        }
+      } else if (mutation.kind === "favorite" && nextRecord) {
+        if (nextRecord.favorited !== mutation.favorited) {
+          favoriteDelta = mutation.favorited ? 1 : -1;
+          nextRecord = {
+            ...nextRecord,
+            favorited: mutation.favorited,
+            updated_at: now
+          };
+          shouldWriteRecord = true;
+        }
+      } else if (mutation.kind === "share") {
+        shareDelta = 1;
+      }
+
+      const postChanged =
+        likeDelta !== 0 || favoriteDelta !== 0 || shareDelta !== 0;
+      const nextPost = PostSchema.parse({
+        ...post,
+        like_count: Math.max(0, post.like_count + likeDelta),
+        favorite_count: Math.max(0, post.favorite_count + favoriteDelta),
+        share_count: Math.max(0, post.share_count + shareDelta),
+        updated_at: postChanged ? now : post.updated_at
+      });
+
+      await Promise.all([
+        postChanged
+          ? transaction.collection("posts").doc(post._id).update({
+              like_count: nextPost.like_count,
+              favorite_count: nextPost.favorite_count,
+              share_count: nextPost.share_count,
+              updated_at: nextPost.updated_at
+            })
+          : Promise.resolve(),
+        shouldWriteRecord && nextRecord
+          ? existingRecord
+            ? transaction
+                .collection("discover_post_interactions")
+                .doc(nextRecord._id)
+                .update({
+                  liked: nextRecord.liked,
+                  favorited: nextRecord.favorited,
+                  updated_at: nextRecord.updated_at
+                })
+            : transaction
+                .collection("discover_post_interactions")
+                .doc(nextRecord._id)
+                .set(toCloudbaseSetDocument(nextRecord))
+          : Promise.resolve()
+      ]);
+
+      return buildLiveInteractionState(
+        nextPost,
+        actor,
+        nextRecord ?? undefined
+      );
+    }
+  );
+
+  return PostInteractionStateSchema.parse(result);
+};
+
+const buildLiveFollowState = (
+  follows: UserFollowRecord[],
+  followerId: string,
+  followedId: string
+): ProfileFollowState => ({
+  follower_user_id: followerId,
+  followed_user_id: followedId,
+  following: follows.some(
+    (record) =>
+      record.follower_user_id === followerId &&
+      record.followed_user_id === followedId
+  ),
+  follower_count: follows.filter(
+    (record) => record.followed_user_id === followedId
+  ).length,
+  following_count: follows.filter(
+    (record) => record.follower_user_id === followedId
+  ).length
+});
+
+const readLiveProfileUsers = async (context: LiveCloudbaseContext) => {
+  try {
+    return await readUsers(context);
+  } catch {
+    return [];
+  }
+};
+
+const userFromVisibleAuthorPost = (
+  userId: string,
+  posts: Post[]
+): User | null => {
+  const post = posts.find(
+    (item) => item.author_user_id === userId && isLaunchVisiblePost(item)
+  );
+  if (!post) {
+    return null;
+  }
+
+  const parsed = UserSchema.safeParse({
+    _id: userId,
+    nickname: post.author_display.nickname || userId,
+    avatar_url: post.author_display.avatar_url ?? PLACEHOLDER_AVATAR_URL,
+    preferred_language: post.language,
+    role_flags: [],
+    status: "active"
+  });
+
+  return parsed.success ? parsed.data : null;
+};
+
+const resolveLiveProfileUser = (
+  userId: string,
+  users: User[],
+  posts: Post[]
+) => {
+  const liveUser = users.find((item) => item._id === userId);
+  const user = liveUser ?? userFromVisibleAuthorPost(userId, posts);
+
+  return user?.status === "active" ? user : null;
+};
+
+const buildLivePublicProfile = async (
+  context: LiveCloudbaseContext,
+  user: User,
+  actor: User,
+  posts: Post[],
+  comments: Comment[],
+  follows: UserFollowRecord[]
+): Promise<PublicProfile> => {
+  const visibleRawPosts = posts.filter(
+    (post) => post.author_user_id === user._id && isLaunchVisiblePost(post)
+  );
+  const visiblePosts = await Promise.all(
+    visibleRawPosts.map((post) => normalizePostForRead(context, post, comments))
+  );
+  const videoPosts = visiblePosts.filter(postHasVideoMedia);
+  const followState = buildLiveFollowState(follows, actor._id, user._id);
+
+  return {
+    user: {
+      _id: user._id,
+      nickname: user.nickname,
+      avatar_url: user.avatar_url,
+      preferred_language: user.preferred_language,
+      status: user.status
+    },
+    stats: {
+      post_count: visiblePosts.length,
+      video_post_count: videoPosts.length,
+      follower_count: followState.follower_count,
+      following_count: followState.following_count
+    },
+    followed_by_actor: followState.following,
+    is_self: actor._id === user._id,
+    posts: visiblePosts,
+    video_posts: videoPosts
+  };
+};
+
 const createLivePostsProvider = (
   context: LiveCloudbaseContext,
   fallbackAuth: ApiProvider["auth"],
@@ -1817,18 +2213,176 @@ const createLivePostsProvider = (
 
     return paginate(normalized, input);
   },
+  async updateOps(id, input, actorId) {
+    const actor = await requireLiveAdminActor(fallbackAuth, actorId);
+    const posts = await readPosts(context);
+    const post = posts.find((item) => item._id === id);
+    if (!post) {
+      return null;
+    }
+    const previous = {
+      is_pinned: post.is_pinned,
+      is_featured: post.is_featured,
+      is_recommended: post.is_recommended,
+      is_official: post.is_official,
+      ops_rank: post.ops_rank
+    };
+    const nextPost = PostSchema.parse({
+      ...post,
+      ...input,
+      updated_at: new Date().toISOString()
+    });
+    await context.posts.doc(id).update({
+      is_pinned: nextPost.is_pinned,
+      is_featured: nextPost.is_featured,
+      is_recommended: nextPost.is_recommended,
+      is_official: nextPost.is_official,
+      ops_rank: nextPost.ops_rank,
+      updated_at: nextPost.updated_at
+    });
+    await addLiveAuditRecord(context, {
+      actor_user_id: actor._id,
+      action: "update_post_ops",
+      target_type: "post",
+      target_id: id,
+      reason: input.reason ?? "Update discover post ops metadata",
+      previous_state: previous,
+      next_state: {
+        is_pinned: nextPost.is_pinned,
+        is_featured: nextPost.is_featured,
+        is_recommended: nextPost.is_recommended,
+        is_official: nextPost.is_official,
+        ops_rank: nextPost.ops_rank
+      }
+    });
+
+    return nextPost;
+  },
+  async listTags(actorId) {
+    await requireLiveAdminActor(fallbackAuth, actorId);
+    const [tags, posts] = await Promise.all([
+      readDiscoverTags(context),
+      readPosts(context)
+    ]);
+    return paginate(
+      tags.map((tag) => ({
+        ...tag,
+        post_count: posts.filter((post) => post.tag_ids.includes(tag._id))
+          .length
+      })),
+      { page: 1, pageSize: tags.length || 20 }
+    );
+  },
+  async upsertTag(id, input, actorId) {
+    const actor = await requireLiveAdminActor(fallbackAuth, actorId);
+    const [tags, posts] = await Promise.all([
+      readDiscoverTags(context),
+      readPosts(context)
+    ]);
+    const existing = tags.find((tag) => tag._id === id);
+    const now = new Date().toISOString();
+    const tag = DiscoverTagSchema.parse({
+      _id: id,
+      label_zh: input.label_zh,
+      label_en: input.label_en,
+      status: input.status ?? "active",
+      post_count: posts.filter((post) => post.tag_ids.includes(id)).length,
+      created_at: existing?.created_at ?? now,
+      updated_at: now
+    });
+    await context.discoverTags.doc(id).set(toCloudbaseSetDocument(tag));
+    await addLiveAuditRecord(context, {
+      actor_user_id: actor._id,
+      action: "upsert_tag",
+      target_type: "tag",
+      target_id: id,
+      reason: "Maintain discover tag taxonomy",
+      previous_state: existing ?? null,
+      next_state: tag
+    });
+    return tag;
+  },
+  async listPublicTags(input) {
+    const [tags, posts] = await Promise.all([
+      readDiscoverTags(context),
+      readPosts(context)
+    ]);
+    const filteredTags = tags
+      .filter(
+        (tag) =>
+          tag.status === "active" &&
+          (keywordMatch(tag._id, input.keyword) ||
+            keywordMatch(tag.label_zh, input.keyword) ||
+            keywordMatch(tag.label_en, input.keyword))
+      )
+      .map((tag) => ({
+        ...tag,
+        post_count: posts.filter((post) => post.tag_ids.includes(tag._id))
+          .length
+      }));
+
+    return paginate(filteredTags, input);
+  },
+  async createTag(input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    const id = normalizeTagId(input.label);
+    if (!id) {
+      throw apiError("VALIDATION_ERROR", "Tag label is required.", 400);
+    }
+
+    const [tags, posts] = await Promise.all([
+      readDiscoverTags(context),
+      readPosts(context)
+    ]);
+    const existing = tags.find((tag) => tag._id === id);
+    if (existing?.status === "hidden") {
+      throw apiError("CONFLICT", "Tag is hidden by moderation.", 409, {
+        reason: "hidden_tag"
+      });
+    }
+    if (existing) {
+      return DiscoverTagSchema.parse({
+        ...existing,
+        post_count: posts.filter((post) => post.tag_ids.includes(id)).length
+      });
+    }
+
+    const now = new Date().toISOString();
+    const tag = DiscoverTagSchema.parse({
+      _id: id,
+      label_zh: input.label.trim().replace(/^#+/, ""),
+      label_en: input.label.trim().replace(/^#+/, ""),
+      status: "active",
+      post_count: 0,
+      created_at: now,
+      updated_at: now
+    });
+    await context.discoverTags.doc(tag._id).set(toCloudbaseSetDocument(tag));
+    await addLiveAuditRecord(context, {
+      actor_user_id: actor._id,
+      action: "create_public_tag",
+      target_type: "tag",
+      target_id: tag._id,
+      reason: "User created discover tag",
+      previous_state: null,
+      next_state: tag
+    });
+    return tag;
+  },
   async list(input) {
     const [posts, comments] = await Promise.all([
       readPosts(context),
       readComments(context)
     ]);
-    const visiblePosts = posts.filter(
+    const visiblePosts = sortDiscoverPosts(posts.filter(
       (post) =>
         isLaunchVisiblePost(post) &&
         (!input.communityId || post.community_id === input.communityId) &&
+        (!input.tag || post.tag_ids.includes(normalizeTagId(input.tag))) &&
         (keywordMatch(post.title, input.keyword) ||
-          keywordMatch(post.content, input.keyword))
-    );
+          keywordMatch(post.content, input.keyword) ||
+          post.tag_ids.some((tag) => keywordMatch(tag, input.keyword)))
+    ), input.sort);
     const normalized = await Promise.all(
       visiblePosts.map((post) => normalizePostForRead(context, post, comments))
     );
@@ -1918,6 +2472,231 @@ const createLivePostsProvider = (
       ? normalizePostForRead(context, post, comments)
       : null;
   },
+  async interaction(id, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    const [posts, records] = await Promise.all([
+      readPosts(context),
+      readPostInteractions(context)
+    ]);
+    const post = posts.find((item) => item._id === id);
+
+    if (!post || !isLaunchVisiblePost(post)) {
+      throw apiError("NOT_FOUND", "Post not found.", 404);
+    }
+
+    return buildLiveInteractionState(
+      post,
+      actor,
+      findLiveInteractionRecord(records, post._id, actor._id)
+    );
+  },
+  async setLike(id, input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    return mutateLivePostInteraction(context, id, actor, {
+      kind: "like",
+      liked: input.liked
+    });
+  },
+  async setFavorite(id, input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    return mutateLivePostInteraction(context, id, actor, {
+      kind: "favorite",
+      favorited: input.favorited
+    });
+  },
+  async recordShare(id, _input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    return mutateLivePostInteraction(context, id, actor, { kind: "share" });
+  },
+  async profile(userId, actorId) {
+    const [actor, users, posts, comments, follows, auditRecords] =
+      await Promise.all([
+        fallbackAuth.resolveActor(actorId),
+        readLiveProfileUsers(context),
+        readPosts(context),
+        readComments(context),
+        readUserFollows(context),
+        readDiscoverAuditRecords(context)
+      ]);
+    const user = resolveLiveProfileUser(userId, users, posts);
+    if (!user || user.status !== "active") {
+      return null;
+    }
+    const enforcement = latestLiveUserEnforcement(auditRecords, user._id);
+    if (enforcement.status === "banned") {
+      return null;
+    }
+
+    return buildLivePublicProfile(
+      context,
+      user,
+      actor,
+      posts,
+      comments,
+      follows
+    );
+  },
+  async setProfileFollow(userId, input, actorId) {
+    const [actor, users, posts, follows, auditRecords] = await Promise.all([
+      fallbackAuth.resolveActor(actorId),
+      readLiveProfileUsers(context),
+      readPosts(context),
+      readUserFollows(context),
+      readDiscoverAuditRecords(context)
+    ]);
+    const user = resolveLiveProfileUser(userId, users, posts);
+    if (!user || user.status !== "active") {
+      throw apiError("NOT_FOUND", "Profile not found.", 404);
+    }
+    const enforcement = latestLiveUserEnforcement(auditRecords, user._id);
+    if (enforcement.status === "banned") {
+      throw apiError("NOT_FOUND", "Profile not found.", 404);
+    }
+    if (actor._id === user._id) {
+      throw apiError("CONFLICT", "Users cannot follow themselves.", 409, {
+        reason: "self_follow"
+      });
+    }
+
+    const existing = follows.find(
+      (record) =>
+        record.follower_user_id === actor._id &&
+        record.followed_user_id === user._id
+    );
+    if (input.following && !existing) {
+      const now = new Date().toISOString();
+      const record = UserFollowRecordSchema.parse({
+        _id: `user_follow_${actor._id}_${user._id}`,
+        follower_user_id: actor._id,
+        followed_user_id: user._id,
+        created_at: now,
+        updated_at: now
+      });
+      await context.userFollows
+        .doc(record._id)
+        .set(toCloudbaseSetDocument(record));
+      follows.unshift(record);
+    }
+    if (!input.following && existing) {
+      await context.userFollows.doc(existing._id).update({
+        follower_user_id: "__deleted__",
+        followed_user_id: "__deleted__",
+        updated_at: new Date().toISOString()
+      });
+      const index = follows.findIndex((record) => record._id === existing._id);
+      if (index >= 0) {
+        follows.splice(index, 1);
+      }
+    }
+
+    return buildLiveFollowState(follows, actor._id, user._id);
+  },
+  async listProfileFollowers(userId, input, actorId) {
+    const [actor, users, posts, follows, auditRecords] = await Promise.all([
+      fallbackAuth.resolveActor(actorId),
+      readLiveProfileUsers(context),
+      readPosts(context),
+      readUserFollows(context),
+      readDiscoverAuditRecords(context)
+    ]);
+    const user = resolveLiveProfileUser(userId, users, posts);
+    if (!user || user.status !== "active") {
+      return null;
+    }
+    const enforcement = latestLiveUserEnforcement(auditRecords, user._id);
+    if (enforcement.status === "banned") {
+      return null;
+    }
+
+    const followerUsers = follows
+      .filter((record) => record.followed_user_id === userId)
+      .map((record) =>
+        resolveLiveProfileUser(record.follower_user_id, users, posts)
+      );
+    const items = followerUsers
+      .filter((item): item is User => !!item && item.status === "active")
+      .map((item): ProfileFollowListItem => {
+        const followedByActor = follows.some(
+          (record) =>
+            record.follower_user_id === actor._id &&
+            record.followed_user_id === item._id
+        );
+        const followsActor = follows.some(
+          (record) =>
+            record.follower_user_id === item._id &&
+            record.followed_user_id === actor._id
+        );
+
+        return {
+          user: {
+            _id: item._id,
+            nickname: item.nickname,
+            avatar_url: item.avatar_url,
+            preferred_language: item.preferred_language,
+            status: item.status
+          },
+          following: followedByActor,
+          followed_by_actor: followedByActor,
+          follows_actor: followsActor,
+          mutual: followedByActor && followsActor
+        };
+      });
+
+    return paginate(items, input);
+  },
+  async listProfileFollowing(userId, input, actorId) {
+    const [actor, users, posts, follows, auditRecords] = await Promise.all([
+      fallbackAuth.resolveActor(actorId),
+      readLiveProfileUsers(context),
+      readPosts(context),
+      readUserFollows(context),
+      readDiscoverAuditRecords(context)
+    ]);
+    const user = resolveLiveProfileUser(userId, users, posts);
+    if (!user || user.status !== "active") {
+      return null;
+    }
+    const enforcement = latestLiveUserEnforcement(auditRecords, user._id);
+    if (enforcement.status === "banned") {
+      return null;
+    }
+
+    const followingUsers = follows
+      .filter((record) => record.follower_user_id === userId)
+      .map((record) =>
+        resolveLiveProfileUser(record.followed_user_id, users, posts)
+      );
+    const items = followingUsers
+      .filter((item): item is User => !!item && item.status === "active")
+      .map((item): ProfileFollowListItem => {
+        const followedByActor = follows.some(
+          (record) =>
+            record.follower_user_id === actor._id &&
+            record.followed_user_id === item._id
+        );
+        const followsActor = follows.some(
+          (record) =>
+            record.follower_user_id === item._id &&
+            record.followed_user_id === actor._id
+        );
+
+        return {
+          user: {
+            _id: item._id,
+            nickname: item.nickname,
+            avatar_url: item.avatar_url,
+            preferred_language: item.preferred_language,
+            status: item.status
+          },
+          following: followedByActor,
+          followed_by_actor: followedByActor,
+          follows_actor: followsActor,
+          mutual: followedByActor && followsActor
+        };
+      });
+
+    return paginate(items, input);
+  },
   async listComments(postId, input) {
     const [posts, comments] = await Promise.all([
       readPosts(context),
@@ -1950,6 +2729,24 @@ const createLivePostsProvider = (
     });
 
     return paginate(comments, input);
+  },
+  async listMyComments(input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "read_mine");
+    const comments = (await readComments(context)).filter(
+      (comment) => comment.author_user_id === actor._id
+    );
+
+    return paginate(comments, input);
+  },
+  async detailMyComment(id, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "read_mine");
+    const comment = (await readComments(context)).find(
+      (item) => item._id === id && item.author_user_id === actor._id
+    );
+
+    return comment ?? null;
   },
   async create(input, actorId) {
     const actor = await fallbackAuth.resolveActor(actorId);
@@ -2022,6 +2819,11 @@ const createLivePostsProvider = (
       like_count: 0,
       favorite_count: 0,
       share_count: 0,
+      is_pinned: false,
+      is_featured: false,
+      is_recommended: false,
+      is_official: false,
+      ops_rank: 0,
       created_at: now,
       updated_at: now,
       status: "visible",
@@ -2160,6 +2962,27 @@ const createLivePostsProvider = (
     );
 
     return paginate(normalized, input);
+  },
+  async listMyReportCases(input, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "read_mine");
+    const reports = (await readDiscoverReportCases(context)).filter(
+      (report) => report.reporter_user_id === actor._id
+    );
+    const normalized = await Promise.all(
+      reports.map((report) => normalizeLiveReportCase(context, report, true))
+    );
+
+    return paginate(normalized, input);
+  },
+  async detailMyReportCase(id, actorId) {
+    const actor = await fallbackAuth.resolveActor(actorId);
+    await assertLiveActorAllowed(context, actor._id, "read_mine");
+    const report = (await readDiscoverReportCases(context)).find(
+      (item) => item._id === id && item.reporter_user_id === actor._id
+    );
+
+    return report ? normalizeLiveReportCase(context, report, true) : null;
   },
   async detailReportCase(id, actorId) {
     await requireLiveAdminActor(fallbackAuth, actorId);
@@ -2304,6 +3127,102 @@ const createLivePostsProvider = (
     );
 
     return paginate(records, input);
+  },
+  async analytics(input, actorId) {
+    await requireLiveAdminActor(fallbackAuth, actorId);
+    const windowDays = input.windowDays ?? 30;
+    const cutoff = Date.now() - windowDays * 24 * 60 * 60 * 1000;
+    const inWindow = (value: string) => Date.parse(value) >= cutoff;
+    const [posts, comments, reports] = await Promise.all([
+      readPosts(context),
+      readComments(context),
+      readDiscoverReportCases(context)
+    ]);
+    const windowPosts = posts.filter((post) => inWindow(post.created_at));
+    const windowComments = comments.filter((comment) =>
+      inWindow(comment.created_at)
+    );
+    const windowReports = reports.filter((report) =>
+      inWindow(report.created_at)
+    );
+    const authorIds = new Set([
+      ...windowPosts.map((post) => post.author_user_id),
+      ...windowComments.map((comment) => comment.author_user_id)
+    ]);
+    const resolvedDurations = windowReports
+      .filter((report) => report.resolved_at)
+      .map(
+        (report) =>
+          (Date.parse(report.resolved_at as string) -
+            Date.parse(report.created_at)) /
+          (60 * 60 * 1000)
+      )
+      .filter((hours) => Number.isFinite(hours) && hours >= 0);
+    const countBy = <TItem>(
+      items: TItem[],
+      getKey: (item: TItem) => string | null
+    ) =>
+      [...items.reduce((map, item) => {
+        const key = getKey(item);
+        if (key) {
+          map.set(key, (map.get(key) ?? 0) + 1);
+        }
+        return map;
+      }, new Map<string, number>())]
+        .sort((left, right) => right[1] - left[1])
+        .slice(0, 5);
+
+    return {
+      window_days: windowDays,
+      post_count: windowPosts.length,
+      comment_count: windowComments.length,
+      report_count: windowReports.length,
+      open_report_count: windowReports.filter(
+        (report) => report.status === "open"
+      ).length,
+      pending_workload_count:
+        reports.filter((report) => report.status === "open").length +
+        comments.filter((comment) => comment.status === "reported").length +
+        posts.filter((post) => post.review_status === "reported").length,
+      average_moderation_hours: resolvedDurations.length
+        ? resolvedDurations.reduce((sum, value) => sum + value, 0) /
+          resolvedDurations.length
+        : null,
+      engagement: {
+        like_count: windowPosts.reduce((sum, post) => sum + post.like_count, 0),
+        favorite_count: windowPosts.reduce(
+          (sum, post) => sum + post.favorite_count,
+          0
+        ),
+        share_count: windowPosts.reduce(
+          (sum, post) => sum + post.share_count,
+          0
+        )
+      },
+      active_authors: [...authorIds]
+        .map((userId) => ({
+          user_id: userId,
+          post_count: windowPosts.filter(
+            (post) => post.author_user_id === userId
+          ).length,
+          comment_count: windowComments.filter(
+            (comment) => comment.author_user_id === userId
+          ).length
+        }))
+        .sort(
+          (left, right) =>
+            right.post_count +
+            right.comment_count -
+            (left.post_count + left.comment_count)
+        )
+        .slice(0, 5),
+      popular_places: countBy(windowPosts, (post) => post.place_id).map(
+        ([place_id, post_count]) => ({ place_id, post_count })
+      ),
+      popular_events: countBy(windowPosts, (post) => post.event_id).map(
+        ([event_id, post_count]) => ({ event_id, post_count })
+      )
+    };
   },
   async moderateComment(id, input, actorId) {
     const actor = await requireLiveAdminActor(fallbackAuth, actorId);

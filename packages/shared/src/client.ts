@@ -172,12 +172,55 @@ export const createHttpClient = (
         return request("GET", `${apiPaths.discover.listPosts}${suffix}`);
       },
       detailPost: (id) => request("GET", apiPaths.discover.detailPost(id)),
+      postInteraction: (id) =>
+        request("GET", apiPaths.discover.postInteraction(id)),
+      setPostLike: (id, input) =>
+        request("POST", apiPaths.discover.likePost(id), input),
+      setPostFavorite: (id, input) =>
+        request("POST", apiPaths.discover.favoritePost(id), input),
+      recordPostShare: (id, input = {}) =>
+        request("POST", apiPaths.discover.sharePost(id), input),
+      profile: (userId) => request("GET", apiPaths.discover.profile(userId)),
+      setProfileFollow: (userId, input) =>
+        request("POST", apiPaths.discover.followProfile(userId), input),
+      listProfileFollowers: (userId, query) => {
+        const suffix = buildQuerySuffix(query);
+        return request(
+          "GET",
+          `${apiPaths.discover.profileFollowers(userId)}${suffix}`
+        );
+      },
+      listProfileFollowing: (userId, query) => {
+        const suffix = buildQuerySuffix(query);
+        return request(
+          "GET",
+          `${apiPaths.discover.profileFollowing(userId)}${suffix}`
+        );
+      },
+      listTags: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.discover.listTags}${suffix}`);
+      },
+      createTag: (input) =>
+        request("POST", apiPaths.discover.createTag, input),
       createPost: (input) =>
         request("POST", apiPaths.discover.createPost, input),
       myPosts: (query) => {
         const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.discover.myPosts}${suffix}`);
       },
+      myComments: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.discover.myComments}${suffix}`);
+      },
+      myCommentDetail: (id) =>
+        request("GET", apiPaths.discover.myCommentDetail(id)),
+      myReports: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.discover.myReports}${suffix}`);
+      },
+      myReportDetail: (id) =>
+        request("GET", apiPaths.discover.myReportDetail(id)),
       listPlaceRelatedPosts: (placeId, query) => {
         const suffix = buildQuerySuffix(query);
         return request(
@@ -271,6 +314,11 @@ export const createHttpClient = (
         ),
       moderatePost: (id, input) =>
         request("POST", apiPaths.admin.moderatePost(id), input),
+      updateDiscoverPostOps: (id, input) =>
+        request("POST", apiPaths.admin.updateDiscoverPostOps(id), input),
+      listDiscoverTags: () => request("GET", apiPaths.admin.listDiscoverTags),
+      upsertDiscoverTag: (id, input) =>
+        request("POST", apiPaths.admin.upsertDiscoverTag(id), input),
       listDiscoverPosts: (query) => {
         const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.admin.listDiscoverPosts}${suffix}`);
@@ -303,6 +351,10 @@ export const createHttpClient = (
       listDiscoverAudit: (query) => {
         const suffix = buildQuerySuffix(query);
         return request("GET", `${apiPaths.admin.listDiscoverAudit}${suffix}`);
+      },
+      discoverAnalytics: (query) => {
+        const suffix = buildQuerySuffix(query);
+        return request("GET", `${apiPaths.admin.discoverAnalytics}${suffix}`);
       },
       createPlace: (input) =>
         request("POST", apiPaths.admin.createPlace, input),

@@ -1,0 +1,15 @@
+Running CloudBase discover social ops validation
+Repo: /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/contracts.spec.ts (19 tests) 11ms
+ ✓ packages/shared/test/client.spec.ts (20 tests) 15ms
+ ✓ apps/api/test/cloudbase.spec.ts (17 tests) 103ms
+ ✓ apps/api/test/integration-readiness.spec.ts (10 tests) 103ms
+
+ Test Files  4 passed (4)
+      Tests  66 passed (66)
+   Start at  00:31:47
+   Duration  688ms (transform 354ms, setup 0ms, collect 1.19s, tests 232ms, environment 0ms, prepare 158ms)
+

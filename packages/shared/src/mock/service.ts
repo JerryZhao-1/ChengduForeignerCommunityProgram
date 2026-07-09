@@ -2,6 +2,7 @@ import type {
   AuthSession,
   Comment,
   DiscoverAuditRecord,
+  DiscoverTag,
   DiscoverMeGovernance,
   DiscoverReportCase,
   DiscoverUserGovernanceDetail,
@@ -18,10 +19,17 @@ import type {
   PlaceGalleryMedia,
   PlaceListItem,
   Post,
+  PostInteractionRecord,
+  PostInteractionState,
+  ProfileFollowListItem,
+  ProfileFollowState,
+  PublicProfile,
+  UserFollowRecord,
   UserEnforcementState,
   User
 } from "../types/entities";
 import { POST_CONTENT_STATUSES, type ApiErrorCode } from "../enums";
+import { postHasVideoMedia } from "../media";
 import type { MockDataset } from "./data";
 import { FILE_PATH_RULES } from "../schemas/files";
 import { PLACE_TOP_LEVEL_CATEGORIES } from "../schemas/place-categories";
@@ -36,7 +44,7 @@ interface PageParams {
   category?: string;
   tag?: string;
   recommended?: boolean;
-  sort?: "recommended" | "name";
+  sort?: "recommended" | "name" | "latest" | "likes" | "favorites" | "comments";
   authorUserId?: string;
   language?: "zh" | "en";
   status?: string;
@@ -74,6 +82,13 @@ const keywordMatch = (value: string | null | undefined, keyword?: string) => {
   return (value ?? "").toLowerCase().includes(keyword.toLowerCase());
 };
 
+const normalizeTagId = (value: string) =>
+  value
+    .trim()
+    .replace(/^#+/, "")
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+
 const idFrom = (prefix: string) =>
   `${prefix}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -99,6 +114,36 @@ const sortPlaces = (items: Place[], sort: PageParams["sort"]) => {
     return left.name_en.localeCompare(right.name_en);
   });
 };
+
+const discoverSortValue = (
+  post: Post,
+  sort: PageParams["sort"] = "latest"
+) => {
+  if (sort === "likes") {
+    return post.like_count;
+  }
+  if (sort === "favorites") {
+    return post.favorite_count;
+  }
+  if (sort === "comments") {
+    return post.comment_count;
+  }
+  return Date.parse(post.created_at);
+};
+
+const sortDiscoverPosts = (items: Post[], sort: PageParams["sort"]) =>
+  [...items].sort((left, right) => {
+    if (left.is_pinned !== right.is_pinned) {
+      return left.is_pinned ? -1 : 1;
+    }
+
+    const valueDelta = discoverSortValue(right, sort) - discoverSortValue(left, sort);
+    if (valueDelta !== 0) {
+      return valueDelta;
+    }
+
+    return Date.parse(right.created_at) - Date.parse(left.created_at);
+  });
 
 const sortPlacesForMapMarkers = (items: Place[]) =>
   [...items].sort((left, right) => {
@@ -337,7 +382,10 @@ const toPlaceDetail = (
 export const createMockService = (seed?: Partial<MockDataset>) => {
   const state: MockDataset = {
     ...createMockDataset(),
-    ...seed
+    ...seed,
+    postInteractions: seed?.postInteractions ?? createMockDataset().postInteractions,
+    userFollows: seed?.userFollows ?? createMockDataset().userFollows,
+    discoverTags: seed?.discoverTags ?? createMockDataset().discoverTags
   };
 
   const findUser = (userId?: string) => {
@@ -1133,14 +1181,315 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           }
         };
       },
+      buildInteractionState(
+        post: Post,
+        actor: User,
+        record?: PostInteractionRecord
+      ): PostInteractionState {
+        return {
+          post_id: post._id,
+          actor_user_id: actor._id,
+          liked: record?.liked ?? false,
+          favorited: record?.favorited ?? false,
+          like_count: Math.max(0, post.like_count ?? 0),
+          favorite_count: Math.max(0, post.favorite_count ?? 0),
+          share_count: Math.max(0, post.share_count ?? 0)
+        };
+      },
+      findInteractionRecord(
+        postId: string,
+        actorId: string
+      ): PostInteractionRecord | undefined {
+        return state.postInteractions.find(
+          (record) =>
+            record.post_id === postId && record.actor_user_id === actorId
+        );
+      },
+      ensureInteractionRecord(
+        postId: string,
+        actorId: string
+      ): PostInteractionRecord {
+        const existing = this.findInteractionRecord(postId, actorId);
+        if (existing) {
+          return existing;
+        }
+
+        const now = new Date().toISOString();
+        const record: PostInteractionRecord = {
+          _id: `post_interaction_${postId}_${actorId}`,
+          post_id: postId,
+          actor_user_id: actorId,
+          liked: false,
+          favorited: false,
+          created_at: now,
+          updated_at: now
+        };
+        state.postInteractions.unshift(record);
+        return record;
+      },
+      interaction(id: string, actorId?: string): PostInteractionState {
+        const actor = requireUser(actorId);
+        const post = state.posts.find((item) => item._id === id);
+        if (!post || !isLaunchVisiblePost(post)) {
+          throw mockError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        return this.buildInteractionState(
+          post,
+          actor,
+          this.findInteractionRecord(post._id, actor._id)
+        );
+      },
+      setLike(
+        id: string,
+        input: { liked: boolean },
+        actorId?: string
+      ): PostInteractionState {
+        const actor = requireUser(actorId);
+        const post = state.posts.find((item) => item._id === id);
+        if (!post || !isLaunchVisiblePost(post)) {
+          throw mockError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        const record = this.ensureInteractionRecord(post._id, actor._id);
+        if (record.liked !== input.liked) {
+          post.like_count = Math.max(
+            0,
+            post.like_count + (input.liked ? 1 : -1)
+          );
+          post.updated_at = new Date().toISOString();
+          record.liked = input.liked;
+          record.updated_at = post.updated_at;
+        }
+
+        return this.buildInteractionState(post, actor, record);
+      },
+      setFavorite(
+        id: string,
+        input: { favorited: boolean },
+        actorId?: string
+      ): PostInteractionState {
+        const actor = requireUser(actorId);
+        const post = state.posts.find((item) => item._id === id);
+        if (!post || !isLaunchVisiblePost(post)) {
+          throw mockError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        const record = this.ensureInteractionRecord(post._id, actor._id);
+        if (record.favorited !== input.favorited) {
+          post.favorite_count = Math.max(
+            0,
+            post.favorite_count + (input.favorited ? 1 : -1)
+          );
+          post.updated_at = new Date().toISOString();
+          record.favorited = input.favorited;
+          record.updated_at = post.updated_at;
+        }
+
+        return this.buildInteractionState(post, actor, record);
+      },
+      recordShare(
+        id: string,
+        _input: {
+          channel?: "wechat" | "moments" | "copy_link" | "system" | "other";
+        } = {},
+        actorId?: string
+      ): PostInteractionState {
+        const actor = requireUser(actorId);
+        const post = state.posts.find((item) => item._id === id);
+        if (!post || !isLaunchVisiblePost(post)) {
+          throw mockError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        post.share_count = Math.max(0, post.share_count + 1);
+        post.updated_at = new Date().toISOString();
+
+        return this.buildInteractionState(
+          post,
+          actor,
+          this.findInteractionRecord(post._id, actor._id)
+        );
+      },
+      buildFollowState(
+        followerId: string,
+        followedId: string
+      ): ProfileFollowState {
+        const following = state.userFollows.some(
+          (record) =>
+            record.follower_user_id === followerId &&
+            record.followed_user_id === followedId
+        );
+
+        return {
+          follower_user_id: followerId,
+          followed_user_id: followedId,
+          following,
+          follower_count: state.userFollows.filter(
+            (record) => record.followed_user_id === followedId
+          ).length,
+          following_count: state.userFollows.filter(
+            (record) => record.follower_user_id === followedId
+          ).length
+        };
+      },
+      profile(userId: string, actorId?: string): PublicProfile | null {
+        const actor = requireUser(actorId);
+        const user = state.users.find((item) => item._id === userId);
+        const enforcement = user ? getEffectiveUserEnforcement(user._id) : null;
+        if (!user || user.status !== "active" || enforcement?.status === "banned") {
+          return null;
+        }
+
+        const posts = state.posts
+          .filter(
+            (post) => post.author_user_id === user._id && isLaunchVisiblePost(post)
+          )
+          .map((post) => this.normalize(post));
+        const videoPosts = posts.filter(postHasVideoMedia);
+        const followState = this.buildFollowState(actor._id, user._id);
+
+        return {
+          user: {
+            _id: user._id,
+            nickname: user.nickname,
+            avatar_url: user.avatar_url,
+            preferred_language: user.preferred_language,
+            status: user.status
+          },
+          stats: {
+            post_count: posts.length,
+            video_post_count: videoPosts.length,
+            follower_count: followState.follower_count,
+            following_count: followState.following_count
+          },
+          followed_by_actor: followState.following,
+          is_self: actor._id === user._id,
+          posts,
+          video_posts: videoPosts
+        };
+      },
+      setProfileFollow(
+        userId: string,
+        input: { following: boolean },
+        actorId?: string
+      ): ProfileFollowState {
+        const actor = requireUser(actorId);
+        const user = state.users.find((item) => item._id === userId);
+        const enforcement = user ? getEffectiveUserEnforcement(user._id) : null;
+        if (!user || user.status !== "active" || enforcement?.status === "banned") {
+          throw mockError("NOT_FOUND", "Profile not found.", 404);
+        }
+        if (actor._id === user._id) {
+          throw mockError("CONFLICT", "Users cannot follow themselves.", 409, {
+            reason: "self_follow"
+          });
+        }
+
+        const existingIndex = state.userFollows.findIndex(
+          (record) =>
+            record.follower_user_id === actor._id &&
+            record.followed_user_id === user._id
+        );
+        if (input.following && existingIndex === -1) {
+          const now = new Date().toISOString();
+          const record: UserFollowRecord = {
+            _id: `user_follow_${actor._id}_${user._id}`,
+            follower_user_id: actor._id,
+            followed_user_id: user._id,
+            created_at: now,
+            updated_at: now
+          };
+          state.userFollows.unshift(record);
+        }
+        if (!input.following && existingIndex >= 0) {
+          state.userFollows.splice(existingIndex, 1);
+        }
+
+        return this.buildFollowState(actor._id, user._id);
+      },
+      buildProfileFollowListItem(
+        user: User,
+        actorId: string
+      ): ProfileFollowListItem {
+        const followedByActor = state.userFollows.some(
+          (record) =>
+            record.follower_user_id === actorId &&
+            record.followed_user_id === user._id
+        );
+        const followsActor = state.userFollows.some(
+          (record) =>
+            record.follower_user_id === user._id &&
+            record.followed_user_id === actorId
+        );
+
+        return {
+          user: {
+            _id: user._id,
+            nickname: user.nickname,
+            avatar_url: user.avatar_url,
+            preferred_language: user.preferred_language,
+            status: user.status
+          },
+          following: followedByActor,
+          followed_by_actor: followedByActor,
+          follows_actor: followsActor,
+          mutual: followedByActor && followsActor
+        };
+      },
+      listProfileFollowers(
+        userId: string,
+        params: PageParams = {},
+        actorId?: string
+      ) {
+        const actor = requireUser(actorId);
+        const user = state.users.find((item) => item._id === userId);
+        const enforcement = user ? getEffectiveUserEnforcement(user._id) : null;
+        if (!user || user.status !== "active" || enforcement?.status === "banned") {
+          return null;
+        }
+
+        const followers = state.userFollows
+          .filter((record) => record.followed_user_id === userId)
+          .map((record) =>
+            state.users.find((item) => item._id === record.follower_user_id)
+          )
+          .filter((item): item is User => !!item && item.status === "active")
+          .map((item) => this.buildProfileFollowListItem(item, actor._id));
+
+        return paginate(followers, params);
+      },
+      listProfileFollowing(
+        userId: string,
+        params: PageParams = {},
+        actorId?: string
+      ) {
+        const actor = requireUser(actorId);
+        const user = state.users.find((item) => item._id === userId);
+        const enforcement = user ? getEffectiveUserEnforcement(user._id) : null;
+        if (!user || user.status !== "active" || enforcement?.status === "banned") {
+          return null;
+        }
+
+        const following = state.userFollows
+          .filter((record) => record.follower_user_id === userId)
+          .map((record) =>
+            state.users.find((item) => item._id === record.followed_user_id)
+          )
+          .filter((item): item is User => !!item && item.status === "active")
+          .map((item) => this.buildProfileFollowListItem(item, actor._id));
+
+        return paginate(following, params);
+      },
       list(params: PageParams = {}) {
-        const posts = state.posts.filter(
+        const posts = sortDiscoverPosts(state.posts.filter(
           (post) =>
             isLaunchVisiblePost(post) &&
             (!params.communityId || post.community_id === params.communityId) &&
+            (!params.tag || post.tag_ids.includes(normalizeTagId(params.tag))) &&
             (keywordMatch(post.title, params.keyword) ||
-              keywordMatch(post.content, params.keyword))
-        );
+              keywordMatch(post.content, params.keyword) ||
+              post.tag_ids.some((tag) => keywordMatch(tag, params.keyword)))
+        ), params.sort);
 
         return paginate(
           posts.map((post) => this.normalize(post)),
@@ -1232,6 +1581,157 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           params
         );
       },
+      updateOps(
+        id: string,
+        input: Partial<
+          Pick<
+            Post,
+            | "is_pinned"
+            | "is_featured"
+            | "is_recommended"
+            | "is_official"
+            | "ops_rank"
+          >
+        > & { reason?: string },
+        actorId?: string
+      ) {
+        const actor = requireAdminUser(actorId);
+        const post = state.posts.find((item) => item._id === id);
+        if (!post) {
+          return null;
+        }
+        const previous = {
+          is_pinned: post.is_pinned,
+          is_featured: post.is_featured,
+          is_recommended: post.is_recommended,
+          is_official: post.is_official,
+          ops_rank: post.ops_rank
+        };
+        Object.assign(post, {
+          ...input,
+          updated_at: new Date().toISOString()
+        });
+        addAuditRecord({
+          actor_user_id: actor._id,
+          action: "update_post_ops",
+          target_type: "post",
+          target_id: post._id,
+          reason: input.reason ?? "Update discover post ops metadata",
+          previous_state: previous,
+          next_state: {
+            is_pinned: post.is_pinned,
+            is_featured: post.is_featured,
+            is_recommended: post.is_recommended,
+            is_official: post.is_official,
+            ops_rank: post.ops_rank
+          }
+        });
+        return this.normalize(post);
+      },
+      listPublicTags(params: PageParams = {}) {
+        const tags = state.discoverTags
+          .filter(
+            (tag) =>
+              tag.status === "active" &&
+              (keywordMatch(tag._id, params.keyword) ||
+                keywordMatch(tag.label_zh, params.keyword) ||
+                keywordMatch(tag.label_en, params.keyword))
+          )
+          .map((tag) => ({
+            ...tag,
+            post_count: state.posts.filter((post) => post.tag_ids.includes(tag._id))
+              .length
+          }));
+
+        return paginate(tags, params);
+      },
+      createTag(input: { label: string }, actorId?: string): DiscoverTag {
+        const actor = requireUser(actorId);
+        const id = normalizeTagId(input.label);
+        if (!id) {
+          throw mockError("VALIDATION_ERROR", "Tag label is required.", 400);
+        }
+
+        const existing = state.discoverTags.find((tag) => tag._id === id);
+        if (existing?.status === "hidden") {
+          throw mockError("CONFLICT", "Tag is hidden by moderation.", 409, {
+            reason: "hidden_tag"
+          });
+        }
+        if (existing) {
+          return {
+            ...existing,
+            post_count: state.posts.filter((post) => post.tag_ids.includes(id))
+              .length
+          };
+        }
+
+        const now = new Date().toISOString();
+        const tag: DiscoverTag = {
+          _id: id,
+          label_zh: input.label.trim().replace(/^#+/, ""),
+          label_en: input.label.trim().replace(/^#+/, ""),
+          status: "active",
+          post_count: 0,
+          created_at: now,
+          updated_at: now
+        };
+        state.discoverTags.unshift(tag);
+        addAuditRecord({
+          actor_user_id: actor._id,
+          action: "create_public_tag",
+          target_type: "tag",
+          target_id: tag._id,
+          reason: "User created discover tag",
+          previous_state: null,
+          next_state: tag
+        });
+        return tag;
+      },
+      listTags(actorId?: string) {
+        requireAdminUser(actorId);
+        const tags = state.discoverTags.map((tag) => ({
+          ...tag,
+          post_count: state.posts.filter((post) => post.tag_ids.includes(tag._id))
+            .length
+        }));
+        return paginate(tags, { page: 1, pageSize: tags.length || 20 });
+      },
+      upsertTag(
+        id: string,
+        input: { label_zh: string; label_en: string; status?: "active" | "hidden" },
+        actorId?: string
+      ): DiscoverTag {
+        const actor = requireAdminUser(actorId);
+        const existing = state.discoverTags.find((tag) => tag._id === id);
+        const now = new Date().toISOString();
+        const previous = existing ? { ...existing } : null;
+        const tag: DiscoverTag = {
+          _id: id,
+          label_zh: input.label_zh,
+          label_en: input.label_en,
+          status: input.status ?? "active",
+          post_count: state.posts.filter((post) => post.tag_ids.includes(id))
+            .length,
+          created_at: existing?.created_at ?? now,
+          updated_at: now
+        };
+        if (existing) {
+          Object.assign(existing, tag);
+        } else {
+          state.discoverTags.unshift(tag);
+        }
+        addAuditRecord({
+          actor_user_id: actor._id,
+          action: "upsert_tag",
+          target_type: "tag",
+          target_id: id,
+          reason: "Maintain discover tag taxonomy",
+          previous_state: previous,
+          next_state: tag
+        });
+        return tag;
+      },
       detail(id: string) {
         const post = state.posts.find((item) => item._id === id);
         return post && isLaunchVisiblePost(post) ? this.normalize(post) : null;
@@ -1267,6 +1767,26 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           comments.map((comment) => this.normalizeComment(comment)),
           params
         );
+      },
+      listMyComments(params: PageParams = {}, actorId?: string) {
+        const actor = requireUser(actorId);
+        assertActorAllowed(actor, "read_mine");
+        const comments = state.comments.filter(
+          (comment) => comment.author_user_id === actor._id
+        );
+
+        return paginate(
+          comments.map((comment) => this.normalizeComment(comment)),
+          params
+        );
+      },
+      detailMyComment(id: string, actorId?: string) {
+        const actor = requireUser(actorId);
+        assertActorAllowed(actor, "read_mine");
+        const comment = state.comments.find(
+          (item) => item._id === id && item.author_user_id === actor._id
+        );
+        return comment ? this.normalizeComment(comment) : null;
       },
       create(input: Partial<Post>, actorId?: string) {
         const actor = requireUser(actorId);
@@ -1340,6 +1860,11 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           like_count: 0,
           favorite_count: 0,
           share_count: 0,
+          is_pinned: false,
+          is_featured: false,
+          is_recommended: false,
+          is_official: false,
+          ops_rank: 0,
           created_at: now,
           updated_at: now,
           status: "visible",
@@ -1548,6 +2073,26 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           reports.map((report) => normalizeReportCase(report, true)),
           params
         );
+      },
+      listMyReportCases(params: PageParams = {}, actorId?: string) {
+        const actor = requireUser(actorId);
+        assertActorAllowed(actor, "read_mine");
+        const reports = state.reportCases.filter(
+          (report) => report.reporter_user_id === actor._id
+        );
+
+        return paginate(
+          reports.map((report) => normalizeReportCase(report, true)),
+          params
+        );
+      },
+      detailMyReportCase(id: string, actorId?: string) {
+        const actor = requireUser(actorId);
+        assertActorAllowed(actor, "read_mine");
+        const report = state.reportCases.find(
+          (item) => item._id === id && item.reporter_user_id === actor._id
+        );
+        return report ? normalizeReportCase(report, true) : null;
       },
       detailReportCase(id: string, actorId?: string) {
         requireAdminUser(actorId);
@@ -1769,6 +2314,94 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         );
 
         return paginate(records, params);
+      },
+      analytics(params: { windowDays?: number } = {}, actorId?: string) {
+        requireAdminUser(actorId);
+        const windowDays = params.windowDays ?? 30;
+        const cutoff = Date.now() - windowDays * 24 * 60 * 60 * 1000;
+        const inWindow = (value: string) => Date.parse(value) >= cutoff;
+        const posts = state.posts.filter((post) => inWindow(post.created_at));
+        const comments = state.comments.filter((comment) =>
+          inWindow(comment.created_at)
+        );
+        const reports = state.reportCases.filter((report) =>
+          inWindow(report.created_at)
+        );
+        const authorIds = new Set([
+          ...posts.map((post) => post.author_user_id),
+          ...comments.map((comment) => comment.author_user_id)
+        ]);
+        const resolvedDurations = reports
+          .filter((report) => report.resolved_at)
+          .map(
+            (report) =>
+              (Date.parse(report.resolved_at as string) -
+                Date.parse(report.created_at)) /
+              (60 * 60 * 1000)
+          )
+          .filter((hours) => Number.isFinite(hours) && hours >= 0);
+        const countBy = <TItem>(
+          items: TItem[],
+          getKey: (item: TItem) => string | null
+        ) =>
+          [...items.reduce((map, item) => {
+            const key = getKey(item);
+            if (key) {
+              map.set(key, (map.get(key) ?? 0) + 1);
+            }
+            return map;
+          }, new Map<string, number>())]
+            .sort((left, right) => right[1] - left[1])
+            .slice(0, 5);
+
+        return {
+          window_days: windowDays,
+          post_count: posts.length,
+          comment_count: comments.length,
+          report_count: reports.length,
+          open_report_count: reports.filter((report) => report.status === "open")
+            .length,
+          pending_workload_count:
+            reports.filter((report) => report.status === "open").length +
+            state.comments.filter((comment) => comment.status === "reported")
+              .length +
+            state.posts.filter((post) => post.review_status === "reported")
+              .length,
+          average_moderation_hours: resolvedDurations.length
+            ? resolvedDurations.reduce((sum, value) => sum + value, 0) /
+              resolvedDurations.length
+            : null,
+          engagement: {
+            like_count: posts.reduce((sum, post) => sum + post.like_count, 0),
+            favorite_count: posts.reduce(
+              (sum, post) => sum + post.favorite_count,
+              0
+            ),
+            share_count: posts.reduce((sum, post) => sum + post.share_count, 0)
+          },
+          active_authors: [...authorIds]
+            .map((userId) => ({
+              user_id: userId,
+              post_count: posts.filter((post) => post.author_user_id === userId)
+                .length,
+              comment_count: comments.filter(
+                (comment) => comment.author_user_id === userId
+              ).length
+            }))
+            .sort(
+              (left, right) =>
+                right.post_count +
+                right.comment_count -
+                (left.post_count + left.comment_count)
+            )
+            .slice(0, 5),
+          popular_places: countBy(posts, (post) => post.place_id).map(
+            ([place_id, post_count]) => ({ place_id, post_count })
+          ),
+          popular_events: countBy(posts, (post) => post.event_id).map(
+            ([event_id, post_count]) => ({ event_id, post_count })
+          )
+        };
       }
     },
     places: {

@@ -4,7 +4,9 @@ import { ElMessage } from "element-plus";
 import type {
   Comment,
   DiscoverAuditRecord,
+  DiscoverAnalytics,
   DiscoverReportCase,
+  DiscoverTag,
   DiscoverUserGovernanceDetail,
   DiscoverUserGovernanceSummary,
   Post
@@ -12,7 +14,14 @@ import type {
 
 import { adminApi } from "@/api/client";
 
-type QueueTab = "posts" | "comments" | "reports" | "users" | "audit";
+type QueueTab =
+  | "posts"
+  | "comments"
+  | "reports"
+  | "users"
+  | "audit"
+  | "ops"
+  | "analytics";
 type DrawerKind = "post" | "comment" | "report" | "user" | "audit";
 
 const activeTab = ref<QueueTab>("posts");
@@ -31,6 +40,8 @@ const comments = ref<Comment[]>([]);
 const reports = ref<DiscoverReportCase[]>([]);
 const users = ref<DiscoverUserGovernanceSummary[]>([]);
 const auditRecords = ref<DiscoverAuditRecord[]>([]);
+const tags = ref<DiscoverTag[]>([]);
+const analytics = ref<DiscoverAnalytics | null>(null);
 const selectedPosts = ref<Post[]>([]);
 const selectedComments = ref<Comment[]>([]);
 
@@ -56,6 +67,15 @@ const userFilters = reactive({
 const auditFilters = reactive({
   targetType: "",
   targetId: ""
+});
+const tagForm = reactive({
+  id: "",
+  label_zh: "",
+  label_en: "",
+  status: "active" as "active" | "hidden"
+});
+const analyticsFilters = reactive({
+  windowDays: 30
 });
 
 const statusOptions = [
@@ -94,7 +114,9 @@ const activeCount = computed(() => {
     comments: comments.value.length,
     reports: reports.value.length,
     users: users.value.length,
-    audit: auditRecords.value.length
+    audit: auditRecords.value.length,
+    ops: tags.value.length,
+    analytics: analytics.value?.pending_workload_count ?? 0
   };
   return countByTab[activeTab.value];
 });
@@ -167,11 +189,28 @@ const loadUsers = async () => {
 const loadAudit = async () => {
   const result = await adminApi.admin.listDiscoverAudit({
     targetType: auditFilters.targetType
-      ? (auditFilters.targetType as "post" | "comment" | "report" | "user")
+      ? (auditFilters.targetType as
+          | "post"
+          | "comment"
+          | "report"
+          | "user"
+          | "tag")
       : undefined,
     targetId: auditFilters.targetId || undefined
   });
   auditRecords.value = result.data.items;
+};
+
+const loadTags = async () => {
+  const result = await adminApi.admin.listDiscoverTags();
+  tags.value = result.data.items;
+};
+
+const loadAnalytics = async () => {
+  const result = await adminApi.admin.discoverAnalytics({
+    windowDays: analyticsFilters.windowDays
+  });
+  analytics.value = result.data;
 };
 
 const loadActive = async () => {
@@ -185,6 +224,10 @@ const loadActive = async () => {
       await Promise.all([loadReports(), loadAudit()]);
     } else if (activeTab.value === "users") {
       await Promise.all([loadUsers(), loadAudit()]);
+    } else if (activeTab.value === "ops") {
+      await Promise.all([loadPosts(), loadTags(), loadAudit()]);
+    } else if (activeTab.value === "analytics") {
+      await loadAnalytics();
     } else {
       await loadAudit();
     }
@@ -201,6 +244,8 @@ const refreshAll = async () => {
       loadComments(),
       loadReports(),
       loadUsers(),
+      loadTags(),
+      loadAnalytics(),
       loadAudit()
     ]);
   } finally {
@@ -275,6 +320,71 @@ const moderatePost = async (
     });
     ElMessage.success("帖子状态已更新");
     await refreshAll();
+  } finally {
+    actioning.value = false;
+  }
+};
+
+const updatePostOps = async (
+  post: Post,
+  patch: Partial<
+    Pick<
+      Post,
+      | "is_pinned"
+      | "is_featured"
+      | "is_recommended"
+      | "is_official"
+      | "ops_rank"
+    >
+  >
+) => {
+  actioning.value = true;
+  try {
+    await adminApi.admin.updateDiscoverPostOps(post._id, {
+      ...patch,
+      reason: "Admin updated discover ops metadata"
+    });
+    ElMessage.success("运营位已更新");
+    await refreshAll();
+  } finally {
+    actioning.value = false;
+  }
+};
+
+const saveTag = async () => {
+  if (!tagForm.id || !tagForm.label_zh || !tagForm.label_en) {
+    ElMessage.warning("请填写标签 ID、中英文名称");
+    return;
+  }
+
+  actioning.value = true;
+  try {
+    await adminApi.admin.upsertDiscoverTag(tagForm.id, {
+      label_zh: tagForm.label_zh,
+      label_en: tagForm.label_en,
+      status: tagForm.status
+    });
+    ElMessage.success("标签已保存");
+    tagForm.id = "";
+    tagForm.label_zh = "";
+    tagForm.label_en = "";
+    tagForm.status = "active";
+    await Promise.all([loadTags(), loadAudit()]);
+  } finally {
+    actioning.value = false;
+  }
+};
+
+const toggleTagStatus = async (tag: DiscoverTag) => {
+  actioning.value = true;
+  try {
+    await adminApi.admin.upsertDiscoverTag(tag._id, {
+      label_zh: tag.label_zh,
+      label_en: tag.label_en,
+      status: tag.status === "active" ? "hidden" : "active"
+    });
+    ElMessage.success("标签状态已更新");
+    await Promise.all([loadTags(), loadAudit()]);
   } finally {
     actioning.value = false;
   }
@@ -463,6 +573,20 @@ onMounted(refreshAll);
               {{ reportCountForTarget("post", row._id) }}
             </template>
           </el-table-column>
+          <el-table-column label="运营" width="180">
+            <template #default="{ row }">
+              <el-tag v-if="row.is_pinned" size="small" type="warning">
+                置顶
+              </el-tag>
+              <el-tag v-if="row.is_recommended" size="small" type="primary">
+                推荐
+              </el-tag>
+              <el-tag v-if="row.is_official" size="small" type="info">
+                官方
+              </el-tag>
+              <span v-if="row.ops_rank">#{{ row.ops_rank }}</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="created_at" label="创建时间" width="170">
             <template #default="{ row }">
               {{ compactDate(row.created_at) }}
@@ -493,9 +617,190 @@ onMounted(refreshAll);
               >
                 删除
               </el-button>
+              <el-button
+                size="small"
+                :loading="actioning"
+                @click="updatePostOps(row, { is_pinned: !row.is_pinned })"
+              >
+                {{ row.is_pinned ? "取消置顶" : "置顶" }}
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
+      </el-tab-pane>
+
+      <el-tab-pane label="运营" name="ops">
+        <div class="toolbar ops-toolbar">
+          <el-input v-model="tagForm.id" placeholder="标签 ID" />
+          <el-input v-model="tagForm.label_zh" placeholder="中文名" />
+          <el-input v-model="tagForm.label_en" placeholder="English label" />
+          <el-select v-model="tagForm.status">
+            <el-option label="启用" value="active" />
+            <el-option label="隐藏" value="hidden" />
+          </el-select>
+          <el-button :loading="actioning" type="primary" @click="saveTag">
+            保存标签
+          </el-button>
+        </div>
+
+        <el-table v-loading="loading" :data="posts">
+          <el-table-column prop="title" label="帖子" min-width="240" />
+          <el-table-column label="置顶" width="90">
+            <template #default="{ row }">
+              <el-switch
+                :model-value="row.is_pinned"
+                :loading="actioning"
+                @change="(value: boolean) => updatePostOps(row, { is_pinned: value })"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column label="推荐" width="90">
+            <template #default="{ row }">
+              <el-switch
+                :model-value="row.is_recommended"
+                :loading="actioning"
+                @change="(value: boolean) => updatePostOps(row, { is_recommended: value })"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column label="官方" width="90">
+            <template #default="{ row }">
+              <el-switch
+                :model-value="row.is_official"
+                :loading="actioning"
+                @change="(value: boolean) => updatePostOps(row, { is_official: value })"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column label="排序" width="150">
+            <template #default="{ row }">
+              <el-input-number
+                :model-value="row.ops_rank"
+                :min="0"
+                :step="1"
+                size="small"
+                @change="(value: number | undefined) => updatePostOps(row, { ops_rank: value ?? 0 })"
+              />
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <h3 class="section-title">标签 taxonomy</h3>
+        <el-table v-loading="loading" :data="tags">
+          <el-table-column prop="_id" label="ID" width="140" />
+          <el-table-column prop="label_zh" label="中文名" />
+          <el-table-column prop="label_en" label="英文名" />
+          <el-table-column prop="post_count" label="帖子数" width="100" />
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.status === 'active' ? 'success' : 'info'">
+                {{ row.status }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="160">
+            <template #default="{ row }">
+              <el-button
+                size="small"
+                :loading="actioning"
+                @click="toggleTagStatus(row)"
+              >
+                {{ row.status === "active" ? "隐藏" : "启用" }}
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+
+      <el-tab-pane label="分析" name="analytics">
+        <div class="toolbar">
+          <el-input-number
+            v-model="analyticsFilters.windowDays"
+            :min="1"
+            :max="90"
+            :step="1"
+            controls-position="right"
+          />
+          <el-button :loading="loading" type="primary" @click="loadAnalytics">
+            刷新分析
+          </el-button>
+        </div>
+
+        <div v-if="analytics" class="analytics-grid">
+          <el-card>
+            <template #header>内容量</template>
+            <div class="metric-row">
+              <span>帖子</span><strong>{{ analytics.post_count }}</strong>
+            </div>
+            <div class="metric-row">
+              <span>评论</span><strong>{{ analytics.comment_count }}</strong>
+            </div>
+            <div class="metric-row">
+              <span>举报</span><strong>{{ analytics.report_count }}</strong>
+            </div>
+          </el-card>
+          <el-card>
+            <template #header>待处理</template>
+            <div class="metric-row">
+              <span>打开举报</span>
+              <strong>{{ analytics.open_report_count }}</strong>
+            </div>
+            <div class="metric-row">
+              <span>总工作量</span>
+              <strong>{{ analytics.pending_workload_count }}</strong>
+            </div>
+            <div class="metric-row">
+              <span>平均处理小时</span>
+              <strong>{{ analytics.average_moderation_hours ?? "-" }}</strong>
+            </div>
+          </el-card>
+          <el-card>
+            <template #header>互动</template>
+            <div class="metric-row">
+              <span>点赞</span><strong>{{ analytics.engagement.like_count }}</strong>
+            </div>
+            <div class="metric-row">
+              <span>收藏</span>
+              <strong>{{ analytics.engagement.favorite_count }}</strong>
+            </div>
+            <div class="metric-row">
+              <span>分享</span><strong>{{ analytics.engagement.share_count }}</strong>
+            </div>
+          </el-card>
+          <el-card>
+            <template #header>活跃作者</template>
+            <div
+              v-for="author in analytics.active_authors"
+              :key="author.user_id"
+              class="metric-row"
+            >
+              <span>{{ author.user_id }}</span>
+              <strong>{{ author.post_count + author.comment_count }}</strong>
+            </div>
+          </el-card>
+          <el-card>
+            <template #header>热门地点</template>
+            <div
+              v-for="place in analytics.popular_places"
+              :key="place.place_id"
+              class="metric-row"
+            >
+              <span>{{ place.place_id }}</span>
+              <strong>{{ place.post_count }}</strong>
+            </div>
+          </el-card>
+          <el-card>
+            <template #header>热门活动</template>
+            <div
+              v-for="event in analytics.popular_events"
+              :key="event.event_id"
+              class="metric-row"
+            >
+              <span>{{ event.event_id }}</span>
+              <strong>{{ event.post_count }}</strong>
+            </div>
+          </el-card>
+        </div>
       </el-tab-pane>
 
       <el-tab-pane label="评论" name="comments">
@@ -749,6 +1054,7 @@ onMounted(refreshAll);
             />
             <el-option label="举报" value="report" />
             <el-option label="用户" value="user" />
+            <el-option label="标签" value="tag" />
           </el-select>
           <el-input
             v-model="auditFilters.targetId"
@@ -1011,6 +1317,24 @@ onMounted(refreshAll);
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  color: #374151;
+}
+
+.metric-row strong {
+  color: #111827;
 }
 
 pre {

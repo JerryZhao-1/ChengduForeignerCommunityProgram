@@ -32,6 +32,16 @@ import type {
   DirectPlaceGalleryUploadResponseSchema
 } from "../schemas/files";
 import type {
+  PostInteractionRecordSchema,
+  PostInteractionStateSchema,
+  ProfileFollowListItemSchema,
+  ProfileFollowStateSchema,
+  DiscoverAnalyticsSchema,
+  DiscoverTagSchema,
+  PublicProfileSchema,
+  UserFollowRecordSchema
+} from "../schemas/discover";
+import type {
   PlaceDetailSchema,
   DeletePlaceResponseSchema,
   PlaceAmapImageCandidateSchema,
@@ -68,6 +78,18 @@ export type PlaceAmapMediaSearchItem = z.infer<
 >;
 export type DeletePlaceResponse = z.infer<typeof DeletePlaceResponseSchema>;
 export type Post = z.infer<typeof PostSchema>;
+export type PostInteractionState = z.infer<typeof PostInteractionStateSchema>;
+export type PostInteractionRecord = z.infer<
+  typeof PostInteractionRecordSchema
+>;
+export type UserFollowRecord = z.infer<typeof UserFollowRecordSchema>;
+export type ProfileFollowListItem = z.infer<
+  typeof ProfileFollowListItemSchema
+>;
+export type ProfileFollowState = z.infer<typeof ProfileFollowStateSchema>;
+export type DiscoverAnalytics = z.infer<typeof DiscoverAnalyticsSchema>;
+export type DiscoverTag = z.infer<typeof DiscoverTagSchema>;
+export type PublicProfile = z.infer<typeof PublicProfileSchema>;
 export type Comment = z.infer<typeof CommentSchema>;
 export type ReportEvidenceReference = z.infer<
   typeof ReportEvidenceReferenceSchema

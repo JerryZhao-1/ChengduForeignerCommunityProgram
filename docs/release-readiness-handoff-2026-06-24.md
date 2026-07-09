@@ -61,6 +61,23 @@ No production data was mutated by this handoff.
 - `mock` and `user_001` are local/dev testing aids, not production authentication.
 - `apps/api/.cloudbase/` is generated deployment output. It is excluded from source lint; deployability is checked by CloudBase build/smoke evidence.
 
+## 2026-07-09 Discover Social Ops Delta
+
+The `launch-discover-social-ops` change adds Discover social state, public profiles, follow state, content operations, tag management, and analytics across shared contracts, API routes/providers, Mobile detail/profile pages, and Admin Discover operations.
+
+Accepted local/provider scope:
+
+- Public Discover: `GET /discover/posts/:id/interaction`, `POST /discover/posts/:id/like`, `POST /discover/posts/:id/favorite`, `POST /discover/posts/:id/share`, `GET /discover/profiles/:userId`, `POST /discover/profiles/:userId/follow`.
+- Admin Discover: `POST /admin/discover/posts/:id/ops`, `GET /admin/discover/tags`, `POST /admin/discover/tags/:id`, `GET /admin/discover/analytics`.
+- CloudBase provider code covers `discover_post_interactions`, `discover_user_follows`, `discover_tags`, post ops fields, analytics aggregation, report cases, and audit records.
+- Validation bundles are append-only under `auto_test_openspec/launch-discover-social-ops/`.
+
+Release boundary:
+
+- This delta does not declare production auth complete; it still uses the current actor resolution path.
+- Social notification live delivery is not accepted yet. Existing moderation/comment notification behavior remains fallback-backed unless separately smoke-tested in CloudBase.
+- A deployed CloudBase `/api` smoke with real collections, indexes, and security rules is still required before release candidate signoff for Discover social ops.
+
 ## Blockers
 
 | Priority | Blocker | Owner | Next action / window | Can 6.24 integration proceed around it? |

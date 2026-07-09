@@ -9,6 +9,10 @@ import {
   DeletePlaceResponseSchema,
   discoverContracts,
   DiscoverAuditRecordSchema,
+  DiscoverAnalyticsQuerySchema,
+  DiscoverAnalyticsSchema,
+  DiscoverPostOpsInputSchema,
+  DiscoverTagSchema,
   DiscoverMeGovernanceSchema,
   DiscoverReportCaseSchema,
   DiscoverUserGovernanceSummarySchema,
@@ -39,10 +43,18 @@ import {
   fileContracts,
   MyPostListQuerySchema,
   NotificationSchema,
+  PostInteractionStateSchema,
+  ProfileFollowStateSchema,
+  PublicProfileSchema,
   RelatedPostListQuerySchema,
+  RecordPostShareInputSchema,
   ResolveReportInputSchema,
   placeContracts,
   PostSchema,
+  SetProfileFollowInputSchema,
+  SetPostFavoriteInputSchema,
+  SetPostLikeInputSchema,
+  UpsertDiscoverTagInputSchema,
   UpdatePlaceInputSchema,
   UserSchema
 } from "@community-map/shared";
@@ -834,10 +846,218 @@ describe("shared contracts", () => {
       status: "unread",
       created_at: "2026-03-28T09:31:00+08:00"
     });
+    const interaction = PostInteractionStateSchema.parse({
+      post_id: post._id,
+      actor_user_id: "user_001",
+      liked: true,
+      favorited: false,
+      like_count: 1,
+      favorite_count: 0,
+      share_count: 3
+    });
+    const likeInput = SetPostLikeInputSchema.parse({ liked: false });
+    const favoriteInput = SetPostFavoriteInputSchema.parse({
+      favorited: true
+    });
+    const shareInput = RecordPostShareInputSchema.parse({
+      channel: "copy_link"
+    });
+    const profile = PublicProfileSchema.parse({
+      user: {
+        _id: "user_002",
+        nickname: "Emma",
+        avatar_url: "https://example.com/emma.jpg",
+        preferred_language: "en",
+        status: "active"
+      },
+      stats: {
+        post_count: 1,
+        video_post_count: 0,
+        follower_count: 2,
+        following_count: 3
+      },
+      followed_by_actor: true,
+      is_self: false,
+      posts: [post],
+      video_posts: []
+    });
+    const followInput = SetProfileFollowInputSchema.parse({
+      following: true
+    });
+    const followState = ProfileFollowStateSchema.parse({
+      follower_user_id: "user_001",
+      followed_user_id: "user_002",
+      following: true,
+      follower_count: 2,
+      following_count: 3
+    });
+    const opsInput = DiscoverPostOpsInputSchema.parse({
+      is_featured: true,
+      is_recommended: true,
+      ops_rank: 10,
+      reason: "Homepage curation"
+    });
+    const tag = DiscoverTagSchema.parse({
+      _id: "coffee",
+      label_zh: "咖啡",
+      label_en: "Coffee",
+      status: "active",
+      post_count: 3,
+      created_at: "2026-03-28T09:00:00+08:00",
+      updated_at: "2026-03-28T09:00:00+08:00"
+    });
+    const tagInput = UpsertDiscoverTagInputSchema.parse({
+      label_zh: "咖啡",
+      label_en: "Coffee"
+    });
+    const analyticsQuery = DiscoverAnalyticsQuerySchema.parse({
+      windowDays: "14"
+    });
+    const analytics = DiscoverAnalyticsSchema.parse({
+      window_days: 14,
+      post_count: 2,
+      comment_count: 1,
+      report_count: 1,
+      open_report_count: 1,
+      pending_workload_count: 2,
+      average_moderation_hours: null,
+      engagement: {
+        like_count: 3,
+        favorite_count: 2,
+        share_count: 1
+      },
+      active_authors: [
+        {
+          user_id: "user_001",
+          post_count: 2,
+          comment_count: 1
+        }
+      ],
+      popular_places: [{ place_id: "place_001", post_count: 1 }],
+      popular_events: [{ event_id: "event_001", post_count: 1 }]
+    });
 
     expect(post.comment_count).toBe(1);
     expect(createInput.place_id).toBe("place_002");
     expect(relatedQuery.pageSize).toBe(8);
+    expect(interaction.liked).toBe(true);
+    expect(likeInput.liked).toBe(false);
+    expect(favoriteInput.favorited).toBe(true);
+    expect(shareInput.channel).toBe("copy_link");
+    expect(RecordPostShareInputSchema.parse({}).channel).toBe("other");
+    expect(profile.user.nickname).toBe("Emma");
+    expect(followInput.following).toBe(true);
+    expect(followState.follower_count).toBe(2);
+    expect(opsInput.ops_rank).toBe(10);
+    expect(tag.status).toBe("active");
+    expect(tagInput.status).toBe("active");
+    expect(analyticsQuery.windowDays).toBe(14);
+    expect(analytics.pending_workload_count).toBe(2);
+    expect(discoverContracts.postInteraction).toMatchObject({
+      method: "GET",
+      path: "/discover/posts/:id/interaction"
+    });
+    expect(discoverContracts.setPostLike).toMatchObject({
+      method: "POST",
+      path: "/discover/posts/:id/like"
+    });
+    expect(discoverContracts.setPostFavorite).toMatchObject({
+      method: "POST",
+      path: "/discover/posts/:id/favorite"
+    });
+    expect(discoverContracts.recordPostShare).toMatchObject({
+      method: "POST",
+      path: "/discover/posts/:id/share"
+    });
+    expect(discoverContracts.profile).toMatchObject({
+      method: "GET",
+      path: "/discover/profiles/:userId"
+    });
+    expect(discoverContracts.setProfileFollow).toMatchObject({
+      method: "POST",
+      path: "/discover/profiles/:userId/follow"
+    });
+    expect(discoverContracts.listProfileFollowers).toMatchObject({
+      method: "GET",
+      path: "/discover/profiles/:userId/followers"
+    });
+    expect(discoverContracts.listProfileFollowing).toMatchObject({
+      method: "GET",
+      path: "/discover/profiles/:userId/following"
+    });
+    expect(discoverContracts.listPublicTags).toMatchObject({
+      method: "GET",
+      path: "/discover/tags"
+    });
+    expect(discoverContracts.createTag).toMatchObject({
+      method: "POST",
+      path: "/discover/tags"
+    });
+    expect(discoverContracts.myComments).toMatchObject({
+      method: "GET",
+      path: "/discover/me/comments"
+    });
+    expect(discoverContracts.myReports).toMatchObject({
+      method: "GET",
+      path: "/discover/me/reports"
+    });
+    expect(discoverContracts.updatePostOps).toMatchObject({
+      method: "POST",
+      path: "/admin/discover/posts/:id/ops"
+    });
+    expect(discoverContracts.listTags).toMatchObject({
+      method: "GET",
+      path: "/admin/discover/tags"
+    });
+    expect(discoverContracts.upsertTag).toMatchObject({
+      method: "POST",
+      path: "/admin/discover/tags/:id"
+    });
+    expect(discoverContracts.analytics).toMatchObject({
+      method: "GET",
+      path: "/admin/discover/analytics"
+    });
+    expect(apiPaths.discover.postInteraction(post._id)).toBe(
+      "/discover/posts/post_001/interaction"
+    );
+    expect(apiPaths.discover.likePost(post._id)).toBe(
+      "/discover/posts/post_001/like"
+    );
+    expect(apiPaths.discover.favoritePost(post._id)).toBe(
+      "/discover/posts/post_001/favorite"
+    );
+    expect(apiPaths.discover.sharePost(post._id)).toBe(
+      "/discover/posts/post_001/share"
+    );
+    expect(apiPaths.discover.profile("user_002")).toBe(
+      "/discover/profiles/user_002"
+    );
+    expect(apiPaths.discover.followProfile("user_002")).toBe(
+      "/discover/profiles/user_002/follow"
+    );
+    expect(apiPaths.discover.profileFollowers("user_002")).toBe(
+      "/discover/profiles/user_002/followers"
+    );
+    expect(apiPaths.discover.profileFollowing("user_002")).toBe(
+      "/discover/profiles/user_002/following"
+    );
+    expect(apiPaths.discover.listTags).toBe("/discover/tags");
+    expect(apiPaths.discover.myCommentDetail("comment_001")).toBe(
+      "/discover/me/comments/comment_001"
+    );
+    expect(apiPaths.discover.myReportDetail("report_001")).toBe(
+      "/discover/me/reports/report_001"
+    );
+    expect(apiPaths.admin.updateDiscoverPostOps("post_001")).toBe(
+      "/admin/discover/posts/post_001/ops"
+    );
+    expect(apiPaths.admin.listDiscoverTags).toBe("/admin/discover/tags");
+    expect(apiPaths.admin.upsertDiscoverTag("coffee")).toBe(
+      "/admin/discover/tags/coffee"
+    );
+    expect(apiPaths.admin.discoverAnalytics).toBe(
+      "/admin/discover/analytics"
+    );
     expect(discoverContracts.listPlaceRelatedPosts).toMatchObject({
       method: "GET",
       path: "/discover/places/:placeId/posts"

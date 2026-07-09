@@ -115,6 +115,46 @@ export const createMockProvider = (): ApiProvider => {
       async detail(id) {
         return withMockErrors(() => service.posts.detail(id));
       },
+      async interaction(id, actorId) {
+        return withMockErrors(() => service.posts.interaction(id, actorId));
+      },
+      async setLike(id, input, actorId) {
+        return withMockErrors(() => service.posts.setLike(id, input, actorId));
+      },
+      async setFavorite(id, input, actorId) {
+        return withMockErrors(() =>
+          service.posts.setFavorite(id, input, actorId)
+        );
+      },
+      async recordShare(id, input, actorId) {
+        return withMockErrors(() =>
+          service.posts.recordShare(id, input, actorId)
+        );
+      },
+      async profile(userId, actorId) {
+        return withMockErrors(() => service.posts.profile(userId, actorId));
+      },
+      async setProfileFollow(userId, input, actorId) {
+        return withMockErrors(() =>
+          service.posts.setProfileFollow(userId, input, actorId)
+        );
+      },
+      async listProfileFollowers(userId, input, actorId) {
+        return withMockErrors(() =>
+          service.posts.listProfileFollowers(userId, input, actorId)
+        );
+      },
+      async listProfileFollowing(userId, input, actorId) {
+        return withMockErrors(() =>
+          service.posts.listProfileFollowing(userId, input, actorId)
+        );
+      },
+      async listPublicTags(input) {
+        return withMockErrors(() => service.posts.listPublicTags(input));
+      },
+      async createTag(input, actorId) {
+        return withMockErrors(() => service.posts.createTag(input, actorId));
+      },
       async listComments(postId, input) {
         return withMockErrors(() => service.posts.listComments(postId, input));
       },
@@ -122,6 +162,14 @@ export const createMockProvider = (): ApiProvider => {
         return withMockErrors(() =>
           service.posts.listAdminComments(input, actorId)
         );
+      },
+      async listMyComments(input, actorId) {
+        return withMockErrors(() =>
+          service.posts.listMyComments(input, actorId)
+        );
+      },
+      async detailMyComment(id, actorId) {
+        return withMockErrors(() => service.posts.detailMyComment(id, actorId));
       },
       async create(input, actorId) {
         return withMockErrors(() => service.posts.create(input, actorId));
@@ -142,6 +190,15 @@ export const createMockProvider = (): ApiProvider => {
       async moderate(id, input, actorId) {
         return withMockErrors(() => service.posts.moderate(id, input, actorId));
       },
+      async updateOps(id, input, actorId) {
+        return withMockErrors(() => service.posts.updateOps(id, input, actorId));
+      },
+      async listTags(actorId) {
+        return withMockErrors(() => service.posts.listTags(actorId));
+      },
+      async upsertTag(id, input, actorId) {
+        return withMockErrors(() => service.posts.upsertTag(id, input, actorId));
+      },
       async moderateComment(id, input, actorId) {
         return withMockErrors(() =>
           service.posts.moderateComment(id, input, actorId)
@@ -150,6 +207,16 @@ export const createMockProvider = (): ApiProvider => {
       async listReportCases(input, actorId) {
         return withMockErrors(() =>
           service.posts.listReportCases(input, actorId)
+        );
+      },
+      async listMyReportCases(input, actorId) {
+        return withMockErrors(() =>
+          service.posts.listMyReportCases(input, actorId)
+        );
+      },
+      async detailMyReportCase(id, actorId) {
+        return withMockErrors(() =>
+          service.posts.detailMyReportCase(id, actorId)
         );
       },
       async detailReportCase(id, actorId) {
@@ -181,6 +248,9 @@ export const createMockProvider = (): ApiProvider => {
         return withMockErrors(() =>
           service.posts.listAuditRecords(input, actorId)
         );
+      },
+      async analytics(input, actorId) {
+        return withMockErrors(() => service.posts.analytics(input, actorId));
       }
     },
     places: {

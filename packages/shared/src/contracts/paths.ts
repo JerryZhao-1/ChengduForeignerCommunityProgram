@@ -13,8 +13,24 @@ export const apiPaths = {
   discover: {
     listPosts: "/discover/posts",
     detailPost: (id: string) => `/discover/posts/${id}`,
+    postInteraction: (id: string) => `/discover/posts/${id}/interaction`,
+    likePost: (id: string) => `/discover/posts/${id}/like`,
+    favoritePost: (id: string) => `/discover/posts/${id}/favorite`,
+    sharePost: (id: string) => `/discover/posts/${id}/share`,
+    profile: (userId: string) => `/discover/profiles/${userId}`,
+    followProfile: (userId: string) => `/discover/profiles/${userId}/follow`,
+    profileFollowers: (userId: string) =>
+      `/discover/profiles/${userId}/followers`,
+    profileFollowing: (userId: string) =>
+      `/discover/profiles/${userId}/following`,
+    listTags: "/discover/tags",
+    createTag: "/discover/tags",
     createPost: "/discover/posts",
     myPosts: "/discover/me/posts",
+    myComments: "/discover/me/comments",
+    myCommentDetail: (id: string) => `/discover/me/comments/${id}`,
+    myReports: "/discover/me/reports",
+    myReportDetail: (id: string) => `/discover/me/reports/${id}`,
     meGovernance: "/discover/me/governance",
     listPlaceRelatedPosts: (placeId: string) =>
       `/discover/places/${placeId}/posts`,
@@ -61,6 +77,9 @@ export const apiPaths = {
     listDiscoverReports: "/admin/discover/reports",
     detailDiscoverReport: (id: string) => `/admin/discover/reports/${id}`,
     moderatePost: (id: string) => `/admin/discover/posts/${id}/moderation`,
+    updateDiscoverPostOps: (id: string) => `/admin/discover/posts/${id}/ops`,
+    listDiscoverTags: "/admin/discover/tags",
+    upsertDiscoverTag: (id: string) => `/admin/discover/tags/${id}`,
     moderateComment: (id: string) =>
       `/admin/discover/comments/${id}/moderation`,
     resolveDiscoverReport: (id: string) =>
@@ -70,6 +89,7 @@ export const apiPaths = {
     enforceDiscoverUser: (id: string) =>
       `/admin/discover/users/${id}/enforcement`,
     listDiscoverAudit: "/admin/discover/audit",
+    discoverAnalytics: "/admin/discover/analytics",
     listPlaces: "/admin/places",
     searchPlacePoi: "/admin/places/poi-search",
     searchPlaceAmapMedia: "/admin/places/amap-media-search",

@@ -1,0 +1,14 @@
+Running admin analytics CLI validation
+Repo: /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/contracts.spec.ts (19 tests) 8ms
+ ✓ packages/shared/test/client.spec.ts (20 tests) 12ms
+ ✓ apps/api/test/integration-readiness.spec.ts (10 tests) 99ms
+
+ Test Files  3 passed (3)
+      Tests  49 passed (49)
+   Start at  00:29:02
+   Duration  624ms (transform 226ms, setup 0ms, collect 697ms, tests 118ms, environment 0ms, prepare 105ms)
+

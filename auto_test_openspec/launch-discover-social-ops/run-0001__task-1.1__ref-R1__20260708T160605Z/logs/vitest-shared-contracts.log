@@ -1,0 +1,13 @@
+Running shared discover social contract validation
+Repo: /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/contracts.spec.ts (19 tests) 7ms
+ ✓ packages/shared/test/client.spec.ts (20 tests) 10ms
+
+ Test Files  2 passed (2)
+      Tests  39 passed (39)
+   Start at  00:06:30
+   Duration  254ms (transform 99ms, setup 0ms, collect 234ms, tests 17ms, environment 0ms, prepare 52ms)
+
