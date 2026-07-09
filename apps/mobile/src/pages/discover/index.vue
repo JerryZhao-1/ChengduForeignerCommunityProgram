@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { onLoad, onPullDownRefresh, onReachBottom } from "@dcloudio/uni-app";
+import {
+  onLoad,
+  onPullDownRefresh,
+  onReachBottom,
+  onShow
+} from "@dcloudio/uni-app";
 import type { Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
@@ -8,6 +13,7 @@ import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import SectionPanel from "@/components/SectionPanel.vue";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
+import { getProfileOverride } from "@/stores/profile-store";
 import {
   getFirstMedia,
   getHiddenTagCount,
@@ -25,6 +31,7 @@ const isRefreshing = ref(false);
 const isLoadingMore = ref(false);
 const errorMessage = ref("");
 const statusBarHeight = ref(0);
+const currentAvatar = ref("");
 
 const copy = computed(() => appCopy[state.locale].discover);
 const hasMore = computed(() => posts.value.length < total.value);
@@ -52,6 +59,30 @@ const getMediaMeta = (post: Post) => {
 
   return parts.join(" · ");
 };
+
+const isVideoPost = (post: Post) => getFirstMedia(post)?.kind === "video";
+
+const getCoverImage = (post: Post) => {
+  const first = getFirstMedia(post);
+  return first?.kind === "image" ? first.url : "";
+};
+
+const getVideoUrl = (post: Post) => {
+  const first = getFirstMedia(post);
+  return first?.kind === "video" ? first.url : "";
+};
+
+const getExcerpt = (post: Post) => {
+  const text = (post.content ?? post.title ?? "").trim();
+  return text.length > 100 ? `${text.slice(0, 100)}...` : text;
+};
+
+const leftColumn = computed(() =>
+  posts.value.filter((_, index) => index % 2 === 0)
+);
+const rightColumn = computed(() =>
+  posts.value.filter((_, index) => index % 2 === 1)
+);
 
 const loadPosts = async (nextPage = 1, append = false) => {
   if (isLoading.value || isLoadingMore.value) {
@@ -121,11 +152,33 @@ const openSearch = () => {
   });
 };
 
+const openMyProfile = () => {
+  uni.navigateTo({
+    url: "/pages/more/profile"
+  });
+};
+
+const loadCurrentAvatar = async () => {
+  const override = getProfileOverride(state.userId);
+  if (override.avatarUrl) {
+    currentAvatar.value = override.avatarUrl;
+    return;
+  }
+  try {
+    const me = await mobileApi.auth.me();
+    currentAvatar.value = me.data.user.avatar_url ?? "";
+  } catch {
+    currentAvatar.value = "";
+  }
+};
+
 onLoad(() => {
   statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight ?? 0;
   loadPosts();
+  loadCurrentAvatar();
 });
 
+onShow(loadCurrentAvatar);
 onPullDownRefresh(refresh);
 onReachBottom(loadMore);
 </script>
@@ -133,6 +186,15 @@ onReachBottom(loadMore);
 <template>
   <view class="page">
     <view class="top-actions" :style="customTopStyle">
+      <view class="profile-entry" @click="openMyProfile">
+        <image
+          v-if="currentAvatar"
+          class="profile-entry-avatar"
+          :src="currentAvatar"
+          mode="aspectFill"
+        />
+        <view v-else class="profile-entry-avatar fallback">我</view>
+      </view>
       <button class="search-icon-button" :aria-label="copy.searchIconLabel" @click="openSearch">
         ⌕
       </button>
@@ -154,60 +216,46 @@ onReachBottom(loadMore);
         :text="copy.empty"
       />
       <view v-else class="feed">
-        <view
-          v-for="post in posts"
-          :key="post._id"
-          class="card"
-          @click="openDetail(post._id)"
-        >
-          <view v-if="getFirstMedia(post)" class="media-frame">
-            <image
-              v-if="getFirstMedia(post)?.kind === 'image'"
-              class="cover"
-              :src="getFirstMedia(post)?.url"
-              mode="aspectFill"
-            />
-            <view v-else class="video-preview">
-              <video
-                class="video-cover"
-                :src="getFirstMedia(post)?.url"
-                :controls="false"
-                :show-center-play-btn="false"
-                :show-play-btn="false"
-                :show-fullscreen-btn="false"
-                :enable-progress-gesture="false"
+        <view class="waterfall">
+          <view
+            v-for="(column, colIndex) in [leftColumn, rightColumn]"
+            :key="colIndex"
+            class="wf-col"
+          >
+            <view
+              v-for="post in column"
+              :key="post._id"
+              class="wf-card"
+              @click="openDetail(post._id)"
+            >
+              <image
+                v-if="getCoverImage(post)"
+                class="wf-image"
+                :src="getCoverImage(post)"
+                mode="widthFix"
               />
-              <view class="video-overlay">
-                <text class="play-mark">▶</text>
-                <text>{{ copy.videoBadge }}</text>
+              <view v-else-if="isVideoPost(post)" class="wf-video-wrap">
+                <video
+                  class="wf-video"
+                  :src="getVideoUrl(post)"
+                  :controls="false"
+                  :show-center-play-btn="false"
+                  :show-play-btn="false"
+                  :show-fullscreen-btn="false"
+                  :enable-progress-gesture="false"
+                  object-fit="cover"
+                />
+                <view class="card-play">▶</view>
               </view>
-            </view>
-            <view class="media-badge">
-              <text v-if="getFirstMedia(post)?.kind === 'video'">{{ copy.videoBadge }}</text>
-              <text v-else-if="post.image_urls.length > 1">
-                {{ copy.multiImageBadge }} {{ post.image_urls.length }}
-              </text>
-              <text v-else>1 {{ copy.imageCount }}</text>
-            </view>
-          </view>
-          <view v-else class="text-only-badge">{{ copy.textOnlyBadge }}</view>
-          <view class="card-body">
-            <view class="card-top">
-              <view class="card-title">{{ post.title }}</view>
-              <text class="language">{{ getLanguageLabel(post.language) }}</text>
-            </view>
-            <view class="card-text">{{ summarize(post.content) }}</view>
-            <view class="meta-row">
-              <text class="meta">{{ post.location_text || copy.locationFallback }}</text>
-              <text v-if="getMediaMeta(post)" class="meta">
-                {{ getMediaMeta(post) }}
-              </text>
-            </view>
-            <view v-if="post.tag_ids.length" class="tags">
-              <text v-for="tag in getVisibleTags(post)" :key="tag" class="tag">#{{ tag }}</text>
-              <text v-if="getHiddenTagCount(post)" class="tag more">
-                +{{ getHiddenTagCount(post) }} {{ copy.moreTags }}
-              </text>
+              <view v-else class="wf-text">
+                <text class="text-cover-quote">“</text>
+                <text class="wf-text-body">{{ getExcerpt(post) }}</text>
+              </view>
+              <view class="wf-title">{{ post.title }}</view>
+              <view class="wf-foot">
+                <text class="wf-loc">{{ post.location_text || copy.locationFallback }}</text>
+                <text class="wf-lang">{{ getLanguageLabel(post.language) }}</text>
+              </view>
             </view>
           </view>
         </view>
@@ -235,8 +283,34 @@ onReachBottom(loadMore);
 
 .top-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-start;
+  gap: 16rpx;
   margin: -12rpx 0 12rpx;
+}
+
+.profile-entry {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.08);
+}
+
+.profile-entry-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.profile-entry-avatar.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: #0f766e;
+  font-size: 30rpx;
+  font-weight: 700;
 }
 
 .search-icon-button {
@@ -282,8 +356,111 @@ onReachBottom(loadMore);
 }
 
 .feed {
-  display: grid;
+  display: block;
+}
+
+.waterfall {
+  display: flex;
+  align-items: flex-start;
   gap: 18rpx;
+}
+
+.wf-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.wf-card {
+  overflow: hidden;
+  border-radius: 18rpx;
+  background: #ffffff;
+  box-shadow: 0 6rpx 20rpx rgba(15, 23, 42, 0.06);
+}
+
+.wf-image {
+  width: 100%;
+  display: block;
+  background: #e2e8f0;
+}
+
+.wf-video-wrap {
+  position: relative;
+  width: 100%;
+  height: 300rpx;
+  background: #000000;
+}
+
+.wf-video {
+  width: 100%;
+  height: 100%;
+}
+
+.wf-text {
+  position: relative;
+  padding: 30rpx 22rpx 10rpx;
+  background: linear-gradient(135deg, #ecfdf5, #f0fdfa);
+}
+
+.text-cover-quote {
+  position: absolute;
+  top: 6rpx;
+  left: 14rpx;
+  color: rgba(15, 118, 110, 0.25);
+  font-size: 72rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.wf-text-body {
+  position: relative;
+  z-index: 1;
+  color: #334155;
+  font-size: 27rpx;
+  line-height: 1.55;
+}
+
+.card-play {
+  position: absolute;
+  top: 12rpx;
+  right: 14rpx;
+  color: #ffffff;
+  font-size: 26rpx;
+  text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.5);
+}
+
+.wf-title {
+  padding: 16rpx 18rpx 6rpx;
+  color: #111827;
+  font-size: 27rpx;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.wf-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+  padding: 4rpx 18rpx 18rpx;
+}
+
+.wf-loc {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #94a3b8;
+  font-size: 22rpx;
+}
+
+.wf-lang {
+  flex-shrink: 0;
+  color: #0f766e;
+  font-size: 22rpx;
 }
 
 .card {

@@ -114,6 +114,13 @@
       }
     },
     {
+      "path": "pages/more/profile-edit",
+      "style": {
+        "navigationBarTitleText": "编辑资料",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/more/language-settings",
       "style": {
         "navigationBarTitleText": "语言设置"

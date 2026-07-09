@@ -137,7 +137,17 @@ export const appCopy = {
       bioFallback: "这个人很神秘，还没有填写简介。",
       shareLinkCopied: "主页链接已复制",
       followDone: "已关注",
-      unfollowDone: "已取消关注"
+      unfollowDone: "已取消关注",
+      messageComingSoon: "私信功能开发中，敬请期待",
+      save: "保存",
+      saved: "已保存",
+      changeAvatar: "更换头像",
+      nameLabel: "昵称",
+      handleLabel: "用户名",
+      bioLabel: "简介",
+      namePlaceholder: "填写你的昵称",
+      handlePlaceholder: "填写你的用户名",
+      bioPlaceholder: "介绍一下自己吧"
     }
   },
   en: {
@@ -278,7 +288,17 @@ export const appCopy = {
       bioFallback: "No bio yet.",
       shareLinkCopied: "Profile link copied",
       followDone: "Followed",
-      unfollowDone: "Unfollowed"
+      unfollowDone: "Unfollowed",
+      messageComingSoon: "Direct messages coming soon",
+      save: "Save",
+      saved: "Saved",
+      changeAvatar: "Change photo",
+      nameLabel: "Name",
+      handleLabel: "Username",
+      bioLabel: "Bio",
+      namePlaceholder: "Enter your name",
+      handlePlaceholder: "Enter your username",
+      bioPlaceholder: "Tell people about yourself"
     }
   }
 } as const;

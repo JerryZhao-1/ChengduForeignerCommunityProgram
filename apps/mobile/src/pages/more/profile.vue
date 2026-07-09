@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { onLoad } from "@dcloudio/uni-app";
+import { onLoad, onShow } from "@dcloudio/uni-app";
 import type { Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import { appCopy } from "@/i18n/copy";
 import { useAppStore } from "@/stores/app-store";
+import { getProfileOverride, type ProfileOverride } from "@/stores/profile-store";
 import { getFirstMedia } from "@/pages/discover/media";
 
 interface ProfileInfo {
@@ -63,14 +64,14 @@ const copy = computed(() => appCopy[state.locale].profile);
 const targetUserId = ref(state.userId);
 const statusBarHeight = ref(0);
 const posts = ref<Post[]>([]);
-const activeTab = ref<"grid" | "reels">("grid");
 const isFollowing = ref(false);
+const override = ref<ProfileOverride>({});
 
 const customNavStyle = computed(() => ({
   paddingTop: `${statusBarHeight.value}px`
 }));
 
-const profile = computed<ProfileInfo>(
+const baseProfile = computed<ProfileInfo>(
   () =>
     userProfiles[targetUserId.value] ?? {
       name: targetUserId.value,
@@ -83,21 +84,39 @@ const profile = computed<ProfileInfo>(
     }
 );
 
+const profile = computed<ProfileInfo>(() => ({
+  ...baseProfile.value,
+  name: override.value.name || baseProfile.value.name,
+  handle: override.value.handle || baseProfile.value.handle,
+  avatarUrl: override.value.avatarUrl || baseProfile.value.avatarUrl
+}));
+
 const isSelf = computed(() => targetUserId.value === state.userId);
 const bio = computed(() => {
-  const value = state.locale === "zh" ? profile.value.bioZh : profile.value.bioEn;
+  if (override.value.bio) {
+    return override.value.bio;
+  }
+  const value =
+    state.locale === "zh" ? baseProfile.value.bioZh : baseProfile.value.bioEn;
   return value || copy.value.bioFallback;
 });
+
+const refreshOverride = () => {
+  override.value = getProfileOverride(targetUserId.value);
+};
 
 const userPosts = computed(() =>
   posts.value.filter((post) => post.author_user_id === targetUserId.value)
 );
 
-const isVideoPost = (post: Post) => getFirstMedia(post)?.kind === "video";
-const reelPosts = computed(() => userPosts.value.filter(isVideoPost));
-const gridItems = computed(() =>
-  activeTab.value === "grid" ? userPosts.value : reelPosts.value
+const leftColumn = computed(() =>
+  userPosts.value.filter((_, index) => index % 2 === 0)
 );
+const rightColumn = computed(() =>
+  userPosts.value.filter((_, index) => index % 2 === 1)
+);
+
+const isVideoPost = (post: Post) => getFirstMedia(post)?.kind === "video";
 
 const postCount = computed(() => userPosts.value.length);
 
@@ -111,7 +130,20 @@ const formatCount = (value: number) => {
   return `${value}`;
 };
 
-const getThumb = (post: Post) => getFirstMedia(post)?.url ?? "";
+const getCoverImage = (post: Post) => {
+  const first = getFirstMedia(post);
+  return first?.kind === "image" ? first.url : "";
+};
+
+const getVideoUrl = (post: Post) => {
+  const first = getFirstMedia(post);
+  return first?.kind === "video" ? first.url : "";
+};
+
+const getExcerpt = (post: Post) => {
+  const text = (post.content ?? post.title ?? "").trim();
+  return text.length > 100 ? `${text.slice(0, 100)}...` : text;
+};
 
 const loadPosts = async () => {
   try {
@@ -132,8 +164,11 @@ onLoad((query) => {
   if (id) {
     targetUserId.value = id;
   }
+  refreshOverride();
   loadPosts();
 });
+
+onShow(refreshOverride);
 
 const goBack = () => {
   const pages = getCurrentPages();
@@ -165,8 +200,12 @@ const shareProfile = () => {
   });
 };
 
+const sendMessage = () => {
+  uni.showToast({ title: copy.value.messageComingSoon, icon: "none" });
+};
+
 const editProfile = () => {
-  uni.navigateTo({ url: "/pages/more/language-settings" });
+  uni.navigateTo({ url: "/pages/more/profile-edit" });
 };
 </script>
 
@@ -218,7 +257,7 @@ const editProfile = () => {
           >
             {{ isFollowing ? copy.followed : copy.follow }}
           </button>
-          <button class="action-btn ghost" @click="shareProfile">
+          <button class="action-btn ghost" @click="sendMessage">
             {{ copy.message }}
           </button>
         </template>
@@ -243,40 +282,45 @@ const editProfile = () => {
     </view>
 
     <view class="tabs">
-      <view
-        class="tab"
-        :class="{ active: activeTab === 'grid' }"
-        @click="activeTab = 'grid'"
-      >
-        {{ copy.posts }}
-      </view>
-      <view
-        class="tab"
-        :class="{ active: activeTab === 'reels' }"
-        @click="activeTab = 'reels'"
-      >
-        {{ copy.videos }}
-      </view>
+      <view class="tab active">{{ copy.posts }}</view>
     </view>
 
-    <view v-if="gridItems.length" class="list">
+    <view v-if="userPosts.length" class="waterfall">
       <view
-        v-for="post in gridItems"
-        :key="post._id"
-        class="card"
-        @click="openPost(post._id)"
+        v-for="(column, colIndex) in [leftColumn, rightColumn]"
+        :key="colIndex"
+        class="wf-col"
       >
-        <view class="card-media">
+        <view
+          v-for="post in column"
+          :key="post._id"
+          class="wf-card"
+          @click="openPost(post._id)"
+        >
           <image
-            v-if="getThumb(post)"
-            class="card-cover"
-            :src="getThumb(post)"
-            mode="aspectFill"
+            v-if="getCoverImage(post)"
+            class="wf-image"
+            :src="getCoverImage(post)"
+            mode="widthFix"
           />
-          <view v-else class="card-cover placeholder">{{ copy.textBadge }}</view>
-          <view v-if="isVideoPost(post)" class="card-play">▶</view>
+          <view v-else-if="isVideoPost(post)" class="wf-video-wrap">
+            <video
+              class="wf-video"
+              :src="getVideoUrl(post)"
+              :controls="false"
+              :show-center-play-btn="false"
+              :enable-progress-gesture="false"
+              :show-fullscreen-btn="false"
+              object-fit="cover"
+            />
+            <view class="card-play">▶</view>
+          </view>
+          <view v-else class="wf-text">
+            <text class="text-cover-quote">“</text>
+            <text class="wf-text-body">{{ getExcerpt(post) }}</text>
+          </view>
+          <view class="wf-title">{{ post.title }}</view>
         </view>
-        <view class="card-title">{{ post.title }}</view>
       </view>
     </view>
     <view v-else class="empty">{{ copy.emptyPosts }}</view>
@@ -479,38 +523,68 @@ const editProfile = () => {
   border-bottom-color: #0f766e;
 }
 
-.list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+.waterfall {
+  display: flex;
+  align-items: flex-start;
   gap: 20rpx;
   padding: 24rpx;
 }
 
-.card {
+.wf-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.wf-card {
   overflow: hidden;
   border-radius: 20rpx;
   background: #ffffff;
   box-shadow: 0 6rpx 20rpx rgba(15, 23, 42, 0.06);
 }
 
-.card-media {
-  position: relative;
+.wf-image {
   width: 100%;
-  height: 240rpx;
+  display: block;
   background: #e2e8f0;
 }
 
-.card-cover {
+.wf-video-wrap {
+  position: relative;
+  width: 100%;
+  height: 320rpx;
+  background: #000000;
+}
+
+.wf-video {
   width: 100%;
   height: 100%;
 }
 
-.card-cover.placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748b;
-  font-size: 24rpx;
+.wf-text {
+  position: relative;
+  padding: 30rpx 22rpx 10rpx;
+  background: linear-gradient(135deg, #ecfdf5, #f0fdfa);
+}
+
+.text-cover-quote {
+  position: absolute;
+  top: 6rpx;
+  left: 14rpx;
+  color: rgba(15, 118, 110, 0.25);
+  font-size: 72rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.wf-text-body {
+  position: relative;
+  z-index: 1;
+  color: #334155;
+  font-size: 27rpx;
+  line-height: 1.55;
 }
 
 .card-play {
@@ -522,15 +596,12 @@ const editProfile = () => {
   text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.5);
 }
 
-.card-title {
-  padding: 16rpx 18rpx 20rpx;
+.wf-title {
+  padding: 16rpx 18rpx 22rpx;
   color: #111827;
-  font-size: 26rpx;
-  line-height: 1.4;
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-size: 27rpx;
+  line-height: 1.45;
+  font-weight: 600;
 }
 
 .empty {
