@@ -1,0 +1,44 @@
+{
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "_id": "place_s7hn1p",
+      "community_id": "tongzilin",
+      "name_zh": "E2E人工测试点位-20260709-1408",
+      "name_en": "E2E Manual Test Place 20260709-1408",
+      "cover_file_id": null,
+      "cover_url": null,
+      "cover_source": null,
+      "category_level_1": "community",
+      "category_level_2": "support-desk",
+      "tag_ids": [
+        "community"
+      ],
+      "address_zh": "成都市桐梓林人工测试地址",
+      "address_en": "Tongzilin manual test address",
+      "location": {
+        "latitude": 30.6179,
+        "longitude": 104.0638
+      },
+      "tencent_map_poi_id": "e2e_manual_20260709-1408",
+      "business_hours_zh": "周一至周五 09:00-18:00",
+      "business_hours_en": "Mon-Fri 09:00-18:00",
+      "intro_zh": "这是一条用于当前三端联调的人工端到端测试地点。",
+      "intro_en": "Created for the current three-surface manual end-to-end validation.",
+      "recommended_reason_zh": "用于验证后台发布后前台可见",
+      "recommended_reason_en": "Verifies public visibility after admin publishing",
+      "is_recommended": true,
+      "recommended_rank": 1,
+      "gallery_file_ids": [],
+      "external_gallery_media": [],
+      "gallery_urls": [],
+      "supports_navigation": true,
+      "supports_favorite": true,
+      "supports_share": true,
+      "status": "published",
+      "import_review": null
+    },
+    "requestId": "3e84a478-e98e-4890-a1a6-9afe9171198f"
+  }
+}

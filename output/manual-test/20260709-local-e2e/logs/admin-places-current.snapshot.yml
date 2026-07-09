@@ -1,0 +1,254 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]: 桐梓林轻后台
+    - menubar [ref=e6]:
+      - menuitem "活动管理" [ref=e7] [cursor=pointer]
+      - menuitem "帖子治理" [ref=e8] [cursor=pointer]
+      - menuitem "地点管理" [ref=e9] [cursor=pointer]
+      - menuitem "公告管理" [ref=e10] [cursor=pointer]
+      - menuitem "文件回溯" [ref=e11] [cursor=pointer]
+      - menuitem "操作日志" [ref=e12] [cursor=pointer]
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]: 地点管理
+      - generic [ref=e17]: Phase 1 Skeleton
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "地点管理" [level=2] [ref=e21]
+          - button "新增地点" [ref=e22] [cursor=pointer]:
+            - generic [ref=e23]: 新增地点
+        - generic [ref=e25]:
+          - heading "新建地点" [level=3] [ref=e26]
+          - generic [ref=e27]:
+            - generic [ref=e28]: 腾讯地图地标
+            - generic [ref=e29]:
+              - textbox "搜索地标/地址，例如 桐梓林地铁站" [ref=e32]
+              - button "搜索地标" [ref=e33] [cursor=pointer]:
+                - generic [ref=e34]: 搜索地标
+          - generic [ref=e35]:
+            - generic [ref=e36]: Amap 图片候选
+            - generic [ref=e37]:
+              - textbox "搜索带图片的地点，例如 Global Corner Cafe" [ref=e40]
+              - button "搜索图片" [ref=e41] [cursor=pointer]:
+                - generic [ref=e42]: 搜索图片
+          - generic [ref=e43]:
+            - textbox "中文名" [ref=e46]: 新增地点草稿
+            - textbox "英文名" [ref=e49]: New Draft Place
+            - generic [ref=e51] [cursor=pointer]:
+              - generic:
+                - combobox [ref=e53]
+                - generic [ref=e54]: public-service
+              - img [ref=e57]
+            - radiogroup "segmented" [ref=e60]:
+              - generic [ref=e61]:
+                - generic [ref=e62] [cursor=pointer]:
+                  - radio "community-center" [checked]
+                  - generic [ref=e63]: community-center
+                - generic [ref=e64] [cursor=pointer]:
+                  - radio "service-desk"
+                  - generic [ref=e65]: service-desk
+                - generic [ref=e66] [cursor=pointer]:
+                  - radio "government-service"
+                  - generic [ref=e67]: government-service
+                - generic [ref=e68] [cursor=pointer]:
+                  - radio "public-facility"
+                  - generic [ref=e69]: public-facility
+            - textbox "标签，逗号分隔" [ref=e72]: service,community
+            - generic [ref=e74] [cursor=pointer]:
+              - generic:
+                - combobox [ref=e76]
+                - generic [ref=e77]: draft
+              - img [ref=e80]
+            - textbox "中文地址" [ref=e84]: 桐梓林待补充地址
+            - textbox "英文地址" [ref=e87]: Address pending
+            - textbox "封面 URL" [ref=e90]
+            - textbox "腾讯 POI ID" [ref=e93]
+            - generic [ref=e94]:
+              - button "decrease number" [ref=e95] [cursor=pointer]:
+                - img [ref=e97]
+              - button "increase number" [ref=e99] [cursor=pointer]:
+                - img [ref=e101]
+              - spinbutton "纬度" [ref=e105]: "30.615"
+            - generic [ref=e106]:
+              - button "decrease number" [ref=e107] [cursor=pointer]:
+                - img [ref=e109]
+              - button "increase number" [ref=e111] [cursor=pointer]:
+                - img [ref=e113]
+              - spinbutton "经度" [ref=e117]: "104.062"
+            - textbox "中文营业时间" [ref=e120]: 待补充
+            - textbox "英文营业时间" [ref=e123]: Pending
+            - textbox "中文推荐理由" [ref=e126]
+            - textbox "英文推荐理由" [ref=e129]
+            - generic [ref=e130]:
+              - button "decrease number" [ref=e131]:
+                - img [ref=e133]
+              - button "increase number" [ref=e135] [cursor=pointer]:
+                - img [ref=e137]
+              - spinbutton "推荐排序" [ref=e141]: "0"
+          - textbox "中文简介" [ref=e143]: 待补充简介
+          - textbox "英文简介" [ref=e145]: Introduction pending
+          - generic [ref=e146]:
+            - generic [ref=e147]:
+              - switch
+              - generic [ref=e151] [cursor=pointer]: 推荐位
+            - generic [ref=e152]:
+              - switch [checked]
+              - generic [ref=e156] [cursor=pointer]: 支持导航
+            - generic [ref=e157]:
+              - switch [checked]
+              - generic [ref=e161] [cursor=pointer]: 收藏入口
+            - generic [ref=e162]:
+              - switch [checked]
+              - generic [ref=e166] [cursor=pointer]: 分享入口
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - heading "地点图集" [level=4] [ref=e169]
+              - text: 上传图片作为社区自有图集；Amap 图片作为外部来源单独保存。
+            - generic [ref=e170]:
+              - button "Choose File" [ref=e171]
+              - button "选择并上传图片" [ref=e172] [cursor=pointer]:
+                - generic [ref=e173]: 选择并上传图片
+              - button "保存媒体设置" [disabled] [ref=e174]:
+                - generic [ref=e175]: 保存媒体设置
+            - generic [ref=e176]: 新建地点可先上传图集图片；点击创建地点后会自动绑定到新地点。
+            - generic [ref=e177]: 暂无已上传图集文件。
+          - generic [ref=e178]:
+            - button "重置" [ref=e179] [cursor=pointer]:
+              - generic [ref=e180]: 重置
+            - button "创建地点" [ref=e181] [cursor=pointer]:
+              - generic [ref=e182]: 创建地点
+        - generic [ref=e183]:
+          - generic [ref=e184]:
+            - table [ref=e186]:
+              - rowgroup [ref=e195]:
+                - row "中文名 英文名 一级分类 审核提示 推荐 状态 操作" [ref=e196]:
+                  - columnheader "中文名" [ref=e197]:
+                    - generic [ref=e198]: 中文名
+                  - columnheader "英文名" [ref=e199]:
+                    - generic [ref=e200]: 英文名
+                  - columnheader "一级分类" [ref=e201]:
+                    - generic [ref=e202]: 一级分类
+                  - columnheader "审核提示" [ref=e203]:
+                    - generic [ref=e204]: 审核提示
+                  - columnheader "推荐" [ref=e205]:
+                    - generic [ref=e206]: 推荐
+                  - columnheader "状态" [ref=e207]:
+                    - generic [ref=e208]: 状态
+                  - columnheader "操作" [ref=e209]:
+                    - generic [ref=e210]: 操作
+            - table [ref=e215]:
+              - rowgroup [ref=e224]:
+                - row "E2E人工测试点位-20260709-1408 E2E Manual Test Place 20260709-1408 community 可出地图 缺图集 推荐 是 published 编辑 发布 转草稿 删除" [ref=e225]:
+                  - cell "E2E人工测试点位-20260709-1408" [ref=e226]:
+                    - generic [ref=e227]: E2E人工测试点位-20260709-1408
+                  - cell "E2E Manual Test Place 20260709-1408" [ref=e228]:
+                    - generic [ref=e229]: E2E Manual Test Place 20260709-1408
+                  - cell "community" [ref=e230]:
+                    - generic [ref=e231]: community
+                  - cell "可出地图 缺图集 推荐" [ref=e232]:
+                    - generic [ref=e234]:
+                      - generic:
+                        - generic: 可出地图
+                      - generic:
+                        - generic: 缺图集
+                      - generic:
+                        - generic: 推荐
+                  - cell "是" [ref=e235]:
+                    - generic [ref=e236]: 是
+                  - cell "published" [ref=e237]:
+                    - generic [ref=e238]: published
+                  - cell "编辑 发布 转草稿 删除" [ref=e239]:
+                    - generic [ref=e241]:
+                      - button "编辑" [ref=e242] [cursor=pointer]:
+                        - generic [ref=e243]: 编辑
+                      - button "发布" [ref=e244] [cursor=pointer]:
+                        - generic [ref=e245]: 发布
+                      - button "转草稿" [ref=e246] [cursor=pointer]:
+                        - generic [ref=e247]: 转草稿
+                      - button "删除" [ref=e248] [cursor=pointer]:
+                        - generic [ref=e249]: 删除
+                - row "桐梓林社区中心 Tongzilin Community Center public-service 可出地图 推荐 是 published 编辑 发布 转草稿 删除" [ref=e250]:
+                  - cell "桐梓林社区中心" [ref=e251]:
+                    - generic [ref=e252]: 桐梓林社区中心
+                  - cell "Tongzilin Community Center" [ref=e253]:
+                    - generic [ref=e254]: Tongzilin Community Center
+                  - cell "public-service" [ref=e255]:
+                    - generic [ref=e256]: public-service
+                  - cell "可出地图 推荐" [ref=e257]:
+                    - generic [ref=e259]:
+                      - generic:
+                        - generic: 可出地图
+                      - generic:
+                        - generic: 推荐
+                  - cell "是" [ref=e260]:
+                    - generic [ref=e261]: 是
+                  - cell "published" [ref=e262]:
+                    - generic [ref=e263]: published
+                  - cell "编辑 发布 转草稿 删除" [ref=e264]:
+                    - generic [ref=e266]:
+                      - button "编辑" [ref=e267] [cursor=pointer]:
+                        - generic [ref=e268]: 编辑
+                      - button "发布" [ref=e269] [cursor=pointer]:
+                        - generic [ref=e270]: 发布
+                      - button "转草稿" [ref=e271] [cursor=pointer]:
+                        - generic [ref=e272]: 转草稿
+                      - button "删除" [ref=e273] [cursor=pointer]:
+                        - generic [ref=e274]: 删除
+                - row "国际友好咖啡馆 Global Corner Cafe food-drink 可出地图 推荐 是 published 编辑 发布 转草稿 删除" [ref=e275]:
+                  - cell "国际友好咖啡馆" [ref=e276]:
+                    - generic [ref=e277]: 国际友好咖啡馆
+                  - cell "Global Corner Cafe" [ref=e278]:
+                    - generic [ref=e279]: Global Corner Cafe
+                  - cell "food-drink" [ref=e280]:
+                    - generic [ref=e281]: food-drink
+                  - cell "可出地图 推荐" [ref=e282]:
+                    - generic [ref=e284]:
+                      - generic:
+                        - generic: 可出地图
+                      - generic:
+                        - generic: 推荐
+                  - cell "是" [ref=e285]:
+                    - generic [ref=e286]: 是
+                  - cell "published" [ref=e287]:
+                    - generic [ref=e288]: published
+                  - cell "编辑 发布 转草稿 删除" [ref=e289]:
+                    - generic [ref=e291]:
+                      - button "编辑" [ref=e292] [cursor=pointer]:
+                        - generic [ref=e293]: 编辑
+                      - button "发布" [ref=e294] [cursor=pointer]:
+                        - generic [ref=e295]: 发布
+                      - button "转草稿" [ref=e296] [cursor=pointer]:
+                        - generic [ref=e297]: 转草稿
+                      - button "删除" [ref=e298] [cursor=pointer]:
+                        - generic [ref=e299]: 删除
+                - row "桐梓林便民服务站 Tongzilin Service Point public-service 草稿 未发布不上地图 缺图集 否 draft 编辑 发布 转草稿 删除" [ref=e300]:
+                  - cell "桐梓林便民服务站" [ref=e301]:
+                    - generic [ref=e302]: 桐梓林便民服务站
+                  - cell "Tongzilin Service Point" [ref=e303]:
+                    - generic [ref=e304]: Tongzilin Service Point
+                  - cell "public-service" [ref=e305]:
+                    - generic [ref=e306]: public-service
+                  - cell "草稿 未发布不上地图 缺图集" [ref=e307]:
+                    - generic [ref=e309]:
+                      - generic:
+                        - generic: 草稿
+                      - generic:
+                        - generic: 未发布不上地图
+                      - generic:
+                        - generic: 缺图集
+                  - cell "否" [ref=e310]:
+                    - generic [ref=e311]: 否
+                  - cell "draft" [ref=e312]:
+                    - generic [ref=e313]: draft
+                  - cell "编辑 发布 转草稿 删除" [ref=e314]:
+                    - generic [ref=e316]:
+                      - button "编辑" [ref=e317] [cursor=pointer]:
+                        - generic [ref=e318]: 编辑
+                      - button "发布" [ref=e319] [cursor=pointer]:
+                        - generic [ref=e320]: 发布
+                      - button "转草稿" [ref=e321] [cursor=pointer]:
+                        - generic [ref=e322]: 转草稿
+                      - button "删除" [ref=e323] [cursor=pointer]:
+                        - generic [ref=e324]: 删除
+          - img [ref=e327]

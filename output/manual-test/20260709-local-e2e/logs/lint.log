@@ -1,0 +1,8 @@
+$ eslint .
+
+/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/packages/shared/src/mock/service.ts
+  1293:9  error  '_input' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (1 error, 0 warnings)
+
+[ELIFECYCLE] Command failed with exit code 1.

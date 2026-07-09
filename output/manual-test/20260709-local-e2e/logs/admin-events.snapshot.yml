@@ -1,0 +1,340 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]: 桐梓林轻后台
+    - menubar [ref=e6]:
+      - menuitem "活动管理" [ref=e7] [cursor=pointer]
+      - menuitem "帖子治理" [ref=e8] [cursor=pointer]
+      - menuitem "地点管理" [ref=e9] [cursor=pointer]
+      - menuitem "公告管理" [ref=e10] [cursor=pointer]
+      - menuitem "文件回溯" [ref=e11] [cursor=pointer]
+      - menuitem "操作日志" [ref=e12] [cursor=pointer]
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]: 活动管理
+      - generic:
+        - generic: Phase 1 Skeleton
+    - main [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - heading "活动管理" [level=2] [ref=e19]
+          - generic [ref=e20]:
+            - button "刷新" [ref=e21] [cursor=pointer]:
+              - generic [ref=e22]: 刷新
+            - button "新建活动" [ref=e23] [cursor=pointer]:
+              - generic [ref=e24]: 新建活动
+        - generic [ref=e25]:
+          - textbox "搜索标题、简介或地址" [ref=e28]
+          - generic [ref=e30] [cursor=pointer]:
+            - generic:
+              - combobox [ref=e32]
+              - generic [ref=e33]: 审核状态
+            - img [ref=e36]
+          - generic [ref=e39] [cursor=pointer]:
+            - generic:
+              - combobox [ref=e41]
+              - generic [ref=e42]: 发布状态
+            - img [ref=e45]
+          - generic [ref=e47]:
+            - switch
+            - generic [ref=e51] [cursor=pointer]: 只看草稿
+          - generic [ref=e52]:
+            - switch
+            - generic [ref=e56] [cursor=pointer]: 只看已发布
+          - generic [ref=e58] [cursor=pointer]:
+            - generic:
+              - combobox [ref=e60]
+              - generic [ref=e61]: 默认排序
+            - img [ref=e64]
+          - generic [ref=e67]:
+            - generic:
+              - combobox [disabled] [ref=e69]
+              - generic [ref=e70]: 升序
+            - generic:
+              - generic:
+                - img
+          - button "重置筛选" [ref=e71] [cursor=pointer]:
+            - generic [ref=e72]: 重置筛选
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - table [ref=e76]:
+              - rowgroup [ref=e85]:
+                - row "活动 状态 活动时间 报名截止 容量 满员 操作" [ref=e86]:
+                  - columnheader "活动" [ref=e87]:
+                    - generic [ref=e88]: 活动
+                  - columnheader "状态" [ref=e89]:
+                    - generic [ref=e90]: 状态
+                  - columnheader "活动时间" [ref=e91]:
+                    - generic [ref=e92]: 活动时间
+                  - columnheader "报名截止" [ref=e93]:
+                    - generic [ref=e94]: 报名截止
+                  - columnheader "容量" [ref=e95]:
+                    - generic [ref=e96]: 容量
+                  - columnheader "满员" [ref=e97]:
+                    - generic [ref=e98]: 满员
+                  - columnheader "操作" [ref=e99]:
+                    - generic [ref=e100]: 操作
+            - table [ref=e105]:
+              - rowgroup [ref=e114]:
+                - row "周末国际邻里早午餐 Weekend Neighborhood Brunch 桐梓林社区中心一楼活动厅 已通过 已发布 04/02 10:00 04/02 12:00 04/01 18:00 2 / 60 1 笔报名 · 余 58 否 编辑 核销 下线 结束 删除" [ref=e115]:
+                  - cell "周末国际邻里早午餐 Weekend Neighborhood Brunch 桐梓林社区中心一楼活动厅" [ref=e116]:
+                    - generic [ref=e118]:
+                      - strong [ref=e119]: 周末国际邻里早午餐
+                      - generic [ref=e120]: Weekend Neighborhood Brunch
+                      - generic [ref=e121]: 桐梓林社区中心一楼活动厅
+                  - cell "已通过 已发布" [ref=e122]:
+                    - generic [ref=e124]:
+                      - generic:
+                        - generic: 已通过
+                      - generic:
+                        - generic: 已发布
+                  - cell "04/02 10:00 04/02 12:00" [ref=e125]:
+                    - generic [ref=e127]:
+                      - generic [ref=e128]: 04/02 10:00
+                      - generic [ref=e129]: 04/02 12:00
+                  - cell "04/01 18:00" [ref=e130]:
+                    - generic [ref=e131]: 04/01 18:00
+                  - cell "2 / 60 1 笔报名 · 余 58" [ref=e132]:
+                    - generic [ref=e134]:
+                      - generic [ref=e135]: 2 / 60
+                      - generic [ref=e136]: 1 笔报名 · 余 58
+                  - cell "否" [ref=e137]:
+                    - generic [ref=e138]:
+                      - generic:
+                        - generic: 否
+                  - cell "编辑 核销 下线 结束 删除" [ref=e139]:
+                    - generic [ref=e141]:
+                      - button "编辑" [ref=e142] [cursor=pointer]:
+                        - generic [ref=e143]: 编辑
+                      - button "核销" [ref=e144] [cursor=pointer]:
+                        - generic [ref=e145]: 核销
+                      - button "下线" [ref=e146] [cursor=pointer]:
+                        - generic [ref=e147]: 下线
+                      - button "结束" [ref=e148] [cursor=pointer]:
+                        - generic [ref=e149]: 结束
+                      - button "删除" [ref=e150] [cursor=pointer]:
+                        - generic [ref=e151]: 删除
+                - row "草稿活动 Draft Event 桐梓林 草稿 草稿 05/02 10:00 05/02 12:00 05/01 18:00 0 / 20 0 笔报名 · 余 20 否 编辑 核销 提交审核 通过并发布 删除" [ref=e152]:
+                  - cell "草稿活动 Draft Event 桐梓林" [ref=e153]:
+                    - generic [ref=e155]:
+                      - strong [ref=e156]: 草稿活动
+                      - generic [ref=e157]: Draft Event
+                      - generic [ref=e158]: 桐梓林
+                  - cell "草稿 草稿" [ref=e159]:
+                    - generic [ref=e161]:
+                      - generic:
+                        - generic: 草稿
+                      - generic:
+                        - generic: 草稿
+                  - cell "05/02 10:00 05/02 12:00" [ref=e162]:
+                    - generic [ref=e164]:
+                      - generic [ref=e165]: 05/02 10:00
+                      - generic [ref=e166]: 05/02 12:00
+                  - cell "05/01 18:00" [ref=e167]:
+                    - generic [ref=e168]: 05/01 18:00
+                  - cell "0 / 20 0 笔报名 · 余 20" [ref=e169]:
+                    - generic [ref=e171]:
+                      - generic [ref=e172]: 0 / 20
+                      - generic [ref=e173]: 0 笔报名 · 余 20
+                  - cell "否" [ref=e174]:
+                    - generic [ref=e175]:
+                      - generic:
+                        - generic: 否
+                  - cell "编辑 核销 提交审核 通过并发布 删除" [ref=e176]:
+                    - generic [ref=e178]:
+                      - button "编辑" [ref=e179] [cursor=pointer]:
+                        - generic [ref=e180]: 编辑
+                      - button "核销" [ref=e181] [cursor=pointer]:
+                        - generic [ref=e182]: 核销
+                      - button "提交审核" [ref=e183] [cursor=pointer]:
+                        - generic [ref=e184]: 提交审核
+                      - button "通过并发布" [ref=e185] [cursor=pointer]:
+                        - generic [ref=e186]: 通过并发布
+                      - button "删除" [ref=e187] [cursor=pointer]:
+                        - generic [ref=e188]: 删除
+                - row "待审核活动 Pending Review Event 桐梓林 待审核 草稿 05/03 10:00 05/03 12:00 05/02 18:00 0 / 24 0 笔报名 · 余 24 否 编辑 核销 通过并发布 删除" [ref=e189]:
+                  - cell "待审核活动 Pending Review Event 桐梓林" [ref=e190]:
+                    - generic [ref=e192]:
+                      - strong [ref=e193]: 待审核活动
+                      - generic [ref=e194]: Pending Review Event
+                      - generic [ref=e195]: 桐梓林
+                  - cell "待审核 草稿" [ref=e196]:
+                    - generic [ref=e198]:
+                      - generic:
+                        - generic: 待审核
+                      - generic:
+                        - generic: 草稿
+                  - cell "05/03 10:00 05/03 12:00" [ref=e199]:
+                    - generic [ref=e201]:
+                      - generic [ref=e202]: 05/03 10:00
+                      - generic [ref=e203]: 05/03 12:00
+                  - cell "05/02 18:00" [ref=e204]:
+                    - generic [ref=e205]: 05/02 18:00
+                  - cell "0 / 24 0 笔报名 · 余 24" [ref=e206]:
+                    - generic [ref=e208]:
+                      - generic [ref=e209]: 0 / 24
+                      - generic [ref=e210]: 0 笔报名 · 余 24
+                  - cell "否" [ref=e211]:
+                    - generic [ref=e212]:
+                      - generic:
+                        - generic: 否
+                  - cell "编辑 核销 通过并发布 删除" [ref=e213]:
+                    - generic [ref=e215]:
+                      - button "编辑" [ref=e216] [cursor=pointer]:
+                        - generic [ref=e217]: 编辑
+                      - button "核销" [ref=e218] [cursor=pointer]:
+                        - generic [ref=e219]: 核销
+                      - button "通过并发布" [ref=e220] [cursor=pointer]:
+                        - generic [ref=e221]: 通过并发布
+                      - button "删除" [ref=e222] [cursor=pointer]:
+                        - generic [ref=e223]: 删除
+                - row "已下线活动 Offline Event 桐梓林 已通过 已下线 05/04 10:00 05/04 12:00 05/03 18:00 0 / 32 0 笔报名 · 余 32 否 编辑 核销 通过并发布 结束 删除" [ref=e224]:
+                  - cell "已下线活动 Offline Event 桐梓林" [ref=e225]:
+                    - generic [ref=e227]:
+                      - strong [ref=e228]: 已下线活动
+                      - generic [ref=e229]: Offline Event
+                      - generic [ref=e230]: 桐梓林
+                  - cell "已通过 已下线" [ref=e231]:
+                    - generic [ref=e233]:
+                      - generic:
+                        - generic: 已通过
+                      - generic:
+                        - generic: 已下线
+                  - cell "05/04 10:00 05/04 12:00" [ref=e234]:
+                    - generic [ref=e236]:
+                      - generic [ref=e237]: 05/04 10:00
+                      - generic [ref=e238]: 05/04 12:00
+                  - cell "05/03 18:00" [ref=e239]:
+                    - generic [ref=e240]: 05/03 18:00
+                  - cell "0 / 32 0 笔报名 · 余 32" [ref=e241]:
+                    - generic [ref=e243]:
+                      - generic [ref=e244]: 0 / 32
+                      - generic [ref=e245]: 0 笔报名 · 余 32
+                  - cell "否" [ref=e246]:
+                    - generic [ref=e247]:
+                      - generic:
+                        - generic: 否
+                  - cell "编辑 核销 通过并发布 结束 删除" [ref=e248]:
+                    - generic [ref=e250]:
+                      - button "编辑" [ref=e251] [cursor=pointer]:
+                        - generic [ref=e252]: 编辑
+                      - button "核销" [ref=e253] [cursor=pointer]:
+                        - generic [ref=e254]: 核销
+                      - button "通过并发布" [ref=e255] [cursor=pointer]:
+                        - generic [ref=e256]: 通过并发布
+                      - button "结束" [ref=e257] [cursor=pointer]:
+                        - generic [ref=e258]: 结束
+                      - button "删除" [ref=e259] [cursor=pointer]:
+                        - generic [ref=e260]: 删除
+                - row "已结束活动 Ended Event 桐梓林 已通过 已结束 02/04 10:00 02/04 12:00 02/03 18:00 0 / 18 0 笔报名 · 余 18 否 编辑 核销 通过并发布 删除" [ref=e261]:
+                  - cell "已结束活动 Ended Event 桐梓林" [ref=e262]:
+                    - generic [ref=e264]:
+                      - strong [ref=e265]: 已结束活动
+                      - generic [ref=e266]: Ended Event
+                      - generic [ref=e267]: 桐梓林
+                  - cell "已通过 已结束" [ref=e268]:
+                    - generic [ref=e270]:
+                      - generic:
+                        - generic: 已通过
+                      - generic:
+                        - generic: 已结束
+                  - cell "02/04 10:00 02/04 12:00" [ref=e271]:
+                    - generic [ref=e273]:
+                      - generic [ref=e274]: 02/04 10:00
+                      - generic [ref=e275]: 02/04 12:00
+                  - cell "02/03 18:00" [ref=e276]:
+                    - generic [ref=e277]: 02/03 18:00
+                  - cell "0 / 18 0 笔报名 · 余 18" [ref=e278]:
+                    - generic [ref=e280]:
+                      - generic [ref=e281]: 0 / 18
+                      - generic [ref=e282]: 0 笔报名 · 余 18
+                  - cell "否" [ref=e283]:
+                    - generic [ref=e284]:
+                      - generic:
+                        - generic: 否
+                  - cell "编辑 核销 通过并发布 删除" [ref=e285]:
+                    - generic [ref=e287]:
+                      - button "编辑" [ref=e288] [cursor=pointer]:
+                        - generic [ref=e289]: 编辑
+                      - button "核销" [ref=e290] [cursor=pointer]:
+                        - generic [ref=e291]: 核销
+                      - button "通过并发布" [ref=e292] [cursor=pointer]:
+                        - generic [ref=e293]: 通过并发布
+                      - button "删除" [ref=e294] [cursor=pointer]:
+                        - generic [ref=e295]: 删除
+                - row "满员活动 Full Event 桐梓林 已通过 已发布 06/02 10:00 06/02 12:00 06/01 18:00 2 / 2 1 笔报名 · 余 0 是 编辑 核销 下线 结束 删除" [ref=e296]:
+                  - cell "满员活动 Full Event 桐梓林" [ref=e297]:
+                    - generic [ref=e299]:
+                      - strong [ref=e300]: 满员活动
+                      - generic [ref=e301]: Full Event
+                      - generic [ref=e302]: 桐梓林
+                  - cell "已通过 已发布" [ref=e303]:
+                    - generic [ref=e305]:
+                      - generic:
+                        - generic: 已通过
+                      - generic:
+                        - generic: 已发布
+                  - cell "06/02 10:00 06/02 12:00" [ref=e306]:
+                    - generic [ref=e308]:
+                      - generic [ref=e309]: 06/02 10:00
+                      - generic [ref=e310]: 06/02 12:00
+                  - cell "06/01 18:00" [ref=e311]:
+                    - generic [ref=e312]: 06/01 18:00
+                  - cell "2 / 2 1 笔报名 · 余 0" [ref=e313]:
+                    - generic [ref=e315]:
+                      - generic [ref=e316]: 2 / 2
+                      - generic [ref=e317]: 1 笔报名 · 余 0
+                  - cell "是" [ref=e318]:
+                    - generic [ref=e319]:
+                      - generic:
+                        - generic: 是
+                  - cell "编辑 核销 下线 结束 删除" [ref=e320]:
+                    - generic [ref=e322]:
+                      - button "编辑" [ref=e323] [cursor=pointer]:
+                        - generic [ref=e324]: 编辑
+                      - button "核销" [ref=e325] [cursor=pointer]:
+                        - generic [ref=e326]: 核销
+                      - button "下线" [ref=e327] [cursor=pointer]:
+                        - generic [ref=e328]: 下线
+                      - button "结束" [ref=e329] [cursor=pointer]:
+                        - generic [ref=e330]: 结束
+                      - button "删除" [ref=e331] [cursor=pointer]:
+                        - generic [ref=e332]: 删除
+                - row "报名关闭活动 Closed Signup Event 桐梓林 已通过 已发布 01/02 10:00 01/02 12:00 01/01 18:00 0 / 20 0 笔报名 · 余 20 否 编辑 核销 下线 结束 删除" [ref=e333]:
+                  - cell "报名关闭活动 Closed Signup Event 桐梓林" [ref=e334]:
+                    - generic [ref=e336]:
+                      - strong [ref=e337]: 报名关闭活动
+                      - generic [ref=e338]: Closed Signup Event
+                      - generic [ref=e339]: 桐梓林
+                  - cell "已通过 已发布" [ref=e340]:
+                    - generic [ref=e342]:
+                      - generic:
+                        - generic: 已通过
+                      - generic:
+                        - generic: 已发布
+                  - cell "01/02 10:00 01/02 12:00" [ref=e343]:
+                    - generic [ref=e345]:
+                      - generic [ref=e346]: 01/02 10:00
+                      - generic [ref=e347]: 01/02 12:00
+                  - cell "01/01 18:00" [ref=e348]:
+                    - generic [ref=e349]: 01/01 18:00
+                  - cell "0 / 20 0 笔报名 · 余 20" [ref=e350]:
+                    - generic [ref=e352]:
+                      - generic [ref=e353]: 0 / 20
+                      - generic [ref=e354]: 0 笔报名 · 余 20
+                  - cell "否" [ref=e355]:
+                    - generic [ref=e356]:
+                      - generic:
+                        - generic: 否
+                  - cell "编辑 核销 下线 结束 删除" [ref=e357]:
+                    - generic [ref=e359]:
+                      - button "编辑" [ref=e360] [cursor=pointer]:
+                        - generic [ref=e361]: 编辑
+                      - button "核销" [ref=e362] [cursor=pointer]:
+                        - generic [ref=e363]: 核销
+                      - button "下线" [ref=e364] [cursor=pointer]:
+                        - generic [ref=e365]: 下线
+                      - button "结束" [ref=e366] [cursor=pointer]:
+                        - generic [ref=e367]: 结束
+                      - button "删除" [ref=e368] [cursor=pointer]:
+                        - generic [ref=e369]: 删除
+          - img [ref=e372]

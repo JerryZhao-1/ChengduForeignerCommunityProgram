@@ -1,0 +1,337 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]: 桐梓林轻后台
+    - menubar [ref=e6]:
+      - menuitem "活动管理" [ref=e7] [cursor=pointer]
+      - menuitem "帖子治理" [ref=e8] [cursor=pointer]
+      - menuitem "地点管理" [ref=e9] [cursor=pointer]
+      - menuitem "公告管理" [ref=e10] [cursor=pointer]
+      - menuitem "文件回溯" [ref=e11] [cursor=pointer]
+      - menuitem "操作日志" [ref=e12] [cursor=pointer]
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]: 帖子治理
+      - generic:
+        - generic: Phase 1 Skeleton
+    - main [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - heading "Discover 治理台" [level=2] [ref=e20]
+            - generic [ref=e21]: 当前队列 9 条
+          - button "刷新" [ref=e22] [cursor=pointer]:
+            - generic [ref=e23]: 刷新
+        - generic [ref=e24]:
+          - tablist [ref=e28]:
+            - tab "帖子" [selected] [ref=e30]
+            - tab "评论" [ref=e31]
+            - tab "举报" [ref=e32]
+            - tab "用户" [ref=e33]
+            - tab "审计" [ref=e34]
+          - tabpanel "帖子" [ref=e36]:
+            - generic [ref=e37]:
+              - textbox "标题或正文" [ref=e40]
+              - generic [ref=e42] [cursor=pointer]:
+                - generic:
+                  - combobox [ref=e44]
+                  - generic [ref=e45]: 全部
+                - img [ref=e48]
+              - generic [ref=e51] [cursor=pointer]:
+                - generic:
+                  - combobox [ref=e53]
+                  - generic [ref=e54]: 语言
+                - img [ref=e57]
+              - textbox "标签" [ref=e61]
+              - button "筛选" [ref=e62] [cursor=pointer]:
+                - generic [ref=e63]: 筛选
+              - button "批量隐藏" [disabled] [ref=e64]:
+                - generic [ref=e65]: 批量隐藏
+              - button "批量恢复" [disabled] [ref=e66]:
+                - generic [ref=e67]: 批量恢复
+            - generic [ref=e68]:
+              - generic [ref=e69]:
+                - table [ref=e71]:
+                  - rowgroup [ref=e81]:
+                    - row "Select all rows 标题 作者 语言 状态 举报 创建时间 操作" [ref=e82]:
+                      - columnheader "Select all rows" [ref=e83]:
+                        - generic "Select all rows" [ref=e85] [cursor=pointer]:
+                          - generic [ref=e86]:
+                            - checkbox "Select all rows"
+                      - columnheader "标题" [ref=e88]:
+                        - generic [ref=e89]: 标题
+                      - columnheader "作者" [ref=e90]:
+                        - generic [ref=e91]: 作者
+                      - columnheader "语言" [ref=e92]:
+                        - generic [ref=e93]: 语言
+                      - columnheader "状态" [ref=e94]:
+                        - generic [ref=e95]: 状态
+                      - columnheader "举报" [ref=e96]:
+                        - generic [ref=e97]: 举报
+                      - columnheader "创建时间" [ref=e98]:
+                        - generic [ref=e99]: 创建时间
+                      - columnheader "操作" [ref=e100]:
+                        - generic [ref=e101]: 操作
+                - table [ref=e106]:
+                  - rowgroup [ref=e116]:
+                    - row "Select this row 周边哪里能买到合适的婴儿用品？ user_001 zh visible 0 2026-03-28 09:00 查看 隐藏 恢复 删除" [ref=e117]:
+                      - cell "Select this row" [ref=e118]:
+                        - generic "Select this row" [ref=e120] [cursor=pointer]:
+                          - generic [ref=e121]:
+                            - checkbox "Select this row"
+                      - cell "周边哪里能买到合适的婴儿用品？" [ref=e123]:
+                        - generic [ref=e124]: 周边哪里能买到合适的婴儿用品？
+                      - cell "user_001" [ref=e125]:
+                        - generic [ref=e126]: user_001
+                      - cell "zh" [ref=e127]:
+                        - generic [ref=e128]: zh
+                      - cell "visible" [ref=e129]:
+                        - generic [ref=e130]:
+                          - generic:
+                            - generic: visible
+                      - cell "0" [ref=e131]:
+                        - generic [ref=e132]: "0"
+                      - cell "2026-03-28 09:00" [ref=e133]:
+                        - generic [ref=e134]: 2026-03-28 09:00
+                      - cell "查看 隐藏 恢复 删除" [ref=e135]:
+                        - generic [ref=e136]:
+                          - button "查看" [ref=e137] [cursor=pointer]:
+                            - generic [ref=e138]: 查看
+                          - button "隐藏" [ref=e139] [cursor=pointer]:
+                            - generic [ref=e140]: 隐藏
+                          - button "恢复" [ref=e141] [cursor=pointer]:
+                            - generic [ref=e142]: 恢复
+                          - button "删除" [ref=e143] [cursor=pointer]:
+                            - generic [ref=e144]: 删除
+                    - row "Select this row Any tennis groups in Tongzilin? user_002 en visible 0 2026-03-28 10:00 查看 隐藏 恢复 删除" [ref=e145]:
+                      - cell "Select this row" [ref=e146]:
+                        - generic "Select this row" [ref=e148] [cursor=pointer]:
+                          - generic [ref=e149]:
+                            - checkbox "Select this row"
+                      - cell "Any tennis groups in Tongzilin?" [ref=e151]:
+                        - generic [ref=e152]: Any tennis groups in Tongzilin?
+                      - cell "user_002" [ref=e153]:
+                        - generic [ref=e154]: user_002
+                      - cell "en" [ref=e155]:
+                        - generic [ref=e156]: en
+                      - cell "visible" [ref=e157]:
+                        - generic [ref=e158]:
+                          - generic:
+                            - generic: visible
+                      - cell "0" [ref=e159]:
+                        - generic [ref=e160]: "0"
+                      - cell "2026-03-28 10:00" [ref=e161]:
+                        - generic [ref=e162]: 2026-03-28 10:00
+                      - cell "查看 隐藏 恢复 删除" [ref=e163]:
+                        - generic [ref=e164]:
+                          - button "查看" [ref=e165] [cursor=pointer]:
+                            - generic [ref=e166]: 查看
+                          - button "隐藏" [ref=e167] [cursor=pointer]:
+                            - generic [ref=e168]: 隐藏
+                          - button "恢复" [ref=e169] [cursor=pointer]:
+                            - generic [ref=e170]: 恢复
+                          - button "删除" [ref=e171] [cursor=pointer]:
+                            - generic [ref=e172]: 删除
+                    - row "Select this row 桐梓林早晨散步路线分享 user_001 zh visible 0 2026-03-29 08:30 查看 隐藏 恢复 删除" [ref=e173]:
+                      - cell "Select this row" [ref=e174]:
+                        - generic "Select this row" [ref=e176] [cursor=pointer]:
+                          - generic [ref=e177]:
+                            - checkbox "Select this row"
+                      - cell "桐梓林早晨散步路线分享" [ref=e179]:
+                        - generic [ref=e180]: 桐梓林早晨散步路线分享
+                      - cell "user_001" [ref=e181]:
+                        - generic [ref=e182]: user_001
+                      - cell "zh" [ref=e183]:
+                        - generic [ref=e184]: zh
+                      - cell "visible" [ref=e185]:
+                        - generic [ref=e186]:
+                          - generic:
+                            - generic: visible
+                      - cell "0" [ref=e187]:
+                        - generic [ref=e188]: "0"
+                      - cell "2026-03-29 08:30" [ref=e189]:
+                        - generic [ref=e190]: 2026-03-29 08:30
+                      - cell "查看 隐藏 恢复 删除" [ref=e191]:
+                        - generic [ref=e192]:
+                          - button "查看" [ref=e193] [cursor=pointer]:
+                            - generic [ref=e194]: 查看
+                          - button "隐藏" [ref=e195] [cursor=pointer]:
+                            - generic [ref=e196]: 隐藏
+                          - button "恢复" [ref=e197] [cursor=pointer]:
+                            - generic [ref=e198]: 恢复
+                          - button "删除" [ref=e199] [cursor=pointer]:
+                            - generic [ref=e200]: 删除
+                    - row "Select this row Coffee spots that are easy for English speakers user_002 en visible 0 2026-03-30 14:20 查看 隐藏 恢复 删除" [ref=e201]:
+                      - cell "Select this row" [ref=e202]:
+                        - generic "Select this row" [ref=e204] [cursor=pointer]:
+                          - generic [ref=e205]:
+                            - checkbox "Select this row"
+                      - cell "Coffee spots that are easy for English speakers" [ref=e207]:
+                        - generic [ref=e208]: Coffee spots that are easy for English speakers
+                      - cell "user_002" [ref=e209]:
+                        - generic [ref=e210]: user_002
+                      - cell "en" [ref=e211]:
+                        - generic [ref=e212]: en
+                      - cell "visible" [ref=e213]:
+                        - generic [ref=e214]:
+                          - generic:
+                            - generic: visible
+                      - cell "0" [ref=e215]:
+                        - generic [ref=e216]: "0"
+                      - cell "2026-03-30 14:20" [ref=e217]:
+                        - generic [ref=e218]: 2026-03-30 14:20
+                      - cell "查看 隐藏 恢复 删除" [ref=e219]:
+                        - generic [ref=e220]:
+                          - button "查看" [ref=e221] [cursor=pointer]:
+                            - generic [ref=e222]: 查看
+                          - button "隐藏" [ref=e223] [cursor=pointer]:
+                            - generic [ref=e224]: 隐藏
+                          - button "恢复" [ref=e225] [cursor=pointer]:
+                            - generic [ref=e226]: 恢复
+                          - button "删除" [ref=e227] [cursor=pointer]:
+                            - generic [ref=e228]: 删除
+                    - row "Select this row 社区中心活动厅短视频预览 user_001 zh visible 0 2026-03-31 16:45 查看 隐藏 恢复 删除" [ref=e229]:
+                      - cell "Select this row" [ref=e230]:
+                        - generic "Select this row" [ref=e232] [cursor=pointer]:
+                          - generic [ref=e233]:
+                            - checkbox "Select this row"
+                      - cell "社区中心活动厅短视频预览" [ref=e235]:
+                        - generic [ref=e236]: 社区中心活动厅短视频预览
+                      - cell "user_001" [ref=e237]:
+                        - generic [ref=e238]: user_001
+                      - cell "zh" [ref=e239]:
+                        - generic [ref=e240]: zh
+                      - cell "visible" [ref=e241]:
+                        - generic [ref=e242]:
+                          - generic:
+                            - generic: visible
+                      - cell "0" [ref=e243]:
+                        - generic [ref=e244]: "0"
+                      - cell "2026-03-31 16:45" [ref=e245]:
+                        - generic [ref=e246]: 2026-03-31 16:45
+                      - cell "查看 隐藏 恢复 删除" [ref=e247]:
+                        - generic [ref=e248]:
+                          - button "查看" [ref=e249] [cursor=pointer]:
+                            - generic [ref=e250]: 查看
+                          - button "隐藏" [ref=e251] [cursor=pointer]:
+                            - generic [ref=e252]: 隐藏
+                          - button "恢复" [ref=e253] [cursor=pointer]:
+                            - generic [ref=e254]: 恢复
+                          - button "删除" [ref=e255] [cursor=pointer]:
+                            - generic [ref=e256]: 删除
+                    - row "Select this row Weekend language exchange recap with photos and video user_002 en visible 0 2026-04-01 11:10 查看 隐藏 恢复 删除" [ref=e257]:
+                      - cell "Select this row" [ref=e258]:
+                        - generic "Select this row" [ref=e260] [cursor=pointer]:
+                          - generic [ref=e261]:
+                            - checkbox "Select this row"
+                      - cell "Weekend language exchange recap with photos and video" [ref=e263]:
+                        - generic [ref=e264]: Weekend language exchange recap with photos and video
+                      - cell "user_002" [ref=e265]:
+                        - generic [ref=e266]: user_002
+                      - cell "en" [ref=e267]:
+                        - generic [ref=e268]: en
+                      - cell "visible" [ref=e269]:
+                        - generic [ref=e270]:
+                          - generic:
+                            - generic: visible
+                      - cell "0" [ref=e271]:
+                        - generic [ref=e272]: "0"
+                      - cell "2026-04-01 11:10" [ref=e273]:
+                        - generic [ref=e274]: 2026-04-01 11:10
+                      - cell "查看 隐藏 恢复 删除" [ref=e275]:
+                        - generic [ref=e276]:
+                          - button "查看" [ref=e277] [cursor=pointer]:
+                            - generic [ref=e278]: 查看
+                          - button "隐藏" [ref=e279] [cursor=pointer]:
+                            - generic [ref=e280]: 隐藏
+                          - button "恢复" [ref=e281] [cursor=pointer]:
+                            - generic [ref=e282]: 恢复
+                          - button "删除" [ref=e283] [cursor=pointer]:
+                            - generic [ref=e284]: 删除
+                    - row "Select this row 提醒：最近雨天较多，地铁口到社区中心有一段路比较滑 user_001 zh visible 0 2026-04-02 18:00 查看 隐藏 恢复 删除" [ref=e285]:
+                      - cell "Select this row" [ref=e286]:
+                        - generic "Select this row" [ref=e288] [cursor=pointer]:
+                          - generic [ref=e289]:
+                            - checkbox "Select this row"
+                      - cell "提醒：最近雨天较多，地铁口到社区中心有一段路比较滑" [ref=e291]:
+                        - generic [ref=e292]: 提醒：最近雨天较多，地铁口到社区中心有一段路比较滑
+                      - cell "user_001" [ref=e293]:
+                        - generic [ref=e294]: user_001
+                      - cell "zh" [ref=e295]:
+                        - generic [ref=e296]: zh
+                      - cell "visible" [ref=e297]:
+                        - generic [ref=e298]:
+                          - generic:
+                            - generic: visible
+                      - cell "0" [ref=e299]:
+                        - generic [ref=e300]: "0"
+                      - cell "2026-04-02 18:00" [ref=e301]:
+                        - generic [ref=e302]: 2026-04-02 18:00
+                      - cell "查看 隐藏 恢复 删除" [ref=e303]:
+                        - generic [ref=e304]:
+                          - button "查看" [ref=e305] [cursor=pointer]:
+                            - generic [ref=e306]: 查看
+                          - button "隐藏" [ref=e307] [cursor=pointer]:
+                            - generic [ref=e308]: 隐藏
+                          - button "恢复" [ref=e309] [cursor=pointer]:
+                            - generic [ref=e310]: 恢复
+                          - button "删除" [ref=e311] [cursor=pointer]:
+                            - generic [ref=e312]: 删除
+                    - row "Select this row Hidden moderation post user_001 en hidden 1 2026-04-03 09:00 查看 隐藏 恢复 删除" [ref=e313]:
+                      - cell "Select this row" [ref=e314]:
+                        - generic "Select this row" [ref=e316] [cursor=pointer]:
+                          - generic [ref=e317]:
+                            - checkbox "Select this row"
+                      - cell "Hidden moderation post" [ref=e319]:
+                        - generic [ref=e320]: Hidden moderation post
+                      - cell "user_001" [ref=e321]:
+                        - generic [ref=e322]: user_001
+                      - cell "en" [ref=e323]:
+                        - generic [ref=e324]: en
+                      - cell "hidden" [ref=e325]:
+                        - generic [ref=e326]:
+                          - generic:
+                            - generic: hidden
+                      - cell "1" [ref=e327]:
+                        - generic [ref=e328]: "1"
+                      - cell "2026-04-03 09:00" [ref=e329]:
+                        - generic [ref=e330]: 2026-04-03 09:00
+                      - cell "查看 隐藏 恢复 删除" [ref=e331]:
+                        - generic [ref=e332]:
+                          - button "查看" [ref=e333] [cursor=pointer]:
+                            - generic [ref=e334]: 查看
+                          - button "隐藏" [ref=e335] [cursor=pointer]:
+                            - generic [ref=e336]: 隐藏
+                          - button "恢复" [ref=e337] [cursor=pointer]:
+                            - generic [ref=e338]: 恢复
+                          - button "删除" [ref=e339] [cursor=pointer]:
+                            - generic [ref=e340]: 删除
+                    - row "Select this row Deleted moderation post user_002 en deleted 0 2026-04-03 10:00 查看 隐藏 恢复 删除" [ref=e341]:
+                      - cell "Select this row" [ref=e342]:
+                        - generic "Select this row" [ref=e344] [cursor=pointer]:
+                          - generic [ref=e345]:
+                            - checkbox "Select this row"
+                      - cell "Deleted moderation post" [ref=e347]:
+                        - generic [ref=e348]: Deleted moderation post
+                      - cell "user_002" [ref=e349]:
+                        - generic [ref=e350]: user_002
+                      - cell "en" [ref=e351]:
+                        - generic [ref=e352]: en
+                      - cell "deleted" [ref=e353]:
+                        - generic [ref=e354]:
+                          - generic:
+                            - generic: deleted
+                      - cell "0" [ref=e355]:
+                        - generic [ref=e356]: "0"
+                      - cell "2026-04-03 10:00" [ref=e357]:
+                        - generic [ref=e358]: 2026-04-03 10:00
+                      - cell "查看 隐藏 恢复 删除" [ref=e359]:
+                        - generic [ref=e360]:
+                          - button "查看" [ref=e361] [cursor=pointer]:
+                            - generic [ref=e362]: 查看
+                          - button "隐藏" [ref=e363] [cursor=pointer]:
+                            - generic [ref=e364]: 隐藏
+                          - button "恢复" [ref=e365] [cursor=pointer]:
+                            - generic [ref=e366]: 恢复
+                          - button "删除" [ref=e367] [cursor=pointer]:
+                            - generic [ref=e368]: 删除
+              - img [ref=e371]

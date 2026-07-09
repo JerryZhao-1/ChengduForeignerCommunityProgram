@@ -1,0 +1,69 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]: 桐梓林轻后台
+    - menubar [ref=e6]:
+      - menuitem "活动管理" [ref=e7] [cursor=pointer]
+      - menuitem "帖子治理" [ref=e8] [cursor=pointer]
+      - menuitem "地点管理" [ref=e9] [cursor=pointer]
+      - menuitem "公告管理" [ref=e10] [cursor=pointer]
+      - menuitem "文件回溯" [ref=e11] [cursor=pointer]
+      - menuitem "操作日志" [ref=e12] [cursor=pointer]
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]: 文件回溯
+      - generic [ref=e17]: Phase 1 Skeleton
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "文件回溯" [level=2] [ref=e21]
+          - generic [ref=e23]: 路径规则已冻结
+        - generic [ref=e25]:
+          - table [ref=e27]:
+            - rowgroup [ref=e31]:
+              - row "规则名 路径前缀" [ref=e32]:
+                - columnheader "规则名" [ref=e33]:
+                  - generic [ref=e34]: 规则名
+                - columnheader "路径前缀" [ref=e35]:
+                  - generic [ref=e36]: 路径前缀
+          - table [ref=e41]:
+            - rowgroup [ref=e45]:
+              - row "eventCovers public/events/" [ref=e46]:
+                - cell "eventCovers" [ref=e47]:
+                  - generic [ref=e48]: eventCovers
+                - cell "public/events/" [ref=e49]:
+                  - generic [ref=e50]: public/events/
+              - row "placeGallery public/places/" [ref=e51]:
+                - cell "placeGallery" [ref=e52]:
+                  - generic [ref=e53]: placeGallery
+                - cell "public/places/" [ref=e54]:
+                  - generic [ref=e55]: public/places/
+              - row "postImages public/posts/" [ref=e56]:
+                - cell "postImages" [ref=e57]:
+                  - generic [ref=e58]: postImages
+                - cell "public/posts/" [ref=e59]:
+                  - generic [ref=e60]: public/posts/
+              - row "announcementImages public/announcements/" [ref=e61]:
+                - cell "announcementImages" [ref=e62]:
+                  - generic [ref=e63]: announcementImages
+                - cell "public/announcements/" [ref=e64]:
+                  - generic [ref=e65]: public/announcements/
+              - row "tickets private/tickets/" [ref=e66]:
+                - cell "tickets" [ref=e67]:
+                  - generic [ref=e68]: tickets
+                - cell "private/tickets/" [ref=e69]:
+                  - generic [ref=e70]: private/tickets/
+              - row "reports private/reports/" [ref=e71]:
+                - cell "reports" [ref=e72]:
+                  - generic [ref=e73]: reports
+                - cell "private/reports/" [ref=e74]:
+                  - generic [ref=e75]: private/reports/
+              - row "exports private/exports/" [ref=e76]:
+                - cell "exports" [ref=e77]:
+                  - generic [ref=e78]: exports
+                - cell "private/exports/" [ref=e79]:
+                  - generic [ref=e80]: private/exports/
+              - row "admin private/admin/" [ref=e81]:
+                - cell "admin" [ref=e82]:
+                  - generic [ref=e83]: admin
+                - cell "private/admin/" [ref=e84]:
+                  - generic [ref=e85]: private/admin/

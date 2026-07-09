@@ -1,0 +1,6 @@
+- generic [ref=e7]:
+  - generic [ref=e11] [cursor=pointer]: Home
+  - generic [ref=e14] [cursor=pointer]: Events
+  - generic [ref=e17] [cursor=pointer]: Discover
+  - generic [ref=e20] [cursor=pointer]: Places
+  - generic [ref=e23] [cursor=pointer]: Me

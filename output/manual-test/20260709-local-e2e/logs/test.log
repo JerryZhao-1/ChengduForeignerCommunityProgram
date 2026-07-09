@@ -1,0 +1,116 @@
+$ vitest run
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ apps/mobile/src/pages/places/navigation.spec.ts (4 tests) 2ms
+ ✓ apps/api/test/multipart.spec.ts (3 tests) 7ms
+ ✓ apps/mobile/src/pages/places/favorite-state.spec.ts (2 tests) 2ms
+ ✓ packages/shared/test/places-admin-lifecycle.spec.ts (3 tests) 5ms
+ ❯ packages/shared/test/integration-readiness.spec.ts (5 tests | 1 failed) 11ms
+   ✓ launch-readiness shared mock fixtures > seeds deterministic actors, states, files, notifications, and error codes 2ms
+   × launch-readiness shared mock fixtures > enforces public visibility and actor ownership in the shared mock service 7ms
+     → expected [ 'post_007', 'post_006', …(5) ] to deeply equal [ 'post_001', 'post_002', …(5) ]
+   ✓ launch-readiness shared mock fixtures > classifies profile video posts from media URLs instead of tags 1ms
+   ✓ launch-readiness shared mock fixtures > exposes admin event rows with management states and ticket joins 1ms
+   ✓ launch-readiness shared mock fixtures > hard deletes events without cascading registrations or tickets 0ms
+ ✓ apps/mobile/src/pages/events/event-signup-state.spec.ts (4 tests) 1ms
+ ✓ packages/shared/test/places-marker-contract.spec.ts (4 tests) 10ms
+ ✓ packages/shared/test/contracts.spec.ts (19 tests) 12ms
+ ✓ apps/mobile/src/pages/discover/enforcement-error.spec.ts (4 tests) 1ms
+ ✓ apps/mobile/src/pages/places/list-categories.spec.ts (1 test) 1ms
+ ✓ packages/shared/test/client.spec.ts (22 tests) 16ms
+ ✓ apps/mobile/src/api/client.spec.ts (4 tests) 3ms
+Parsed 19 records; mapped 19 draft places.
+Parsed 19 records; mapped 19 draft places.
+Parsed 19 records; mapped 19 draft places.
+Parsed 19 records; mapped 19 draft places.
+Parsed 19 records; mapped 19 draft places.
+ ✓ packages/shared/test/volunteer-import.spec.ts (5 tests) 272ms
+ ❯ apps/api/test/integration-readiness.spec.ts (10 tests | 1 failed) 145ms
+   ✓ events integration readiness > keeps public event reads launch-visible and reflects admin publication 42ms
+   ✓ events integration readiness > enforces registration, ticket ownership, and check-in negative paths 21ms
+   × discover integration readiness > filters public posts and creates posts with deterministic visible state 8ms
+     → expected [ 'post_007', 'post_006', …(5) ] to deeply equal [ 'post_001', 'post_002', …(5) ]
+   ✓ discover integration readiness > enforces comment availability, report visibility, and admin moderation 10ms
+   ✓ discover integration readiness > creates durable report cases, protects evidence, and audits governance actions 19ms
+   ✓ discover integration readiness > applies warned, muted, banned, and restored enforcement rules 20ms
+   ✓ discover integration readiness > binds owned public post media and rejects unauthorized media ids 6ms
+   ✓ files auth roles and notifications readiness > enforces file upload completion and private URL boundaries 7ms
+   ✓ files auth roles and notifications readiness > rejects invalid actors, protects admin routes, and isolates notifications 9ms
+   ✓ cloudbase handler parity for non-places readiness > matches hardened fallback semantics without claiming live persistence 1ms
+ ✓ apps/api/test/cloudbase.spec.ts (17 tests) 196ms
+ ✓ apps/api/test/app.spec.ts (17 tests) 169ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/api/test/integration-readiness.spec.ts > discover integration readiness > filters public posts and creates posts with deterministic visible state
+AssertionError: expected [ 'post_007', 'post_006', …(5) ] to deeply equal [ 'post_001', 'post_002', …(5) ]
+
+- Expected
++ Received
+
+  [
+-   "post_001",
+-   "post_002",
+-   "post_003",
+-   "post_004",
+-   "post_005",
+-   "post_006",
+    "post_007",
++   "post_006",
++   "post_005",
++   "post_004",
++   "post_003",
++   "post_002",
++   "post_001",
+  ]
+
+ ❯ apps/api/test/integration-readiness.spec.ts:584:60
+    582|       );
+    583|       expect(list.response.status).toBe(200);
+    584|       expect(list.body.data.items.map((post) => post._id)).toEqual([
+       |                                                            ^
+    585|         "post_001",
+    586|         "post_002",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/shared/test/integration-readiness.spec.ts > launch-readiness shared mock fixtures > enforces public visibility and actor ownership in the shared mock service
+AssertionError: expected [ 'post_007', 'post_006', …(5) ] to deeply equal [ 'post_001', 'post_002', …(5) ]
+
+- Expected
++ Received
+
+  [
+-   "post_001",
+-   "post_002",
+-   "post_003",
+-   "post_004",
+-   "post_005",
+-   "post_006",
+    "post_007",
++   "post_006",
++   "post_005",
++   "post_004",
++   "post_003",
++   "post_002",
++   "post_001",
+  ]
+
+ ❯ packages/shared/test/integration-readiness.spec.ts:91:49
+     89|       pageSize: 20
+     90|     });
+     91|     expect(posts.items.map((post) => post._id)).toEqual([
+       |                                                 ^
+     92|       "post_001",
+     93|       "post_002",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 14 passed (16)
+      Tests  2 failed | 122 passed (124)
+   Start at  13:54:38
+   Duration  1.11s (transform 1.20s, setup 0ms, collect 5.63s, tests 853ms, environment 2ms, prepare 1.25s)
+
+[ELIFECYCLE] Test failed. See above for more details.
