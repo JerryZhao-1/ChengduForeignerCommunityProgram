@@ -1,0 +1,8 @@
+{
+  "status": "pass",
+  "buildCommand": "VITE_API_MODE=cloudbase-function VITE_CLOUDBASE_ENV_ID=cloud1-d7gxdk8t43bd639c0 VITE_CLOUDBASE_FUNCTION_NAME=community-map-api pnpm --filter @community-map/mobile build:mp-weixin",
+  "outputPath": "apps/mobile/dist/build/mp-weixin",
+  "appId": "wx7518a3c1fcdd39a5",
+  "cloudbaseEnvId": "cloud1-d7gxdk8t43bd639c0",
+  "functionName": "community-map-api"
+}

@@ -1,0 +1,5 @@
+{
+  "status": "pass",
+  "developmentProjectConfigRoot": "apps/mobile/dist/dev/mp-weixin/",
+  "publicReviewPath": "apps/mobile/dist/build/mp-weixin"
+}

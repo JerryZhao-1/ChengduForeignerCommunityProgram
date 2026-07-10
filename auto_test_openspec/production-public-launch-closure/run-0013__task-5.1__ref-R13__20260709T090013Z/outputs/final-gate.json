@@ -1,0 +1,29 @@
+{
+  "status": "pass",
+  "summaries": [
+    {
+      "command": "pnpm typecheck",
+      "status": 0
+    },
+    {
+      "command": "pnpm test",
+      "status": 0
+    },
+    {
+      "command": "pnpm lint",
+      "status": 0
+    },
+    {
+      "command": "pnpm --filter @community-map/admin build",
+      "status": 0
+    },
+    {
+      "command": "pnpm --filter @community-map/mobile build:mp-weixin",
+      "status": 0
+    },
+    {
+      "command": "openspec validate production-public-launch-closure --strict --no-interactive",
+      "status": 0
+    }
+  ]
+}

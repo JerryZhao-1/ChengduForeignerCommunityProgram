@@ -18,7 +18,9 @@ export interface HttpRequester {
 
 export interface HttpClientOptions {
   baseUrl: string;
+  /** @deprecated Local-development compatibility only; ignored in production builds. */
   actorId?: string;
+  defaultHeaders?: Record<string, string>;
   getAuthToken?: () => string | undefined;
   requester: HttpRequester;
 }
@@ -145,7 +147,10 @@ export const createHttpClient = (
   ) => {
     const authToken = options.getAuthToken?.();
     const headers = {
-      ...(options.actorId ? { "x-mock-user-id": options.actorId } : {}),
+      ...(options.defaultHeaders ?? {}),
+      ...(process.env.NODE_ENV !== "production" && options.actorId
+        ? { "x-mock-user-id": options.actorId }
+        : {}),
       ...(authToken ? { authorization: `Bearer ${authToken}` } : {})
     };
 

@@ -37,8 +37,9 @@ export const createMockProvider = (): ApiProvider => {
       },
       async adminLogin(input) {
         await assertAdminLogin(input);
+        const adminUserId = process.env.API_ADMIN_USER_ID?.trim() || "user_001";
         return withMockErrors(() =>
-          createAdminSession(service.auth.me("user_001").user)
+          createAdminSession(service.auth.me(adminUserId).user)
         );
       },
       async me(userId) {

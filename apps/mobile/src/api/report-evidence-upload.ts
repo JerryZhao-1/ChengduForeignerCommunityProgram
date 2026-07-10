@@ -66,11 +66,11 @@ const uploadViaHttpApi = (
       name: "file",
       fileName: input.fileName,
       header:
-        mobileEnv.apiMode !== "cloudbase-function" && mobileEnv.actorId
-        ? {
-            "x-mock-user-id": mobileEnv.actorId
-          }
-        : undefined,
+        import.meta.env.DEV && mobileEnv.actorId
+          ? {
+              "x-mock-user-id": mobileEnv.actorId
+            }
+          : undefined,
       formData: {
         biz_id: input.bizId
       },
@@ -160,6 +160,13 @@ export const uploadReportEvidence = async (
   const cloudAsset = await uploadViaWxCloud(input);
   if (cloudAsset) {
     return cloudAsset;
+  }
+
+  if (mobileEnv.apiMode === "cloudbase-function") {
+    throw new ApiClientError({
+      code: "CONFIGURATION_ERROR",
+      message: "CloudBase file upload is unavailable on this device."
+    });
   }
 
   return uploadViaHttpApi(input);

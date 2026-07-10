@@ -1,0 +1,7 @@
+{
+  "changeId": "production-public-launch-closure",
+  "taskId": "3.3",
+  "refId": "R9",
+  "expectedStatus": "pass",
+  "scope": "MIXED"
+}

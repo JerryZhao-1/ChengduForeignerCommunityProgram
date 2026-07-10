@@ -1,0 +1,69 @@
+{
+  "_使用说明": [
+    "复制本文件为一次发布证据记录，例如 docs/public-launch-evidence-collector.2026-07-09.json。",
+    "不要直接把密码、密钥、token 写入本文件；截图或导出必须打码。",
+    "每个 evidencePointers 数组填写截图、导出、日志、审核回执或 run folder 路径。",
+    "只有人工证据真实存在时，才把 pending-human-evidence 改为 complete。",
+    "decisionState 只能使用 blocked、ready for WeChat review upload、ready for review submission、ready for phased release、ready for full public release。"
+  ],
+  "changeId": "production-public-launch-closure",
+  "decisionState": "blocked",
+  "wechatAccount": {
+    "_说明": "微信小程序账号主体、认证、备案和服务类目。",
+    "certificationStatus": "pending-human-evidence",
+    "filingStatus": "pending-human-evidence",
+    "serviceCategory": "pending-human-evidence",
+    "evidencePointers": []
+  },
+  "privacy": {
+    "_说明": "微信隐私披露、用户数据范围、审核备注中的隐私说明。",
+    "disclosureStatus": "pending-human-evidence",
+    "dataScopesReviewed": [],
+    "evidencePointers": []
+  },
+  "domains": {
+    "_说明": "微信后台 request/upload/download/media 合法域名；必须证明真机不依赖 debug bypass。",
+    "requestDomainStatus": "pending-human-evidence",
+    "uploadDomainStatus": "pending-human-evidence",
+    "downloadDomainStatus": "pending-human-evidence",
+    "mediaDomainStatus": "pending-human-evidence",
+    "debugBypassDisabledEvidence": [],
+    "evidencePointers": []
+  },
+  "cloudbase": {
+    "_说明": "CloudBase 环境、函数、live provider、数据库集合、索引、安全规则、存储域名。",
+    "envId": "cloud1-d7gxdk8t43bd639c0",
+    "functionName": "community-map-api",
+    "providerMode": "live",
+    "databaseCollectionsStatus": "pending-human-evidence",
+    "indexesStatus": "pending-human-evidence",
+    "securityRulesStatus": "pending-human-evidence",
+    "storageDomainStatus": "pending-human-evidence",
+    "evidencePointers": []
+  },
+  "codeUpload": {
+    "_说明": "公开审核包上传方式、路径、版本和上传证据。",
+    "method": "pending-human-decision",
+    "packagePath": "apps/mobile/dist/build/mp-weixin",
+    "uploadVersion": "",
+    "ipWhitelistStatus": "pending-if-miniprogram-ci",
+    "evidencePointers": []
+  },
+  "reviewSubmission": {
+    "_说明": "微信审核提交状态、版本、审核备注路径和提交回执。",
+    "status": "not-submitted",
+    "submittedVersion": "",
+    "reviewNotesPath": "",
+    "evidencePointers": []
+  },
+  "releaseDecision": {
+    "_说明": "发布审批、发布方式、发布人、发布时间、回滚负责人和监控负责人。",
+    "approvalStatus": "not-approved",
+    "releaseMode": "none",
+    "releaseOperator": "",
+    "releaseTime": "",
+    "rollbackOwner": "",
+    "monitoringOwner": "",
+    "evidencePointers": []
+  }
+}

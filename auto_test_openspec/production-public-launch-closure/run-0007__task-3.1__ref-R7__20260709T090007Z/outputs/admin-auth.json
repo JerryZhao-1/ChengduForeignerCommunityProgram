@@ -1,0 +1,4 @@
+{
+  "status": "pass",
+  "test": "apps/api/test/admin-public-launch-auth.spec.ts"
+}

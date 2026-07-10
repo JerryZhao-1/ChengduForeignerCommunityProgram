@@ -10,8 +10,12 @@ import {
 import { adminAuthToken } from "./auth-token";
 
 const apiMode = import.meta.env.VITE_API_MODE ?? "mock";
-const actorId = import.meta.env.VITE_MOCK_ACTOR_ID ?? "user_001";
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8787";
+const actorId = import.meta.env.DEV
+  ? (import.meta.env.VITE_MOCK_ACTOR_ID ?? "user_001")
+  : undefined;
+const baseUrl =
+  import.meta.env.VITE_API_BASE_URL ??
+  (import.meta.env.DEV ? "http://localhost:8787" : "");
 
 const createAdminRequester = (): HttpRequester => {
   const requester = createFetchRequester();

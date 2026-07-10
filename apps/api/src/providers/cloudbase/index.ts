@@ -60,8 +60,7 @@ import { apiError } from "../../lib/errors";
 import {
   assertAdminLogin,
   createAdminSession,
-  getAdminUserId,
-  getAdminUsername
+  getAdminUserId
 } from "../../lib/admin-auth";
 import { createMockProvider } from "../mock";
 import type { ApiProvider, WechatMiniappIdentity } from "../types";
@@ -679,20 +678,26 @@ const createLiveAuthSession = (user: User) => ({
 const resolveLiveAdminUser = async (context: LiveCloudbaseContext) => {
   const users = await readUsers(context);
   const existing = users.find((user) => user._id === getAdminUserId());
-  const user = UserSchema.parse({
-    _id: getAdminUserId(),
-    openid: existing?.openid,
-    unionid: existing?.unionid,
-    nickname: existing?.nickname ?? (getAdminUsername() || "Admin"),
-    avatar_url: existing?.avatar_url ?? PLACEHOLDER_AVATAR_URL,
-    phone: existing?.phone,
-    preferred_language: existing?.preferred_language ?? "zh",
-    role_flags: ["user", "community_admin", "system_admin"],
-    status: "active"
-  });
+  if (!existing || existing.status !== "active") {
+    throw apiError(
+      "FORBIDDEN",
+      "Configured Admin user is missing or inactive.",
+      403
+    );
+  }
 
-  await context.users.doc(user._id).set(toCloudbaseSetDocument(user));
-  return user;
+  if (
+    !existing.role_flags.includes("community_admin") &&
+    !existing.role_flags.includes("system_admin")
+  ) {
+    throw apiError(
+      "FORBIDDEN",
+      "Configured Admin user does not have an Admin role.",
+      403
+    );
+  }
+
+  return existing;
 };
 
 const resolveLiveWechatUser = async (

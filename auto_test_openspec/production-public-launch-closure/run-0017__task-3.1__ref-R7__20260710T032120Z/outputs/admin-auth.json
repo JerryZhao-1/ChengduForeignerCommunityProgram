@@ -1,0 +1,9 @@
+{
+  "status": "pass",
+  "test": "apps/api/test/admin-public-launch-auth.spec.ts",
+  "coverage": [
+    "live-mode mock-header rejection",
+    "Bearer route authorization",
+    "CloudBase live durable Admin role resolution"
+  ]
+}

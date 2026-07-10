@@ -62,8 +62,7 @@ type PlaceCoverCandidate = {
 };
 
 const DEFAULT_EVENT_ADDRESS = "成都市武侯区桐梓林国际社区";
-const DEFAULT_EVENT_COVER_URL =
-  "https://example.com/public/events/placeholder/cover.jpg";
+const DEFAULT_EVENT_COVER_URL = "";
 
 const loading = ref(false);
 const loadError = ref("");
@@ -235,7 +234,7 @@ const filteredPublishedPlaces = computed(() => {
 const hasSelectedPlace = computed(() => selectedPlace.value !== null);
 
 const hasCustomCover = computed(
-  () => form.cover_url !== DEFAULT_EVENT_COVER_URL || Boolean(form.cover_file_id)
+  () => Boolean(form.cover_url || form.cover_file_id)
 );
 
 const placeCoverCandidates = computed<PlaceCoverCandidate[]>(() => {
@@ -548,8 +547,19 @@ const validateStatusCombination = () => {
   return false;
 };
 
+const validateCover = () => {
+  if (form.cover_url) {
+    return true;
+  }
+
+  const message = "请先上传活动封面或选择已有地点图片。";
+  submittingError.value = message;
+  ElMessage.error(message);
+  return false;
+};
+
 const buildValidatedPayload = () => {
-  if (!validateStatusCombination()) {
+  if (!validateStatusCombination() || !validateCover()) {
     return null;
   }
 
@@ -1283,7 +1293,12 @@ onMounted(load);
           <div class="section-title">活动封面</div>
           <div class="cover-uploader">
             <div class="cover-preview">
-              <img :src="form.cover_url" alt="活动封面预览" />
+              <img
+                v-if="form.cover_url"
+                :src="form.cover_url"
+                alt="活动封面预览"
+              />
+              <span v-else class="cover-placeholder">尚未选择活动封面</span>
             </div>
             <div class="cover-controls">
               <input
@@ -1853,12 +1868,22 @@ onMounted(load);
 }
 
 .cover-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   width: 220px;
   aspect-ratio: 16 / 9;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   background: #f8fafc;
+}
+
+.cover-placeholder {
+  padding: 12px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
 }
 
 .cover-preview img {

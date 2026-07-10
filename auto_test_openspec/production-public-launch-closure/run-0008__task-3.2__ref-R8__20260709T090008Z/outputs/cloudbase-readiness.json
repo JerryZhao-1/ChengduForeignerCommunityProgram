@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "selectedTarget": {
+    "cloudbaseEnvId": "cloud1-d7gxdk8t43bd639c0",
+    "cloudFunctionName": "community-map-api",
+    "apiBaseUrl": "https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api",
+    "adminUrl": "https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com/",
+    "miniProgramBuildPath": "apps/mobile/dist/build/mp-weixin",
+    "appId": "wx7518a3c1fcdd39a5"
+  },
+  "humanOwnedBlockers": [
+    "WeChat legal domains",
+    "CloudBase console security rules",
+    "storage domain approval"
+  ]
+}

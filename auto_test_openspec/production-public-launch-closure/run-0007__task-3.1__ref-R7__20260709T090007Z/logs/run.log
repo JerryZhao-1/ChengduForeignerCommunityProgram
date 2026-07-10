@@ -1,0 +1,14 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ apps/api/test/admin-public-launch-auth.spec.ts (2 tests) 116ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  23:22:16
+   Duration  622ms (transform 147ms, setup 0ms, collect 357ms, tests 116ms, environment 0ms, prepare 34ms)
+
+{
+  "report": "/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/production-public-launch-closure/run-0007__task-3.1__ref-R7__20260709T090007Z/outputs/admin-auth.json",
+  "status": "pass"
+}

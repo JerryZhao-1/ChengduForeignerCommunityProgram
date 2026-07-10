@@ -103,15 +103,17 @@ const createCloudbaseFunctionRequester = (): HttpRequester => {
   };
 };
 
-const actorId =
-  mobileEnv.apiMode === "cloudbase-function" ? undefined : mobileEnv.actorId;
+const developmentHeaders =
+  import.meta.env.DEV && mobileEnv.actorId
+    ? { "x-mock-user-id": mobileEnv.actorId }
+    : undefined;
 
 export const mobileApi =
   mobileEnv.apiMode === "mock"
     ? createMockClient({ actorId: mobileEnv.actorId })
     : createHttpClient({
-        actorId,
         baseUrl: mobileEnv.apiBaseUrl,
+        defaultHeaders: developmentHeaders,
         requester:
           mobileEnv.apiMode === "cloudbase-function"
             ? createCloudbaseFunctionRequester()

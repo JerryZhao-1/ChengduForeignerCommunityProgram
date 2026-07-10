@@ -1,0 +1,10 @@
+{
+  "status": "fail",
+  "command": "final-gate",
+  "message": "Command failed: pnpm lint",
+  "details": {
+    "status": 1,
+    "stdout": "\n> chengdu-foreigner-community-program@0.1.0 lint /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram\n> eslint .\n\n\n/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/production-public-launch-closure/run-0015__task-2.1__ref-R4__20260710T032120Z/tests/test_cli_r4.mjs\n  8:7  error  'evidenceFile' is assigned a value but never used  @typescript-eslint/no-unused-vars\n\n/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/production-public-launch-closure/run-0016__task-2.2__ref-R5__20260710T032120Z/tests/test_cli_r5.mjs\n  8:7  error  'evidenceFile' is assigned a value but never used  @typescript-eslint/no-unused-vars\n\n/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/production-public-launch-closure/run-0017__task-3.1__ref-R7__20260710T032120Z/tests/test_cli_r7.mjs\n  8:7  error  'evidenceFile' is assigned a value but never used  @typescript-eslint/no-unused-vars\n\n/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/production-public-launch-closure/run-0019__task-5.1__ref-R13__20260710T032120Z/tests/test_cli_r13.mjs\n  8:7  error  'evidenceFile' is assigned a value but never used  @typescript-eslint/no-unused-vars\n\n✖ 4 problems (4 errors, 0 warnings)\n\n ELIFECYCLE  Command failed with exit code 1.\n",
+    "stderr": ""
+  }
+}

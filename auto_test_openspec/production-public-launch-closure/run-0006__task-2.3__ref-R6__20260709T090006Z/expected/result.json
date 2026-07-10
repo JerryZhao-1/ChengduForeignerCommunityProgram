@@ -1,0 +1,7 @@
+{
+  "changeId": "production-public-launch-closure",
+  "taskId": "2.3",
+  "refId": "R6",
+  "expectedStatus": "pass",
+  "scope": "CLI"
+}

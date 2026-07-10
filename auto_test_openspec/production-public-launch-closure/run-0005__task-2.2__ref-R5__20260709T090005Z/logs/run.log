@@ -1,0 +1,25 @@
+$ uni build -p mp-weixin
+Compiling...
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.14.2026070214.html
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import dist/build/mp-weixin run.
+$ vite build
+vite v6.4.1 building for production...
+transforming...
+✓ 1668 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     0.40 kB │ gzip:   0.27 kB
+dist/assets/index-wECyyIPX.css    363.42 kB │ gzip:  49.21 kB
+dist/assets/index-DaaOSjf0.js   1,183.14 kB │ gzip: 374.82 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.15s
+{
+  "report": "/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/production-public-launch-closure/run-0005__task-2.2__ref-R5__20260709T090005Z/outputs/artifact-scan.json",
+  "status": "pass"
+}

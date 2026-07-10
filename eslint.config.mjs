@@ -9,6 +9,7 @@ export default tseslint.config(
       "**/coverage/**",
       "**/.turbo/**",
       "**/.cloudbase/**",
+      "auto_test_openspec/**",
       "**/node_modules/**",
       "**/*.vue"
     ]
