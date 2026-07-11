@@ -357,7 +357,8 @@ Query：
 | `content_zh` / `content_en` | string      | 双语正文    |
 | `cover_url`                 | URL string  | 封面图      |
 | `place_id`                  | string      | 可选地点 ID |
-| `address_text`              | string      | 地址文本    |
+| `address_zh` / `address_en` | string      | 标准双语地址；公开活动必须完整 |
+| `address_text`              | string      | 旧记录读取兼容字段；新写入不要依赖 |
 | `location`                  | Coordinates | 经纬度      |
 | `start_time` / `end_time`   | string      | 时间        |
 | `signup_deadline`           | string      | 报名截止    |
@@ -526,7 +527,8 @@ Body：
 | `title_zh` / `title_en`     | string      | 是   | 双语标题                                                                                                  |
 | `summary_zh` / `summary_en` | string      | 是   | 双语摘要                                                                                                  |
 | `content_zh` / `content_en` | string      | 是   | 双语正文                                                                                                  |
-| `address_text`              | string      | 是   | 地址文本                                                                                                  |
+| `address_zh` / `address_en` | string      | 否   | 标准双语地址；草稿可缺失，任何公开转换前必须完整且非占位                                                |
+| `address_text`              | string      | 否   | 仅旧记录迁移兼容；新写入应使用 `address_zh` / `address_en`                                                |
 | `location`                  | Coordinates | 是   | 经纬度                                                                                                    |
 | `start_time` / `end_time`   | string      | 是   | 活动时间                                                                                                  |
 | `signup_deadline`           | string      | 是   | 报名截止                                                                                                  |
@@ -553,7 +555,8 @@ curl -X POST http://127.0.0.1:8787/admin/events \
     "summary_en":"Event summary",
     "content_zh":"活动内容",
     "content_en":"Event content",
-    "address_text":"Tongzilin",
+    "address_zh":"桐梓林社区中心",
+    "address_en":"Tongzilin Community Center",
     "location":{"latitude":30.615,"longitude":104.062},
     "start_time":"2027-06-20T10:00:00+08:00",
     "end_time":"2027-06-20T12:00:00+08:00",
@@ -1145,6 +1148,21 @@ curl -X POST http://127.0.0.1:8787/admin/discover/posts/post_001/moderation \
   -H 'content-type: application/json' \
   -H 'x-mock-user-id: user_001' \
   -d '{"review_status":"hidden","reason":"spam"}'
+```
+
+### DELETE `/admin/discover/posts/:id`
+
+用途：管理员永久删除帖子及其评论、互动、举报、相关通知、媒体文件资产和云存储对象。该操作不同于把 `review_status` 更新为 `deleted` 的软删除，无法恢复。
+
+权限：`community_admin` 或 `system_admin`。
+
+响应 data：`{ post_id, audit_record_id, deleted }`，其中 `deleted` 返回各类实际删除数量。旧目标审计会被清除，并保留一条不含正文或媒体信息的 `permanent_delete_post` 审计记录。用户、地点、活动和标签不会被删除。
+
+示例：
+
+```bash
+curl -X DELETE http://127.0.0.1:8787/admin/discover/posts/post_test \
+  -H 'x-mock-user-id: user_001'
 ```
 
 ### POST `/admin/discover/posts/:id/ops`
@@ -1759,14 +1777,17 @@ curl http://127.0.0.1:8787/announcements/announcement_001
 
 Notification 字段：
 
-| 字段         | 类型   | 说明     |
-| ------------ | ------ | -------- |
-| `_id`        | string | 通知 ID  |
-| `user_id`    | string | 用户 ID  |
-| `title`      | string | 标题     |
-| `body`       | string | 内容     |
-| `status`     | string | 状态     |
-| `created_at` | string | 创建时间 |
+| 字段                            | 类型        | 说明                                      |
+| ------------------------------- | ----------- | ----------------------------------------- |
+| `_id`                           | string      | 通知 ID                                   |
+| `user_id`                       | string      | 用户 ID                                   |
+| `title_zh` / `title_en`         | string/null | 新系统通知的双语标题                      |
+| `body_zh` / `body_en`           | string/null | 新系统通知的双语正文                      |
+| `title` / `body`                | string      | 旧记录读取兼容字段，不作为新通知唯一文案  |
+| `status`                        | string      | 状态                                      |
+| `created_at`                    | string      | 创建时间                                  |
+
+客户端先读取当前语言双语字段，再回退另一语言，最后安全回退到 legacy `title/body`。标记已读仍校验当前 actor ownership。
 
 示例：
 

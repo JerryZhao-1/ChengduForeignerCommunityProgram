@@ -4,6 +4,10 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
-    include: ["packages/**/*.spec.ts", "apps/**/*.spec.ts"]
+    include: [
+      "packages/**/*.spec.ts",
+      "apps/**/*.spec.ts",
+      "scripts/**/*.spec.ts"
+    ]
   }
 });

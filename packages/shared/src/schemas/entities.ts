@@ -78,7 +78,10 @@ export const EventSchema = z.object({
   cover_cloud_path: z.string().nullable(),
   cover_url: z.string().url(),
   place_id: z.string().optional(),
+  /** @deprecated Migration compatibility only. New writes use address_zh/address_en. */
   address_text: z.string(),
+  address_zh: z.string().optional(),
+  address_en: z.string().optional(),
   location: CoordinatesSchema,
   start_time: z.string(),
   end_time: z.string(),
@@ -290,6 +293,10 @@ export const NotificationSchema = z.object({
   user_id: z.string(),
   title: z.string(),
   body: z.string(),
+  title_zh: z.string().nullable().optional(),
+  title_en: z.string().nullable().optional(),
+  body_zh: z.string().nullable().optional(),
+  body_en: z.string().nullable().optional(),
   target_type: z
     .enum(["post", "comment", "place", "event", "user", "report"])
     .nullable()

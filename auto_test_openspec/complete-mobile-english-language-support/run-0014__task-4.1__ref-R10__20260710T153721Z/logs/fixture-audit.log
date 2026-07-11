@@ -1,0 +1,35 @@
+{
+  "evidenceKind": "fixture",
+  "auditedAt": "2026-07-10T15:44:55.610Z",
+  "provenance": {
+    "environment": "vitest-fixture",
+    "exportedAt": "2026-07-10T12:00:00.000Z",
+    "source": {
+      "collections": [
+        "events"
+      ],
+      "query": "checked-in golden fixture"
+    },
+    "recordCounts": {
+      "events": 1,
+      "places": 0,
+      "announcements": 0,
+      "discoverPosts": 0
+    }
+  },
+  "counts": {
+    "events": 1,
+    "places": 0,
+    "announcements": 0,
+    "discoverPosts": 0
+  },
+  "summary": {
+    "blocking": 0,
+    "editorial": 0,
+    "total": 0
+  },
+  "contentPass": true,
+  "releaseEligible": false,
+  "releaseIneligibilityReason": "Fixture evidence cannot satisfy the production release gate.",
+  "issues": []
+}

@@ -9,7 +9,18 @@ import { computed, ref } from "vue";
 import { onLoad, onShow } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
+import { mobileEnv } from "@/config/env";
+import {
+  formatLocalizedNumber,
+  getMobileCopy,
+  interpolate
+} from "@/i18n";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
+import {
+  formatEventTimeRange,
+  resolveEventAddress,
+  resolveEventCoverSource
+} from "./event-presentation";
 import {
   getEventSignupState,
   isActiveEventRegistration,
@@ -17,6 +28,8 @@ import {
 } from "./event-signup-state";
 
 const { state } = useAppStore();
+const copy = computed(() => getMobileCopy(state.locale).events);
+const commonCopy = computed(() => getMobileCopy(state.locale).common);
 const event = ref<Event | null>(null);
 const relatedPosts = ref<Post[]>([]);
 const eventId = ref("");
@@ -24,7 +37,10 @@ const registrations = ref<EventRegistration[]>([]);
 const ticketCode = ref("");
 const loading = ref(false);
 const error = ref("");
-const unavailableEventMessage = "活动暂不可访问或已下线";
+const failedCoverSources = ref<string[]>([]);
+const unavailableEventMessage = computed(
+  () => copy.value.signupStates.unavailable.reason
+);
 
 const isUnavailableEventError = (err: unknown) =>
   err instanceof ApiClientError
@@ -45,8 +61,56 @@ const signupState = computed(() =>
     ? getEventSignupState(event.value, new Date(), {
         isRegistered: registeredEventIds.value.has(event.value._id)
       })
-    : { canSignup: false, label: "暂不可报名", reason: "" }
+    : { canSignup: false, code: "unavailable" as const }
 );
+
+const signupCopy = computed(
+  () => copy.value.signupStates[signupState.value.code]
+);
+
+const eventAddress = computed(() =>
+  event.value ? resolveEventAddress(event.value, state.locale) : null
+);
+
+const eventTimeRange = computed(() =>
+  event.value
+    ? formatEventTimeRange(
+        state.locale,
+        event.value.start_time,
+        event.value.end_time
+      )
+    : ""
+);
+
+const eventCoverSource = computed(() =>
+  event.value
+    ? resolveEventCoverSource(event.value, {
+        preferCloudFileId: mobileEnv.apiMode === "cloudbase-function",
+        failedSources: failedCoverSources.value
+      })
+    : null
+);
+
+const handleCoverError = () => {
+  if (eventCoverSource.value) {
+    failedCoverSources.value = [
+      ...failedCoverSources.value,
+      eventCoverSource.value
+    ];
+  }
+};
+
+const addressFallbackNotice = computed(() => {
+  const address = eventAddress.value;
+  if (!address?.usedFallback || !address.resolvedLocale) {
+    return "";
+  }
+  const language =
+    address.resolvedLocale === "zh"
+      ? commonCopy.value.languageZh
+      : commonCopy.value.languageEn;
+  return interpolate(commonCopy.value.fallbackLanguage, { language });
+});
 
 const currentRegistration = computed(() => {
   if (!event.value) {
@@ -86,7 +150,7 @@ const loadRegistrationTicket = async (registration: EventRegistration | null) =>
 
 const loadEvent = async (id: string) => {
   if (!id) {
-    error.value = "缺少活动ID";
+    error.value = copy.value.states.missingId;
     return;
   }
 
@@ -94,11 +158,12 @@ const loadEvent = async (id: string) => {
   error.value = "";
   event.value = null;
   relatedPosts.value = [];
+  failedCoverSources.value = [];
 
   try {
     const eventResult = await mobileApi.events.detail(id);
     if (!isPublicEvent(eventResult.data)) {
-      error.value = unavailableEventMessage;
+      error.value = unavailableEventMessage.value;
       loading.value = false;
       return;
     }
@@ -118,8 +183,8 @@ const loadEvent = async (id: string) => {
   } catch (err) {
     console.error(err);
     error.value = isUnavailableEventError(err)
-      ? unavailableEventMessage
-      : "活动加载失败，请稍后重试";
+      ? unavailableEventMessage.value
+      : copy.value.states.error;
     relatedPosts.value = [];
     loading.value = false;
     return;
@@ -145,7 +210,7 @@ const register = () => {
   }
 
   if (!signupState.value.canSignup) {
-    uni.showToast({ title: signupState.value.reason, icon: "none" });
+    uni.showToast({ title: signupCopy.value.reason, icon: "none" });
     return;
   }
 
@@ -167,57 +232,67 @@ const openRelatedPost = (id: string) => {
   uni.navigateTo({ url: `/pages/discover/detail?id=${id}` });
 };
 
-const formatTime = (input: string) => {
-  const date = new Date(input);
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const hh = String(date.getHours()).padStart(2, "0");
-  const min = String(date.getMinutes()).padStart(2, "0");
-  return `${mm}-${dd} ${hh}:${min}`;
-};
-
 const statusLabel = (item: Event) => {
   const currentSignupState = getEventSignupState(item, new Date(), {
     isRegistered: registeredEventIds.value.has(item._id)
   });
 
   if (!currentSignupState.canSignup) {
-    return currentSignupState.label;
+    return copy.value.signupStates[currentSignupState.code].label;
   }
 
   if (new Date(item.start_time) <= new Date()) {
-    return "进行中";
+    return copy.value.states.ongoing;
   }
-  return "报名中";
+  return copy.value.states.registrationOpen;
 };
+
+const commentCount = (count: number) =>
+  interpolate(copy.value.commentsCount, {
+    count: formatLocalizedNumber(state.locale, count)
+  });
 </script>
 
 <template>
   <view class="page">
-    <view v-if="loading" class="state-text">加载中...</view>
+    <view v-if="loading" class="state-text">{{ copy.states.loading }}</view>
     <view v-else-if="error" class="state-text error">{{ error }}</view>
 
     <template v-else-if="event">
-      <image v-if="event.cover_url" class="cover" :src="event.cover_url" mode="aspectFill" />
+      <image
+        v-if="eventCoverSource"
+        class="cover"
+        :src="eventCoverSource"
+        mode="aspectFill"
+        @error="handleCoverError"
+      />
+      <view v-else class="cover cover-placeholder">
+        {{ pickLocalized(state.locale, event.title_zh, event.title_en) }}
+      </view>
 
       <view class="card">
         <view class="title-row">
           <text class="title">{{ pickLocalized(state.locale, event.title_zh, event.title_en) }}</text>
           <text class="status">{{ statusLabel(event) }}</text>
         </view>
-        <text class="meta">时间：{{ formatTime(event.start_time) }} - {{ formatTime(event.end_time) }}</text>
-        <text class="meta">地点：{{ event.address_text }}</text>
-        <text class="meta">名额：{{ event.capacity }}</text>
-        <text class="meta">费用：免费</text>
+        <text class="meta"><text class="meta-label">{{ copy.time }}:</text> {{ eventTimeRange }}</text>
+        <text class="meta"><text class="meta-label">{{ copy.place }}:</text> {{ eventAddress?.value }}</text>
+        <text v-if="addressFallbackNotice" class="fallback-notice">
+          {{ addressFallbackNotice }}
+        </text>
+        <text class="meta">
+          <text class="meta-label">{{ copy.capacity }}:</text>
+          {{ formatLocalizedNumber(state.locale, event.capacity) }}
+        </text>
       </view>
 
       <view class="card">
-        <text class="section-title">活动介绍</text>
+        <text class="section-title">{{ copy.details }}</text>
         <text class="details">{{ pickLocalized(state.locale, event.content_zh, event.content_en) }}</text>
       </view>
 
       <view v-if="relatedPosts.length" class="card">
-        <text class="section-title">{{ state.locale === "zh" ? "相关讨论" : "Related Discussion" }}</text>
+        <text class="section-title">{{ copy.relatedDiscussion }}</text>
         <view
           v-for="post in relatedPosts"
           :key="post._id"
@@ -227,17 +302,17 @@ const statusLabel = (item: Event) => {
           <text class="related-title">{{ post.title }}</text>
           <view class="related-meta">
             <text>{{ post.author_display.nickname }}</text>
-            <text>{{ post.comment_count }} comments</text>
+            <text>{{ commentCount(post.comment_count) }}</text>
           </view>
         </view>
       </view>
 
       <button class="secondary-action" @click="startDiscussion">
-        {{ state.locale === "zh" ? "发起活动讨论" : "Start Discussion" }}
+        {{ copy.startDiscussion }}
       </button>
 
       <view v-if="ticketCode" class="ticket-card">
-        <text class="section-title">入场凭证</text>
+        <text class="section-title">{{ copy.ticket }}</text>
         <text class="ticket-code">{{ ticketCode }}</text>
       </view>
 
@@ -247,11 +322,11 @@ const statusLabel = (item: Event) => {
         :disabled="!signupState.canSignup"
         @click="register"
       >
-        {{ signupState.label }}
+        {{ signupCopy.label }}
       </button>
     </template>
 
-    <view v-else class="state-text">活动不存在</view>
+    <view v-else class="state-text">{{ copy.states.missing }}</view>
   </view>
 </template>
 
@@ -275,6 +350,16 @@ const statusLabel = (item: Event) => {
   height: 300rpx;
   border-radius: 20rpx;
   background: #e5e7eb;
+}
+
+.cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 24rpx;
+  color: #64748b;
+  text-align: center;
 }
 
 .card,
@@ -312,6 +397,17 @@ const statusLabel = (item: Event) => {
   margin-top: 8rpx;
   color: #374151;
   font-size: 25rpx;
+}
+
+.meta-label {
+  font-weight: 600;
+}
+
+.fallback-notice {
+  display: block;
+  margin-top: 8rpx;
+  color: #92400e;
+  font-size: 22rpx;
 }
 
 .section-title {

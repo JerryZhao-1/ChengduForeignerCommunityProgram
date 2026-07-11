@@ -1,0 +1,28 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "3.3",
+  "ref": "R8",
+  "result": "PASS",
+  "cli": {
+    "focusedTests": { "exitCode": 0, "tests": "48/48" },
+    "mobileTypecheck": { "exitCode": 0 },
+    "mapSummaryDetailCallScan": { "exitCode": 1, "matches": 0 }
+  },
+  "gui": {
+    "englishList": true,
+    "localizedCategories": true,
+    "localizedTags": true,
+    "englishDetail": true,
+    "formalFallbackCovered": true,
+    "favoriteFeedback": true,
+    "shareActionInvoked": true,
+    "englishMapSummary": true,
+    "chineseSmoke": true,
+    "consoleErrors": []
+  },
+  "screenshots": [
+    "outputs/screenshots/places-list-en.png",
+    "outputs/screenshots/place-detail-en.png",
+    "outputs/screenshots/places-map-en.png"
+  ]
+}

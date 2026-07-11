@@ -1,5 +1,7 @@
 import type { PlaceDetail, PlaceMapMarker } from "@community-map/shared";
 
+import { resolveLocalized } from "../../i18n";
+
 const withQuery = (
   path: string,
   query?: Record<string, string | number | boolean | undefined>
@@ -53,7 +55,7 @@ export const pickPlaceText = (
   locale: PlacesLocale,
   zhText: string,
   enText: string
-) => (locale === "zh" ? zhText : enText);
+) => resolveLocalized(locale, { zh: zhText, en: enText }).value;
 
 export const buildPlaceDetailNavigationTarget = (
   navigation: PlaceDetail["navigation"],

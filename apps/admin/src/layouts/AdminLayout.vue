@@ -46,7 +46,6 @@ const logout = () => {
       >
         <div style="font-weight: 600">{{ route.meta.title ?? "社区后台" }}</div>
         <div style="display: flex; align-items: center; gap: 12px">
-          <el-tag type="info">Phase 1 Skeleton</el-tag>
           <el-button size="small" @click="logout">退出登录</el-button>
         </div>
       </el-header>

@@ -168,6 +168,9 @@ export const createHttpClient = (
       adminLogin: (input) =>
         request("POST", apiPaths.auth.adminLogin, input),
       me: () => request("GET", apiPaths.auth.me),
+      preferences: () => request("GET", apiPaths.auth.preferences),
+      updatePreferences: (input) =>
+        request("PATCH", apiPaths.auth.preferences, input),
       wechatMiniappSession: (input = {}) =>
         request("POST", apiPaths.auth.wechatMiniappSession, input)
     },
@@ -339,6 +342,8 @@ export const createHttpClient = (
         ),
       moderatePost: (id, input) =>
         request("POST", apiPaths.admin.moderatePost(id), input),
+      permanentlyDeletePost: (id) =>
+        request("DELETE", apiPaths.admin.permanentlyDeletePost(id)),
       updateDiscoverPostOps: (id, input) =>
         request("POST", apiPaths.admin.updateDiscoverPostOps(id), input),
       listDiscoverTags: () => request("GET", apiPaths.admin.listDiscoverTags),

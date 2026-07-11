@@ -1,0 +1,12 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/bilingual-contracts.spec.ts (8 tests) 3ms
+ ✓ packages/shared/test/contracts.spec.ts (19 tests) 7ms
+ ✓ packages/shared/test/places-marker-contract.spec.ts (4 tests) 9ms
+
+ Test Files  3 passed (3)
+      Tests  31 passed (31)
+   Start at  14:05:34
+   Duration  330ms (transform 125ms, setup 0ms, collect 405ms, tests 18ms, environment 0ms, prepare 111ms)
+

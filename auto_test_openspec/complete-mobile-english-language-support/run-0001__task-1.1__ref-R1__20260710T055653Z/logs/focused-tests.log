@@ -1,0 +1,11 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ apps/mobile/src/pages/events/event-signup-state.spec.ts (4 tests) 1ms
+ ✓ apps/mobile/src/i18n/catalog.spec.ts (8 tests) 11ms
+
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+   Start at  13:57:56
+   Duration  375ms (transform 134ms, setup 0ms, collect 320ms, tests 13ms, environment 0ms, prepare 75ms)
+

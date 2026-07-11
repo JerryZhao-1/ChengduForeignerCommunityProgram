@@ -1,0 +1,27 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "2.2",
+  "ref": "R4",
+  "commands": [
+    {
+      "command": "focused shared/API/mock/CloudBase publication tests",
+      "exitCode": 0,
+      "log": "logs/publication-tests.log"
+    },
+    {
+      "command": "pnpm --filter @community-map/api typecheck",
+      "exitCode": 0,
+      "log": "logs/api-typecheck.log"
+    },
+    {
+      "command": "pnpm --filter @community-map/shared typecheck",
+      "exitCode": 0,
+      "log": "logs/shared-typecheck.log"
+    }
+  ],
+  "assertions": {
+    "publicationMatrixExecuted": true,
+    "apiTypecheckCompleted": true,
+    "sharedTypecheckCompleted": true
+  }
+}

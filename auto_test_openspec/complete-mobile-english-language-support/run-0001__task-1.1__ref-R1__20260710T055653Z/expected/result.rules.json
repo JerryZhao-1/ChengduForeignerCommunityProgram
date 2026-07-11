@@ -1,0 +1,8 @@
+{
+  "commandExitCodes": [0, 0, 0],
+  "catalogLeafPathsEqual": true,
+  "fallbackMetadataRequired": true,
+  "unavailableCopyLocalized": true,
+  "domainHelperHasNoHanLiterals": true,
+  "ugcContentUnchanged": true
+}

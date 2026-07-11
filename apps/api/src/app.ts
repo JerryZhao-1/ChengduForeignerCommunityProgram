@@ -3,7 +3,12 @@ import Router from "@koa/router";
 import bodyParser from "koa-bodyparser";
 
 import { actorMiddleware } from "./lib/auth";
-import { corsMiddleware, errorMiddleware, requestIdMiddleware } from "./lib/http";
+import {
+  corsMiddleware,
+  errorMiddleware,
+  methodOverrideMiddleware,
+  requestIdMiddleware
+} from "./lib/http";
 import { createProvider } from "./providers";
 import { registerAnnouncementRoutes } from "./routes/announcements";
 import { registerAuthRoutes } from "./routes/auth";
@@ -42,6 +47,7 @@ export const createApp = (mode?: string) => {
     ctx.path = stripApiPrefix(ctx.path);
     await next();
   });
+  app.use(methodOverrideMiddleware);
   app.use(async (ctx, next) => {
     ctx.state.provider = provider;
     await next();

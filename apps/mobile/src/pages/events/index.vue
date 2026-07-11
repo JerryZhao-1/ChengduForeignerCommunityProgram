@@ -4,7 +4,15 @@ import { computed, ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
+import { mobileEnv } from "@/config/env";
+import { getMobileCopy } from "@/i18n";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
+import {
+  formatEventCapacity,
+  formatEventTimeRange,
+  resolveEventAddress,
+  resolveEventCoverSource
+} from "./event-presentation";
 import {
   getEventSignupState,
   isActiveEventRegistration,
@@ -14,18 +22,20 @@ import {
 type TabKey = "all" | "thisWeek" | "upcoming" | "mine";
 
 const { state } = useAppStore();
+const copy = computed(() => getMobileCopy(state.locale).events);
 const activeTab = ref<TabKey>("all");
 const events = ref<Event[]>([]);
 const registrations = ref<EventRegistration[]>([]);
 const loading = ref(false);
 const error = ref("");
+const failedCoverSources = ref<Record<string, string[]>>({});
 
-const tabs: Array<{ key: TabKey; label: string }> = [
-  { key: "all", label: "全部" },
-  { key: "thisWeek", label: "本周" },
-  { key: "upcoming", label: "即将开始" },
-  { key: "mine", label: "我的" }
-];
+const tabs = computed<Array<{ key: TabKey; label: string }>>(() => [
+  { key: "all", label: copy.value.tabs.all },
+  { key: "thisWeek", label: copy.value.tabs.thisWeek },
+  { key: "upcoming", label: copy.value.tabs.upcoming },
+  { key: "mine", label: copy.value.tabs.mine }
+]);
 
 const load = async () => {
   loading.value = true;
@@ -43,7 +53,7 @@ const load = async () => {
       : [];
   } catch (err) {
     console.error(err);
-    error.value = "活动加载失败，请稍后重试";
+    error.value = copy.value.states.error;
   } finally {
     loading.value = false;
   }
@@ -95,15 +105,15 @@ const filteredEvents = computed(() => {
 
 const emptyText = computed(() => {
   if (activeTab.value === "mine") {
-    return "你还没有报名活动";
+    return copy.value.states.emptyMine;
   }
   if (activeTab.value === "upcoming") {
-    return "暂无即将开始的活动";
+    return copy.value.states.emptyUpcoming;
   }
   if (activeTab.value === "thisWeek") {
-    return "本周暂无活动";
+    return copy.value.states.emptyWeek;
   }
-  return "请稍后再来看看";
+  return copy.value.states.emptyAll;
 });
 
 const getStartOfWeek = (date: Date) => {
@@ -115,25 +125,37 @@ const getStartOfWeek = (date: Date) => {
   return d;
 };
 
-const formatTime = (input: string) => {
-  const date = new Date(input);
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const hh = String(date.getHours()).padStart(2, "0");
-  const min = String(date.getMinutes()).padStart(2, "0");
-  return `${mm}-${dd} ${hh}:${min}`;
-};
-
 const eventStatusLabel = (event: Event) => {
   const signupState = getEventSignupState(event, new Date(), {
     isRegistered: registeredEventIds.value.has(event._id)
   });
 
   if (signupState.canSignup) {
-    return new Date(event.start_time) > new Date() ? "可报名" : "进行中";
+    return new Date(event.start_time) > new Date()
+      ? copy.value.states.registrationOpen
+      : copy.value.states.ongoing;
   }
 
-  return signupState.label;
+  return copy.value.signupStates[signupState.code].label;
+};
+
+const eventCoverSource = (event: Event) =>
+  resolveEventCoverSource(event, {
+    preferCloudFileId: mobileEnv.apiMode === "cloudbase-function",
+    failedSources: failedCoverSources.value[event._id]
+  });
+
+const handleCoverError = (event: Event) => {
+  const failedSource = eventCoverSource(event);
+  if (failedSource) {
+    failedCoverSources.value = {
+      ...failedCoverSources.value,
+      [event._id]: [
+        ...(failedCoverSources.value[event._id] ?? []),
+        failedSource
+      ]
+    };
+  }
 };
 
 onShow(() => {
@@ -155,29 +177,42 @@ onShow(() => {
       </text>
     </view>
 
-    <view v-if="loading" class="state-text">加载中...</view>
+    <view v-if="loading" class="state-text">{{ copy.states.loading }}</view>
     <view v-else-if="error" class="state-text error">{{ error }}</view>
 
     <template v-else>
       <view v-for="event in filteredEvents" :key="event._id" class="card" @click="openDetail(event._id)">
-        <image v-if="event.cover_url" class="cover" :src="event.cover_url" mode="aspectFill" />
+        <image
+          v-if="eventCoverSource(event)"
+          class="cover"
+          :src="eventCoverSource(event) || ''"
+          mode="aspectFill"
+          @error="handleCoverError(event)"
+        />
+        <view v-else class="cover cover-placeholder">
+          {{ pickLocalized(state.locale, event.title_zh, event.title_en) }}
+        </view>
         <view class="content">
           <view class="title-row">
             <text class="card-title">{{ pickLocalized(state.locale, event.title_zh, event.title_en) }}</text>
             <text class="registered">{{ eventStatusLabel(event) }}</text>
           </view>
           <text class="card-text">{{ pickLocalized(state.locale, event.summary_zh, event.summary_en) }}</text>
-          <text class="meta">{{ formatTime(event.start_time) }} - {{ formatTime(event.end_time) }}</text>
-          <text class="meta">{{ event.address_text }}</text>
+          <text class="meta">
+            {{ formatEventTimeRange(state.locale, event.start_time, event.end_time) }}
+          </text>
+          <text class="meta">{{ resolveEventAddress(event, state.locale).value }}</text>
           <view class="footer">
-            <text class="quota">名额 {{ event.capacity }}</text>
-            <text class="action">查看详情</text>
+            <text class="quota">
+              {{ formatEventCapacity(state.locale, copy.capacityValue, event.capacity) }}
+            </text>
+            <text class="action">{{ copy.viewDetail }}</text>
           </view>
         </view>
       </view>
 
       <view v-if="!filteredEvents.length" class="empty">
-        <text class="empty-title">暂无活动</text>
+        <text class="empty-title">{{ copy.states.empty }}</text>
         <text class="empty-desc">{{ emptyText }}</text>
       </view>
     </template>
@@ -232,6 +267,16 @@ onShow(() => {
   width: 100%;
   height: 240rpx;
   background: #e5e7eb;
+}
+
+.cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 24rpx;
+  color: #64748b;
+  text-align: center;
 }
 
 .content {

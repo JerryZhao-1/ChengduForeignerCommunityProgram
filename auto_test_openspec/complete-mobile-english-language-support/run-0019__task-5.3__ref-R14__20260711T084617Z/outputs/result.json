@@ -1,0 +1,27 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "5.3",
+  "ref": "R14",
+  "result": "BLOCKED",
+  "taskCheckboxMustRemainOpen": true,
+  "manualAcceptance": {
+    "reportedBy": "product owner",
+    "reportedAt": "2026-07-11",
+    "result": "PASS",
+    "statement": "Manual acceptance completed with no observed issue."
+  },
+  "productionCandidateAudit": {
+    "environment": "cloud1-d7gxdk8t43bd639c0",
+    "exportedAt": "2026-07-11T08:45:44.889Z",
+    "realProductionExportUsed": true,
+    "recordCounts": { "events": 2, "places": 11, "announcements": 0, "discoverPosts": 0 },
+    "blocking": 36,
+    "editorial": 2,
+    "total": 38,
+    "contentPass": false,
+    "releaseEligible": false
+  },
+  "rawProductionExportCommitted": false,
+  "productionMutationPerformed": false,
+  "nextAction": "Repair production bilingual Place fields and Event media attribution, then create a fresh export and audit run."
+}

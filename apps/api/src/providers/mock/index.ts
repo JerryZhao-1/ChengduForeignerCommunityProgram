@@ -45,6 +45,14 @@ export const createMockProvider = (): ApiProvider => {
       async me(userId) {
         return withMockErrors(() => service.auth.me(userId));
       },
+      async preferences(userId) {
+        return withMockErrors(() => service.auth.preferences(userId));
+      },
+      async updatePreferences(userId, preferredLanguage) {
+        return withMockErrors(() =>
+          service.auth.updatePreferences(userId, preferredLanguage)
+        );
+      },
       async wechatMiniappSession(input) {
         return withMockErrors(() =>
           service.auth.login({
@@ -214,6 +222,11 @@ export const createMockProvider = (): ApiProvider => {
       async moderate(id, input, actorId) {
         return withMockErrors(() => service.posts.moderate(id, input, actorId));
       },
+      async permanentlyDelete(id, actorId) {
+        return withMockErrors(() =>
+          service.posts.permanentlyDelete(id, actorId)
+        );
+      },
       async updateOps(id, input, actorId) {
         return withMockErrors(() => service.posts.updateOps(id, input, actorId));
       },
@@ -291,10 +304,10 @@ export const createMockProvider = (): ApiProvider => {
         return service.places.mapMarkers();
       },
       async create(input) {
-        return service.places.create(input);
+        return withMockErrors(() => service.places.create(input));
       },
       async update(id, input) {
-        return service.places.update(id, input);
+        return withMockErrors(() => service.places.update(id, input));
       },
       async delete(id) {
         return service.places.delete(id);

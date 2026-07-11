@@ -380,6 +380,21 @@ export const registerDiscoverRoutes = (router: Router) => {
     }
   );
 
+  router.delete(
+    "/admin/discover/posts/:id",
+    requireRole("community_admin", "system_admin"),
+    async (ctx) => {
+      const result = await ctx.state.provider.posts.permanentlyDelete(
+        ctx.params.id,
+        ctx.state.actor._id
+      );
+      if (!result) {
+        throw apiError("NOT_FOUND", "Post not found.", 404);
+      }
+      sendSuccess(ctx, result);
+    }
+  );
+
   router.post(
     "/admin/discover/posts/:id/ops",
     requireRole("community_admin", "system_admin"),

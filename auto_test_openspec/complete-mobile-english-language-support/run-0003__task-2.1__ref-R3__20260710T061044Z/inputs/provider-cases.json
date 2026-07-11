@@ -1,0 +1,6 @@
+{
+  "actors": ["user_001", "user_002", "unauthenticated", "invalid"],
+  "preferences": ["zh", "en", "fr-invalid", "omitted-on-login"],
+  "events": ["legacy-address_text", "canonical-bilingual-address"],
+  "notifications": ["new-bilingual", "legacy-single-language", "cross-user-id"]
+}

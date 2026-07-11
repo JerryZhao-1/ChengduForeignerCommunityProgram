@@ -1,0 +1,2 @@
+PASS pnpm --filter @community-map/mobile typecheck (exit 0)
+PASS fixed-copy/direct-appCopy scan: no matches (rg exit 1)

@@ -1,0 +1,52 @@
+{
+  "mode": "apply",
+  "scope": "all",
+  "inputDigest": "7cc40fc7181e2e99953aebf9848912bf5b812207895d13f2657384288bd58075",
+  "planDigest": "a8fd618fc33e98e3b2978d50b5d3fad9e38777dc42b6f48e84916ffc1a6db28c",
+  "mutationPerformed": true,
+  "actionCount": 3,
+  "actions": [
+    {
+      "collection": "events",
+      "recordId": "event_legacy",
+      "field": "address_zh",
+      "sourceField": "address_text",
+      "value": "桐梓林社区中心",
+      "operation": "copy_known_language_legacy_value"
+    },
+    {
+      "collection": "notifications",
+      "recordId": "notification_legacy_zh",
+      "field": "title_zh",
+      "sourceField": "title",
+      "value": "报名成功",
+      "operation": "copy_known_language_legacy_value"
+    },
+    {
+      "collection": "notifications",
+      "recordId": "notification_legacy_zh",
+      "field": "body_zh",
+      "sourceField": "body",
+      "value": "您已报名。",
+      "operation": "copy_known_language_legacy_value"
+    }
+  ],
+  "editorialReview": [
+    {
+      "collection": "events",
+      "recordId": "event_legacy",
+      "reason": "address_en requires reviewed editorial translation; no value was generated."
+    },
+    {
+      "collection": "notifications",
+      "recordId": "notification_legacy_zh",
+      "reason": "en notification copy requires reviewed editorial content; no translation was generated."
+    },
+    {
+      "collection": "notifications",
+      "recordId": "notification_unknown",
+      "reason": "Legacy notification language is unknown; add an explicit zh/en migration hint before copying."
+    }
+  ],
+  "outputDigest": "5bee62f3a1212b1ddb4fe75201192d0be7397e23b028324d97dc6adb9fe2f97f"
+}

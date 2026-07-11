@@ -1,0 +1,13 @@
+{
+  "events": [
+    { "_id": "event_legacy", "address_text": " 桐梓林社区中心 ", "address_zh": "", "address_en": "" },
+    { "_id": "event_current", "address_text": "旧地址", "address_zh": "当前中文地址", "address_en": "Current English address" }
+  ],
+  "notifications": [
+    { "_id": "notification_legacy_zh", "title": "报名成功", "body": "您已报名。", "title_zh": null, "title_en": null, "body_zh": null, "body_en": null },
+    { "_id": "notification_unknown", "title": "Legacy title", "body": "Legacy body", "title_zh": null, "title_en": null, "body_zh": null, "body_en": null }
+  ],
+  "migrationHints": {
+    "notificationLegacyLocales": { "notification_legacy_zh": "zh" }
+  }
+}

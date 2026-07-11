@@ -5,11 +5,11 @@ import type { Comment } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy } from "@/i18n";
 import { useAppStore } from "@/stores/app-store";
 
 const { state } = useAppStore();
-const copy = computed(() => appCopy[state.locale].discover);
+const copy = computed(() => getMobileCopy(state.locale).discover);
 const comments = ref<Comment[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref("");

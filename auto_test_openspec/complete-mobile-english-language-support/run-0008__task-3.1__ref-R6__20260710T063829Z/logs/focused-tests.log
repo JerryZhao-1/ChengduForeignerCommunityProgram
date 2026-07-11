@@ -1,0 +1,21 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ apps/mobile/src/i18n/navigation.spec.ts (3 tests) 3ms
+stderr | apps/mobile/src/stores/app-store.spec.ts > offline-first selection and synchronization > does not roll back the UI when synchronization fails
+Language preference synchronization failed. Error: offline
+    at /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/src/stores/app-store.spec.ts:93:13
+    at syncLocalePreference (/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/src/stores/app-store.ts:94:11)
+    at Object.setLocale (/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/src/stores/app-store.ts:126:11)
+    at /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/src/stores/app-store.spec.ts:96:17
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/node_modules/.pnpm/@vitest+runner@3.2.4/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+ ✓ apps/mobile/src/stores/app-store.spec.ts (12 tests) 5ms
+ ✓ apps/mobile/src/i18n/catalog.spec.ts (8 tests) 13ms
+
+ Test Files  3 passed (3)
+      Tests  23 passed (23)
+   Start at  14:39:15
+   Duration  477ms (transform 203ms, setup 0ms, collect 333ms, tests 21ms, environment 0ms, prepare 135ms)
+

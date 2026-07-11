@@ -1,6 +1,4 @@
-export type PlacesLocale = "zh" | "en";
-
-const placesCopy = {
+export const placesCopy = {
   zh: {
     list: {
       title: "社区地点",
@@ -16,7 +14,8 @@ const placesCopy = {
       nameSort: "名称排序",
       clearFilters: "清空筛选",
       categoryLabel: "分类",
-      recommendedBadge: "推荐"
+      recommendedBadge: "推荐",
+      fallbackBadge: "当前卡片使用了回退语言"
     },
     map: {
       title: "社区地点地图",
@@ -28,6 +27,8 @@ const placesCopy = {
       openRecommended: "推荐地点",
       openDetail: "查看地点详情",
       openNavigation: "发起导航",
+      mapUnavailableTitle: "地图暂不可用",
+      mapUnavailableBody: "当前 H5 环境未配置地图服务，请使用地点摘要、列表或详情继续浏览。",
       navigationUnavailable: "该地点暂不能导航",
       navigationFailed: "打开导航失败，请稍后再试",
       recommendedBadge: "推荐地点"
@@ -56,7 +57,77 @@ const placesCopy = {
       shareFallbackTitle: "社区地点",
       navigationUnavailable: "该地点暂不能导航",
       navigationFailed: "打开导航失败，请稍后再试",
-      recommendedFallback: "推荐地点"
+      recommendedFallback: "推荐地点",
+      galleryAlt: "{name} 图集 {index}",
+      externalGalleryAlt: "{name} 外部图集 {index}",
+      externalImageUnavailable: "外部图片暂不可用",
+      relatedDiscussion: "相关讨论",
+      commentsCount: "{count} 条评论"
+    },
+    categories: {
+      topLevel: {
+        "public-service": "公共服务",
+        "food-drink": "餐饮",
+        shopping: "购物",
+        lifestyle: "生活方式",
+        education: "教育",
+        "health-wellness": "健康",
+        entertainment: "娱乐",
+        "outdoor-sports": "户外运动",
+        transport: "交通",
+        community: "社区"
+      },
+      secondary: {
+        "community-center": "社区中心",
+        "service-desk": "服务台",
+        "government-service": "政务服务",
+        "public-facility": "公共设施",
+        cafe: "咖啡馆",
+        restaurant: "餐厅",
+        "bakery-dessert": "烘焙甜品",
+        bar: "酒吧",
+        supermarket: "超市",
+        mall: "购物中心",
+        market: "市场",
+        "retail-store": "零售店",
+        "beauty-salon": "美容美发",
+        laundry: "洗衣",
+        "repair-service": "维修服务",
+        "pet-service": "宠物服务",
+        kindergarten: "幼儿园",
+        "language-school": "语言学校",
+        "training-center": "培训中心",
+        library: "图书馆",
+        clinic: "诊所",
+        pharmacy: "药店",
+        dental: "牙科",
+        hospital: "医院",
+        cinema: "电影院",
+        ktv: "KTV",
+        "arts-culture": "艺术文化",
+        leisure: "休闲娱乐",
+        park: "公园",
+        "sports-field": "运动场",
+        gym: "健身房",
+        trail: "步道",
+        "metro-station": "地铁站",
+        "bus-stop": "公交站",
+        parking: "停车场",
+        "taxi-point": "出租车上客点",
+        "public-square": "公共广场",
+        "neighborhood-space": "邻里空间",
+        "social-space": "社交空间",
+        "volunteer-point": "志愿服务点"
+      },
+      tags: {
+        service: "服务",
+        family: "亲子友好",
+        community: "社区",
+        coffee: "咖啡",
+        social: "社交",
+        "english-friendly": "英语友好",
+        documents: "证件事务"
+      }
     }
   },
   en: {
@@ -75,7 +146,8 @@ const placesCopy = {
       nameSort: "Sort by name",
       clearFilters: "Clear filters",
       categoryLabel: "Category",
-      recommendedBadge: "Recommended"
+      recommendedBadge: "Recommended",
+      fallbackBadge: "This card uses fallback-language content"
     },
     map: {
       title: "Community Places Map",
@@ -88,6 +160,9 @@ const placesCopy = {
       openRecommended: "Recommended places",
       openDetail: "View place detail",
       openNavigation: "Start navigation",
+      mapUnavailableTitle: "Map Unavailable",
+      mapUnavailableBody:
+        "The H5 map service is not configured. Use the place summary, list, or details to continue.",
       navigationUnavailable: "Navigation is unavailable for this place",
       navigationFailed: "Could not open navigation. Please try again.",
       recommendedBadge: "Recommended"
@@ -116,14 +191,77 @@ const placesCopy = {
       shareFallbackTitle: "Community place",
       navigationUnavailable: "Navigation is unavailable for this place",
       navigationFailed: "Could not open navigation. Please try again.",
-      recommendedFallback: "Recommended place"
+      recommendedFallback: "Recommended place",
+      galleryAlt: "{name} gallery image {index}",
+      externalGalleryAlt: "{name} external gallery image {index}",
+      externalImageUnavailable: "External image unavailable",
+      relatedDiscussion: "Related Discussion",
+      commentsCount: "{count} comments"
+    },
+    categories: {
+      topLevel: {
+        "public-service": "Public Services",
+        "food-drink": "Food & Drink",
+        shopping: "Shopping",
+        lifestyle: "Lifestyle",
+        education: "Education",
+        "health-wellness": "Health & Wellness",
+        entertainment: "Entertainment",
+        "outdoor-sports": "Outdoor Sports",
+        transport: "Transport",
+        community: "Community"
+      },
+      secondary: {
+        "community-center": "Community Center",
+        "service-desk": "Service Desk",
+        "government-service": "Government Services",
+        "public-facility": "Public Facility",
+        cafe: "Cafe",
+        restaurant: "Restaurant",
+        "bakery-dessert": "Bakery & Desserts",
+        bar: "Bar",
+        supermarket: "Supermarket",
+        mall: "Shopping Mall",
+        market: "Market",
+        "retail-store": "Retail Store",
+        "beauty-salon": "Beauty Salon",
+        laundry: "Laundry",
+        "repair-service": "Repair Service",
+        "pet-service": "Pet Service",
+        kindergarten: "Kindergarten",
+        "language-school": "Language School",
+        "training-center": "Training Center",
+        library: "Library",
+        clinic: "Clinic",
+        pharmacy: "Pharmacy",
+        dental: "Dental Clinic",
+        hospital: "Hospital",
+        cinema: "Cinema",
+        ktv: "KTV",
+        "arts-culture": "Arts & Culture",
+        leisure: "Leisure",
+        park: "Park",
+        "sports-field": "Sports Field",
+        gym: "Gym",
+        trail: "Trail",
+        "metro-station": "Metro Station",
+        "bus-stop": "Bus Stop",
+        parking: "Parking",
+        "taxi-point": "Taxi Point",
+        "public-square": "Public Square",
+        "neighborhood-space": "Neighborhood Space",
+        "social-space": "Social Space",
+        "volunteer-point": "Volunteer Point"
+      },
+      tags: {
+        service: "Services",
+        family: "Family Friendly",
+        community: "Community",
+        coffee: "Coffee",
+        social: "Social",
+        "english-friendly": "English Friendly",
+        documents: "Documents"
+      }
     }
   }
 } as const;
-
-export const getPlacesCopy = <
-  TSection extends keyof (typeof placesCopy)["zh"]
->(
-  locale: PlacesLocale,
-  section: TSection
-) => placesCopy[locale][section];

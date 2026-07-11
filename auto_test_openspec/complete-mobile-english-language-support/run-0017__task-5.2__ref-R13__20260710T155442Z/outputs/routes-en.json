@@ -1,0 +1,164 @@
+[
+  {
+    "name": "home",
+    "route": "pages/home/index",
+    "nonblank": true,
+    "preview": "- generic: Home\n- generic: Tongzilin\n- generic: Tongzilin Community Guide\n- generic: Explore community events, places, and neighborhood updates.\n- generic: Events\n- generic: Browse community events and register.\n- generic: Weekend Neighborhood Brunch\n- generic: Apr 2, 10:00 AM – Apr 2, 12:00 PM\n- generic: Full Event\n- generic: Jun 2, 10:00 AM – Jun 2, 12:00 PM\n- generic: Announcements\n- generic: Read the latest community updates.\n- generic: Community Center Hours for Qingming Festival\n- generic: Places\n- generic: Browse local places and recommendations.\n- generic: View Places\n- generic: Recommended Places\n- generic: Tongzilin Community Center\n- generic: No. 88\n- generic: Global Corner Cafe\n- generic: No. 26\n- generic: Quick Actions\n- generic: Profile\n- generic: Notifications\n- generic: My Registrations\n- generic: Language\n- generic: Home\n- generic: Events\n- generic: Discover\n- generic: P"
+  },
+  {
+    "name": "events",
+    "route": "pages/events/index",
+    "nonblank": true,
+    "preview": "- generic: Events\n- generic: All\n- generic: This Week\n- generic: Upcoming\n- generic: Mine\n- generic: Weekend Neighborhood Brunch\n- generic: Weekend Neighborhood Brunch\n- generic: Registered\n- generic: A casual meet-up for old and new Tongzilin neighbors.\n- generic: Apr 2, 10:00 AM – Apr 2, 12:00 PM\n- generic: Tongzilin Community Center, First-floor Event Hall\n- generic: 60 spots\n- generic: View Details\n- generic: Full Event\n- generic: Full Event\n- generic: Registered\n- generic: Used for capacity boundary tests.\n- generic: Jun 2, 10:00 AM – Jun 2, 12:00 PM\n- generic: Tongzilin\n- generic: 2 spots\n- generic: View Details\n- generic: Closed Signup Event\n- generic: Closed Signup Event\n- generic: Event Ended\n- generic: Used for signup deadline tests.\n- generic: Jan 2, 10:00 AM – Jan 2, 12:00 PM\n- generic: Tongzilin\n- generic: 20 spots\n- generic: View Details\n- generic: Home\n- generic: Events\n- "
+  },
+  {
+    "name": "eventDetail",
+    "route": "pages/events/detail",
+    "nonblank": true,
+    "preview": "- generic: Event Details\n- generic: Weekend Neighborhood Brunch\n- generic: Weekend Neighborhood Brunch\n- generic: Registered\n- generic: \"Time:\"\n- text: Apr 2, 10:00 AM – Apr 2, 12:00 PM\n- generic: \"Location:\"\n- text: Tongzilin Community Center, First-floor Event Hall\n- generic: \"Capacity:\"\n- text: \"60\"\n- generic: About This Event\n- generic: Light food, community overview, and volunteer onboarding.\n- generic: Related Discussion\n- generic: Weekend language exchange recap with photos and video\n- generic: Emma\n- generic: 0 comments\n- generic: Start Discussion\n- generic: Entry Ticket\n- generic: TZL-20260402-001\n- generic: Registered"
+  },
+  {
+    "name": "eventSignup",
+    "route": "pages/events/signup",
+    "nonblank": true,
+    "preview": "- generic: Event Registration\n- generic: Weekend Neighborhood Brunch\n- generic: \"Time: Apr 2, 10:00 AM – Apr 2, 12:00 PM\"\n- generic: \"Location: Tongzilin Community Center, First-floor Event Hall\"\n- generic: Registered\n- generic: You are already registered for this event.\n- generic: Registration Details\n- generic: Name\n- generic: Enter your name\n- textbox [disabled]\n- generic: Phone\n- textbox [disabled]: \"13800000000\"\n- generic: Attendees\n- spinbutton [disabled]: \"1\"\n- generic: Registered\n- generic: Registration Successful\n- generic: \"Ticket Code: TZL-20260402-001\""
+  },
+  {
+    "name": "discover",
+    "route": "pages/discover/index",
+    "nonblank": true,
+    "preview": "- generic: Discover\n- generic: Read neighborhood tips, questions, and local stories.\n- generic: Search titles or content\n- searchbox\n- generic \"Create Post\": +\n- generic: Sort by\n- generic: Latest Posts\n- generic: Most Liked\n- generic: Most Saved\n- generic: Most Discussed\n- generic: Text\n- generic: 提醒：最近雨天较多，地铁口到社区中心有一段路比较滑\n- generic: Chinese\n- generic: 这两天傍晚雨比较大，桐梓林地铁站出来往社区中心走时，靠近路口的一小段地砖会比较滑。带小朋友或推车的居民可以从旁边更宽的路绕一下。没有配图，主要是提醒大家注意安全。\n- generic: Jerry\n- generic: 2026-04-02\n- generic: 桐梓林地铁站附近\n- generic: 0 Comments\n- generic: 8 ♥\n- generic: \"#notice\"\n- generic: \"#weather\"\n- generic: \"#safety\"\n- generic: Images 3\n- generic: Weekend language exchange recap with photos and video\n- generic: English\n- generic: We had a small language exchange near Tongzilin last weekend. The first photo shows the sign-in ...\n- generic: Emma\n- generic: 2026-04-01\n- generic: Tongzilin Community Center\n- generic: "
+  },
+  {
+    "name": "discoverDetail",
+    "route": "pages/discover/detail",
+    "nonblank": true,
+    "preview": "- generic: ‹\n- generic: Jerry\n- generic: user_001\n- generic: Jerry\n- generic: user_001\n- generic: 周边哪里能买到合适的婴儿用品？\n- generic \"More actions\":\n  - generic: ⋯\n- generic: Chinese\n- generic: 2026-03-28\n- generic: 桐梓林地铁站附近\n- generic: 刚搬来桐梓林，想找靠谱的母婴店或药店，欢迎推荐。\n- generic: \"#family\"\n- generic: \"#help\"\n- generic: Comments 1\n- generic: Visible comments are loaded from the API and refreshed after posting.\n- generic: Emma\n- generic: 社区中心附近有一家口碑不错的母婴店。\n- generic: 3/28/2026\n- generic: ♡\n- generic: \"0\"\n- generic \"More actions\":\n  - generic: ⋯\n- generic: ✎\n- generic: Say something...\n- textbox\n- generic: ♡\n- generic: \"12\"\n- generic: ☆\n- generic: \"3\"\n- generic: ↗\n- generic: \"2\""
+  },
+  {
+    "name": "discoverCreate",
+    "route": "pages/discover/create",
+    "nonblank": true,
+    "preview": "- generic: Create Post\n- generic: Create a Community Post\n- generic: Share a local tip, ask a question, or help neighbors.\n- generic: Title\n- generic: \"Example: Weekend language exchange?\"\n- textbox\n- generic: Content\n- generic: Add time, place, context, or what you need.\n- textbox\n- generic: Language\n- generic: Chinese\n- generic: English\n- generic: Tags\n- generic: \"Type a # tag, e.g. coffee\"\n- textbox\n- generic: \"#help\"\n- generic: 求助 / Help\n- generic: \"#coffee\"\n- generic: 咖啡 / Coffee\n- generic: Location\n- generic: \"Example: Tongzilin\"\n- textbox\n- generic: Related Place\n- generic: None\n- generic: Related Event\n- generic: None\n- generic: Images / Video\n- generic: Choose Media\n- generic: External Media URLs\n- generic: Optional. One image or video URL per line\n- textbox\n- generic: Media Preview\n- generic: No media yet. Text-only posts are welcome too.\n- generic: Publish"
+  },
+  {
+    "name": "discoverSearch",
+    "route": "pages/discover/search",
+    "nonblank": true,
+    "preview": "- generic: ‹\n- generic: Search\n- generic: ⌕\n- generic: Search titles or content\n- searchbox [active]\n- generic: Search History\n- generic: No search history yet."
+  },
+  {
+    "name": "discoverReport",
+    "route": "pages/discover/report",
+    "nonblank": true,
+    "preview": "- generic: ‹\n- generic: Report Post\n- generic: Done\n- generic: Reason\n- generic: Select a reason\n- generic: Details\n- generic: Describe the issue, where it appears, or any useful context.\n- textbox\n- generic: Evidence\n- generic: Optional. Add images, videos, or other evidence.\n- generic: Add Image\n- generic: Add Video\n- generic: No evidence added yet."
+  },
+  {
+    "name": "placesList",
+    "route": "pages/places/index",
+    "nonblank": true,
+    "preview": "- generic: Places\n- generic: Community Places\n- generic: Browse community places with keyword search, category switching, and recommended filters.\n- generic: Recommended places\n- generic: Search place name or summary\n- textbox\n- generic: \"Category: All\"\n- generic: Recommended first\n- generic: Sort by name\n- generic: Recommended places\n- generic: Clear filters\n- generic: Tongzilin Community Center\n- generic: Recommended\n- generic: Public Services / Community Center\n- generic: No. 88\n- generic: Main offline hub for events, announcements, and resident services.\n- generic: \"#Services\"\n- generic: \"#Family Friendly\"\n- generic: \"#Community\"\n- generic: Global Corner Cafe\n- generic: Recommended\n- generic: Food & Drink / Cafe\n- generic: No. 26\n- generic: A cafe often used for meet-ups and language exchange.\n- generic: \"#Coffee\"\n- generic: \"#Social\"\n- generic: \"#English Friendly\""
+  },
+  {
+    "name": "placeDetail",
+    "route": "pages/places/detail",
+    "nonblank": true,
+    "preview": "- generic: Place Details\n- generic: Tongzilin Community Center\n- generic: Public Services / Community Center\n- generic: \"#Services\"\n- generic: \"#Family Friendly\"\n- generic: \"#Community\"\n- generic: Address\n- generic: No. 88, Tongzilin North Road, Wuhou District, Chengdu\n- generic: Business hours\n- generic: Mon-Sun 09:00-18:00\n- generic: Intro\n- generic: Main offline hub for events, announcements, and resident services.\n- generic: Best first stop to understand local community services.\n- generic: Gallery\n- generic: Start navigation\n- generic: View on map\n- generic: Favorite\n- generic: Copy link\n- generic: Best first stop to understand local community services.\n- generic: Related Discussion\n- generic: 社区中心活动厅短视频预览\n- generic: Jerry\n- generic: 0 comments\n- generic: Weekend language exchange recap with photos and video\n- generic: Emma\n- generic: 0 comments"
+  },
+  {
+    "name": "placeMap",
+    "route": "pages/places/map",
+    "nonblank": true,
+    "preview": "- generic: Places Map\n- generic: Community Places Map\n- generic: Start on the map, then move into list filters or place details.\n- generic: Open full list\n- generic: Recommended places\n- generic: Map Unavailable\n- generic: The H5 map service is not configured. Use the place summary, list, or details to continue.\n- generic: Tongzilin Community Center\n- generic: Public Services\n- generic: Recommended\n- generic: View place detail\n- generic: Start navigation\n- generic: Home\n- generic: Events\n- generic: Discover\n- generic: Places\n- generic: Me"
+  },
+  {
+    "name": "placesRecommended",
+    "route": "pages/places/recommended",
+    "nonblank": true,
+    "preview": "- generic: Places\n- generic: Community Places\n- generic: Browse community places with keyword search, category switching, and recommended filters.\n- generic: Recommended places\n- generic: Search place name or summary\n- textbox\n- generic: \"Category: All\"\n- generic: Recommended first\n- generic: Sort by name\n- generic: Recommended places\n- generic: Clear filters\n- generic: Tongzilin Community Center\n- generic: Recommended\n- generic: Public Services / Community Center\n- generic: No. 88\n- generic: Main offline hub for events, announcements, and resident services.\n- generic: \"#Services\"\n- generic: \"#Family Friendly\"\n- generic: \"#Community\"\n- generic: Global Corner Cafe\n- generic: Recommended\n- generic: Food & Drink / Cafe\n- generic: No. 26\n- generic: A cafe often used for meet-ups and language exchange.\n- generic: \"#Coffee\"\n- generic: \"#Social\"\n- generic: \"#English Friendly\""
+  },
+  {
+    "name": "login",
+    "route": "pages/more/login",
+    "nonblank": true,
+    "preview": "- generic: Sign In\n- generic: WeChat Sign In\n- generic: Sign In"
+  },
+  {
+    "name": "me",
+    "route": "pages/more/index",
+    "nonblank": true,
+    "preview": "- generic: Me\n- generic: Me\n- generic \"Notifications\":\n  - generic: \"1\"\n- generic: Jerry\n- generic: Active\n- generic: \"0\"\n- generic: Followers\n- generic: \"0\"\n- generic: Following\n- generic: \"5\"\n- generic: Posts\n- generic: \"0\"\n- generic: Likes\n- generic: \"0\"\n- generic: Favorites\n- generic: View Profile\n- generic: \">\"\n- generic: Notifications\n- generic: \">\"\n- generic: My Registrations\n- generic: \">\"\n- generic: Comments\n- generic: \">\"\n- generic: Reports\n- generic: \">\"\n- generic: Language\n- generic: \">\"\n- generic: Home\n- generic: Events\n- generic: Discover\n- generic: Places\n- generic: Me"
+  },
+  {
+    "name": "notifications",
+    "route": "pages/more/notifications",
+    "nonblank": true,
+    "preview": "- generic: Notifications\n- generic: Notifications\n- generic: Registration Confirmed\n- generic: Unread\n- generic: You have registered for the Weekend Neighborhood Brunch.\n- generic: Mar 28, 10:05 AM\n- generic: Mark as Read"
+  },
+  {
+    "name": "registrations",
+    "route": "pages/more/my-registrations",
+    "nonblank": true,
+    "preview": "- generic: My Registrations\n- generic: My Registrations\n- generic: \"Registration: reg_001\"\n- generic: \"Status: Confirmed\"\n- generic: \"Contact: Jerry\"\n- generic: \"Phone: 13800000000\"\n- generic: \"Attendees: 2\"\n- generic: \"Ticket ID: ticket_001\"\n- generic: \"Registration: reg_full_001\"\n- generic: \"Status: Confirmed\"\n- generic: \"Contact: Jerry\"\n- generic: \"Phone: 13800000000\"\n- generic: \"Attendees: 2\"\n- generic: \"Ticket ID: ticket_full_001\""
+  },
+  {
+    "name": "favorites",
+    "route": "pages/more/my-favorites",
+    "nonblank": true,
+    "preview": "- generic: My Favorites\n- generic: My Favorites\n- generic: You have not saved any posts yet."
+  },
+  {
+    "name": "likes",
+    "route": "pages/more/my-likes",
+    "nonblank": true,
+    "preview": "- generic: My Likes\n- generic: My Likes\n- generic: You have not liked any posts yet."
+  },
+  {
+    "name": "posts",
+    "route": "pages/more/my-posts",
+    "nonblank": true,
+    "preview": "- generic: My Posts\n- generic: My Posts\n- generic: Text\n- generic: 周边哪里能买到合适的婴儿用品？\n- generic: Public\n- generic: 刚搬来桐梓林，想找靠谱的母婴店或药店，欢迎推荐。\n- generic: 1 Comments\n- generic: 12 ♥\n- generic: 2026-03-28\n- generic: 桐梓林早晨散步路线分享\n- generic: Public\n- generic: 今天从桐梓林北路一路走到社区中心，路上树荫比较多，早上 8 点前人不算多。适合遛狗、推婴儿车，也适合刚搬来的朋友熟悉周边。建议带水，靠近地铁站的位置早高峰会稍微拥挤。\n- generic: 0 Comments\n- generic: 31 ♥\n- generic: 2026-03-29\n- generic: Video\n- generic: 社区中心活动厅短视频预览\n- generic: Public\n- generic: 这是活动厅空间的一个短视频预览，后续如果有语言交换、亲子活动或者小型讲座，可以考虑安排在这里。视频主要用来测试 Discover 的视频帖展示效果。\n- generic: 0 Comments\n- generic: 19 ♥\n- generic: 2026-03-31\n- generic: Text\n- generic: 提醒：最近雨天较多，地铁口到社区中心有一段路比较滑\n- generic: Public\n- generic: 这两天傍晚雨比较大，桐梓林地铁站出来往社区中心走时，靠近路口的一小段地砖会比较滑。带小朋友或推车的居民可以从旁边更宽的路绕一下。没有配图，主要是提醒大家注意安全。\n- generic: 0 Comments\n- generic: 8 ♥\n- generic: 2026-04-02\n- generic: Text\n- generic: Hidden moderation post\n- generic: Hidden\n- generic: "
+  },
+  {
+    "name": "comments",
+    "route": "pages/more/my-comments",
+    "nonblank": true,
+    "preview": "- generic: My Comments\n- generic: My Comments\n- generic: You have not commented yet."
+  },
+  {
+    "name": "commentDetail",
+    "route": "pages/more/my-comment-detail",
+    "nonblank": true,
+    "preview": "- generic: Comment Details\n- generic: Comment Detail"
+  },
+  {
+    "name": "reports",
+    "route": "pages/more/my-reports",
+    "nonblank": true,
+    "preview": "- generic: My Reports\n- generic: My Reports\n- generic: You have not submitted reports yet."
+  },
+  {
+    "name": "reportDetail",
+    "route": "pages/more/my-report-detail",
+    "nonblank": true,
+    "preview": "- generic: Report Details\n- generic: Report Detail"
+  },
+  {
+    "name": "profile",
+    "route": "pages/more/profile",
+    "nonblank": true,
+    "preview": "- generic: ‹\n- generic: Jerry\n- generic: Jerry\n- generic: \"@user_001\"\n- generic: ◎\n- text: Tongzilin\n- generic: No bio yet.\n- generic: Edit Profile\n- generic: Share Profile\n- generic: \"4\"\n- generic: Posts\n- generic: \"0\"\n- generic: Followers\n- generic: \"0\"\n- generic: Following\n- generic: Posts\n- generic: Videos\n- generic: Text\n- generic: 周边哪里能买到合适的婴儿用品？\n- generic: 桐梓林早晨散步路线分享\n- generic: ▶\n- generic: 社区中心活动厅短视频预览\n- generic: Text\n- generic: 提醒：最近雨天较多，地铁口到社区中心有一段路比较滑"
+  },
+  {
+    "name": "follows",
+    "route": "pages/more/follows",
+    "nonblank": true,
+    "preview": "- generic: Follows\n- generic: Followers\n- generic: No users yet"
+  },
+  {
+    "name": "language",
+    "route": "pages/more/language-settings",
+    "nonblank": true,
+    "preview": "- generic: Language\n- generic: Language\n- generic: Choose the interface language. Formal content uses your selection and clearly indicates any fallback.\n- radiogroup \"Language\":\n  - radio \"中文 ZH\":\n    - generic: 中文\n    - generic: ZH\n  - radio \"English EN ✓\" [checked]:\n    - generic: English\n    - generic: EN\n    - generic: ✓"
+  }
+]

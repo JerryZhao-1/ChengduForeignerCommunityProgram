@@ -127,6 +127,9 @@ importers:
       vue:
         specifier: 3.4.21
         version: 3.4.21(typescript@5.9.3)
+      vue-router:
+        specifier: 4.3.3
+        version: 4.3.3(vue@3.4.21(typescript@5.9.3))
     devDependencies:
       '@dcloudio/types':
         specifier: ^3.4.19
@@ -4110,6 +4113,11 @@ packages:
 
   vue-component-type-helpers@3.2.6:
     resolution: {integrity: sha512-O02tnvIfOQVmnvoWwuSydwRoHjZVt8UEBR+2p4rT35p8GAy5VTlWP8o5qXfJR/GWCN0nVZoYWsVUvx2jwgdBmQ==}
+
+  vue-router@4.3.3:
+    resolution: {integrity: sha512-8Q+u+WP4N2SXY38FDcF2H1dUEbYVHVPtPCPZj/GTZx8RCbiB8AtJP9+YIxn4Vs0svMTNQcLIzka4GH7Utkx9xQ==}
+    peerDependencies:
+      vue: ^3.2.0
 
   vue-router@4.6.4:
     resolution: {integrity: sha512-Hz9q5sa33Yhduglwz6g9skT8OBPii+4bFn88w6J+J4MfEo4KRRpmiNG/hHHkdbRFlLBOqxN8y8gf2Fb0MTUgVg==}
@@ -8752,6 +8760,11 @@ snapshots:
   vscode-uri@3.1.0: {}
 
   vue-component-type-helpers@3.2.6: {}
+
+  vue-router@4.3.3(vue@3.4.21(typescript@5.9.3)):
+    dependencies:
+      '@vue/devtools-api': 6.6.4
+      vue: 3.4.21(typescript@5.9.3)
 
   vue-router@4.6.4(vue@3.4.21(typescript@5.9.3)):
     dependencies:

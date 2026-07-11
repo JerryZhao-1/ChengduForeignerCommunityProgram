@@ -1,0 +1,23 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "1.2",
+  "ref": "R2",
+  "commands": [
+    {
+      "command": "./node_modules/.bin/vitest run packages/shared/test/bilingual-contracts.spec.ts packages/shared/test/contracts.spec.ts packages/shared/test/places-marker-contract.spec.ts",
+      "exitCode": 0,
+      "log": "logs/focused-shared-tests.log"
+    },
+    {
+      "command": "pnpm --filter @community-map/shared typecheck",
+      "exitCode": 0,
+      "log": "logs/shared-typecheck.log"
+    }
+  ],
+  "assertions": {
+    "contractFixturesParsed": true,
+    "readinessFieldPathsVerified": true,
+    "publicPlaceBoundariesUnchanged": true,
+    "sharedTypecheckCompleted": true
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "provenance": "Assertions executed in apps/api/test/bilingual-publication-guards.spec.ts",
+  "cases": [
+    {
+      "transition": "event draft -> published with missing title_en",
+      "expected": "400 field=title_en; before=after"
+    },
+    {
+      "transition": "published event partial placeholder edit",
+      "expected": "400 field=summary_en; before=after"
+    },
+    {
+      "transition": "place draft -> published with missing intro_en",
+      "expected": "400 field=intro_en; before=after"
+    },
+    {
+      "transition": "published place -> recommended with placeholder reason",
+      "expected": "400 field=recommended_reason_en; before=after"
+    },
+    {
+      "transition": "complete Event/Place publication",
+      "expected": "mutation succeeds and becomes public"
+    }
+  ],
+  "assertionsExecuted": true
+}

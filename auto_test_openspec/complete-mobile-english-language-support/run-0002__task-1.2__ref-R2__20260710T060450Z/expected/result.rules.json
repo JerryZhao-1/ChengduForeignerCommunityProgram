@@ -1,0 +1,10 @@
+{
+  "commandExitCodes": [0, 0],
+  "legacyContractsParse": true,
+  "bilingualContractsParse": true,
+  "invalidLocaleRejected": true,
+  "draftParsingIndependentFromPublicationReadiness": true,
+  "exactIssueFieldsReturned": true,
+  "recommendedReasonsConditional": true,
+  "publicPlaceBoundariesUnchanged": true
+}

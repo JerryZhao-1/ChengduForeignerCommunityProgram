@@ -1,7 +1,7 @@
 export const appCopy = {
   zh: {
     homeTitle: "桐梓林社区导览",
-    homeSubtitle: "Phase 1 骨架优先固定入口、接口和样例数据。",
+    homeSubtitle: "发现社区活动、地点与邻里动态。",
     moreActions: "常用入口",
     discover: {
       feedTitle: "社区发现",
@@ -65,8 +65,8 @@ export const appCopy = {
       mediaPicking: "选择中...",
       mediaUploading: "媒体上传中...",
       mediaUploadError: "媒体上传失败，请移除后重试",
-      imageUrlsLabel: "开发备用媒体 URL",
-      imageUrlsPlaceholder: "可选，每行一个图片或视频 URL，用于本地调试",
+      imageUrlsLabel: "外部媒体 URL",
+      imageUrlsPlaceholder: "可选，每行一个图片或视频 URL",
       mediaPreviewLabel: "媒体预览",
       noMediaPreview: "还没有添加媒体，纯文字帖子也可以发布。",
       submitPost: "发布",
@@ -238,8 +238,7 @@ export const appCopy = {
   },
   en: {
     homeTitle: "Tongzilin Community Guide",
-    homeSubtitle:
-      "Phase 1 freezes entry points, interfaces, and mock data first.",
+    homeSubtitle: "Explore community events, places, and neighborhood updates.",
     moreActions: "Quick Actions",
     discover: {
       feedTitle: "Discover",
@@ -303,9 +302,9 @@ export const appCopy = {
       mediaPicking: "Choosing...",
       mediaUploading: "Uploading media...",
       mediaUploadError: "Media upload failed. Remove it and try again",
-      imageUrlsLabel: "Dev Fallback Media URLs",
+      imageUrlsLabel: "External Media URLs",
       imageUrlsPlaceholder:
-        "Optional. One image or video URL per line for local debugging",
+        "Optional. One image or video URL per line",
       mediaPreviewLabel: "Media Preview",
       noMediaPreview: "No media yet. Text-only posts are welcome too.",
       submitPost: "Publish",

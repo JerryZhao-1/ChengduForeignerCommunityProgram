@@ -3,6 +3,7 @@ export const apiPaths = {
     login: "/auth/login",
     adminLogin: "/auth/admin/login",
     me: "/auth/me",
+    preferences: "/auth/preferences",
     wechatMiniappSession: "/auth/wechat-miniapp/session"
   },
   events: {
@@ -81,6 +82,7 @@ export const apiPaths = {
     listDiscoverReports: "/admin/discover/reports",
     detailDiscoverReport: (id: string) => `/admin/discover/reports/${id}`,
     moderatePost: (id: string) => `/admin/discover/posts/${id}/moderation`,
+    permanentlyDeletePost: (id: string) => `/admin/discover/posts/${id}`,
     updateDiscoverPostOps: (id: string) => `/admin/discover/posts/${id}/ops`,
     listDiscoverTags: "/admin/discover/tags",
     upsertDiscoverTag: (id: string) => `/admin/discover/tags/${id}`,

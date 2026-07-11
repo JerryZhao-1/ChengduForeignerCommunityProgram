@@ -1,0 +1,10 @@
+{
+  "commandExitCodes": [0, 0, 0],
+  "preferencesIndependent": true,
+  "omittedPreferenceDoesNotOverwrite": true,
+  "mockCloudbaseNormalizationEqual": true,
+  "newNotificationsBilingual": true,
+  "legacyNotificationsReadable": true,
+  "crossUserMutationRejected": true,
+  "envelopesUnchanged": true
+}

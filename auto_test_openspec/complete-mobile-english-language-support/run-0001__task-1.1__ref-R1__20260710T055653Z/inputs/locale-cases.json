@@ -1,0 +1,18 @@
+{
+  "localizedPairs": [
+    { "locale": "en", "zh": "中文", "en": "English" },
+    { "locale": "en", "zh": "中文", "en": "" },
+    { "locale": "zh", "zh": "", "en": "English" },
+    { "locale": "en", "zh": "", "en": "" }
+  ],
+  "domainStates": [
+    "unavailable",
+    "offline",
+    "notOpen",
+    "alreadyRegistered",
+    "ended",
+    "closed",
+    "available"
+  ],
+  "ugc": { "title": "今晚有人打羽毛球吗？", "language": "zh" }
+}

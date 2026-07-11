@@ -4,7 +4,7 @@ import { onLoad } from "@dcloudio/uni-app";
 import type { Post, PublicProfile } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy, resolveLocalized } from "@/i18n";
 import { useAppStore } from "@/stores/app-store";
 import { getFirstMedia } from "@/pages/discover/media";
 
@@ -19,7 +19,7 @@ interface ProfileInfo {
 }
 
 const { state } = useAppStore();
-const copy = computed(() => appCopy[state.locale].profile);
+const copy = computed(() => getMobileCopy(state.locale).profile);
 
 const targetUserId = ref(state.userId);
 const statusBarHeight = ref(0);
@@ -50,8 +50,12 @@ const profile = computed<ProfileInfo>(() => {
 });
 
 const bio = computed(() => {
-  const value = state.locale === "zh" ? profile.value.bioZh : profile.value.bioEn;
-  return value || copy.value.bioFallback;
+  const localized = resolveLocalized(
+    state.locale,
+    { zh: profile.value.bioZh, en: profile.value.bioEn },
+    { optional: true }
+  );
+  return localized.value || copy.value.bioFallback;
 });
 
 const userPosts = computed(() => profileData.value?.posts ?? []);

@@ -4,8 +4,23 @@ import { ApiClientError } from "@community-map/shared";
 
 import { resolveCloudbaseFunctionPath } from "./cloudbase-path";
 import { assertSuccessfulApiResponse, normalizeApiPayload } from "./response";
+import { resolveUniRequestTransport } from "./uni-request-transport";
 
 describe("mobile API client helpers", () => {
+  it("preserves PATCH semantics through uni.request's POST transport", () => {
+    expect(
+      resolveUniRequestTransport("PATCH", {
+        "x-mock-user-id": "user_001"
+      })
+    ).toEqual({
+      method: "POST",
+      headers: {
+        "x-mock-user-id": "user_001",
+        "x-http-method-override": "PATCH"
+      }
+    });
+  });
+
   it("resolves absolute URLs without depending on the browser URL global", () => {
     expect(
       resolveCloudbaseFunctionPath(

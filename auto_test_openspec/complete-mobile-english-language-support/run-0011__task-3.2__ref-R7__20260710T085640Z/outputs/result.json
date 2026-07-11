@@ -1,0 +1,34 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "3.2",
+  "ref": "R7",
+  "result": "PASS",
+  "cli": {
+    "focusedTests": { "exitCode": 0, "tests": "15/15" },
+    "mobileTypecheck": { "exitCode": 0 },
+    "adminTypecheck": { "exitCode": 0 },
+    "builds": { "h5": 0, "mpWeixin": 0, "admin": 0 },
+    "rootTests": { "exitCode": 0, "tests": "183/183" },
+    "lint": { "exitCode": 0 }
+  },
+  "gui": {
+    "englishHome": true,
+    "englishEventsList": true,
+    "englishEventDetail": true,
+    "englishRegistrationForm": true,
+    "registrationValidation": true,
+    "registrationSuccessTicket": true,
+    "feeRemoved": true,
+    "entryTicketLocalized": true,
+    "h5MapFallback": true,
+    "adminBilingualReadiness": true,
+    "consoleErrors": []
+  },
+  "screenshots": [
+    "outputs/screenshots/events-list-english.png",
+    "outputs/screenshots/event-detail-english.png",
+    "outputs/screenshots/event-signup-english.png",
+    "outputs/screenshots/event-signup-success-ticket.png",
+    "outputs/screenshots/admin-event-bilingual.png"
+  ]
+}

@@ -16,3 +16,9 @@ export const AdminLoginRequestSchema = z.object({
 export const WechatMiniappSessionRequestSchema = z.object({
   preferred_language: LocaleSchema.optional()
 });
+
+export const AuthPreferencesSchema = z.object({
+  preferred_language: LocaleSchema
+});
+
+export const UpdateAuthPreferencesInputSchema = AuthPreferencesSchema;

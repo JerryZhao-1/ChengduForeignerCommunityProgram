@@ -9,16 +9,11 @@ import {
   CreateDiscoverTagInputSchema,
   CreateCommentInputSchema,
   CreatePostInputSchema,
-  DiscoverAuditRecordSchema,
   DiscoverAnalyticsQuerySchema,
   DiscoverAnalyticsSchema,
   DiscoverTagListQuerySchema,
-  DiscoverMeGovernanceSchema,
   DiscoverPostOpsInputSchema,
-  DiscoverReportCaseSchema,
   DiscoverTagSchema,
-  DiscoverUserGovernanceDetailSchema,
-  DiscoverUserGovernanceSummarySchema,
   EnforceUserInputSchema,
   ModeratePostInputSchema,
   ModerateCommentInputSchema,
@@ -26,6 +21,7 @@ import {
   MyPostListQuerySchema,
   MyReportListQuerySchema,
   PostInteractionStateSchema,
+  PermanentDeletePostResponseSchema,
   PostListQuerySchema,
   ProfileFollowListItemSchema,
   ProfileFollowListQuerySchema,
@@ -41,7 +37,15 @@ import {
   SetPostLikeInputSchema,
   UpsertDiscoverTagInputSchema
 } from "../schemas/discover";
-import { CommentSchema, PostSchema } from "../schemas/entities";
+import {
+  CommentSchema,
+  DiscoverAuditRecordSchema,
+  DiscoverMeGovernanceSchema,
+  DiscoverReportCaseSchema,
+  DiscoverUserGovernanceDetailSchema,
+  DiscoverUserGovernanceSummarySchema,
+  PostSchema
+} from "../schemas/entities";
 import { PageResultSchema } from "../schemas/common";
 
 export const discoverContracts = {
@@ -229,6 +233,11 @@ export const discoverContracts = {
     path: "/admin/discover/posts/:id/moderation",
     request: ModeratePostInputSchema,
     response: PostSchema
+  }),
+  permanentlyDeletePost: defineContract({
+    method: "DELETE",
+    path: "/admin/discover/posts/:id",
+    response: PermanentDeletePostResponseSchema
   }),
   updatePostOps: defineContract({
     method: "POST",

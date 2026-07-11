@@ -1,0 +1,63 @@
+{
+  "mode": "executed",
+  "environment": "cloud1-d7gxdk8t43bd639c0",
+  "executed_at": "2026-07-11T06:12:00Z",
+  "source_dry_run": "outputs/cloudbase-test-data-cleanup-dry-run-20260711.json",
+  "rollback_backups": {
+    "database": "/tmp/community-map-test-data-backup-20260711.json",
+    "storage": "/tmp/community-map-test-storage-backup-20260711.jpg"
+  },
+  "deleted": {
+    "database_records_total": 85,
+    "storage_objects_total": 1,
+    "by_collection": {
+      "events": 12,
+      "event_registrations": 16,
+      "event_tickets": 16,
+      "posts": 14,
+      "comments": 5,
+      "discover_report_cases": 2,
+      "discover_post_interactions": 6,
+      "discover_tags": 5,
+      "discover_user_follows": 1,
+      "discover_audit_records": 7,
+      "file_assets": 1
+    }
+  },
+  "preserved_and_verified": {
+    "events": ["event_001"],
+    "event_count": 1,
+    "places_count": 20,
+    "users_count": 8
+  },
+  "post_delete_totals": {
+    "discover_report_cases": 0,
+    "discover_post_interactions": 1,
+    "comments": 0,
+    "discover_audit_records": 0,
+    "discover_user_follows": 0,
+    "event_tickets": 0,
+    "event_registrations": 0,
+    "posts": 0,
+    "events": 1,
+    "discover_tags": 0,
+    "file_assets": 0,
+    "places": 20,
+    "users": 8
+  },
+  "unplanned_record_preserved": {
+    "collection": "discover_post_interactions",
+    "id": "post_interaction_post_80c9e94f-d7d9-4663-a3e6-a0e73a8936c8_wx_8c48e2b469edd7ef3d723366",
+    "reason": "The orphan record was not listed in the user-approved dry-run whitelist, so it was not deleted."
+  },
+  "online_smoke": {
+    "api_health": "pass",
+    "public_events_total": 1,
+    "public_discover_posts_total": 0,
+    "public_places_total": 11
+  },
+  "remaining_content_blockers": [
+    "event_001 has an empty address_en field",
+    "multiple published Places have missing English fields or placeholder English content"
+  ]
+}

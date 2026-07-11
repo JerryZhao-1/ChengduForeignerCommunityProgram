@@ -8,6 +8,7 @@ import {
 import { mobileEnv } from "@/config/env";
 import { resolveCloudbaseFunctionPath } from "./cloudbase-path";
 import { assertSuccessfulApiResponse, normalizeApiPayload } from "./response";
+import { resolveUniRequestTransport } from "./uni-request-transport";
 
 declare const wx:
   | {
@@ -34,12 +35,12 @@ const createUniRequester = (): HttpRequester => {
 
   return (method, url, body, headers = {}) =>
     new Promise((resolve, reject) => {
-      const uniMethod = method === "PATCH" ? "POST" : method;
+      const transport = resolveUniRequestTransport(method, headers);
       uni.request({
         url,
-        method: uniMethod,
+        method: transport.method,
         data: body as Record<string, unknown> | undefined,
-        header: headers,
+        header: transport.headers,
         success: (result) => {
           const statusCode = result.statusCode ?? 500;
 

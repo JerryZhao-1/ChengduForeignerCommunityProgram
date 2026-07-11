@@ -3,6 +3,7 @@ export * from "./contracts";
 export * from "./enums";
 export * from "./media";
 export * from "./mock";
+export * from "./publication-readiness";
 export * from "./schemas";
 export * from "./types/common";
 export * from "./types/entities";

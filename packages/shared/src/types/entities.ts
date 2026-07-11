@@ -34,6 +34,7 @@ import type {
 import type {
   PostInteractionRecordSchema,
   PostInteractionStateSchema,
+  PermanentDeletePostResponseSchema,
   ProfileFollowListItemSchema,
   ProfileFollowStateSchema,
   DiscoverAnalyticsSchema,
@@ -81,6 +82,9 @@ export type Post = z.infer<typeof PostSchema>;
 export type PostInteractionState = z.infer<typeof PostInteractionStateSchema>;
 export type PostInteractionRecord = z.infer<
   typeof PostInteractionRecordSchema
+>;
+export type PermanentDeletePostResponse = z.infer<
+  typeof PermanentDeletePostResponseSchema
 >;
 export type UserFollowRecord = z.infer<typeof UserFollowRecordSchema>;
 export type ProfileFollowListItem = z.infer<

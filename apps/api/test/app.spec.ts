@@ -33,6 +33,59 @@ const createTestBaseUrl = async () => {
 };
 
 describe("api routes", () => {
+  it("logs unknown server errors without exposing them in the response", async () => {
+    const app = new Koa();
+    const router = new Router();
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    app.use(errorMiddleware);
+    app.use(requestIdMiddleware);
+    router.get("/boom", () => {
+      throw Object.assign(new Error("private database detail"), {
+        code: "DATABASE_FAILURE"
+      });
+    });
+    app.use(router.routes());
+
+    const server = createServer(app.callback());
+    await new Promise<void>((resolve) => {
+      server.listen(0, "127.0.0.1", () => resolve());
+    });
+    const address = server.address();
+    if (!address || typeof address === "string") {
+      throw new Error("Failed to create test server.");
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${address.port}/boom`, {
+        headers: { authorization: "Bearer must-not-be-logged" }
+      });
+      const body = (await response.json()) as {
+        error: { code: string; message: string };
+      };
+
+      expect(response.status).toBe(500);
+      expect(body.error).toEqual({
+        code: "INTERNAL_ERROR",
+        message: "Unexpected server error."
+      });
+      expect(JSON.stringify(body)).not.toContain("private database detail");
+      expect(logSpy).toHaveBeenCalledWith(
+        "server_error",
+        expect.stringContaining('"path":"/boom"')
+      );
+      const logOutput = logSpy.mock.calls.flat().join(" ");
+      expect(logOutput).toContain("private database detail");
+      expect(logOutput).toContain("DATABASE_FAILURE");
+      expect(logOutput).not.toContain("must-not-be-logged");
+    } finally {
+      logSpy.mockRestore();
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+    }
+  });
+
   it("allows anonymous public routes without resolving a live actor", async () => {
     const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
     const previousAllowMock = process.env.API_ALLOW_MOCK_ACTOR_HEADER;
@@ -708,6 +761,8 @@ describe("api routes", () => {
           content_zh: "正文",
           content_en: "Body",
           address_text: "Tongzilin",
+          address_zh: "桐梓林",
+          address_en: "Tongzilin",
           location: { latitude: 30.615, longitude: 104.062 },
           start_time: "2027-08-02T10:00:00+08:00",
           end_time: "2027-08-02T12:00:00+08:00",
@@ -888,7 +943,7 @@ describe("api routes", () => {
     }
   });
 
-  it("keeps URL-only event covers when file fields are null", async () => {
+  it("keeps URL-only covers on drafts but rejects publishing them", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
     const externalCoverUrl =
       "https://store.is.autonavi.com/showpic/event-external-cover.jpg";
@@ -908,6 +963,8 @@ describe("api routes", () => {
           content_zh: "正文",
           content_en: "Body",
           address_text: "成都市武侯区桐梓林国际社区",
+          address_zh: "成都市武侯区桐梓林国际社区",
+          address_en: "Tongzilin International Community, Wuhou, Chengdu",
           location: { latitude: 30.618887, longitude: 104.065468 },
           start_time: "2027-04-10T10:00:00+08:00",
           end_time: "2027-04-10T12:00:00+08:00",
@@ -926,7 +983,9 @@ describe("api routes", () => {
       expect(createBody.data.cover_cloud_path).toBeNull();
       expect(createBody.data.cover_url).toBe(externalCoverUrl);
 
-      await fetch(`${baseUrl}/admin/events/${eventId}/review`, {
+      const reviewResponse = await fetch(
+        `${baseUrl}/admin/events/${eventId}/review`,
+        {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -936,15 +995,23 @@ describe("api routes", () => {
           review_status: "approved",
           publish_status: "published"
         })
-      });
+        }
+      );
+      const reviewBody = await reviewResponse.json();
+
+      expect(reviewResponse.status).toBe(400);
+      expect(reviewBody.error).toMatchObject({ code: "VALIDATION_ERROR" });
+      expect(reviewBody.error.details.fields).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ field: "cover_file_id" })
+        ])
+      );
 
       const publicDetailResponse = await fetch(`${baseUrl}/events/${eventId}`);
       const publicDetailBody = await publicDetailResponse.json();
 
-      expect(publicDetailResponse.status).toBe(200);
-      expect(publicDetailBody.data.cover_file_id).toBeNull();
-      expect(publicDetailBody.data.cover_cloud_path).toBeNull();
-      expect(publicDetailBody.data.cover_url).toBe(externalCoverUrl);
+      expect(publicDetailResponse.status).toBe(404);
+      expect(publicDetailBody.error.code).toBe("NOT_FOUND");
     } finally {
       await close();
     }
@@ -2207,6 +2274,7 @@ describe("api routes", () => {
             status: "published",
             category_level_1: "health-wellness",
             category_level_2: "clinic",
+            recommended_reason_zh: "生命周期推荐理由",
             recommended_reason_en: "Lifecycle reason",
             is_recommended: true
           })

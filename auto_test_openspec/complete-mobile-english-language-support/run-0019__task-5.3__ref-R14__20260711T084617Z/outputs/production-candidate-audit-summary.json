@@ -1,0 +1,31 @@
+{
+  "evidenceKind": "production-candidate",
+  "auditedAt": "2026-07-11T08:46:17.590Z",
+  "provenance": {
+    "environment": "cloud1-d7gxdk8t43bd639c0",
+    "exportedAt": "2026-07-11T08:45:44.889Z",
+    "source": {
+      "collections": ["events", "places", "announcements", "posts"],
+      "query": "Public production API, communityId=tongzilin, all pages; Place detail status normalized from provider-public list membership"
+    },
+    "recordCounts": { "events": 2, "places": 11, "announcements": 0, "discoverPosts": 0 }
+  },
+  "summary": { "blocking": 36, "editorial": 2, "total": 38 },
+  "contentPass": false,
+  "releaseEligible": false,
+  "issuesByRecord": {
+    "event_001": { "editorial:media_attribution_required": 1 },
+    "event_de30e73b-4a8f-45c7-a445-70c66d56fe76": { "editorial:media_attribution_required": 1 },
+    "place_d6af35be-acea-41b8-92ed-cfd0fa909072": { "blocking:required_bilingual_field": 2 },
+    "place_f8ea0c85-90c9-44b5-85fe-249891d87784": { "blocking:required_bilingual_field": 3 },
+    "place_72013172-bbdb-4fc0-9670-0ac0b1dec2c8": { "blocking:required_bilingual_field": 4 },
+    "place_0d8d6682-77c5-4194-a54a-4c57726ee5f6": { "blocking:required_bilingual_field": 3 },
+    "place_8a9dfcd9-b5da-48e9-956d-9b644f09366b": { "blocking:required_bilingual_field": 3 },
+    "place_f04664cf-26b4-4c04-9b35-c8fdd958aaa3": { "blocking:required_bilingual_field": 3 },
+    "place_9660a140-9934-4310-b688-b1b2a7694f27": { "blocking:required_bilingual_field": 3 },
+    "place_ee3dd91f-9e67-4ecb-996a-8c9c91e5c18b": { "blocking:required_bilingual_field": 4 },
+    "place_94386f11-6089-4f07-8e34-eb31687bacb9": { "blocking:required_bilingual_field": 3 },
+    "place_402319eb-3264-447a-918b-cbf927f783f1": { "blocking:required_bilingual_field": 4 },
+    "place_f927986a-aea3-438b-8be3-c29d93976ffa": { "blocking:placeholder_copy": 4 }
+  }
+}

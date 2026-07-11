@@ -15,7 +15,7 @@ describe("shared mock place admin lifecycle", () => {
       cover_url: null,
       tag_ids: ["edited", "service"],
       gallery_file_ids: [],
-      recommended_reason_en: null
+      recommended_reason_en: "Edited recommendation"
     });
 
     expect(updated).toMatchObject({
@@ -27,7 +27,7 @@ describe("shared mock place admin lifecycle", () => {
       cover_url: null,
       tag_ids: ["edited", "service"],
       gallery_file_ids: [],
-      recommended_reason_en: null
+      recommended_reason_en: "Edited recommendation"
     });
   });
 

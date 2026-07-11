@@ -1,0 +1,27 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "2.1",
+  "ref": "R3",
+  "commands": [
+    {
+      "command": "focused provider/API/shared Vitest suite",
+      "exitCode": 0,
+      "log": "logs/focused-provider-tests.log"
+    },
+    {
+      "command": "pnpm --filter @community-map/api typecheck",
+      "exitCode": 0,
+      "log": "logs/api-typecheck.log"
+    },
+    {
+      "command": "pnpm --filter @community-map/shared typecheck",
+      "exitCode": 0,
+      "log": "logs/shared-typecheck.log"
+    }
+  ],
+  "assertions": {
+    "preferenceAndNormalizationCasesExecuted": true,
+    "apiTypecheckCompleted": true,
+    "sharedTypecheckCompleted": true
+  }
+}

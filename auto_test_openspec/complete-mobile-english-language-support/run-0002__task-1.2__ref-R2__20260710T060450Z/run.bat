@@ -1,0 +1,18 @@
+@echo off
+setlocal
+pushd "%~dp0"
+set "SCRIPT_DIR=%CD%"
+for %%I in ("%SCRIPT_DIR%\..\..\..") do set "REPO_ROOT=%%~fI"
+if not exist logs mkdir logs
+if not exist outputs mkdir outputs
+pushd "%REPO_ROOT%"
+call node_modules\.bin\vitest.cmd run packages/shared/test/bilingual-contracts.spec.ts packages/shared/test/contracts.spec.ts packages/shared/test/places-marker-contract.spec.ts >"%SCRIPT_DIR%\logs\focused-shared-tests.log" 2>&1
+set TEST_EXIT=%ERRORLEVEL%
+call pnpm --filter @community-map/shared typecheck >"%SCRIPT_DIR%\logs\shared-typecheck.log" 2>&1
+set TYPECHECK_EXIT=%ERRORLEVEL%
+node "%SCRIPT_DIR%\tests\summarize.mjs" %TEST_EXIT% %TYPECHECK_EXIT% "%SCRIPT_DIR%\outputs\result.json"
+popd
+if not %TEST_EXIT% EQU 0 exit /b 1
+if not %TYPECHECK_EXIT% EQU 0 exit /b 1
+popd
+exit /b 0

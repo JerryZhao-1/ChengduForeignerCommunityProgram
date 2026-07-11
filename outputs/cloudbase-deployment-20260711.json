@@ -1,0 +1,37 @@
+{
+  "environment": "cloud1-d7gxdk8t43bd639c0",
+  "api": {
+    "function": "community-map-api",
+    "update_request_id": "bfbe7bbf-80f6-468d-96ad-94e9fdbeb80a",
+    "status": "Active",
+    "available_status": "Available",
+    "runtime": "Nodejs18.15",
+    "type": "HTTP",
+    "mod_time": "2026-07-11 13:53:30",
+    "environment_variable_keys_preserved": 11,
+    "health": "PASS"
+  },
+  "admin": {
+    "url": "https://cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com/",
+    "index_asset": "/assets/index-CwGrK8nC.js",
+    "style_asset": "/assets/index-DYraLu7Y.css",
+    "root_http": 200,
+    "events_spa_http": 200,
+    "asset_http": 200
+  },
+  "verification": {
+    "typecheck": "PASS",
+    "tests": "203/203 PASS",
+    "lint": "PASS",
+    "api_deploy_focused_tests": "30/30 PASS",
+    "public_events": "PASS",
+    "public_places": "PASS",
+    "public_discover": "PASS"
+  },
+  "rollback": {
+    "function_code": "/tmp/community-map-api-backup-20260711.zip",
+    "admin_hosting": "/tmp/community-map-admin-hosting-backup-20260711"
+  },
+  "wechat_preview_upload_publish_performed": false,
+  "database_delete_performed": false
+}

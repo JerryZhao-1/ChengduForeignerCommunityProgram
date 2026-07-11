@@ -1,6 +1,9 @@
 <script lang="ts">
+import { watch } from "vue";
+
 import { mobileApi } from "@/api/client";
 import { mobileEnv } from "@/config/env";
+import { updateRuntimeNavigation } from "@/i18n";
 import { useAppStore } from "@/stores/app-store";
 
 declare const wx:
@@ -13,28 +16,43 @@ declare const wx:
 
 export default {
   onLaunch() {
-    const { setUserId } = useAppStore();
+    const store = useAppStore();
+    store.configureLocaleSync((locale) =>
+      mobileApi.auth.updatePreferences({ preferred_language: locale })
+    );
+    store.initializeLocale();
+    updateRuntimeNavigation(store.state.locale);
+    watch(
+      () => store.state.locale,
+      (locale) => updateRuntimeNavigation(locale)
+    );
+
     if (
       mobileEnv.apiMode === "cloudbase-function" &&
       typeof wx !== "undefined" &&
-      typeof wx.cloud?.init === "function"
+      wx.cloud &&
+      typeof wx.cloud.init === "function"
     ) {
       wx.cloud.init({
         env: mobileEnv.cloudbaseEnvId,
         traceUser: true
       });
-
-      void mobileApi.auth
-        .wechatMiniappSession()
-        .then((result) => {
-          setUserId(result.data.user._id);
-        })
-        .catch((error) => {
-          console.warn("Mini Program session initialization failed.", error);
-        });
     }
 
-    console.log("Community map mobile app launched.");
+    const sessionRequest =
+      mobileEnv.apiMode === "cloudbase-function"
+        ? mobileApi.auth.wechatMiniappSession()
+        : mobileApi.auth.me();
+    void sessionRequest
+      .then((result) =>
+        store.setAuthenticatedUser(
+          result.data.user._id,
+          result.data.user.preferred_language
+        )
+      )
+      .catch((error) => {
+        console.warn("Session initialization failed; locale remains local.", error);
+      });
   }
 };
 </script>

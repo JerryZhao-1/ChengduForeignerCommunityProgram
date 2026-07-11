@@ -1,0 +1,30 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "5.3",
+  "ref": "R14",
+  "result": "BLOCKED",
+  "taskCheckboxMustRemainOpen": true,
+  "productionCandidateAudit": {
+    "environment": "cloud1-d7gxdk8t43bd639c0",
+    "exportedAt": "2026-07-11T09:01:37.307Z",
+    "auditedAt": "2026-07-11T09:01:43.591Z",
+    "realProductionExportUsed": true,
+    "recordCounts": { "events": 1, "places": 11, "announcements": 0, "discoverPosts": 0 },
+    "blocking": 34,
+    "editorial": 1,
+    "total": 35,
+    "contentPass": false,
+    "releaseEligible": false
+  },
+  "verifiedProgress": {
+    "testEventRemovedFromPublicCandidate": true,
+    "eventCountBefore": 2,
+    "eventCountAfter": 1,
+    "blockingBefore": 36,
+    "blockingAfter": 34,
+    "editorialBefore": 2,
+    "editorialAfter": 1
+  },
+  "productionMutationPerformed": false,
+  "nextAction": "Complete or unpublish incomplete Places, or revise the pre-release bilingual content requirement explicitly."
+}

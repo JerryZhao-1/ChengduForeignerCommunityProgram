@@ -10,7 +10,7 @@ import type { Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy } from "@/i18n";
 import { useAppStore } from "@/stores/app-store";
 import {
   getFirstMedia,
@@ -34,7 +34,7 @@ const keyword = ref("");
 const selectedTag = ref("");
 const sort = ref<"latest" | "likes" | "favorites" | "comments">("latest");
 
-const copy = computed(() => appCopy[state.locale].discover);
+const copy = computed(() => getMobileCopy(state.locale).discover);
 const hasMore = computed(() => posts.value.length < total.value);
 const customTopStyle = computed(() => ({
   paddingTop: `${statusBarHeight.value}px`

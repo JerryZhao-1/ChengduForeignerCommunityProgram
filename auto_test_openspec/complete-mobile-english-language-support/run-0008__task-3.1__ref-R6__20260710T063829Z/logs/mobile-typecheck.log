@@ -1,0 +1,4 @@
+
+> @community-map/mobile@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile
+> vue-tsc --noEmit -p tsconfig.json
+

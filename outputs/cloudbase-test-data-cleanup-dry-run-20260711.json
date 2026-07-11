@@ -1,0 +1,146 @@
+{
+  "mode": "dry-run",
+  "executed": false,
+  "environment": "cloud1-d7gxdk8t43bd639c0",
+  "generated_at": "2026-07-11T05:56:00Z",
+  "selection_rules": [
+    "explicit smoke, acceptance, hardening, deployment, draft-test or placeholder naming",
+    "synthetic user_001/user_002 registration and ticket fixtures",
+    "records linked exclusively to selected test records",
+    "orphaned acceptance file asset whose referenced Place no longer exists"
+  ],
+  "certain_delete": {
+    "events": [
+      "event_bfffa2d3-892f-48d8-8d60-d9dc3eb4e829",
+      "event_63efbdf6-702d-4f94-90d0-f5ad858c443a",
+      "event_c7479b6e-67ce-4353-8ca3-5279543cdfa7",
+      "event_3421847b-9e7d-467a-a2d1-2e6c4fc7ec53",
+      "event_8b91aafe-d26e-4119-8b70-89633f5fa4f5",
+      "event_3611055b-2780-4232-bd8c-75b02c81e840",
+      "event_b6a186aa-a3e3-4bf1-848c-bcaf716a96fb",
+      "event_6a75d232-50ff-42ce-8307-16ce6bc9fb53",
+      "event_441be093-e39e-40ff-aead-ff96b42f0ee7",
+      "event_25afe321-094c-49a5-b7ba-4f018b0b9a69",
+      "event_71880296-417b-4efe-bf67-af924c4c7ec8",
+      "event_091aff2d-75eb-4c43-b0d9-22df7fef6385"
+    ],
+    "event_registrations": [
+      "reg_001",
+      "reg_full_001",
+      "reg_6fa0ff68-3123-4517-a5b7-20840529ffd4",
+      "reg_f5619d5c-b71e-4130-a575-5e2daf9ea80f",
+      "reg_fe10b69f-3ec5-46d1-af93-6ab225491357",
+      "reg_a79a60d5-7592-4f3e-9201-f17164af9a48",
+      "reg_6f86af9f-29d7-42e0-9d2c-db8a33be2db8",
+      "reg_c2b12f7d-39a9-4e4c-bcc9-e727761f11f3",
+      "reg_5aef5c78-b312-401d-95ed-76c8dcb21df2",
+      "reg_d4cb8b0c-3c61-4cce-9f7e-308515f27920",
+      "reg_efbd22bd-d3e7-44a3-8644-8eabb4a613fd",
+      "reg_29efd5be-77a5-4887-ba96-f343e93dd898",
+      "reg_dcbb90ad-37cb-445e-99c7-6a7d018b5fc0",
+      "reg_80e5ef95-ad1e-45bb-b8c9-e0cad07a11dc",
+      "reg_6770dd6b-b401-44eb-a19e-a6072432fd74",
+      "reg_fd20f922-30e4-4797-8346-588522235103"
+    ],
+    "event_tickets": [
+      "ticket_001",
+      "ticket_full_001",
+      "ticket_6ece46f2-9ff7-4916-b969-f03e2a1e20e4",
+      "ticket_e472dff5-9a19-45d6-8c42-9c50e16d817d",
+      "ticket_d2b6f346-8fd8-4ae4-814f-5c6ba072d27e",
+      "ticket_46817873-a3d4-482a-bf0e-e8ca68d83773",
+      "ticket_09006951-2826-40e6-8678-18d330ef9105",
+      "ticket_0614a80d-893b-45bf-a0af-9ca40f01e627",
+      "ticket_4dfdb6ca-3067-4972-b64e-aac1831d2727",
+      "ticket_2ae32fcc-05e3-4b6e-a5e3-d678a485f9b3",
+      "ticket_90516a58-7708-4e31-898d-fa13c877e53d",
+      "ticket_c6ebcb83-b87e-476e-a561-d736d76f888a",
+      "ticket_3c896fe7-4443-4b9d-b2fb-4bcb8de0641e",
+      "ticket_0c4452e8-eb40-440d-a47b-548882e8e69f",
+      "ticket_f9456b04-0476-49fc-a34a-3c848a820b3c",
+      "ticket_d1a88dc2-a199-4f17-80be-ff7fd74c7b37"
+    ],
+    "posts": [
+      "post_ac784df8-0da5-45d7-9895-36a836e5d424",
+      "post_60d19033-b943-4a7a-88ff-27b93a477542",
+      "post_e1ac5fb6-7d15-49bb-96c4-104ded9e3c55",
+      "post_13068a2c-e8e6-467f-99bd-4b9ceda7cd62",
+      "post_df0ef099-9858-4814-9795-0b36713a1b6c",
+      "post_752c80b2-fdc7-403e-bf8d-978b2748d7b5",
+      "post_10e08f3d-1c9c-4869-9321-056e8edec4b0",
+      "post_70fc8aa1-1f34-4674-abe2-75d5ad9d4fe3",
+      "post_ff20fc25-c509-4259-a2f7-f3d7f7e5c922",
+      "post_80c9e94f-d7d9-4663-a3e6-a0e73a8936c8"
+    ],
+    "comments": [
+      "comment_15804718-c006-4a35-9d9a-738d5c1e0752",
+      "comment_d0d272f3-c24d-437e-9b93-f60b2cae9ac7",
+      "comment_ea64de74-e2d6-4701-b08d-09bb3f448a92",
+      "comment_ac9e386b-cb6d-4b5b-aedd-32036d67ef9b",
+      "comment_5e9a0344-6b45-4447-b839-544675ae8328"
+    ],
+    "discover_report_cases": [
+      "report_b62d6edb-9772-4886-8277-6e9aa99205d3",
+      "report_71ed0d20-1060-4845-a261-429237e73858"
+    ],
+    "discover_post_interactions": [
+      "post_interaction_post_df0ef099-9858-4814-9795-0b36713a1b6c_user_001",
+      "post_interaction_post_752c80b2-fdc7-403e-bf8d-978b2748d7b5_user_001",
+      "post_interaction_post_10e08f3d-1c9c-4869-9321-056e8edec4b0_user_001",
+      "post_interaction_post_70fc8aa1-1f34-4674-abe2-75d5ad9d4fe3_user_001",
+      "post_interaction_post_80c9e94f-d7d9-4663-a3e6-a0e73a8936c8_wx_d253e260b35a60fe165cc00a"
+    ],
+    "discover_tags": ["a", "fd", "manual-debug-202607091807", "你好"],
+    "discover_user_follows": [
+      "user_follow_wx_8c48e2b469edd7ef3d723366_user_002"
+    ],
+    "file_assets": ["file_9eb9af67-4ea6-47af-80b4-1edc8e5abb93"],
+    "storage_objects": [
+      "public/places/_pending/faa89faf-ad4e-425d-b266-e73497cc543f/fd94d50a-3ee9-4a0c-8e60-9b1157321d54-codex-cloudbase-20260630122711.jpg"
+    ]
+  },
+  "probable_manual_test_requires_confirmation": {
+    "posts": [
+      "post_d0ca972b-38de-447c-b175-b0b8f9e6ed6e",
+      "post_b6dcb509-bde9-445f-9157-ea0e73278319",
+      "post_548f86b5-7825-4b27-917f-bb41b63a83c1",
+      "post_b50b89ce-6d2e-4755-8913-b811a441dc8c"
+    ],
+    "discover_post_interactions": [
+      "post_interaction_post_b6dcb509-bde9-445f-9157-ea0e73278319_wx_8c48e2b469edd7ef3d723366",
+      "post_interaction_post_548f86b5-7825-4b27-917f-bb41b63a83c1_wx_8c48e2b469edd7ef3d723366"
+    ],
+    "discover_audit_records": [
+      "audit_315dabc1-70a9-4761-b4a2-9aa7e6238028",
+      "audit_ad85c2e0-b812-4663-aac8-9bcd3a8c7e26"
+    ],
+    "discover_tags": ["community"]
+  },
+  "tag_audit_records_deleted_if_corresponding_tags_confirmed": [
+    "audit_418c3031-054b-452a-bd3e-3e3dd851f0fc",
+    "audit_7f810307-ac5f-49c4-b93d-45df2bf465dc",
+    "audit_a7a37cd2-0bfc-4f07-8958-d9512865f50f",
+    "audit_8a09ebce-f0ee-49b6-9272-8017b84f26eb",
+    "audit_b856d8de-514d-4bf8-83a7-0538b130bcf5"
+  ],
+  "preserve": {
+    "events": ["event_001"],
+    "places": "all 20 current records (19 volunteer/imported content plus the community center)",
+    "users": "all 8 current users, including admin_001 and WeChat identities",
+    "reason": "not unambiguously test-only; deletion would remove content or identity records"
+  },
+  "planned_order": [
+    "export selected records to a local rollback snapshot",
+    "delete reports, interactions, comments, audit records and follows",
+    "delete tickets before registrations",
+    "delete selected posts and events",
+    "delete confirmed test tags",
+    "delete orphan file_assets record, then its storage object",
+    "recount every collection and run API/Admin smoke"
+  ],
+  "important_non_cleanup_blockers": [
+    "event_001 currently has empty address_en",
+    "multiple published Places still have missing English fields or placeholder content",
+    "cleanup alone does not make the production-candidate bilingual audit pass"
+  ]
+}

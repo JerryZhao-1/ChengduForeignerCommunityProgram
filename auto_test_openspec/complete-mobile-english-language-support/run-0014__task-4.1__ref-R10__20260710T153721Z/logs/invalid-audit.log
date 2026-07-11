@@ -1,0 +1,154 @@
+{
+  "evidenceKind": "production-candidate",
+  "auditedAt": "2026-07-10T15:44:55.931Z",
+  "provenance": {
+    "environment": "production-candidate-test-shape",
+    "exportedAt": "2026-07-10T12:00:00.000Z",
+    "source": {
+      "collections": [
+        "events",
+        "places",
+        "announcements",
+        "posts"
+      ],
+      "query": "public candidates"
+    },
+    "recordCounts": {
+      "events": 1,
+      "places": 1,
+      "announcements": 1,
+      "discoverPosts": 2
+    }
+  },
+  "counts": {
+    "events": 1,
+    "places": 1,
+    "announcements": 1,
+    "discoverPosts": 2
+  },
+  "summary": {
+    "blocking": 12,
+    "editorial": 4,
+    "total": 16
+  },
+  "contentPass": false,
+  "releaseEligible": false,
+  "releaseIneligibilityReason": "Production-candidate content audit has unresolved issues.",
+  "issues": [
+    {
+      "classification": "blocking",
+      "code": "placeholder_copy",
+      "path": "events.0.title_en",
+      "recordId": "event_invalid",
+      "message": "title_en contains placeholder copy."
+    },
+    {
+      "classification": "blocking",
+      "code": "required_bilingual_field",
+      "path": "events.0.summary_en",
+      "recordId": "event_invalid",
+      "message": "summary_en is required and must not be blank."
+    },
+    {
+      "classification": "blocking",
+      "code": "required_bilingual_field",
+      "path": "events.0.address_zh",
+      "recordId": "event_invalid",
+      "message": "address_zh is required and must not be blank."
+    },
+    {
+      "classification": "blocking",
+      "code": "required_bilingual_field",
+      "path": "events.0.address_en",
+      "recordId": "event_invalid",
+      "message": "address_en is required and must not be blank."
+    },
+    {
+      "classification": "blocking",
+      "code": "draft_leakage",
+      "path": "events.0.publish_status",
+      "recordId": "event_invalid",
+      "message": "Candidate export contains a non-public Event."
+    },
+    {
+      "classification": "blocking",
+      "code": "localhost_url",
+      "path": "events.0.cover_url",
+      "recordId": "event_invalid",
+      "message": "Public media points to a forbidden development or fixture URL."
+    },
+    {
+      "classification": "editorial",
+      "code": "media_attribution_required",
+      "path": "events.0.media_attribution",
+      "recordId": "event_invalid",
+      "message": "Public media requires reviewed source or attribution metadata."
+    },
+    {
+      "classification": "blocking",
+      "code": "placeholder_copy",
+      "path": "places.0.recommended_reason_en",
+      "recordId": "place_invalid",
+      "message": "recommended_reason_en contains placeholder copy."
+    },
+    {
+      "classification": "blocking",
+      "code": "draft_leakage",
+      "path": "places.0.status",
+      "recordId": "place_invalid",
+      "message": "Candidate export contains a non-public Place."
+    },
+    {
+      "classification": "blocking",
+      "code": "fixture_url",
+      "path": "places.0.gallery_urls.0",
+      "recordId": "place_invalid",
+      "message": "Public media points to a forbidden development or fixture URL."
+    },
+    {
+      "classification": "editorial",
+      "code": "media_attribution_required",
+      "path": "places.0.media_attribution",
+      "recordId": "place_invalid",
+      "message": "Public media requires reviewed source or attribution metadata."
+    },
+    {
+      "classification": "blocking",
+      "code": "placeholder_copy",
+      "path": "announcements.0.content_en",
+      "recordId": "announcement_invalid",
+      "message": "content_en contains placeholder copy."
+    },
+    {
+      "classification": "editorial",
+      "code": "media_attribution_required",
+      "path": "announcements.0.media_attribution",
+      "recordId": "announcement_invalid",
+      "message": "Public media requires reviewed source or attribution metadata."
+    },
+    {
+      "classification": "blocking",
+      "code": "invalid_original_language",
+      "path": "discoverPosts.0.language",
+      "recordId": "post_invalid_language",
+      "message": "Discover UGC must declare its original language as zh or en."
+    },
+    {
+      "classification": "blocking",
+      "code": "fixture_url",
+      "path": "discoverPosts.1.image_urls.0",
+      "recordId": "post_invalid_media",
+      "message": "Public media points to a forbidden development or fixture URL."
+    },
+    {
+      "classification": "editorial",
+      "code": "media_attribution_required",
+      "path": "discoverPosts.1.media_attribution",
+      "recordId": "post_invalid_media",
+      "message": "Public media requires reviewed source or attribution metadata."
+    }
+  ]
+}
+undefined
+/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: tsx /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/scripts/bilingual-content-audit.ts --input /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/scripts/fixtures/bilingual-content-audit/invalid-production-candidate.json --output /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/complete-mobile-english-language-support/run-0014__task-4.1__ref-R10__20260710T153721Z/outputs/invalid-production-shaped-audit.json

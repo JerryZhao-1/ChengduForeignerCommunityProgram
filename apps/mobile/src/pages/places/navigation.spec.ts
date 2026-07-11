@@ -37,6 +37,25 @@ describe("mobile places navigation helpers", () => {
     });
   });
 
+  it("falls back when the requested navigation locale is missing", () => {
+    expect(
+      buildPlaceDetailNavigationTarget(
+        {
+          latitude: 30.61,
+          longitude: 104.06,
+          name_zh: "桐梓林社区中心",
+          name_en: " ",
+          address_zh: "成都市武侯区",
+          address_en: ""
+        },
+        "en"
+      )
+    ).toMatchObject({
+      name: "桐梓林社区中心",
+      address: "成都市武侯区"
+    });
+  });
+
   it("uses marker coordinates for map navigation targets", () => {
     const marker: PlaceMapMarker = {
       _id: "place_001",

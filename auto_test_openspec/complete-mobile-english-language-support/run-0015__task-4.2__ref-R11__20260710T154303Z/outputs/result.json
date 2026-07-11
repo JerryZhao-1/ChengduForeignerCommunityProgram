@@ -1,0 +1,15 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "4.2",
+  "ref": "R11",
+  "result": "PASS",
+  "documentationAssertions": 40,
+  "failedAssertions": 0,
+  "routeCount": 27,
+  "linksValid": true,
+  "schemaAndOpenApiConsistent": true,
+  "tdesignRequirementRetained": true,
+  "secretMaterialFound": false,
+  "formatCheck": { "exitCode": 0 },
+  "openspecValidation": { "exitCode": 0 }
+}

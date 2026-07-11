@@ -1,0 +1,6 @@
+{
+  "validProductionShape": { "contentPass": true, "releaseEligible": true, "blocking": 0, "editorial": 0 },
+  "validFixture": { "contentPass": true, "releaseEligible": false },
+  "invalidProductionShape": { "contentPass": false, "blocking": 12, "editorial": 4 },
+  "migration": { "dryRunActions": 3, "secondPlanActions": 0, "generatedEnglishTranslations": 0 }
+}

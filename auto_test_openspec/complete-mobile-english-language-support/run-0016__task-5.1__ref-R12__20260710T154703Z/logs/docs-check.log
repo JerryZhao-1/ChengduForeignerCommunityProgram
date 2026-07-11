@@ -1,0 +1,208 @@
+{
+  "result": "PASS",
+  "assertions": 40,
+  "failed": 0,
+  "routeCount": 27,
+  "checks": [
+    {
+      "name": "runbook topic: Locale precedence",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook topic: Formal content fallback",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook topic: UGC boundary",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook topic: API compatibility",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook topic: Admin repair flow",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook topic: Export provenance",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook topic: Dry-run-first backfill",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook topic: Build、验收与 release evidence",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook topic: Rollout 与 rollback order",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook topic: Security and assumptions",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "documented command: build:h5",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "documented command: build:mp-weixin",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "documented command: bilingual-content-audit.ts",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "documented command: bilingual-content-migration.ts",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "documented command: --approved-plan-digest",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "TDesign requirement retained",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "central catalog UI guidance",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "release manual requires real candidate audit",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Event canonical addresses documented",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Notification bilingual compatibility documented",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "OpenAPI Event address_zh",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Event input source address_zh",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "OpenAPI Event address_en",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Event input source address_en",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "OpenAPI Notification title_zh",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Notification source title_zh",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "OpenAPI Notification title_en",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Notification source title_en",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "OpenAPI Notification body_zh",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Notification source body_zh",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "OpenAPI Notification body_en",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Notification source body_en",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "address_text marked compatibility-only",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "every pages.json route has centralized metadata",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "runbook names pages.json acceptance inventory",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "link exists: ./ui-guidelines.md",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "link exists: ./API接口使用手册.md",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "link exists: ./mini-program-public-launch-manual.md",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "link exists: ./public-launch-true-device-runbook.md",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "no embedded secret material",
+      "passed": true,
+      "details": ""
+    }
+  ]
+}

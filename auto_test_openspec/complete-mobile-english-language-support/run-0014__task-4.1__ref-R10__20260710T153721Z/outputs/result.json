@@ -1,0 +1,22 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "4.1",
+  "ref": "R10",
+  "result": "PASS",
+  "tests": { "exitCode": 0, "tests": "16/16" },
+  "typecheck": { "exitCode": 0 },
+  "audits": {
+    "validProductionShaped": { "contentPass": true, "releaseEligible": true, "issues": 0 },
+    "validFixture": { "contentPass": true, "releaseEligible": false, "issues": 0 },
+    "invalidProductionShaped": { "exitCode": 1, "blocking": 12, "editorial": 4 }
+  },
+  "migration": {
+    "dryRunMutationPerformed": false,
+    "actions": 3,
+    "approvedDigestRequired": true,
+    "secondPlanActions": 0,
+    "generatedEnglishTranslations": 0
+  },
+  "realProductionExportUsed": false,
+  "releaseGateNote": "Fixture and production-shaped test evidence cannot close task 5.3."
+}

@@ -21,6 +21,7 @@ import type {
   Post,
   PostInteractionRecord,
   PostInteractionState,
+  PermanentDeletePostResponse,
   ProfileFollowListItem,
   ProfileFollowState,
   PublicProfile,
@@ -33,6 +34,12 @@ import { postHasVideoMedia } from "../media";
 import type { MockDataset } from "./data";
 import { FILE_PATH_RULES } from "../schemas/files";
 import { PLACE_TOP_LEVEL_CATEGORIES } from "../schemas/place-categories";
+import {
+  normalizeEventBilingualAddress,
+  normalizeNotificationLocalization,
+  validateEventPublicationReadiness,
+  validatePlacePublicationReadiness
+} from "../publication-readiness";
 
 import { createMockDataset } from "./data";
 
@@ -74,12 +81,52 @@ const paginate = <TItem>(
   };
 };
 
+const removeMatching = <TItem>(
+  items: TItem[],
+  predicate: (item: TItem) => boolean
+) => {
+  const retained = items.filter((item) => !predicate(item));
+  const removed = items.length - retained.length;
+  items.splice(0, items.length, ...retained);
+  return removed;
+};
+
 const keywordMatch = (value: string | null | undefined, keyword?: string) => {
   if (!keyword) {
     return true;
   }
 
   return (value ?? "").toLowerCase().includes(keyword.toLowerCase());
+};
+
+const assertEventPublicationReady = (event: Event) => {
+  if (!isLaunchVisibleEvent(event)) {
+    return;
+  }
+  const readiness = validateEventPublicationReadiness(event);
+  if (!readiness.ready) {
+    throw mockError(
+      "VALIDATION_ERROR",
+      "Event is missing required bilingual publication content.",
+      400,
+      { fields: readiness.issues }
+    );
+  }
+};
+
+const assertPlacePublicationReady = (place: Place) => {
+  if (place.status !== "published") {
+    return;
+  }
+  const readiness = validatePlacePublicationReadiness(place);
+  if (!readiness.ready) {
+    throw mockError(
+      "VALIDATION_ERROR",
+      "Place is missing required bilingual publication content.",
+      400,
+      { fields: readiness.issues }
+    );
+  }
 };
 
 const normalizeTagId = (value: string) =>
@@ -487,8 +534,10 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
 
   const addNotification = (input: {
     user_id: string;
-    title: string;
-    body: string;
+    title_zh: string;
+    title_en: string;
+    body_zh: string;
+    body_en: string;
     target_type?: Notification["target_type"];
     post_id?: string | null;
     comment_id?: string | null;
@@ -499,8 +548,12 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     const notification: Notification = {
       _id: idFrom("notification"),
       user_id: input.user_id,
-      title: input.title,
-      body: input.body,
+      title: input.title_zh,
+      body: input.body_zh,
+      title_zh: input.title_zh,
+      title_en: input.title_en,
+      body_zh: input.body_zh,
+      body_en: input.body_en,
       target_type: input.target_type ?? null,
       post_id: input.post_id ?? null,
       comment_id: input.comment_id ?? null,
@@ -518,32 +571,42 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     user: User,
     enforcement: UserEnforcementState
   ) => {
-    const reasonText = enforcement.reason ? `原因：${enforcement.reason}` : "";
+    const reasonTextZh = enforcement.reason ? `原因：${enforcement.reason}` : "";
+    const reasonTextEn = enforcement.reason
+      ? ` Reason: ${enforcement.reason}`
+      : "";
     const copy: Record<
       UserEnforcementState["status"],
-      { title: string; body: string }
+      { title_zh: string; title_en: string; body_zh: string; body_en: string }
     > = {
       active: {
-        title: "账号状态已恢复",
-        body: "你的账号治理状态已恢复为正常。"
+        title_zh: "账号状态已恢复",
+        title_en: "Account Status Restored",
+        body_zh: "你的账号治理状态已恢复为正常。",
+        body_en: "Your account status has been restored to active."
       },
       warned: {
-        title: "社区提醒",
-        body: `你的账号收到一条社区提醒。${reasonText}`
+        title_zh: "社区提醒",
+        title_en: "Community Notice",
+        body_zh: `你的账号收到一条社区提醒。${reasonTextZh}`,
+        body_en: `Your account received a community notice.${reasonTextEn}`
       },
       muted: {
-        title: "账号已被禁言",
-        body: `你暂时不能发布帖子或评论。${reasonText}`
+        title_zh: "账号已被禁言",
+        title_en: "Account Muted",
+        body_zh: `你暂时不能发布帖子或评论。${reasonTextZh}`,
+        body_en: `You cannot publish posts or comments for now.${reasonTextEn}`
       },
       banned: {
-        title: "账号已被封禁",
-        body: `你暂时不能发布、评论、举报或查看个人内容。${reasonText}`
+        title_zh: "账号已被封禁",
+        title_en: "Account Banned",
+        body_zh: `你暂时不能发布、评论、举报或查看个人内容。${reasonTextZh}`,
+        body_en: `You cannot publish, comment, report, or access personal content for now.${reasonTextEn}`
       }
     };
     addNotification({
       user_id: user._id,
-      title: copy[enforcement.status].title,
-      body: copy[enforcement.status].body,
+      ...copy[enforcement.status],
       target_type: "user"
     });
   };
@@ -824,6 +887,14 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
       },
       me(userId?: string) {
         return createSession(requireUser(userId));
+      },
+      preferences(userId?: string) {
+        return { preferred_language: requireUser(userId).preferred_language };
+      },
+      updatePreferences(userId: string | undefined, preferred_language: "zh" | "en") {
+        const user = requireUser(userId);
+        user.preferred_language = preferred_language;
+        return { preferred_language: user.preferred_language };
       }
     },
     events: {
@@ -839,19 +910,24 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
               keywordMatch(event.summary_en, params.keyword))
         );
 
-        return paginate(events, params);
+        return paginate(events.map(normalizeEventBilingualAddress), params);
       },
       listAdmin() {
         return paginate(
           state.events.map((event) =>
-            toEventAdminListItem(event, state.registrations)
+            toEventAdminListItem(
+              normalizeEventBilingualAddress(event),
+              state.registrations
+            )
           ),
           { pageSize: state.events.length || 20 }
         );
       },
       detail(id: string) {
         const event = state.events.find((item) => item._id === id);
-        return event && isLaunchVisibleEvent(event) ? event : null;
+        return event && isLaunchVisibleEvent(event)
+          ? normalizeEventBilingualAddress(event)
+          : null;
       },
       listRegistrationsForAdmin(eventId: string) {
         const event = state.events.find((item) => item._id === eventId);
@@ -1036,7 +1112,9 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
             input.cover_url ??
             "https://example.com/public/events/placeholder/cover.jpg",
           place_id: input.place_id,
-          address_text: input.address_text ?? "",
+          address_text: input.address_zh ?? input.address_text ?? "",
+          address_zh: input.address_zh ?? input.address_text ?? "",
+          address_en: input.address_en ?? "",
           location: input.location ?? { latitude: 30.615, longitude: 104.062 },
           start_time: input.start_time ?? new Date().toISOString(),
           end_time: input.end_time ?? new Date().toISOString(),
@@ -1068,8 +1146,14 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         if (!existing) {
           return null;
         }
-        Object.assign(existing, input);
-        return existing;
+        const normalizedInput =
+          input.address_zh !== undefined
+            ? { ...input, address_text: input.address_zh }
+            : input;
+        const next = { ...existing, ...normalizedInput };
+        assertEventPublicationReady(next);
+        Object.assign(existing, normalizedInput);
+        return normalizeEventBilingualAddress(existing);
       },
       delete(id: string) {
         const index = state.events.findIndex((event) => event._id === id);
@@ -1093,11 +1177,15 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           return null;
         }
 
-        existing.review_status = input.review_status;
-        if (input.publish_status) {
-          existing.publish_status = input.publish_status;
-        }
-        return existing;
+        const next = {
+          ...existing,
+          review_status: input.review_status,
+          publish_status: input.publish_status ?? existing.publish_status
+        };
+        assertEventPublicationReady(next);
+        existing.review_status = next.review_status;
+        existing.publish_status = next.publish_status;
+        return normalizeEventBilingualAddress(existing);
       },
       checkin(id: string, ticketId: string) {
         const event = state.events.find((item) => item._id === id);
@@ -1962,8 +2050,10 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         if (post.author_user_id !== actor._id) {
           addNotification({
             user_id: post.author_user_id,
-            title: "帖子收到新评论",
-            body: `${actor.nickname} 评论了你的帖子：${post.title}`,
+            title_zh: "帖子收到新评论",
+            title_en: "New Comment on Your Post",
+            body_zh: `${actor.nickname} 评论了你的帖子：${post.title}`,
+            body_en: `${actor.nickname} commented on your post: ${post.title}`,
             target_type: "comment",
             post_id: post._id,
             comment_id: comment._id,
@@ -2069,8 +2159,10 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         if (post.author_user_id !== actor._id) {
           addNotification({
             user_id: post.author_user_id,
-            title: "帖子治理状态已更新",
-            body: `你的帖子“${post.title}”状态已更新。`,
+            title_zh: "帖子治理状态已更新",
+            title_en: "Post Moderation Updated",
+            body_zh: `你的帖子“${post.title}”状态已更新。`,
+            body_en: `The moderation status of your post “${post.title}” was updated.`,
             target_type: "post",
             post_id: post._id,
             place_id: post.place_id,
@@ -2078,6 +2170,99 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           });
         }
         return this.normalize(post);
+      },
+      permanentlyDelete(
+        id: string,
+        actorId?: string
+      ): PermanentDeletePostResponse | null {
+        const actor = requireAdminUser(actorId);
+        const post = state.posts.find((item) => item._id === id);
+        if (!post) {
+          return null;
+        }
+
+        const commentIds = new Set(
+          state.comments
+            .filter((comment) => comment.post_id === id)
+            .map((comment) => comment._id)
+        );
+        const relatedReports = state.reportCases.filter(
+          (report) =>
+            report.post_id === id ||
+            (report.comment_id ? commentIds.has(report.comment_id) : false)
+        );
+        const reportIds = new Set(
+          relatedReports.map((report) => report._id)
+        );
+        const referencedFileIds = new Set([
+          ...post.image_file_ids,
+          ...relatedReports.flatMap((report) => report.evidence_file_ids)
+        ]);
+        const postAssets = state.fileAssets.filter(
+          (asset) =>
+            asset.biz_id === id ||
+            commentIds.has(asset.biz_id) ||
+            reportIds.has(asset.biz_id) ||
+            referencedFileIds.has(asset.file_id)
+        );
+        const oldAuditCount = removeMatching(
+          state.auditRecords,
+          (record) =>
+            (record.target_type === "post" && record.target_id === id) ||
+            (record.target_type === "comment" &&
+              commentIds.has(record.target_id)) ||
+            (record.target_type === "report" && reportIds.has(record.target_id))
+        );
+        const deleted = {
+          posts: 0,
+          comments: removeMatching(
+            state.comments,
+            (comment) => commentIds.has(comment._id)
+          ),
+          interactions: removeMatching(
+            state.postInteractions,
+            (interaction) => interaction.post_id === id
+          ),
+          reports: removeMatching(state.reportCases, (report) =>
+            reportIds.has(report._id)
+          ),
+          notifications: removeMatching(
+            state.notifications,
+            (notification) =>
+              notification.post_id === id ||
+              (notification.comment_id
+                ? commentIds.has(notification.comment_id)
+                : false) ||
+              (notification.report_id
+                ? reportIds.has(notification.report_id)
+                : false)
+          ),
+          file_assets: removeMatching(state.fileAssets, (asset) =>
+            postAssets.some((postAsset) => postAsset._id === asset._id)
+          ),
+          storage_objects: postAssets.length,
+          audit_records: oldAuditCount
+        };
+
+        deleted.posts = removeMatching(
+          state.posts,
+          (item) => item._id === id
+        );
+        const audit = addAuditRecord({
+          actor_user_id: actor._id,
+          action: "permanent_delete_post",
+          target_type: "post",
+          target_id: id,
+          reason: "Admin permanently deleted post",
+          previous_state: null,
+          next_state: { deleted }
+        });
+
+        return {
+          post_id: id,
+          audit_record_id: audit._id,
+          deleted
+        };
       },
       moderateComment(
         id: string,
@@ -2103,8 +2288,10 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         if (comment.author_user_id !== actor._id) {
           addNotification({
             user_id: comment.author_user_id,
-            title: "评论治理状态已更新",
-            body: "你的评论状态已更新。",
+            title_zh: "评论治理状态已更新",
+            title_en: "Comment Moderation Updated",
+            body_zh: "你的评论状态已更新。",
+            body_en: "The moderation status of your comment was updated.",
             target_type: "comment",
             post_id: comment.post_id,
             comment_id: comment._id
@@ -2264,8 +2451,10 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         if (report.reporter_user_id !== actor._id) {
           addNotification({
             user_id: report.reporter_user_id,
-            title: "举报处理结果",
-            body: `你的举报已处理：${input.reason}`,
+            title_zh: "举报处理结果",
+            title_en: "Report Resolution",
+            body_zh: `你的举报已处理：${input.reason}`,
+            body_en: `Your report was resolved: ${input.reason}`,
             target_type: "report",
             post_id: report.post_id,
             comment_id: report.comment_id,
@@ -2565,6 +2754,8 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           import_review: input.import_review ?? null
         };
 
+        assertPlacePublicationReady(place);
+
         state.places.unshift(place);
         for (const asset of state.fileAssets) {
           if (
@@ -2582,6 +2773,8 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
         if (!existing) {
           return null;
         }
+        const next = { ...existing, ...input };
+        assertPlacePublicationReady(next);
         Object.assign(existing, input);
         return existing;
       },
@@ -2608,9 +2801,11 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
     notifications: {
       list(actorId?: string) {
         const actor = requireUser(actorId);
-        return state.notifications.filter(
-          (notification) => notification.user_id === actor._id
-        );
+        return state.notifications
+          .filter((notification) => notification.user_id === actor._id)
+          .map((notification) =>
+            normalizeNotificationLocalization(notification)
+          );
       },
       markRead(id: string, actorId?: string) {
         const actor = requireUser(actorId);
@@ -2621,7 +2816,7 @@ export const createMockService = (seed?: Partial<MockDataset>) => {
           return null;
         }
         notification.status = "read";
-        return notification;
+        return normalizeNotificationLocalization(notification);
       }
     },
     files: {

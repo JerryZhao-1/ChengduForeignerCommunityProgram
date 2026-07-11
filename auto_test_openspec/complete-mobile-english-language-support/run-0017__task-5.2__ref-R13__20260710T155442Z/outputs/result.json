@@ -1,0 +1,35 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "5.2",
+  "ref": "R13",
+  "result": "PASS",
+  "routes": {
+    "inventory": 27,
+    "englishVisited": 27,
+    "chineseVisited": 27,
+    "nonblankEnglish": 27,
+    "nonblankChinese": 27,
+    "explicitRedirects": ["pages/places/recommended -> pages/places/index recommended filter"]
+  },
+  "locale": {
+    "immediateSwitch": true,
+    "documentAndVisibleTitleImmediate": true,
+    "reloadPersistence": true,
+    "fiveTabsLocalized": true
+  },
+  "states": {
+    "formalContent": true,
+    "ugcOriginalLanguagePreserved": true,
+    "loadingEmptyErrorValidation": true,
+    "eventRegisteredGuard": true,
+    "h5MapFallback": true,
+    "coreInteractionsReferencedByRuns11To13": true
+  },
+  "runtime": {
+    "consoleErrors": [],
+    "consoleWarnings": [],
+    "unhandledRejections": 0
+  },
+  "manualAcceptanceReportedByUser": true,
+  "deploymentOrUploadPerformed": false
+}

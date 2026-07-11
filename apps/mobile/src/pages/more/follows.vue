@@ -5,11 +5,11 @@ import type { ProfileFollowListItem } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy } from "@/i18n";
 import { useAppStore } from "@/stores/app-store";
 
 const { state } = useAppStore();
-const copy = computed(() => appCopy[state.locale].profile);
+const copy = computed(() => getMobileCopy(state.locale).profile);
 const targetUserId = ref(state.userId);
 const listType = ref<"followers" | "following">("followers");
 const items = ref<ProfileFollowListItem[]>([]);

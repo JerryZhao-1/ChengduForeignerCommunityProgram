@@ -1,0 +1,60 @@
+{
+  "evidenceKind": "production-candidate",
+  "provenance": {
+    "environment": "production-candidate-test-shape",
+    "exportedAt": "2026-07-10T12:00:00.000Z",
+    "source": {
+      "collections": ["events", "places", "announcements", "posts"],
+      "query": "public candidates for community_id=tongzilin"
+    },
+    "recordCounts": { "events": 1, "places": 1, "announcements": 1, "discoverPosts": 2 }
+  },
+  "events": [{
+    "_id": "event_prod_001",
+    "review_status": "approved",
+    "publish_status": "published",
+    "title_zh": "社区迎新导览",
+    "title_en": "Community Welcome Walk",
+    "summary_zh": "认识社区服务地点。",
+    "summary_en": "Meet the local community services.",
+    "content_zh": "从社区中心出发。",
+    "content_en": "Meet at the community center.",
+    "address_zh": "桐梓林北路 88 号",
+    "address_en": "No. 88 Tongzilin North Road",
+    "cover_url": "https://assets.example-cdn.test/events/welcome.jpg",
+    "media_attribution": "Community-owned event photo"
+  }],
+  "places": [{
+    "_id": "place_prod_001",
+    "status": "published",
+    "name_zh": "桐梓林社区中心",
+    "name_en": "Tongzilin Community Center",
+    "address_zh": "桐梓林北路 88 号",
+    "address_en": "No. 88 Tongzilin North Road",
+    "business_hours_zh": "每日 09:00-18:00",
+    "business_hours_en": "Daily 09:00-18:00",
+    "intro_zh": "社区服务中心。",
+    "intro_en": "Community service center.",
+    "recommended_reason_zh": "适合初次了解社区。",
+    "recommended_reason_en": "A useful first stop for newcomers.",
+    "is_recommended": true,
+    "cover_url": "https://assets.example-cdn.test/places/center.jpg",
+    "media_attribution": "Community-owned place photo"
+  }],
+  "announcements": [{
+    "_id": "announcement_prod_001",
+    "status": "published",
+    "title_zh": "社区中心开放时间",
+    "title_en": "Community Center Hours",
+    "summary_zh": "节日期间开放时间调整。",
+    "summary_en": "Holiday opening hours have changed.",
+    "content_zh": "请查看最新安排。",
+    "content_en": "Please review the latest schedule.",
+    "cover_url": "https://assets.example-cdn.test/announcements/hours.jpg",
+    "media_attribution": "Community notice artwork"
+  }],
+  "discoverPosts": [
+    { "_id": "post_prod_zh", "language": "zh", "title": "雨天路滑提醒", "content": "请注意安全。", "image_urls": [], "media_attribution": "No media" },
+    { "_id": "post_prod_en", "language": "en", "title": "Weekend tennis", "content": "Looking for players.", "image_urls": [], "media_attribution": "No media" }
+  ]
+}

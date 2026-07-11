@@ -140,13 +140,21 @@ describe("volunteer places spreadsheet import", () => {
       expect(service.places.detail(importedPlace._id)).toBeNull();
 
       const published = service.places.update(importedPlace._id, {
+        name_zh: "已审核导入地点",
+        name_en: "Reviewed Imported Place",
+        address_zh: "成都市武侯区桐梓林路 1 号",
+        address_en: "1 Tongzilin Road, Wuhou, Chengdu",
+        business_hours_zh: "周一至周日 09:00-18:00",
+        business_hours_en: "Daily 09:00-18:00",
+        intro_zh: "已完成审核的社区地点。",
+        intro_en: "A reviewed community place.",
         status: "published",
         location: { latitude: 30.61, longitude: 104.06 },
         supports_navigation: true
       });
       expect(published).not.toBeNull();
 
-      const publicItem = service.places.list({ keyword: importedPlace.name_zh })
+      const publicItem = service.places.list({ keyword: "已审核导入地点" })
         .items[0];
       const marker = service.places.mapMarkers()[0];
       const detail = service.places.detail(importedPlace._id);

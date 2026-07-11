@@ -1,7 +1,7 @@
 {
   "name": "ChengduForeignerCommunityProgram",
   "appid": "wx7518a3c1fcdd39a5",
-  "description": "Tongzilin community app skeleton for events, discover, and places.",
+  "description": "Tongzilin community events, discover, and places guide.",
   "versionName": "0.1.0",
   "versionCode": "100",
   "transformPx": false,

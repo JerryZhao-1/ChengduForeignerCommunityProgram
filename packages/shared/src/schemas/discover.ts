@@ -2,11 +2,6 @@ import { z } from "zod";
 
 import {
   CommentSchema,
-  DiscoverAuditRecordSchema,
-  DiscoverMeGovernanceSchema,
-  DiscoverReportCaseSchema,
-  DiscoverUserGovernanceDetailSchema,
-  DiscoverUserGovernanceSummarySchema,
   PostSchema,
   UserSchema
 } from "./entities";
@@ -94,6 +89,21 @@ export const PostInteractionRecordSchema = z.object({
   favorited: z.boolean(),
   created_at: z.string(),
   updated_at: z.string()
+});
+
+export const PermanentDeletePostResponseSchema = z.object({
+  post_id: z.string(),
+  audit_record_id: z.string(),
+  deleted: z.object({
+    posts: z.number().int().nonnegative(),
+    comments: z.number().int().nonnegative(),
+    interactions: z.number().int().nonnegative(),
+    reports: z.number().int().nonnegative(),
+    notifications: z.number().int().nonnegative(),
+    file_assets: z.number().int().nonnegative(),
+    storage_objects: z.number().int().nonnegative(),
+    audit_records: z.number().int().nonnegative()
+  })
 });
 
 export const UserFollowRecordSchema = z.object({
@@ -310,11 +320,3 @@ export const EnforceUserInputSchema = z.object({
   notes: z.string().optional(),
   expires_at: z.string().nullable().optional()
 });
-
-export {
-  DiscoverAuditRecordSchema,
-  DiscoverMeGovernanceSchema,
-  DiscoverReportCaseSchema,
-  DiscoverUserGovernanceDetailSchema,
-  DiscoverUserGovernanceSummarySchema
-};

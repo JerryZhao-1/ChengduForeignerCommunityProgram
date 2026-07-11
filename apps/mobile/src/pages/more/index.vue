@@ -9,11 +9,11 @@ import type {
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy } from "@/i18n";
 import { useAppStore } from "@/stores/app-store";
 
 const { state } = useAppStore();
-const copy = computed(() => appCopy[state.locale].me);
+const copy = computed(() => getMobileCopy(state.locale).me);
 const governance = ref<DiscoverMeGovernance | null>(null);
 const profile = ref<PublicProfile | null>(null);
 const isLoading = ref(true);

@@ -1,0 +1,164 @@
+[
+  {
+    "name": "home",
+    "route": "pages/home/index",
+    "nonblank": true,
+    "preview": "- generic: 首页\n- generic: Tongzilin\n- generic: 桐梓林社区导览\n- generic: 发现社区活动、地点与邻里动态。\n- generic: 活动\n- generic: 浏览社区活动并完成报名。\n- generic: 周末国际邻里早午餐\n- generic: 4月2日 10:00 – 4月2日 12:00\n- generic: 满员活动\n- generic: 6月2日 10:00 – 6月2日 12:00\n- generic: 公告\n- generic: 查看社区最新消息。\n- generic: 清明节期间社区开放时间调整\n- generic: 地点\n- generic: 浏览社区地点和推荐去处。\n- generic: 查看地点列表\n- generic: 查看推荐地点\n- generic: 桐梓林社区中心\n- generic: 成都市武侯区桐梓林北路 88 号\n- generic: 国际友好咖啡馆\n- generic: 成都市武侯区桐梓林南路 26 号\n- generic: 常用入口\n- generic: 个人主页\n- generic: 通知中心\n- generic: 我的报名\n- generic: 语言设置\n- generic: 首页\n- generic: 活动\n- generic: 发现\n- generic: 地点\n- generic: 我的"
+  },
+  {
+    "name": "events",
+    "route": "pages/events/index",
+    "nonblank": true,
+    "preview": "- generic: 活动\n- generic: 全部\n- generic: 本周\n- generic: 即将开始\n- generic: 我的\n- generic: 周末国际邻里早午餐\n- generic: 周末国际邻里早午餐\n- generic: 已报名\n- generic: 面向桐梓林新老居民的轻社交活动。\n- generic: 4月2日 10:00 – 4月2日 12:00\n- generic: 桐梓林社区中心一楼活动厅\n- generic: 名额 60\n- generic: 查看详情\n- generic: 满员活动\n- generic: 满员活动\n- generic: 已报名\n- generic: 用于容量边界测试。\n- generic: 6月2日 10:00 – 6月2日 12:00\n- generic: 桐梓林\n- generic: 名额 2\n- generic: 查看详情\n- generic: 报名关闭活动\n- generic: 报名关闭活动\n- generic: 活动已结束\n- generic: 用于截止时间边界测试。\n- generic: 1月2日 10:00 – 1月2日 12:00\n- generic: 桐梓林\n- generic: 名额 20\n- generic: 查看详情\n- generic: 首页\n- generic: 活动\n- generic: 发现\n- generic: 地点\n- generic: 我的"
+  },
+  {
+    "name": "eventDetail",
+    "route": "pages/events/detail",
+    "nonblank": true,
+    "preview": "- generic: 活动详情\n- generic: 周末国际邻里早午餐\n- generic: 周末国际邻里早午餐\n- generic: 已报名\n- generic: \"时间:\"\n- text: 4月2日 10:00 – 4月2日 12:00\n- generic: \"地点:\"\n- text: 桐梓林社区中心一楼活动厅\n- generic: \"名额:\"\n- text: \"60\"\n- generic: 活动介绍\n- generic: 现场提供轻食、社区介绍和志愿者报名入口。\n- generic: 相关讨论\n- generic: Weekend language exchange recap with photos and video\n- generic: Emma\n- generic: 0 条评论\n- generic: 发起活动讨论\n- generic: 入场凭证\n- generic: TZL-20260402-001\n- generic: 已报名"
+  },
+  {
+    "name": "eventSignup",
+    "route": "pages/events/signup",
+    "nonblank": true,
+    "preview": "- generic: 活动报名\n- generic: 周末国际邻里早午餐\n- generic: \"时间: 4月2日 10:00 – 4月2日 12:00\"\n- generic: \"地点: 桐梓林社区中心一楼活动厅\"\n- generic: 已报名\n- generic: 你已报名该活动，不能重复报名。\n- generic: 报名信息\n- generic: 姓名\n- generic: 请输入姓名\n- textbox [disabled]\n- generic: 电话\n- textbox [disabled]: \"13800000000\"\n- generic: 人数\n- spinbutton [disabled]: \"1\"\n- generic: 已报名\n- generic: 报名成功\n- generic: \"凭证号: TZL-20260402-001\""
+  },
+  {
+    "name": "discover",
+    "route": "pages/discover/index",
+    "nonblank": true,
+    "preview": "- generic: 社区发现\n- generic: 看看邻里分享、求助和生活建议。\n- generic: 搜索帖子标题或内容\n- searchbox\n- generic \"发布帖子\": +\n- generic: 排序方式\n- generic: 最新发布\n- generic: 最多点赞\n- generic: 最多收藏\n- generic: 最多评论\n- generic: 文字\n- generic: 提醒：最近雨天较多，地铁口到社区中心有一段路比较滑\n- generic: 中文\n- generic: 这两天傍晚雨比较大，桐梓林地铁站出来往社区中心走时，靠近路口的一小段地砖会比较滑。带小朋友或推车的居民可以从旁边更宽的路绕一下。没有配图，主要是提醒大家注意安全。\n- generic: Jerry\n- generic: 2026-04-02\n- generic: 桐梓林地铁站附近\n- generic: 0 评论\n- generic: 8 ♥\n- generic: \"#notice\"\n- generic: \"#weather\"\n- generic: \"#safety\"\n- generic: 多图 3\n- generic: Weekend language exchange recap with photos and video\n- generic: English\n- generic: We had a small language exchange near Tongzilin last weekend. The first photo shows the sign-in ...\n- generic: Emma\n- generic: 2026-04-01\n- generic: Tongzilin Community Center\n- generic: 0 评论\n- generic: 56 ♥\n- generic: 2 张图片 · 1 个视频\n- generic: \"#language\"\n- generic: \"#social\"\n- generic: \"#video\"\n- ge"
+  },
+  {
+    "name": "discoverDetail",
+    "route": "pages/discover/detail",
+    "nonblank": true,
+    "preview": "- generic: ‹\n- generic: Jerry\n- generic: user_001\n- generic: Jerry\n- generic: user_001\n- generic: 周边哪里能买到合适的婴儿用品？\n- generic \"更多操作\":\n  - generic: ⋯\n- generic: 中文\n- generic: 2026-03-28\n- generic: 桐梓林地铁站附近\n- generic: 刚搬来桐梓林，想找靠谱的母婴店或药店，欢迎推荐。\n- generic: \"#family\"\n- generic: \"#help\"\n- generic: 评论 1\n- generic: 显示当前可见评论，提交后会刷新列表。\n- generic: Emma\n- generic: 社区中心附近有一家口碑不错的母婴店。\n- generic: 3/28/2026\n- generic: ♡\n- generic: \"0\"\n- generic \"更多操作\":\n  - generic: ⋯\n- generic: ✎\n- generic: 说点什么...\n- textbox\n- generic: ♡\n- generic: \"12\"\n- generic: ☆\n- generic: \"3\"\n- generic: ↗\n- generic: \"2\""
+  },
+  {
+    "name": "discoverCreate",
+    "route": "pages/discover/create",
+    "nonblank": true,
+    "preview": "- generic: 发布帖子\n- generic: 发布社区帖子\n- generic: 分享生活信息、提问或给邻里一个实用建议。\n- generic: 标题\n- generic: 例如：周末语言交换有人一起吗？\n- textbox\n- generic: 正文\n- generic: 写清楚时间、地点、需求或你想分享的信息。\n- textbox\n- generic: 语言\n- generic: 中文\n- generic: English\n- generic: 标签\n- generic: \"输入 # 标签，例如 coffee\"\n- textbox\n- generic: \"#help\"\n- generic: 求助 / Help\n- generic: \"#coffee\"\n- generic: 咖啡 / Coffee\n- generic: 位置\n- generic: 例如 Tongzilin / 桐梓林\n- textbox\n- generic: 关联地点\n- generic: 不关联\n- generic: 关联活动\n- generic: 不关联\n- generic: 图片 / 视频\n- generic: 选择媒体\n- generic: 外部媒体 URL\n- generic: 可选，每行一个图片或视频 URL\n- textbox\n- generic: 媒体预览\n- generic: 还没有添加媒体，纯文字帖子也可以发布。\n- generic: 发布"
+  },
+  {
+    "name": "discoverSearch",
+    "route": "pages/discover/search",
+    "nonblank": true,
+    "preview": "- generic: ‹\n- generic: 搜索\n- generic: ⌕\n- generic: 搜索帖子标题或内容\n- searchbox [active]\n- generic: 搜索历史\n- generic: 暂无搜索历史。"
+  },
+  {
+    "name": "discoverReport",
+    "route": "pages/discover/report",
+    "nonblank": true,
+    "preview": "- generic: ‹\n- generic: 举报内容\n- generic: 完成\n- generic: 举报原因\n- generic: 请选择举报原因\n- generic: 具体内容\n- generic: 请描述你看到的问题、位置或补充背景。\n- textbox\n- generic: 证据材料\n- generic: 可选填图片、视频等证据材料。\n- generic: 添加图片\n- generic: 添加视频\n- generic: 暂未添加证据。"
+  },
+  {
+    "name": "placesList",
+    "route": "pages/places/index",
+    "nonblank": true,
+    "preview": "- generic: 地点列表\n- generic: 社区地点\n- generic: 浏览社区地点卡片，按关键词、分类或推荐状态快速筛选。\n- generic: 推荐地点\n- generic: 搜索地点名称或简介\n- textbox\n- generic: \"分类: 全部\"\n- generic: 推荐优先\n- generic: 名称排序\n- generic: 推荐地点\n- generic: 清空筛选\n- generic: 桐梓林社区中心\n- generic: 推荐\n- generic: 公共服务 / 社区中心\n- generic: 成都市武侯区桐梓林北路 88 号\n- generic: 社区活动、公告展示和居民服务的主要线下节点。\n- generic: \"#服务\"\n- generic: \"#亲子友好\"\n- generic: \"#社区\"\n- generic: 国际友好咖啡馆\n- generic: 推荐\n- generic: 餐饮 / 咖啡馆\n- generic: 成都市武侯区桐梓林南路 26 号\n- generic: 适合国际居民会面和英语角的咖啡空间。\n- generic: \"#咖啡\"\n- generic: \"#社交\"\n- generic: \"#英语友好\""
+  },
+  {
+    "name": "placeDetail",
+    "route": "pages/places/detail",
+    "nonblank": true,
+    "preview": "- generic: 地点详情\n- generic: 桐梓林社区中心\n- generic: 公共服务 / 社区中心\n- generic: \"#服务\"\n- generic: \"#亲子友好\"\n- generic: \"#社区\"\n- generic: 地址\n- generic: 成都市武侯区桐梓林北路 88 号\n- generic: 营业时间\n- generic: 周一至周日 09:00-18:00\n- generic: 简介\n- generic: 社区活动、公告展示和居民服务的主要线下节点。\n- generic: 初次到访桐梓林时最适合先了解社区服务的地点。\n- generic: 地点图集\n- generic: 发起导航\n- generic: 查看地图位置\n- generic: 收藏\n- generic: 复制链接\n- generic: 初次到访桐梓林时最适合先了解社区服务的地点。\n- generic: 相关讨论\n- generic: 社区中心活动厅短视频预览\n- generic: Jerry\n- generic: 0 条评论\n- generic: Weekend language exchange recap with photos and video\n- generic: Emma\n- generic: 0 条评论"
+  },
+  {
+    "name": "placeMap",
+    "route": "pages/places/map",
+    "nonblank": true,
+    "preview": "- generic: 地点地图\n- generic: 社区地点地图\n- generic: 先在地图上浏览地点，再进入列表筛选或详情页。\n- generic: 查看完整列表\n- generic: 推荐地点\n- generic: 地图暂不可用\n- generic: 当前 H5 环境未配置地图服务，请使用地点摘要、列表或详情继续浏览。\n- generic: 桐梓林社区中心\n- generic: 公共服务\n- generic: 推荐地点\n- generic: 查看地点详情\n- generic: 发起导航\n- generic: 首页\n- generic: 活动\n- generic: 发现\n- generic: 地点\n- generic: 我的"
+  },
+  {
+    "name": "placesRecommended",
+    "route": "pages/places/recommended",
+    "nonblank": true,
+    "preview": "- generic: 地点列表\n- generic: 社区地点\n- generic: 浏览社区地点卡片，按关键词、分类或推荐状态快速筛选。\n- generic: 推荐地点\n- generic: 搜索地点名称或简介\n- textbox\n- generic: \"分类: 全部\"\n- generic: 推荐优先\n- generic: 名称排序\n- generic: 推荐地点\n- generic: 清空筛选\n- generic: 桐梓林社区中心\n- generic: 推荐\n- generic: 公共服务 / 社区中心\n- generic: 成都市武侯区桐梓林北路 88 号\n- generic: 社区活动、公告展示和居民服务的主要线下节点。\n- generic: \"#服务\"\n- generic: \"#亲子友好\"\n- generic: \"#社区\"\n- generic: 国际友好咖啡馆\n- generic: 推荐\n- generic: 餐饮 / 咖啡馆\n- generic: 成都市武侯区桐梓林南路 26 号\n- generic: 适合国际居民会面和英语角的咖啡空间。\n- generic: \"#咖啡\"\n- generic: \"#社交\"\n- generic: \"#英语友好\""
+  },
+  {
+    "name": "login",
+    "route": "pages/more/login",
+    "nonblank": true,
+    "preview": "- generic: 登录\n- generic: 微信登录\n- generic: 登录"
+  },
+  {
+    "name": "me",
+    "route": "pages/more/index",
+    "nonblank": true,
+    "preview": "- generic: 我的\n- generic: 我的\n- generic \"通知\":\n  - generic: \"1\"\n- generic: Jerry\n- generic: 正常\n- generic: \"0\"\n- generic: 粉丝\n- generic: \"0\"\n- generic: 关注\n- generic: \"5\"\n- generic: 帖子\n- generic: \"0\"\n- generic: 点赞\n- generic: \"0\"\n- generic: 收藏\n- generic: 查看个人主页\n- generic: \">\"\n- generic: 通知中心\n- generic: \">\"\n- generic: 我的报名\n- generic: \">\"\n- generic: 评论\n- generic: \">\"\n- generic: 举报\n- generic: \">\"\n- generic: 语言设置\n- generic: \">\"\n- generic: 首页\n- generic: 活动\n- generic: 发现\n- generic: 地点\n- generic: 我的"
+  },
+  {
+    "name": "notifications",
+    "route": "pages/more/notifications",
+    "nonblank": true,
+    "preview": "- generic: 通知中心\n- generic: 通知中心\n- generic: 报名成功\n- generic: 未读\n- generic: 你已成功报名周末国际邻里早午餐。\n- generic: 3月28日 10:05\n- generic: 标记已读"
+  },
+  {
+    "name": "registrations",
+    "route": "pages/more/my-registrations",
+    "nonblank": true,
+    "preview": "- generic: 我的报名\n- generic: 我的报名\n- generic: \"报名记录: reg_001\"\n- generic: \"状态: 已确认\"\n- generic: \"联系人: Jerry\"\n- generic: \"联系电话: 13800000000\"\n- generic: \"报名人数: 2\"\n- generic: \"票券编号: ticket_001\"\n- generic: \"报名记录: reg_full_001\"\n- generic: \"状态: 已确认\"\n- generic: \"联系人: Jerry\"\n- generic: \"联系电话: 13800000000\"\n- generic: \"报名人数: 2\"\n- generic: \"票券编号: ticket_full_001\""
+  },
+  {
+    "name": "favorites",
+    "route": "pages/more/my-favorites",
+    "nonblank": true,
+    "preview": "- generic: 我的收藏\n- generic: 我的收藏\n- generic: 你还没有收藏帖子。"
+  },
+  {
+    "name": "likes",
+    "route": "pages/more/my-likes",
+    "nonblank": true,
+    "preview": "- generic: 我的点赞\n- generic: 我的点赞\n- generic: 你还没有点赞帖子。"
+  },
+  {
+    "name": "posts",
+    "route": "pages/more/my-posts",
+    "nonblank": true,
+    "preview": "- generic: 我的帖子\n- generic: 我的帖子\n- generic: 文字\n- generic: 周边哪里能买到合适的婴儿用品？\n- generic: 公开\n- generic: 刚搬来桐梓林，想找靠谱的母婴店或药店，欢迎推荐。\n- generic: 1 评论\n- generic: 12 ♥\n- generic: 2026-03-28\n- generic: 桐梓林早晨散步路线分享\n- generic: 公开\n- generic: 今天从桐梓林北路一路走到社区中心，路上树荫比较多，早上 8 点前人不算多。适合遛狗、推婴儿车，也适合刚搬来的朋友熟悉周边。建议带水，靠近地铁站的位置早高峰会稍微拥挤。\n- generic: 0 评论\n- generic: 31 ♥\n- generic: 2026-03-29\n- generic: 视频\n- generic: 社区中心活动厅短视频预览\n- generic: 公开\n- generic: 这是活动厅空间的一个短视频预览，后续如果有语言交换、亲子活动或者小型讲座，可以考虑安排在这里。视频主要用来测试 Discover 的视频帖展示效果。\n- generic: 0 评论\n- generic: 19 ♥\n- generic: 2026-03-31\n- generic: 文字\n- generic: 提醒：最近雨天较多，地铁口到社区中心有一段路比较滑\n- generic: 公开\n- generic: 这两天傍晚雨比较大，桐梓林地铁站出来往社区中心走时，靠近路口的一小段地砖会比较滑。带小朋友或推车的居民可以从旁边更宽的路绕一下。没有配图，主要是提醒大家注意安全。\n- generic: 0 评论\n- generic: 8 ♥\n- generic: 2026-04-02\n- generic: 文字\n- generic: Hidden moderation post\n- generic: 已隐藏\n- generic: This post must not appear publicly.\n- generic: 0 评论\n- generi"
+  },
+  {
+    "name": "comments",
+    "route": "pages/more/my-comments",
+    "nonblank": true,
+    "preview": "- generic: 我的评论\n- generic: 我的评论\n- generic: 你还没有发表评论。"
+  },
+  {
+    "name": "commentDetail",
+    "route": "pages/more/my-comment-detail",
+    "nonblank": true,
+    "preview": "- generic: 评论详情\n- generic: 评论详情"
+  },
+  {
+    "name": "reports",
+    "route": "pages/more/my-reports",
+    "nonblank": true,
+    "preview": "- generic: 我的举报\n- generic: 我的举报\n- generic: 你还没有提交举报。"
+  },
+  {
+    "name": "reportDetail",
+    "route": "pages/more/my-report-detail",
+    "nonblank": true,
+    "preview": "- generic: 举报详情\n- generic: 举报详情"
+  },
+  {
+    "name": "profile",
+    "route": "pages/more/profile",
+    "nonblank": true,
+    "preview": "- generic: ‹\n- generic: Jerry\n- generic: Jerry\n- generic: \"@user_001\"\n- generic: ◎\n- text: 桐梓林社区\n- generic: 这个人很神秘，还没有填写简介。\n- generic: 编辑资料\n- generic: 分享主页\n- generic: \"4\"\n- generic: 帖子\n- generic: \"0\"\n- generic: 粉丝\n- generic: \"0\"\n- generic: 关注\n- generic: 帖子\n- generic: 视频\n- generic: 文字\n- generic: 周边哪里能买到合适的婴儿用品？\n- generic: 桐梓林早晨散步路线分享\n- generic: ▶\n- generic: 社区中心活动厅短视频预览\n- generic: 文字\n- generic: 提醒：最近雨天较多，地铁口到社区中心有一段路比较滑"
+  },
+  {
+    "name": "follows",
+    "route": "pages/more/follows",
+    "nonblank": true,
+    "preview": "- generic: 关注列表\n- generic: 粉丝\n- generic: 暂无用户"
+  },
+  {
+    "name": "language",
+    "route": "pages/more/language-settings",
+    "nonblank": true,
+    "preview": "- generic: 语言设置\n- generic: 语言设置\n- generic: 选择界面语言。正式内容会优先显示所选语言，并在缺失时明确回退。\n- radiogroup \"语言设置\":\n  - radio \"中文 ZH ✓\" [checked]:\n    - generic: 中文\n    - generic: ZH\n    - generic: ✓\n  - radio \"English EN\":\n    - generic: English\n    - generic: EN"
+  }
+]

@@ -2,6 +2,7 @@ import Router from "@koa/router";
 import {
   AdminLoginRequestSchema,
   LoginRequestSchema,
+  UpdateAuthPreferencesInputSchema,
   WechatMiniappSessionRequestSchema
 } from "@community-map/shared";
 
@@ -24,6 +25,25 @@ export const registerAuthRoutes = (router: Router) => {
     const actor = ctx.state.actor;
     const session = await ctx.state.provider.auth.me(actor?._id);
     sendSuccess(ctx, session);
+  });
+
+  router.get("/auth/preferences", async (ctx) => {
+    const preferences = await ctx.state.provider.auth.preferences(
+      ctx.state.actor?._id
+    );
+    sendSuccess(ctx, preferences);
+  });
+
+  router.patch("/auth/preferences", async (ctx) => {
+    const input = parseOrThrow(
+      UpdateAuthPreferencesInputSchema,
+      ctx.request.body
+    );
+    const preferences = await ctx.state.provider.auth.updatePreferences(
+      ctx.state.actor?._id,
+      input.preferred_language
+    );
+    sendSuccess(ctx, preferences);
   });
 
   router.post("/auth/wechat-miniapp/session", async (ctx) => {

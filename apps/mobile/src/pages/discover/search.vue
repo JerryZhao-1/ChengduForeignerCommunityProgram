@@ -5,7 +5,7 @@ import type { Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy } from "@/i18n";
 import { useAppStore } from "@/stores/app-store";
 import {
   getFirstMedia,
@@ -17,7 +17,7 @@ import {
 const SEARCH_HISTORY_KEY = "discover-search-history-v1";
 
 const { state } = useAppStore();
-const copy = computed(() => appCopy[state.locale].discover);
+const copy = computed(() => getMobileCopy(state.locale).discover);
 const keyword = ref("");
 const history = ref<string[]>([]);
 const results = ref<Post[]>([]);

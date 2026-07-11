@@ -4,13 +4,14 @@ import { computed, onMounted, ref } from "vue";
 
 import { mobileApi } from "@/api/client";
 import SectionPanel from "@/components/SectionPanel.vue";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy } from "@/i18n";
 import { isPublicEvent } from "@/pages/events/event-signup-state";
+import { formatEventTimeRange } from "@/pages/events/event-presentation";
 import { placesPagePaths } from "@/pages/places/navigation";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 
 const { state } = useAppStore();
-const copy = computed(() => appCopy[state.locale]);
+const copy = computed(() => getMobileCopy(state.locale).home);
 const events = ref<Array<any>>([]);
 const announcements = ref<Array<any>>([]);
 const places = ref<Array<any>>([]);
@@ -56,33 +57,35 @@ onMounted(load);
     <view class="page">
       <view class="hero">
         <view class="eyebrow">Tongzilin</view>
-        <view class="title">{{ copy.homeTitle }}</view>
-        <view class="subtitle">{{ copy.homeSubtitle }}</view>
+        <view class="title">{{ copy.title }}</view>
+        <view class="subtitle">{{ copy.subtitle }}</view>
       </view>
 
-      <SectionPanel title="Events" subtitle="活动骨架已接入统一 DTO">
+      <SectionPanel :title="copy.events" :subtitle="copy.eventsSubtitle">
         <view v-for="event in events" :key="event._id" class="list-item" @click="open(`/pages/events/detail?id=${event._id}`)">
           <view>{{ pickLocalized(state.locale, event.title_zh, event.title_en) }}</view>
-          <view class="caption">{{ event.start_time }}</view>
+          <view class="caption">
+            {{ formatEventTimeRange(state.locale, event.start_time, event.end_time) }}
+          </view>
         </view>
       </SectionPanel>
 
-      <SectionPanel title="Announcements" subtitle="公告列表已连通">
+      <SectionPanel :title="copy.announcements" :subtitle="copy.announcementsSubtitle">
         <view v-for="item in announcements" :key="item._id" class="list-item">
           <view>{{ pickLocalized(state.locale, item.title_zh, item.title_en) }}</view>
         </view>
       </SectionPanel>
 
-      <SectionPanel title="Places" subtitle="从首页直接进入完整地点列表或推荐地点。">
+      <SectionPanel :title="copy.places" :subtitle="copy.placesSubtitle">
         <view class="places-actions">
           <button class="action-button" @click="open(placesPagePaths.list())">
-            查看地点列表
+            {{ copy.viewPlaces }}
           </button>
           <button
             class="action-button ghost"
             @click="open(placesPagePaths.recommended())"
           >
-            查看推荐地点
+            {{ copy.viewRecommendedPlaces }}
           </button>
         </view>
         <view
@@ -98,12 +101,12 @@ onMounted(load);
         </view>
       </SectionPanel>
 
-      <SectionPanel :title="copy.moreActions">
+      <SectionPanel :title="copy.quickActions">
         <view class="quick-grid">
-          <view class="quick-item" @click="open('/pages/more/profile')">个人主页</view>
-          <view class="quick-item" @click="open('/pages/more/notifications')">通知中心</view>
-          <view class="quick-item" @click="open('/pages/more/my-registrations')">我的报名</view>
-          <view class="quick-item" @click="open('/pages/more/language-settings')">语言设置</view>
+          <view class="quick-item" @click="open('/pages/more/profile')">{{ copy.profile }}</view>
+          <view class="quick-item" @click="open('/pages/more/notifications')">{{ copy.notifications }}</view>
+          <view class="quick-item" @click="open('/pages/more/my-registrations')">{{ copy.registrations }}</view>
+          <view class="quick-item" @click="open('/pages/more/language-settings')">{{ copy.language }}</view>
         </view>
       </SectionPanel>
     </view>

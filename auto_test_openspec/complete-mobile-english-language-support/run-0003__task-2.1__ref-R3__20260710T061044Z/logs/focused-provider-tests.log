@@ -1,0 +1,13 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/bilingual-contracts.spec.ts (8 tests) 4ms
+ ✓ apps/api/test/bilingual-preferences.spec.ts (5 tests) 39ms
+ ✓ apps/api/test/cloudbase.spec.ts (18 tests) 130ms
+ ✓ apps/api/test/app.spec.ts (20 tests) 187ms
+
+ Test Files  4 passed (4)
+      Tests  51 passed (51)
+   Start at  14:11:27
+   Duration  866ms (transform 419ms, setup 0ms, collect 1.60s, tests 360ms, environment 1ms, prepare 194ms)
+

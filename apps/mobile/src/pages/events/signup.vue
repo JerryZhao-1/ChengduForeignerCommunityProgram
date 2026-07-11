@@ -8,7 +8,12 @@ import { computed, ref } from "vue";
 import { onLoad, onShow } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
+import { getMobileCopy } from "@/i18n";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
+import {
+  formatEventTimeRange,
+  resolveEventAddress
+} from "./event-presentation";
 import {
   findActiveRegistrationForEvent,
   getEventSignupState,
@@ -16,8 +21,14 @@ import {
   isPublicEvent,
   shouldConfirmRegistrationAfterSubmitError
 } from "./event-signup-state";
+import {
+  isValidPhoneNumber,
+  normalizePhoneNumber,
+  PHONE_NUMBER_LENGTH
+} from "./registration-form";
 
 const { state } = useAppStore();
+const copy = computed(() => getMobileCopy(state.locale).events);
 const loading = ref(false);
 const submitting = ref(false);
 const error = ref("");
@@ -30,7 +41,9 @@ const form = ref({
   phone: "",
   attendeeCount: 1
 });
-const unavailableEventMessage = "活动暂不可访问或已下线";
+const unavailableEventMessage = computed(
+  () => copy.value.signupStates.unavailable.reason
+);
 
 const isUnavailableEventError = (err: unknown) =>
   err instanceof ApiClientError
@@ -51,7 +64,25 @@ const signupState = computed(() =>
     ? getEventSignupState(event.value, new Date(), {
         isRegistered: registeredEventIds.value.has(event.value._id)
       })
-    : { canSignup: false, label: "暂不可报名", reason: "" }
+    : { canSignup: false, code: "unavailable" as const }
+);
+
+const signupCopy = computed(
+  () => copy.value.signupStates[signupState.value.code]
+);
+
+const eventAddress = computed(() =>
+  event.value ? resolveEventAddress(event.value, state.locale).value : ""
+);
+
+const eventTimeRange = computed(() =>
+  event.value
+    ? formatEventTimeRange(
+        state.locale,
+        event.value.start_time,
+        event.value.end_time
+      )
+    : ""
 );
 
 const currentRegistration = computed(() => {
@@ -89,7 +120,7 @@ const loadRegistrationTicket = async (
 
 const loadEvent = async (id: string) => {
   if (!id) {
-    error.value = "缺少活动ID";
+    error.value = copy.value.states.missingId;
     return;
   }
 
@@ -100,7 +131,7 @@ const loadEvent = async (id: string) => {
   try {
     const eventResult = await mobileApi.events.detail(id);
     if (!isPublicEvent(eventResult.data)) {
-      error.value = unavailableEventMessage;
+      error.value = unavailableEventMessage.value;
       loading.value = false;
       return;
     }
@@ -108,8 +139,8 @@ const loadEvent = async (id: string) => {
   } catch (err) {
     console.error(err);
     error.value = isUnavailableEventError(err)
-      ? unavailableEventMessage
-      : "活动加载失败，请稍后重试";
+      ? unavailableEventMessage.value
+      : copy.value.states.error;
     loading.value = false;
     return;
   }
@@ -128,7 +159,7 @@ const loadEvent = async (id: string) => {
     const meResult = await mobileApi.auth.me();
     const currentPhone = meResult.data.user.phone ?? "";
     if (!form.value.phone && currentPhone.length >= 6) {
-      form.value.phone = currentPhone;
+      form.value.phone = normalizePhoneNumber(currentPhone);
     }
   } catch (err) {
     console.error(err);
@@ -149,21 +180,28 @@ const submit = async () => {
   }
 
   if (!signupState.value.canSignup) {
-    uni.showToast({ title: signupState.value.reason, icon: "none" });
+    uni.showToast({ title: signupCopy.value.reason, icon: "none" });
     return;
   }
 
   const name = form.value.name.trim();
-  const phone = form.value.phone.trim();
+  const phone = normalizePhoneNumber(form.value.phone);
+  form.value.phone = phone;
   const attendeeCount = Number(form.value.attendeeCount) || 1;
 
   if (!name || !phone) {
-    uni.showToast({ title: "请填写姓名和电话", icon: "none" });
+    uni.showToast({
+      title: copy.value.registration.namePhoneRequired,
+      icon: "none"
+    });
     return;
   }
 
-  if (phone.length < 6) {
-    uni.showToast({ title: "电话至少 6 位", icon: "none" });
+  if (!isValidPhoneNumber(phone)) {
+    uni.showToast({
+      title: copy.value.registration.phoneInvalid,
+      icon: "none"
+    });
     return;
   }
 
@@ -172,7 +210,10 @@ const submit = async () => {
     attendeeCount < 1 ||
     attendeeCount > 10
   ) {
-    uni.showToast({ title: "报名人数需为 1-10 人", icon: "none" });
+    uni.showToast({
+      title: copy.value.registration.attendeesInvalid,
+      icon: "none"
+    });
     return;
   }
 
@@ -194,7 +235,7 @@ const submit = async () => {
       result.data.registration
     );
     ticketCode.value = result.data.ticket.ticket_code;
-    uni.showToast({ title: "报名成功", icon: "success" });
+    uni.showToast({ title: copy.value.registration.success, icon: "success" });
   } catch (err) {
     const shouldConfirm = shouldConfirmRegistrationAfterSubmitError(err);
     const confirmed = shouldConfirm
@@ -202,12 +243,15 @@ const submit = async () => {
       : false;
 
     if (confirmed) {
-      uni.showToast({ title: "报名成功", icon: "success" });
+      uni.showToast({
+        title: copy.value.registration.success,
+        icon: "success"
+      });
       return;
     }
 
     console.warn("[events:signup] submit failed", err);
-    uni.showToast({ title: "报名失败，请稍后重试", icon: "none" });
+    uni.showToast({ title: copy.value.registration.failed, icon: "none" });
   } finally {
     submitting.value = false;
   }
@@ -267,19 +311,11 @@ const mergeRegistration = (
   return [...items, registration];
 };
 
-const formatTime = (input: string) => {
-  const date = new Date(input);
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const hh = String(date.getHours()).padStart(2, "0");
-  const min = String(date.getMinutes()).padStart(2, "0");
-  return `${mm}-${dd} ${hh}:${min}`;
-};
 </script>
 
 <template>
   <view class="page">
-    <view v-if="loading" class="state-text">加载中...</view>
+    <view v-if="loading" class="state-text">{{ copy.states.loading }}</view>
     <view v-else-if="error" class="state-text error">{{ error }}</view>
 
     <template v-else-if="event">
@@ -287,48 +323,46 @@ const formatTime = (input: string) => {
         <text class="title">{{
           pickLocalized(state.locale, event.title_zh, event.title_en)
         }}</text>
-        <text class="meta"
-          >时间：{{ formatTime(event.start_time) }} -
-          {{ formatTime(event.end_time) }}</text
-        >
-        <text class="meta">地点：{{ event.address_text }}</text>
+        <text class="meta">{{ copy.time }}: {{ eventTimeRange }}</text>
+        <text class="meta">{{ copy.place }}: {{ eventAddress }}</text>
       </view>
 
       <view v-if="!signupState.canSignup" class="notice-card">
-        <text class="notice-title">{{ signupState.label }}</text>
-        <text class="notice-text">{{ signupState.reason }}</text>
+        <text class="notice-title">{{ signupCopy.label }}</text>
+        <text class="notice-text">{{ signupCopy.reason }}</text>
       </view>
 
       <view class="card" :class="{ disabled: !signupState.canSignup }">
-        <text class="section-title">报名信息</text>
+        <text class="section-title">{{ copy.registration.title }}</text>
 
         <view class="field">
-          <text class="label">姓名</text>
+          <text class="label">{{ copy.registration.name }}</text>
           <input
             v-model="form.name"
             class="input"
-            placeholder="请输入姓名"
+            :placeholder="copy.registration.namePlaceholder"
             :disabled="!signupState.canSignup"
           />
         </view>
 
         <view class="field">
-          <text class="label">电话</text>
+          <text class="label">{{ copy.registration.phone }}</text>
           <input
             v-model="form.phone"
             class="input"
-            placeholder="13800000000"
-            type="text"
+            :placeholder="copy.registration.phonePlaceholder"
+            type="number"
+            :maxlength="PHONE_NUMBER_LENGTH"
             :disabled="!signupState.canSignup"
           />
         </view>
 
         <view class="field">
-          <text class="label">人数</text>
+          <text class="label">{{ copy.registration.attendees }}</text>
           <input
             v-model="form.attendeeCount"
             class="input"
-            placeholder="请输入人数"
+            :placeholder="copy.registration.attendeesPlaceholder"
             type="number"
             :disabled="!signupState.canSignup"
           />
@@ -341,17 +375,19 @@ const formatTime = (input: string) => {
           :loading="submitting"
           @click="submit"
         >
-          {{ signupState.canSignup ? "提交报名" : signupState.label }}
+          {{ signupState.canSignup ? copy.registration.submit : signupCopy.label }}
         </button>
       </view>
 
       <view v-if="ticketCode" class="success-card">
-        <text class="success-title">报名成功</text>
-        <text class="success-text">凭证号：{{ ticketCode }}</text>
+        <text class="success-title">{{ copy.registration.success }}</text>
+        <text class="success-text">
+          {{ copy.registration.ticketCode }}: {{ ticketCode }}
+        </text>
       </view>
     </template>
 
-    <view v-else class="state-text">活动不存在</view>
+    <view v-else class="state-text">{{ copy.states.missing }}</view>
   </view>
 </template>
 

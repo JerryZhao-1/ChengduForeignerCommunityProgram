@@ -204,6 +204,12 @@ components:
           type: string
         address_text:
           type: string
+          deprecated: true
+          description: Legacy read compatibility only. New writes use address_zh/address_en.
+        address_zh:
+          type: string
+        address_en:
+          type: string
         location:
           $ref: "#/components/schemas/Coordinates"
         start_time:
@@ -255,7 +261,6 @@ components:
         - summary_en
         - content_zh
         - content_en
-        - address_text
         - location
         - start_time
         - end_time
@@ -275,6 +280,12 @@ components:
         content_en:
           type: string
         address_text:
+          type: string
+          deprecated: true
+          description: Legacy migration compatibility only.
+        address_zh:
+          type: string
+        address_en:
           type: string
         location:
           $ref: "#/components/schemas/Coordinates"
@@ -317,6 +328,12 @@ components:
         content_en:
           type: string
         address_text:
+          type: string
+          deprecated: true
+          description: Legacy migration compatibility only.
+        address_zh:
+          type: string
+        address_en:
           type: string
         location:
           $ref: "#/components/schemas/Coordinates"
@@ -659,6 +676,26 @@ components:
           enum: [visible, hidden, deleted]
         reason:
           type: string
+    PermanentDeletePostResponse:
+      type: object
+      required: [post_id, audit_record_id, deleted]
+      properties:
+        post_id:
+          type: string
+        audit_record_id:
+          type: string
+        deleted:
+          type: object
+          additionalProperties: false
+          properties:
+            posts: { type: integer, minimum: 0 }
+            comments: { type: integer, minimum: 0 }
+            interactions: { type: integer, minimum: 0 }
+            reports: { type: integer, minimum: 0 }
+            notifications: { type: integer, minimum: 0 }
+            file_assets: { type: integer, minimum: 0 }
+            storage_objects: { type: integer, minimum: 0 }
+            audit_records: { type: integer, minimum: 0 }
     PlaceListItem:
       type: object
       required:
@@ -1225,6 +1262,22 @@ components:
           type: string
         body:
           type: string
+        title_zh:
+          type:
+            - string
+            - "null"
+        title_en:
+          type:
+            - string
+            - "null"
+        body_zh:
+          type:
+            - string
+            - "null"
+        body_en:
+          type:
+            - string
+            - "null"
         status:
           type: string
         created_at:
@@ -2057,6 +2110,31 @@ paths:
                     properties:
                       data:
                         $ref: "#/components/schemas/Post"
+  /admin/discover/posts/{id}:
+    delete:
+      tags: [Admin, Discover]
+      operationId: permanentlyDeletePost
+      summary: Permanently delete a post and its dependencies
+      security:
+        - MockActorHeader: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Permanent deletion result
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/PermanentDeletePostResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /admin/discover/posts/{id}/moderation:
     post:
       tags: [Admin, Discover]

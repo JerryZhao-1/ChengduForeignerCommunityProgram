@@ -1,0 +1,11 @@
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ scripts/bilingual-content-audit.spec.ts (7 tests) 11ms
+ ✓ packages/shared/test/bilingual-contracts.spec.ts (9 tests) 4ms
+
+ Test Files  2 passed (2)
+      Tests  16 passed (16)
+   Start at  23:44:53
+   Duration  665ms (transform 233ms, setup 0ms, collect 348ms, tests 15ms, environment 0ms, prepare 187ms)
+

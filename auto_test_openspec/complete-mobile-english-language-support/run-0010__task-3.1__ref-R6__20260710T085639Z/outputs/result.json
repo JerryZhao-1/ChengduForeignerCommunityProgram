@@ -1,0 +1,20 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "3.1",
+  "ref": "R6",
+  "result": "PASS",
+  "cli": {
+    "focusedTests": { "exitCode": 0, "tests": "27/27" },
+    "mobileTypecheck": { "exitCode": 0 },
+    "sharedTypecheck": { "exitCode": 0 }
+  },
+  "gui": {
+    "explicitLanguageSelectors": true,
+    "immediateEnglishUpdate": true,
+    "persistenceAfterNavigation": true,
+    "runtimeTitleLocalized": true,
+    "fiveTabsLocalized": true,
+    "consoleErrors": []
+  },
+  "screenshots": ["outputs/screenshots/home-english.png"]
+}

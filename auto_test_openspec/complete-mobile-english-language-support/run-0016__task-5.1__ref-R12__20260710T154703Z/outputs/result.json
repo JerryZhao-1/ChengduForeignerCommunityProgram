@@ -1,0 +1,26 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "5.1",
+  "ref": "R12",
+  "result": "PASS",
+  "commands": {
+    "pnpm typecheck": { "exitCode": 0 },
+    "pnpm test": { "exitCode": 0, "tests": "199/199" },
+    "pnpm lint": { "exitCode": 0 },
+    "admin production-target build": { "exitCode": 0 },
+    "mobile H5 production-target build": { "exitCode": 0 },
+    "mobile mp-weixin cloudbase-function build": { "exitCode": 0 },
+    "documentation assertions": { "exitCode": 0, "assertions": "40/40" },
+    "content audit tests": { "exitCode": 0, "tests": "16/16" },
+    "production artifact scan": { "exitCode": 0, "matches": 0 },
+    "H5 deprecated/dev-copy scan": { "exitCode": 0, "matches": 0 },
+    "generated tree tracked changes": { "exitCode": 0, "matches": 0 }
+  },
+  "buildPaths": {
+    "admin": "apps/admin/dist",
+    "h5": "apps/mobile/dist/build/h5",
+    "mpWeixin": "apps/mobile/dist/build/mp-weixin"
+  },
+  "warnings": ["Admin Rollup chunk-size advisory", "uni-app update advisory"],
+  "deploymentOrUploadPerformed": false
+}

@@ -1,0 +1,34 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "2.3",
+  "ref": "R5",
+  "cli": {
+    "adminTypecheck": {
+      "exitCode": 0
+    },
+    "focusedTests": {
+      "exitCode": 0,
+      "tests": "10/10"
+    }
+  },
+  "gui": {
+    "eventReadinessColumn": true,
+    "bilingualEventAddressInputs": true,
+    "incompleteEventDraftSaved": true,
+    "incompleteEventPublishDisabled": true,
+    "completeEventPublished": true,
+    "placeReadinessDiagnostics": true,
+    "incompletePlaceDraftSaved": true,
+    "incompletePlacePublishDisabled": true,
+    "completePlacePublished": true,
+    "pendingReentryGuard": true,
+    "consoleErrors": []
+  },
+  "screenshots": [
+    "outputs/screenshots/events-table-readiness.png",
+    "outputs/screenshots/event-form-blocker.png",
+    "outputs/screenshots/places-table-readiness.png",
+    "outputs/screenshots/place-draft-blocker.png",
+    "outputs/screenshots/place-pending-protection.png"
+  ]
+}

@@ -1,7 +1,9 @@
 import { defineContract } from "./define-contract";
 import {
   AdminLoginRequestSchema,
+  AuthPreferencesSchema,
   LoginRequestSchema,
+  UpdateAuthPreferencesInputSchema,
   WechatMiniappSessionRequestSchema
 } from "../schemas/auth";
 import { AuthSessionSchema } from "../schemas/entities";
@@ -23,6 +25,17 @@ export const authContracts = {
     method: "GET",
     path: "/auth/me",
     response: AuthSessionSchema
+  }),
+  preferences: defineContract({
+    method: "GET",
+    path: "/auth/preferences",
+    response: AuthPreferencesSchema
+  }),
+  updatePreferences: defineContract({
+    method: "PATCH",
+    path: "/auth/preferences",
+    request: UpdateAuthPreferencesInputSchema,
+    response: AuthPreferencesSchema
   }),
   wechatMiniappSession: defineContract({
     method: "POST",

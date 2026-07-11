@@ -1,0 +1,13 @@
+{
+  "events": ["legacy-address_text", "canonical-address_zh-address_en"],
+  "notifications": ["legacy-title-body", "bilingual-title-body"],
+  "preferences": ["zh", "en", "invalid-fr"],
+  "readiness": [
+    "incomplete-draft",
+    "complete-public",
+    "whitespace",
+    "placeholder",
+    "ordinary-place",
+    "recommended-place-missing-reason"
+  ]
+}

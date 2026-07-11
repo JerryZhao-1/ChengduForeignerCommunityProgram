@@ -6,30 +6,90 @@ import type { PlaceDetail, Post } from "@community-map/shared";
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import SectionPanel from "@/components/SectionPanel.vue";
-import { pickLocalized, useAppStore } from "@/stores/app-store";
-import { getPlacesCopy } from "./copy";
+import { getMobileCopy } from "@/i18n";
+import { useAppStore } from "@/stores/app-store";
 import { usePlaceFavoriteState } from "./favorite-state";
+import {
+  getPlaceCategoryPathLabel,
+  getPlaceTagLabel
+} from "./list-categories";
 import {
   buildPlaceDetailNavigationTarget,
   openPlaceNativeNavigation,
   PLACE_MAP_FOCUS_STORAGE_KEY,
   placesPagePaths
 } from "./navigation";
+import {
+  formatPlaceCommentsCount,
+  formatPlaceFallbackNotice,
+  formatPlaceGalleryAlt,
+  resolvePlaceField
+} from "./place-presentation";
 import { usePlaceAsyncState } from "./usePlaceAsyncState";
 
 const { state } = useAppStore();
 const place = ref<PlaceDetail | null>(null);
 const relatedPosts = ref<Post[]>([]);
 const { loading, error, run, setError } = usePlaceAsyncState();
-const detailCopy = computed(() => getPlacesCopy(state.locale, "detail"));
+const detailCopy = computed(() => getMobileCopy(state.locale).places.detail);
 const { isFavorite, toggleFavorite } = usePlaceFavoriteState(
   () => place.value?._id ?? null
 );
 const failedExternalImages = ref<Set<string>>(new Set());
+const placeNameField = computed(() =>
+  resolvePlaceField(
+    state.locale,
+    place.value?.name_zh,
+    place.value?.name_en
+  )
+);
+const addressField = computed(() =>
+  resolvePlaceField(
+    state.locale,
+    place.value?.address_zh,
+    place.value?.address_en,
+    true
+  )
+);
+const businessHoursField = computed(() =>
+  resolvePlaceField(
+    state.locale,
+    place.value?.business_hours_zh,
+    place.value?.business_hours_en,
+    true
+  )
+);
+const introField = computed(() =>
+  resolvePlaceField(
+    state.locale,
+    place.value?.intro_zh,
+    place.value?.intro_en,
+    true
+  )
+);
+const recommendationField = computed(() =>
+  resolvePlaceField(
+    state.locale,
+    place.value?.recommended_reason_zh,
+    place.value?.recommended_reason_en,
+    true
+  )
+);
+const formalFallbackNotice = computed(() =>
+  formatPlaceFallbackNotice(state.locale, [
+    placeNameField.value,
+    addressField.value,
+    businessHoursField.value,
+    introField.value,
+    recommendationField.value
+  ])
+);
 const galleryItems = computed(() => {
   if (!place.value) {
     return [];
   }
+
+  const activePlaceName = placeNameField.value.value;
 
   const ownedMedia =
     place.value.gallery_media.length > 0
@@ -38,29 +98,41 @@ const galleryItems = computed(() => {
           file_id: `legacy-gallery-${index + 1}`,
           cloud_path: "",
           url,
-          alt_zh: `${place.value?.name_zh ?? ""} 图集 ${index + 1}`,
-          alt_en: `${place.value?.name_en ?? ""} gallery ${index + 1}`
+          alt_zh: "",
+          alt_en: ""
         }));
 
   return [
-    ...ownedMedia.map((media) => ({
+    ...ownedMedia.map((media, index) => ({
       key: `owned-${media.file_id}`,
       kind: "owned" as const,
       url: media.url,
-      alt_zh: media.alt_zh,
-      alt_en: media.alt_en,
+      alt:
+        resolvePlaceField(
+          state.locale,
+          media.alt_zh,
+          media.alt_en,
+          true
+        ).value ||
+        formatPlaceGalleryAlt(
+          state.locale,
+          activePlaceName,
+          index + 1
+        ),
       attribution: null
     })),
     ...place.value.external_gallery_media.map((media, index) => ({
       key: `external-${media.source_place_id}-${index}`,
       kind: "external" as const,
       url: media.image_url,
-      alt_zh:
-        media.image_title ??
-        `${place.value?.name_zh ?? ""} 外部图集 ${index + 1}`,
-      alt_en:
-        media.image_title ??
-        `${place.value?.name_en ?? ""} external gallery ${index + 1}`,
+      alt:
+        media.image_title ||
+        formatPlaceGalleryAlt(
+          state.locale,
+          activePlaceName,
+          index + 1,
+          true
+        ),
       attribution: media.attribution.label
     }))
   ];
@@ -70,37 +142,38 @@ const shareTitle = computed(() => {
     return detailCopy.value.shareFallbackTitle;
   }
 
-  return pickLocalized(
+  return resolvePlaceField(
     state.locale,
     place.value.share.title_zh || place.value.name_zh,
     place.value.share.title_en || place.value.name_en
-  );
+  ).value;
 });
 const shareSummary = computed(() => {
   if (!place.value) {
     return "";
   }
 
-  return pickLocalized(
+  return resolvePlaceField(
     state.locale,
     place.value.share.summary_zh || place.value.intro_zh,
-    place.value.share.summary_en || place.value.intro_en
-  );
+    place.value.share.summary_en || place.value.intro_en,
+    true
+  ).value;
 });
 const sharePath = computed(() =>
   place.value ? placesPagePaths.detail(place.value._id) : placesPagePaths.list()
 );
 const shareImageUrl = computed(() => place.value?.cover_url ?? undefined);
-const localizedText = (zh: string, en: string) =>
-  pickLocalized(state.locale, zh, en).trim();
 const categorySubtitle = computed(() => {
   if (!place.value) {
     return "";
   }
 
-  return place.value.category_level_2
-    ? `${place.value.category_level_1} / ${place.value.category_level_2}`
-    : place.value.category_level_1;
+  return getPlaceCategoryPathLabel(
+    state.locale,
+    place.value.category_level_1,
+    place.value.category_level_2
+  );
 });
 const hasUsableCoordinates = computed(() => {
   if (!place.value) {
@@ -302,7 +375,7 @@ const openRelatedPost = (id: string) => {
     <AsyncStateCard v-else-if="error" variant="error" :text="error" />
     <SectionPanel
       v-else-if="place"
-      :title="pickLocalized(state.locale, place.name_zh, place.name_en)"
+      :title="placeNameField.value"
       :subtitle="categorySubtitle"
     >
       <image
@@ -316,44 +389,26 @@ const openRelatedPost = (id: string) => {
       </view>
       <view v-if="place.tag_ids.length" class="chip-row">
         <text v-for="tag in place.tag_ids" :key="tag" class="place-chip"
-          >#{{ tag }}</text
+          >#{{ getPlaceTagLabel(state.locale, tag) }}</text
         >
       </view>
-      <view
-        v-if="localizedText(place.address_zh, place.address_en)"
-        class="info-block"
-      >
+      <view v-if="formalFallbackNotice" class="fallback-notice">
+        {{ formalFallbackNotice }}
+      </view>
+      <view v-if="addressField.value" class="info-block">
         <view class="info-label">{{ detailCopy.address }}</view>
-        <view class="line">{{
-          localizedText(place.address_zh, place.address_en)
-        }}</view>
+        <view class="line">{{ addressField.value }}</view>
       </view>
-      <view
-        v-if="localizedText(place.business_hours_zh, place.business_hours_en)"
-        class="info-block"
-      >
+      <view v-if="businessHoursField.value" class="info-block">
         <view class="info-label">{{ detailCopy.businessHours }}</view>
-        <view class="line">
-          {{ localizedText(place.business_hours_zh, place.business_hours_en) }}
-        </view>
+        <view class="line">{{ businessHoursField.value }}</view>
       </view>
-      <view
-        v-if="localizedText(place.intro_zh, place.intro_en)"
-        class="info-block"
-      >
+      <view v-if="introField.value" class="info-block">
         <view class="info-label">{{ detailCopy.intro }}</view>
-        <view class="line">{{
-          localizedText(place.intro_zh, place.intro_en)
-        }}</view>
+        <view class="line">{{ introField.value }}</view>
       </view>
       <view v-if="place.is_recommended" class="place-badge">
-        {{
-          pickLocalized(
-            state.locale,
-            place.recommended_reason_zh ?? detailCopy.recommendedFallback,
-            place.recommended_reason_en ?? detailCopy.recommendedFallback
-          )
-        }}
+        {{ recommendationField.value || detailCopy.recommendedFallback }}
       </view>
       <view class="gallery">
         <view class="info-label">{{ detailCopy.gallery }}</view>
@@ -374,17 +429,13 @@ const openRelatedPost = (id: string) => {
               "
               class="gallery-fallback"
             >
-              <text>{{
-                state.locale === "zh"
-                  ? "外部图片暂不可用"
-                  : "External image unavailable"
-              }}</text>
+              <text>{{ detailCopy.externalImageUnavailable }}</text>
             </view>
             <image
               v-else
               class="gallery-item"
               :src="media.url"
-              :alt="pickLocalized(state.locale, media.alt_zh, media.alt_en)"
+              :alt="media.alt"
               mode="aspectFill"
               @error="
                 media.kind === 'external' && markExternalImageFailed(media.url)
@@ -442,9 +493,7 @@ const openRelatedPost = (id: string) => {
       </view>
       <view v-if="shareSummary" class="share-summary">{{ shareSummary }}</view>
       <view v-if="relatedPosts.length" class="related-section">
-        <view class="info-label">{{
-          state.locale === "zh" ? "相关讨论" : "Related Discussion"
-        }}</view>
+        <view class="info-label">{{ detailCopy.relatedDiscussion }}</view>
         <view
           v-for="post in relatedPosts"
           :key="post._id"
@@ -454,7 +503,7 @@ const openRelatedPost = (id: string) => {
           <view class="related-title">{{ post.title }}</view>
           <view class="related-meta">
             <text>{{ post.author_display.nickname }}</text>
-            <text>{{ post.comment_count }} comments</text>
+            <text>{{ formatPlaceCommentsCount(state.locale, post.comment_count) }}</text>
           </view>
         </view>
       </view>
@@ -497,6 +546,15 @@ const openRelatedPost = (id: string) => {
 
 .info-block {
   margin-bottom: 18rpx;
+}
+
+.fallback-notice {
+  margin-bottom: 18rpx;
+  padding: 12rpx 16rpx;
+  border-radius: 8rpx;
+  background: #fff7e6;
+  color: #9a5b00;
+  font-size: 22rpx;
 }
 
 .info-label {

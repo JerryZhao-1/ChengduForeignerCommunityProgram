@@ -12,13 +12,14 @@ import {
 import { mobileApi } from "@/api/client";
 import { uploadPostMedia } from "@/api/post-media-upload";
 import SectionPanel from "@/components/SectionPanel.vue";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy } from "@/i18n";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 import { getDiscoverEnforcementMessage } from "./enforcement-error";
 import { getMediaKind } from "./media";
 
 const { state } = useAppStore();
-const copy = computed(() => appCopy[state.locale].discover);
+const copy = computed(() => getMobileCopy(state.locale).discover);
+const showDevelopmentMediaUrls = import.meta.env.DEV;
 
 const form = reactive({
   title: "",
@@ -608,7 +609,7 @@ const submit = async () => {
         </button>
       </view>
 
-      <view class="field-group">
+      <view v-if="showDevelopmentMediaUrls" class="field-group">
         <view class="label">{{ copy.imageUrlsLabel }}</view>
         <textarea
           v-model="form.imageUrlsText"

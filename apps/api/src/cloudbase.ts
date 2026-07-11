@@ -31,6 +31,7 @@ import {
 } from "@community-map/shared";
 
 import { apiError, ApiAppError } from "./lib/errors";
+import { logServerError } from "./lib/error-logging";
 import { verifyAdminBearerToken } from "./lib/admin-auth";
 import { parseOrThrow } from "./lib/http";
 import {
@@ -789,6 +790,27 @@ export const main: CloudbaseEventHandler = async (event, context) => {
       }
     }
 
+    {
+      const match = matchRoute("/admin/discover/posts/:id", pathname);
+
+      if (method === "DELETE" && match.matched) {
+        await requireRole(provider, { eventID: requestId, httpContext }, [
+          "community_admin",
+          "system_admin"
+        ]);
+        const result = await provider.posts.permanentlyDelete(
+          match.params.id,
+          actorId
+        );
+
+        if (!result) {
+          throw apiError("NOT_FOUND", "Post not found.", 404);
+        }
+
+        return ok(result, requestId);
+      }
+    }
+
     if (method === "POST" && pathname === "/admin/places") {
       await requireRole(provider, { eventID: requestId, httpContext }, [
         "community_admin",
@@ -856,6 +878,16 @@ export const main: CloudbaseEventHandler = async (event, context) => {
     if (error instanceof ApiAppError) {
       return fail(error, requestId);
     }
+
+    logServerError(
+      {
+        source: "cloudbase",
+        requestId,
+        method,
+        path: pathname
+      },
+      error
+    );
 
     return fail(
       apiError("INTERNAL_ERROR", "Unexpected server error.", 500),

@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import { ApiFailureResultSchema } from "@community-map/shared";
 
 import { ApiAppError, apiError } from "./errors";
+import { logServerError } from "./error-logging";
 
 const usesCloudbaseManagedCors = (host: string) =>
   process.env.DISABLE_APP_CORS === "1" ||
@@ -22,7 +23,7 @@ export const corsMiddleware = async (ctx: Context, next: Next) => {
     ctx.set("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
     ctx.set(
       "Access-Control-Allow-Headers",
-      "authorization,content-type,x-mock-user-id,x-wx-openid,x-wx-appid,x-wx-unionid,x-requested-with"
+      "authorization,content-type,x-http-method-override,x-mock-user-id,x-wx-openid,x-wx-appid,x-wx-unionid,x-requested-with"
     );
   }
 
@@ -31,6 +32,17 @@ export const corsMiddleware = async (ctx: Context, next: Next) => {
     return;
   }
 
+  await next();
+};
+
+export const methodOverrideMiddleware = async (
+  ctx: Context,
+  next: Next
+) => {
+  const override = ctx.get("x-http-method-override").trim().toUpperCase();
+  if (ctx.method === "POST" && override === "PATCH") {
+    ctx.method = "PATCH";
+  }
   await next();
 };
 
@@ -65,6 +77,17 @@ export const errorMiddleware = async (ctx: Context, next: Next) => {
   try {
     await next();
   } catch (error) {
+    if (!(error instanceof ApiAppError)) {
+      logServerError(
+        {
+          source: "koa",
+          requestId: ctx.state.requestId,
+          method: ctx.method,
+          path: ctx.path
+        },
+        error
+      );
+    }
     const knownError =
       error instanceof ApiAppError
         ? error

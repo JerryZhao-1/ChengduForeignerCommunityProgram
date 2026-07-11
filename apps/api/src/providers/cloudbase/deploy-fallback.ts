@@ -64,6 +64,15 @@ export const createMockProvider = (): ApiProvider => ({
     async me(userId) {
       return session(await this.resolveActor(userId));
     },
+    async preferences(userId) {
+      const user = await this.resolveActor(userId);
+      return { preferred_language: user.preferred_language };
+    },
+    async updatePreferences(userId, preferredLanguage) {
+      const user = await this.resolveActor(userId);
+      user.preferred_language = preferredLanguage;
+      return { preferred_language: user.preferred_language };
+    },
     async wechatMiniappSession(input) {
       return session(await this.resolveActor(input.identity?.openid ?? "user_001"));
     }
@@ -113,6 +122,7 @@ export const createMockProvider = (): ApiProvider => ({
     report: unsupported,
     reportComment: unsupported,
     moderate: unsupported,
+    permanentlyDelete: unsupported,
     moderateComment: unsupported,
     listRelatedByPlace: async () => page(),
     listRelatedByEvent: async () => page(),

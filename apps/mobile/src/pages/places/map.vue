@@ -5,8 +5,9 @@ import { onLoad, onShow } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
+import { getMobileCopy } from "@/i18n";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
-import { getPlacesCopy } from "./copy";
+import { getPlaceCategoryLabel } from "./list-categories";
 import {
   buildPlaceMarkerNavigationTarget,
   openPlaceNativeNavigation,
@@ -47,7 +48,7 @@ const selectedPlaceId = ref<string | null>(null);
 const presetPlaceId = ref<string | null>(null);
 const pageHeight = ref("100vh");
 
-const mapCopy = computed(() => getPlacesCopy(state.locale, "map"));
+const mapCopy = computed(() => getMobileCopy(state.locale).places.map);
 const selectedPlace = computed(
   () =>
     places.value.find((place) => place._id === selectedPlaceId.value) ??
@@ -245,6 +246,17 @@ onLoad((query) => {
     </view>
 
     <view class="map-frame">
+      <!-- #ifdef H5 -->
+      <view class="map-unavailable">
+        <view class="map-unavailable__title">
+          {{ mapCopy.mapUnavailableTitle }}
+        </view>
+        <view class="map-unavailable__body">
+          {{ mapCopy.mapUnavailableBody }}
+        </view>
+      </view>
+      <!-- #endif -->
+      <!-- #ifndef H5 -->
       <map
         class="map-card"
         :latitude="mapLatitude"
@@ -254,6 +266,7 @@ onLoad((query) => {
         :show-location="true"
         @markertap="handleMarkerTap"
       />
+      <!-- #endif -->
     </view>
 
     <view class="summary-slot">
@@ -277,7 +290,9 @@ onLoad((query) => {
             <view class="summary-title">
               {{ selectedPlaceName }}
             </view>
-            <view class="summary-meta">{{ selectedPlace.category_level_1 }}</view>
+            <view class="summary-meta">
+              {{ getPlaceCategoryLabel(state.locale, selectedPlace.category_level_1) }}
+            </view>
             <view v-if="selectedPlace.is_recommended" class="place-badge">
               {{ mapCopy.recommendedBadge }}
             </view>
@@ -340,6 +355,33 @@ onLoad((query) => {
 .map-card {
   width: 100%;
   height: 100%;
+}
+
+.map-unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320rpx;
+  padding: 32rpx;
+  border: 1rpx dashed #94a3b8;
+  border-radius: 20rpx;
+  background: #f1f5f9;
+  text-align: center;
+}
+
+.map-unavailable__title {
+  color: #0f172a;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.map-unavailable__body {
+  max-width: 620rpx;
+  margin-top: 12rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.6;
 }
 
 .action-row {

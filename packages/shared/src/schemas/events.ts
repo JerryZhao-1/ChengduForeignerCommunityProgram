@@ -22,12 +22,17 @@ export const CreateEventInputSchema = EventSchema.pick({
   content_zh: true,
   content_en: true,
   address_text: true,
+  address_zh: true,
+  address_en: true,
   location: true,
   start_time: true,
   end_time: true,
   signup_deadline: true,
   capacity: true
 }).extend({
+  address_text: z.string().optional(),
+  address_zh: z.string().optional(),
+  address_en: z.string().optional(),
   place_id: z.string().optional(),
   cover_file_id: z.string().nullable().optional(),
   cover_cloud_path: z.string().nullable().optional(),

@@ -1,0 +1,44 @@
+[
+  {
+    "level": "debug",
+    "message": "[vite] connecting...",
+    "timestamp": "2026-07-10T15:18:11.797Z",
+    "url": "http://127.0.0.1:5174/@vite/client"
+  },
+  {
+    "level": "debug",
+    "message": "[vite] connected.",
+    "timestamp": "2026-07-10T15:18:11.805Z",
+    "url": "http://127.0.0.1:5174/@vite/client"
+  },
+  {
+    "level": "debug",
+    "message": "[vite] connecting...",
+    "timestamp": "2026-07-10T15:23:53.984Z",
+    "url": "http://127.0.0.1:5174/@vite/client"
+  },
+  {
+    "level": "debug",
+    "message": "[vite] connected.",
+    "timestamp": "2026-07-10T15:23:53.993Z",
+    "url": "http://127.0.0.1:5174/@vite/client"
+  },
+  {
+    "level": "debug",
+    "message": "[vite] hot updated: /src/pages/more/login.vue",
+    "timestamp": "2026-07-10T15:46:43.505Z",
+    "url": "http://127.0.0.1:5174/@vite/client"
+  },
+  {
+    "level": "debug",
+    "message": "[vite] connecting...",
+    "timestamp": "2026-07-10T15:50:29.600Z",
+    "url": "http://127.0.0.1:5174/@vite/client"
+  },
+  {
+    "level": "debug",
+    "message": "[vite] connected.",
+    "timestamp": "2026-07-10T15:50:29.606Z",
+    "url": "http://127.0.0.1:5174/@vite/client"
+  }
+]

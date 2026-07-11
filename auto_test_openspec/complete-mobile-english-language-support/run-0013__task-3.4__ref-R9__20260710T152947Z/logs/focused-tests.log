@@ -1,0 +1,4 @@
+PASS pnpm exec vitest run focused 3.4 suite
+Test Files: 9 passed (9)
+Tests: 76 passed (76)
+Covered: catalog parity, pages.json route accountability, navigation rejection handling, Discover enforcement copy, bilingual/legacy notification presentation, registration status mapping, auth preference and notification ownership, API routes, shared client behavior.

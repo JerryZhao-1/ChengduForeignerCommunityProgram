@@ -23,3 +23,13 @@
 - 后续迁移现有页面时，优先处理用户高频路径和 Week 5 触达的 `places` 详情、列表、地图、推荐入口、弹窗、按钮、反馈、加载和空状态。
 - Week 5 `places` 模块允许使用 TDesign-compatible wrappers 或 TDesign-aligned styles 保持 H5 与 mp-weixin 构建可用；不得为这些页面引入第二套小程序 UI 组件库。
 - TDesign 组件实际使用时，按 uni-app / 微信小程序构建链路配置组件引用，并在微信开发者工具中完成 npm 构建验证。
+
+## 4. 中英双语 UI
+
+- 所有系统拥有的标题、标签、按钮、状态、校验、Toast、加载、空和错误文案必须来自中央 Mobile catalog；中文和英文保持递归键一致。
+- 页面不得用 locale 三元表达式散落硬编码文案；业务状态先使用稳定 code，再由 catalog 映射显示值。
+- 正式内容按当前语言读取 `_zh` / `_en`，缺失时使用统一 fallback indicator；Discover UGC 保留原文，只本地化语言徽标与系统控件。
+- Language 选择必须同时明确显示“中文 / Chinese”和“English / 英文”的可识别标签，切换后标题、Tab 与页面文案立即更新。
+- 日期、数字、容量和评论数使用显式 locale 格式化，不显示原始 ISO 时间或内部状态码。
+- 英文模式不能残留固定中文系统文案；中文 UGC 或正式内容 fallback 必须能由语言徽标/提示解释。
+- 详细数据归属、运营修复和发布门禁见 [Mobile 中英双语运营与发布 Runbook](./mobile-bilingual-operations-and-release.md)。

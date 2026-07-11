@@ -1,0 +1,9 @@
+{
+  "commandExitCodes": [0, 0, 0],
+  "incompleteDraftAllowed": true,
+  "incompletePublicRejectedWithFields": true,
+  "failedMutationAtomic": true,
+  "completePublicAllowed": true,
+  "mockCloudbaseParity": true,
+  "placePayloadBoundariesUnchanged": true
+}

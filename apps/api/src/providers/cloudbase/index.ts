@@ -21,10 +21,14 @@ import {
   DiscoverAuditRecordSchema,
   DiscoverReportCaseSchema,
   DiscoverMeGovernanceSchema,
+  NotificationSchema,
   DiscoverUserGovernanceDetailSchema,
   DiscoverUserGovernanceSummarySchema,
   UserEnforcementStateSchema,
   UserSchema,
+  normalizeEventBilingualAddress,
+  validateEventPublicationReadiness,
+  validatePlacePublicationReadiness,
   postHasVideoMedia,
   type Event,
   type EventAdminListItem,
@@ -47,16 +51,19 @@ import {
   type Post,
   type PostInteractionRecord,
   type PostInteractionState,
+  type PermanentDeletePostResponse,
   type DiscoverTag,
   type ProfileFollowListItem,
   type ProfileFollowState,
   type PublicProfile,
   type User,
   type UserFollowRecord,
-  type UserEnforcementState
+  type UserEnforcementState,
+  type Notification
 } from "@community-map/shared";
 
 import { apiError } from "../../lib/errors";
+import { logServerError } from "../../lib/error-logging";
 import {
   assertAdminLogin,
   createAdminSession,
@@ -99,6 +106,7 @@ interface LiveCloudbaseContext {
   fileAssets: CloudbaseCollection;
   discoverReportCases: CloudbaseCollection;
   discoverAuditRecords: CloudbaseCollection;
+  notifications: CloudbaseCollection;
 }
 
 const cleanUndefined = <TItem extends object>(input: Partial<TItem>) =>
@@ -178,6 +186,36 @@ const isAdmin = (user: { role_flags: string[] }) =>
 const isLaunchVisibleEvent = (event: Event) =>
   event.review_status === "approved" && event.publish_status === "published";
 
+const assertEventPublicationReady = (event: Event) => {
+  if (!isLaunchVisibleEvent(event)) {
+    return;
+  }
+  const readiness = validateEventPublicationReadiness(event);
+  if (!readiness.ready) {
+    throw apiError(
+      "VALIDATION_ERROR",
+      "Event is missing required bilingual publication content.",
+      400,
+      { fields: readiness.issues }
+    );
+  }
+};
+
+const assertPlacePublicationReady = (place: Place) => {
+  if (place.status !== "published") {
+    return;
+  }
+  const readiness = validatePlacePublicationReadiness(place);
+  if (!readiness.ready) {
+    throw apiError(
+      "VALIDATION_ERROR",
+      "Place is missing required bilingual publication content.",
+      400,
+      { fields: readiness.issues }
+    );
+  }
+};
+
 const isLaunchVisiblePost = (post: Post) =>
   post.status === "visible" &&
   !["hidden", "deleted"].includes(post.review_status);
@@ -255,7 +293,9 @@ const createEventFromInput = (
       input.cover_url ??
       "https://example.com/public/events/placeholder/cover.jpg",
     place_id: input.place_id,
-    address_text: input.address_text ?? "",
+    address_text: input.address_zh ?? input.address_text ?? "",
+    address_zh: input.address_zh ?? input.address_text ?? "",
+    address_en: input.address_en ?? "",
     location: input.location ?? { latitude: 30.615, longitude: 104.062 },
     start_time: input.start_time ?? new Date().toISOString(),
     end_time: input.end_time ?? new Date().toISOString(),
@@ -522,13 +562,14 @@ const createLiveContext = (): LiveCloudbaseContext | null => {
     discoverTags: db.collection("discover_tags"),
     fileAssets: db.collection("file_assets"),
     discoverReportCases: db.collection("discover_report_cases"),
-    discoverAuditRecords: db.collection("discover_audit_records")
+    discoverAuditRecords: db.collection("discover_audit_records"),
+    notifications: db.collection("notifications")
   };
 };
 
 const normalizeEvent = (raw: unknown): Event | null => {
   const parsed = EventSchema.safeParse(raw);
-  return parsed.success ? parsed.data : null;
+  return parsed.success ? normalizeEventBilingualAddress(parsed.data) : null;
 };
 
 const normalizeEventRegistration = (raw: unknown): EventRegistration | null => {
@@ -626,6 +667,11 @@ const normalizeDiscoverAuditRecord = (
   raw: unknown
 ): DiscoverAuditRecord | null => {
   const parsed = DiscoverAuditRecordSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
+const normalizeNotification = (raw: unknown): Notification | null => {
+  const parsed = NotificationSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;
 };
 
@@ -779,6 +825,34 @@ const createLiveAuthProvider = (
     }
     throw apiError("UNAUTHORIZED", "Invalid actor.", 401);
   },
+  async preferences(userId) {
+    const users = await readUsers(context);
+    const user = users.find((item) => item._id === userId);
+    if (user?.status === "active") {
+      return { preferred_language: user.preferred_language };
+    }
+    if (isLiveMockActorFallbackAllowed()) {
+      return fallbackAuth.preferences(userId);
+    }
+    throw apiError("UNAUTHORIZED", "Invalid actor.", 401);
+  },
+  async updatePreferences(userId, preferredLanguage) {
+    if (!userId) {
+      throw apiError("UNAUTHORIZED", "Authentication is required.", 401);
+    }
+    const users = await readUsers(context);
+    const user = users.find((item) => item._id === userId);
+    if (!user || user.status !== "active") {
+      if (isLiveMockActorFallbackAllowed()) {
+        return fallbackAuth.updatePreferences(userId, preferredLanguage);
+      }
+      throw apiError("UNAUTHORIZED", "Invalid actor.", 401);
+    }
+    await context.users.doc(user._id).update({
+      preferred_language: preferredLanguage
+    });
+    return { preferred_language: preferredLanguage };
+  },
   async wechatMiniappSession(input) {
     if (!input.identity) {
       if (isLiveMockActorFallbackAllowed()) {
@@ -868,6 +942,65 @@ const readDiscoverAuditRecords = async (context: LiveCloudbaseContext) => {
   return result.data
     .map(normalizeDiscoverAuditRecord)
     .filter((record): record is DiscoverAuditRecord => !!record);
+};
+
+const readNotifications = async (context: LiveCloudbaseContext) => {
+  try {
+    const result = await context.notifications.limit(MAX_DISCOVER_FETCH).get();
+    return result.data
+      .map(normalizeNotification)
+      .filter((notification): notification is Notification => !!notification);
+  } catch (error) {
+    if (isMissingCloudbaseCollectionError(error)) {
+      return [];
+    }
+    throw error;
+  }
+};
+
+const isMissingCloudbaseCollectionError = (error: unknown) => {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const record = error as Record<string, unknown>;
+  const code = record.code ?? record.errCode;
+  const message = record.message;
+  return (
+    code === "DATABASE_COLLECTION_NOT_EXIST" ||
+    (typeof message === "string" &&
+      /(?:Db or Table not exist|collection .* not exist)/i.test(message))
+  );
+};
+
+const runPermanentDeleteStage = async <TResult>(
+  stage: string,
+  postId: string,
+  action: () => Promise<TResult>
+) => {
+  try {
+    return await action();
+  } catch (error) {
+    logServerError(
+      {
+        source: "cloudbase-provider",
+        operation: "permanent_delete_post",
+        stage,
+        targetId: postId
+      },
+      error
+    );
+    throw error;
+  }
+};
+
+const removeCloudbaseDocuments = async (
+  collection: CloudbaseCollection,
+  ids: Iterable<string>
+) => {
+  const uniqueIds = [...new Set(ids)];
+  await Promise.all(uniqueIds.map((id) => collection.doc(id).remove()));
+  return uniqueIds.length;
 };
 
 const createLiveEventsProvider = (
@@ -1065,11 +1198,18 @@ const createLiveEventsProvider = (
       return null;
     }
 
-    const update = cleanUndefined<Event>(input);
+    const update = cleanUndefined<Event>({
+      ...input,
+      address_text:
+        input.address_zh !== undefined
+          ? input.address_zh
+          : input.address_text
+    });
     const nextEvent = EventSchema.parse({
       ...existing,
       ...update
     });
+    assertEventPublicationReady(nextEvent);
 
     if (Object.keys(update).length > 0) {
       await context.events.doc(id).update(update);
@@ -1161,6 +1301,7 @@ const createLiveEventsProvider = (
       ...existing,
       ...update
     });
+    assertEventPublicationReady(nextEvent);
 
     await context.events.doc(id).update(update);
     return nextEvent;
@@ -1407,6 +1548,7 @@ const createLivePlacesProvider = (
   },
   async create(input) {
     const place = createPlaceFromInput(input);
+    assertPlacePublicationReady(place);
     await context.places.doc(place._id).set(toCloudbaseSetDocument(place));
     await rebindPendingGalleryAssets(
       context,
@@ -1427,6 +1569,7 @@ const createLivePlacesProvider = (
       ...existing,
       ...cleanUndefined<Place>(input)
     });
+    assertPlacePublicationReady(nextPlace);
     const update = cleanUndefined<Place>(input);
 
     if (Object.keys(update).length > 0) {
@@ -3600,6 +3743,154 @@ const createLivePostsProvider = (
       }
     });
     return nextPost;
+  },
+  async permanentlyDelete(
+    id,
+    actorId
+  ): Promise<PermanentDeletePostResponse | null> {
+    const actor = await requireLiveAdminActor(fallbackAuth, actorId);
+    const [posts, comments, interactions, reports, notifications, assets, audits] =
+      await runPermanentDeleteStage("dependency_lookup", id, () =>
+        Promise.all([
+          readPosts(context),
+          readComments(context),
+          readPostInteractions(context),
+          readDiscoverReportCases(context),
+          readNotifications(context),
+          readFileAssets(context),
+          readDiscoverAuditRecords(context)
+        ])
+      );
+    const post = posts.find((item) => item._id === id);
+    if (!post) {
+      return null;
+    }
+
+    const commentIds = new Set(
+      comments
+        .filter((comment) => comment.post_id === id)
+        .map((comment) => comment._id)
+    );
+    const relatedReports = reports.filter(
+      (report) =>
+        report.post_id === id ||
+        (report.comment_id ? commentIds.has(report.comment_id) : false)
+    );
+    const reportIds = new Set(relatedReports.map((report) => report._id));
+    const referencedFileIds = new Set([
+      ...post.image_file_ids,
+      ...relatedReports.flatMap((report) => report.evidence_file_ids)
+    ]);
+    const relatedAssets = assets.filter(
+      (asset) =>
+        asset.biz_id === id ||
+        commentIds.has(asset.biz_id) ||
+        reportIds.has(asset.biz_id) ||
+        referencedFileIds.has(asset.file_id)
+    );
+    const relatedNotifications = notifications.filter(
+      (notification) =>
+        notification.post_id === id ||
+        (notification.comment_id
+          ? commentIds.has(notification.comment_id)
+          : false) ||
+        (notification.report_id ? reportIds.has(notification.report_id) : false)
+    );
+    const oldAudits = audits.filter(
+      (record) =>
+        (record.target_type === "post" && record.target_id === id) ||
+        (record.target_type === "comment" &&
+          commentIds.has(record.target_id)) ||
+        (record.target_type === "report" && reportIds.has(record.target_id))
+    );
+    const storageFileIds = [
+      ...new Set(relatedAssets.map((asset) => asset.file_id))
+    ];
+
+    if (storageFileIds.length > 0) {
+      const storageResult = await runPermanentDeleteStage(
+        "storage_delete",
+        id,
+        () =>
+          context.app.deleteFile({
+            fileList: storageFileIds
+          })
+      );
+      const failed = storageResult.fileList.filter(
+        (item) =>
+          item.code &&
+          ![
+            "SUCCESS",
+            "STORAGE_FILE_NONEXIST",
+            "FILE_NOT_FOUND",
+            "NotFound"
+          ].includes(item.code)
+      );
+      if (failed.length > 0) {
+        throw apiError(
+          "INTERNAL_ERROR",
+          "Post media deletion failed.",
+          500,
+          { file_ids: failed.map((item) => item.fileID) }
+        );
+      }
+    }
+
+    const deleted = {
+      posts: 1,
+      comments: commentIds.size,
+      interactions: interactions.filter(
+        (interaction) => interaction.post_id === id
+      ).length,
+      reports: reportIds.size,
+      notifications: relatedNotifications.length,
+      file_assets: relatedAssets.length,
+      storage_objects: storageFileIds.length,
+      audit_records: oldAudits.length
+    };
+
+    await runPermanentDeleteStage("database_cascade", id, async () => {
+      await removeCloudbaseDocuments(
+        context.fileAssets,
+        relatedAssets.map((asset) => asset._id)
+      );
+      await removeCloudbaseDocuments(
+        context.notifications,
+        relatedNotifications.map((notification) => notification._id)
+      );
+      await removeCloudbaseDocuments(context.discoverReportCases, reportIds);
+      await removeCloudbaseDocuments(
+        context.postInteractions,
+        interactions
+          .filter((interaction) => interaction.post_id === id)
+          .map((interaction) => interaction._id)
+      );
+      await removeCloudbaseDocuments(context.comments, commentIds);
+      await removeCloudbaseDocuments(
+        context.discoverAuditRecords,
+        oldAudits.map((record) => record._id)
+      );
+    });
+    const audit = await runPermanentDeleteStage("audit_write", id, () =>
+      addLiveAuditRecord(context, {
+        actor_user_id: actor._id,
+        action: "permanent_delete_post",
+        target_type: "post",
+        target_id: id,
+        reason: "Admin permanently deleted post",
+        previous_state: null,
+        next_state: { deleted }
+      })
+    );
+    await runPermanentDeleteStage("post_delete", id, () =>
+      context.posts.doc(id).remove()
+    );
+
+    return {
+      post_id: id,
+      audit_record_id: audit._id,
+      deleted
+    };
   }
 });
 

@@ -1,0 +1,28 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "3.4",
+  "ref": "R9",
+  "result": "PASS",
+  "cli": {
+    "focusedTests": { "exitCode": 0, "tests": "76/76" },
+    "mobileTypecheck": { "exitCode": 0 },
+    "fixedCopyScan": { "exitCode": 1, "matches": 0 },
+    "pagesJsonRouteAccountability": true
+  },
+  "gui": {
+    "discoverEnglishShell": true,
+    "originalLanguageUgcPreserved": true,
+    "discoverDetailCreateSearch": true,
+    "meProfileFollows": true,
+    "bilingualNotificationEnglish": true,
+    "registrationHistoryEnglish": true,
+    "loginDoesNotExposeToken": true,
+    "languageSelectorEnglish": true,
+    "consoleErrors": []
+  },
+  "screenshots": [
+    "outputs/screenshots/discover-en.png",
+    "outputs/screenshots/notifications-en.png",
+    "outputs/screenshots/registrations-en.png"
+  ]
+}

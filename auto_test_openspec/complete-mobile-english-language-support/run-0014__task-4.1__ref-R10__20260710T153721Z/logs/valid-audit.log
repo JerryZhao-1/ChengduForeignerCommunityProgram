@@ -1,0 +1,38 @@
+{
+  "evidenceKind": "production-candidate",
+  "auditedAt": "2026-07-10T15:44:55.306Z",
+  "provenance": {
+    "environment": "production-candidate-test-shape",
+    "exportedAt": "2026-07-10T12:00:00.000Z",
+    "source": {
+      "collections": [
+        "events",
+        "places",
+        "announcements",
+        "posts"
+      ],
+      "query": "public candidates for community_id=tongzilin"
+    },
+    "recordCounts": {
+      "events": 1,
+      "places": 1,
+      "announcements": 1,
+      "discoverPosts": 2
+    }
+  },
+  "counts": {
+    "events": 1,
+    "places": 1,
+    "announcements": 1,
+    "discoverPosts": 2
+  },
+  "summary": {
+    "blocking": 0,
+    "editorial": 0,
+    "total": 0
+  },
+  "contentPass": true,
+  "releaseEligible": true,
+  "releaseIneligibilityReason": null,
+  "issues": []
+}

@@ -1,0 +1,4 @@
+{
+  "events": ["draft-incomplete", "review-publish-incomplete", "published-placeholder-edit", "complete-publish"],
+  "places": ["draft-incomplete", "create-published-whitespace", "quick-publish-incomplete", "published-recommended-placeholder", "complete-publish"]
+}

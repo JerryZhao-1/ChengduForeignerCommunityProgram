@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   CreateEventInputSchema,
+  ApiClientError,
   EVENT_PUBLISH_STATUSES,
   EVENT_REVIEW_STATUSES,
   UpdateEventInputSchema,
+  validateEventPublicationReadiness,
   type Event,
   type EventAdminListItem,
   type EventAdminRegistrationRow,
@@ -26,6 +28,8 @@ type EventFormState = {
   content_zh: string;
   content_en: string;
   address_text: string;
+  address_zh: string;
+  address_en: string;
   latitude: number;
   longitude: number;
   start_time: string;
@@ -59,6 +63,7 @@ type PlaceCoverCandidate = {
   url: string;
   cover_file_id: string | null;
   cover_cloud_path: string | null;
+  selectable: boolean;
 };
 
 const DEFAULT_EVENT_ADDRESS = "成都市武侯区桐梓林国际社区";
@@ -118,6 +123,8 @@ const createEmptyForm = (): EventFormState => ({
   content_zh: "待补充正文",
   content_en: "Content pending",
   address_text: DEFAULT_EVENT_ADDRESS,
+  address_zh: DEFAULT_EVENT_ADDRESS,
+  address_en: "Address pending",
   latitude: 30.618887,
   longitude: 104.065468,
   start_time: "2027-04-10T10:00:00+08:00",
@@ -133,6 +140,20 @@ const createEmptyForm = (): EventFormState => ({
 });
 
 const form = reactive<EventFormState>(createEmptyForm());
+
+const eventReadiness = computed(() =>
+  validateEventPublicationReadiness(buildPayload())
+);
+
+const getEventReadiness = (event: EventAdminListItem) =>
+  validateEventPublicationReadiness(event);
+
+const readinessLabel = (event: EventAdminListItem) => {
+  const result = getEventReadiness(event);
+  return result.ready
+    ? "双语就绪"
+    : `待补：${result.issues.map((issue) => issue.field).join("、")}`;
+};
 
 const reviewStatusLabels: Record<Event["review_status"], string> = {
   draft: "草稿",
@@ -255,7 +276,8 @@ const placeCoverCandidates = computed<PlaceCoverCandidate[]>(() => {
       subtitle: place.address_zh,
       url: place.cover_url,
       cover_file_id: place.cover_file_id,
-      cover_cloud_path: null
+      cover_cloud_path: null,
+      selectable: false
     });
   }
 
@@ -345,8 +367,20 @@ const issueMessage = (issue: {
     ? `${issue.path.join(".")}: ${issue.message}`
     : issue.message;
 
-const toErrorMessage = (error: unknown, fallback: string) =>
-  error instanceof Error && error.message ? error.message : fallback;
+const toErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof ApiClientError) {
+    const fields = (error.details as {
+      fields?: Array<{ field?: string; message?: string }>;
+    } | undefined)?.fields;
+    if (fields?.length) {
+      return `${error.message} ${fields
+        .map((item) => item.field || item.message)
+        .filter(Boolean)
+        .join("、")}`;
+    }
+  }
+  return error instanceof Error && error.message ? error.message : fallback;
+};
 
 const showOperationError = (error: unknown, fallback: string) => {
   const message = toErrorMessage(error, fallback);
@@ -443,7 +477,8 @@ function placeGalleryMediaToCoverCandidate(
     subtitle: media.cloud_path,
     url: media.url,
     cover_file_id: media.file_id,
-    cover_cloud_path: media.cloud_path
+    cover_cloud_path: media.cloud_path,
+    selectable: true
   };
 }
 
@@ -458,7 +493,8 @@ function placeExternalMediaToCoverCandidate(
     subtitle: media.attribution.label,
     url: media.image_url,
     cover_file_id: null,
-    cover_cloud_path: null
+    cover_cloud_path: null,
+    selectable: false
   };
 }
 
@@ -498,6 +534,8 @@ const assignForm = (event?: EventAdminListItem) => {
     content_zh: event.content_zh,
     content_en: event.content_en,
     address_text: event.address_text,
+    address_zh: event.address_zh || event.address_text,
+    address_en: event.address_en || "",
     latitude: event.location.latitude,
     longitude: event.location.longitude,
     start_time: event.start_time,
@@ -521,7 +559,9 @@ const buildPayload = () => ({
   summary_en: form.summary_en,
   content_zh: form.content_zh,
   content_en: form.content_en,
-  address_text: form.address_text,
+  address_text: form.address_zh,
+  address_zh: form.address_zh,
+  address_en: form.address_en,
   location: {
     latitude: Number(form.latitude),
     longitude: Number(form.longitude)
@@ -548,22 +588,41 @@ const validateStatusCombination = () => {
 };
 
 const validateCover = () => {
-  if (form.cover_url) {
+  if (
+    form.cover_file_id &&
+    ["public/events/", "public/places/"].some((prefix) =>
+      form.cover_cloud_path?.startsWith(prefix)
+    )
+  ) {
     return true;
   }
 
-  const message = "请先上传活动封面或选择已有地点图片。";
+  const message = "发布活动前请上传 CloudBase 托管封面。第三方地点图片仅供预览。";
   submittingError.value = message;
   ElMessage.error(message);
   return false;
 };
 
 const buildValidatedPayload = () => {
-  if (!validateStatusCombination() || !validateCover()) {
+  if (!validateStatusCombination()) {
     return null;
   }
 
   const payload = buildPayload();
+  const willBePublic =
+    form.review_status === "approved" && form.publish_status === "published";
+  if (willBePublic && !validateCover()) {
+    return null;
+  }
+  const readiness = validateEventPublicationReadiness(payload);
+  if (willBePublic && !readiness.ready) {
+    const message = `发布前请补齐：${readiness.issues
+      .map((issue) => issue.field)
+      .join("、")}`;
+    submittingError.value = message;
+    ElMessage.error(message);
+    return null;
+  }
   const result = editingEvent.value
     ? UpdateEventInputSchema.safeParse(payload)
     : CreateEventInputSchema.safeParse(payload);
@@ -646,6 +705,7 @@ const loadPlaceDetail = async (place: Place) => {
 
 const applyPoiToForm = (item: PlacePoiSearchItem) => {
   form.address_text = item.address || item.title;
+  form.address_zh = form.address_text;
   form.latitude = item.location.latitude;
   form.longitude = item.location.longitude;
   poiKeyword.value = item.title;
@@ -778,6 +838,8 @@ const hasManualEventLookupFields = () => {
   return (
     editingEvent.value !== null ||
     form.address_text !== emptyForm.address_text ||
+    form.address_zh !== emptyForm.address_zh ||
+    form.address_en !== emptyForm.address_en ||
     Number(form.latitude) !== emptyForm.latitude ||
     Number(form.longitude) !== emptyForm.longitude ||
     Boolean(form.place_id)
@@ -828,6 +890,8 @@ const selectExistingPlace = async (place: Place) => {
 
   form.place_id = place._id;
   form.address_text = place.address_zh || place.name_zh;
+  form.address_zh = place.address_zh || place.name_zh;
+  form.address_en = place.address_en || place.name_en;
   form.latitude = place.location.latitude;
   form.longitude = place.location.longitude;
   placeKeyword.value = place.name_zh;
@@ -857,6 +921,10 @@ const openPlaceCoverDialog = async () => {
 };
 
 const applyPlaceCoverCandidate = (candidate: PlaceCoverCandidate) => {
+  if (!candidate.selectable) {
+    ElMessage.warning("第三方或非托管地点图片仅供预览，请先下载后上传为活动封面。");
+    return;
+  }
   form.cover_file_id = candidate.cover_file_id;
   form.cover_cloud_path = candidate.cover_cloud_path;
   form.cover_url = candidate.url;
@@ -915,7 +983,22 @@ const updateStatus = async (
   },
   successMessage: string
 ) => {
+  if (
+    input.review_status === "approved" &&
+    input.publish_status === "published"
+  ) {
+    const readiness = getEventReadiness(event);
+    if (!readiness.ready) {
+      ElMessage.error(
+        `发布前请补齐：${readiness.issues
+          .map((issue) => issue.field)
+          .join("、")}`
+      );
+      return;
+    }
+  }
   pendingAction.value = actionKey(event, action);
+  await nextTick();
 
   try {
     await adminApi.admin.reviewEvent(event._id, input);
@@ -965,6 +1048,9 @@ const canSubmitForReview = (event: EventAdminListItem) =>
 
 const canPublish = (event: EventAdminListItem) =>
   event.publish_status !== "published" || event.review_status !== "approved";
+
+const canPublishBilingual = (event: EventAdminListItem) =>
+  getEventReadiness(event).ready;
 
 const canTakeOffline = (event: EventAdminListItem) =>
   event.publish_status === "published";
@@ -1153,7 +1239,8 @@ onMounted(load);
           <div class="event-title-cell">
             <strong>{{ row.title_zh }}</strong>
             <span>{{ row.title_en }}</span>
-            <small>{{ row.address_text }}</small>
+            <small>中文地址：{{ row.address_zh || row.address_text }}</small>
+            <small>English address: {{ row.address_en || "待补" }}</small>
           </div>
         </template>
       </el-table-column>
@@ -1167,6 +1254,16 @@ onMounted(load);
               {{ getPublishStatusLabel(row.publish_status) }}
             </el-tag>
           </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="双语发布就绪" min-width="260">
+        <template #default="{ row }">
+          <el-tag
+            :type="getEventReadiness(row).ready ? 'success' : 'danger'"
+            size="small"
+          >
+            {{ readinessLabel(row) }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="活动时间" width="180">
@@ -1225,7 +1322,9 @@ onMounted(load);
               link
               size="small"
               type="success"
+              :disabled="!canPublishBilingual(row)"
               :loading="isActionPending(row, 'publish')"
+              :title="readinessLabel(row)"
               @click="publishEvent(row)"
             >
               通过并发布
@@ -1468,8 +1567,11 @@ onMounted(load);
           </div>
 
           <div class="form-grid">
-            <el-form-item label="活动地址">
-              <el-input v-model="form.address_text" placeholder="活动地址" />
+            <el-form-item label="中文活动地址（发布必填）">
+              <el-input v-model="form.address_zh" placeholder="中文活动地址" />
+            </el-form-item>
+            <el-form-item label="英文活动地址（发布必填）">
+              <el-input v-model="form.address_en" placeholder="English event address" />
             </el-form-item>
             <el-form-item label="关联地点 ID（由已有地点自动填充，可留空）">
               <el-input
@@ -1544,6 +1646,19 @@ onMounted(load);
 
         <section class="form-section">
           <div class="section-title">状态</div>
+          <el-alert
+            :title="
+              eventReadiness.ready
+                ? '双语正式内容已满足发布要求。'
+                : `仍不可发布：${eventReadiness.issues
+                    .map((issue) => issue.field)
+                    .join('、')}`
+            "
+            :type="eventReadiness.ready ? 'success' : 'warning'"
+            :closable="false"
+            show-icon
+            class="mb-16"
+          />
           <div class="form-grid">
             <el-form-item label="审核状态">
               <el-select v-model="form.review_status" class="full-width">
@@ -1634,6 +1749,7 @@ onMounted(load);
             :key="candidate.key"
             type="button"
             class="place-cover-card"
+            :disabled="!candidate.selectable"
             @click="applyPlaceCoverCandidate(candidate)"
           >
             <span class="place-cover-thumb">
@@ -1643,6 +1759,7 @@ onMounted(load);
               <el-tag size="small">{{ candidate.typeLabel }}</el-tag>
               <strong>{{ candidate.title }}</strong>
               <small>{{ candidate.subtitle }}</small>
+              <small v-if="!candidate.selectable">仅供预览，请下载后上传</small>
             </span>
           </button>
         </div>

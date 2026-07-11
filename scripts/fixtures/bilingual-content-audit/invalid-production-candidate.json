@@ -1,0 +1,53 @@
+{
+  "evidenceKind": "production-candidate",
+  "provenance": {
+    "environment": "production-candidate-test-shape",
+    "exportedAt": "2026-07-10T12:00:00.000Z",
+    "source": { "collections": ["events", "places", "announcements", "posts"], "query": "public candidates" },
+    "recordCounts": { "events": 1, "places": 1, "announcements": 1, "discoverPosts": 2 }
+  },
+  "events": [{
+    "_id": "event_invalid",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "title_zh": "社区活动",
+    "title_en": "TBD",
+    "summary_zh": "活动摘要",
+    "summary_en": "   ",
+    "content_zh": "活动内容",
+    "content_en": "Event details",
+    "address_text": "桐梓林",
+    "cover_url": "http://127.0.0.1:5174/cover.jpg"
+  }],
+  "places": [{
+    "_id": "place_invalid",
+    "status": "draft",
+    "name_zh": "社区中心",
+    "name_en": "Community Center",
+    "address_zh": "桐梓林",
+    "address_en": "Tongzilin",
+    "business_hours_zh": "每日开放",
+    "business_hours_en": "Daily",
+    "intro_zh": "社区服务",
+    "intro_en": "Community services",
+    "recommended_reason_zh": "推荐",
+    "recommended_reason_en": "placeholder",
+    "is_recommended": true,
+    "gallery_urls": ["https://example.com/place.jpg"]
+  }],
+  "announcements": [{
+    "_id": "announcement_invalid",
+    "status": "published",
+    "title_zh": "公告",
+    "title_en": "Notice",
+    "summary_zh": "摘要",
+    "summary_en": "Summary",
+    "content_zh": "内容",
+    "content_en": "To be translated",
+    "cover_url": "https://cdn.invalid.test/notice.jpg"
+  }],
+  "discoverPosts": [
+    { "_id": "post_invalid_language", "language": "cn", "title": "原文", "content": "原始内容", "image_urls": [] },
+    { "_id": "post_invalid_media", "language": "en", "title": "Post", "content": "Body", "image_urls": ["https://example.com/post.jpg"] }
+  ]
+}

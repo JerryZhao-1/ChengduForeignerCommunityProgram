@@ -1,0 +1,4 @@
+WeChat DevTools CLI: present
+islogin exit 0: {"login":true}
+open current apps/mobile/dist/build/mp-weixin exit 0
+No preview/upload/deploy command executed.

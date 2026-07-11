@@ -5,7 +5,7 @@ import type { Comment, Event, PlaceDetail, Post } from "@community-map/shared";
 
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy } from "@/i18n";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 import DetailActionBar from "./DetailActionBar.vue";
 import DetailContent from "./DetailContent.vue";
@@ -24,7 +24,7 @@ interface CommentItem {
 }
 
 const { state } = useAppStore();
-const copy = computed(() => appCopy[state.locale].discover);
+const copy = computed(() => getMobileCopy(state.locale).discover);
 const post = ref<Post | null>(null);
 const associatedPlace = ref<PlaceDetail | null>(null);
 const associatedEvent = ref<Event | null>(null);

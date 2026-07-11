@@ -57,11 +57,16 @@ interface EventInput {
   content_zh: string;
   content_en: string;
   address_text: string;
+  address_zh: string;
+  address_en: string;
   location: { latitude: number; longitude: number };
   start_time: string;
   end_time: string;
   signup_deadline: string;
   capacity: number;
+  cover_file_id?: string;
+  cover_cloud_path?: string;
+  cover_url?: string;
 }
 
 interface PostItem {
@@ -177,6 +182,21 @@ interface AuditRecord {
   reason: string | null;
 }
 
+interface PermanentDeletePostResult {
+  post_id: string;
+  audit_record_id: string;
+  deleted: {
+    posts: number;
+    comments: number;
+    interactions: number;
+    reports: number;
+    notifications: number;
+    file_assets: number;
+    storage_objects: number;
+    audit_records: number;
+  };
+}
+
 interface DiscoverTag {
   _id: string;
   label_zh: string;
@@ -249,7 +269,7 @@ const request = async <TBody>(
   baseUrl: string,
   path: string,
   options: {
-    method?: "GET" | "POST" | "PATCH";
+    method?: "GET" | "POST" | "PATCH" | "DELETE";
     actorId?: string;
     body?: unknown;
   } = {}
@@ -283,11 +303,16 @@ const createEventInput = (
     content_zh: "正文",
     content_en: "Body",
     address_text: "Tongzilin",
+    address_zh: "桐梓林",
+    address_en: "Tongzilin",
     location: { latitude: 30.615, longitude: 104.062 },
     start_time: "2027-08-02T10:00:00+08:00",
     end_time: "2027-08-02T12:00:00+08:00",
     signup_deadline: "2027-08-01T18:00:00+08:00",
-    capacity: 12
+    capacity: 12,
+    cover_file_id: "cloud://managed-event-cover",
+    cover_cloud_path: "public/events/test/cover.jpg",
+    cover_url: "https://example.com/managed-event-cover.jpg"
   },
   ...overrides
 });
@@ -574,6 +599,84 @@ describe("events integration readiness", () => {
 });
 
 describe("discover integration readiness", () => {
+  it("permanently deletes a post and its governance dependencies", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const beforeEvents = await request<ApiSuccess<PageResult<EventItem>>>(
+        baseUrl,
+        "/events"
+      );
+      const beforePlaces = await request<ApiSuccess<PageResult<unknown>>>(
+        baseUrl,
+        "/places"
+      );
+      const forbidden = await request<ApiFailure>(
+        baseUrl,
+        "/admin/discover/posts/post_hidden",
+        { method: "DELETE", actorId: "user_002" }
+      );
+      expect(forbidden.response.status).toBe(403);
+
+      const deletion = await request<ApiSuccess<PermanentDeletePostResult>>(
+        baseUrl,
+        "/admin/discover/posts/post_hidden",
+        { method: "DELETE", actorId: "user_001" }
+      );
+      expect(deletion.response.status).toBe(200);
+      expect(deletion.body.data).toMatchObject({
+        post_id: "post_hidden",
+        deleted: {
+          posts: 1,
+          reports: 1,
+          file_assets: 1,
+          storage_objects: 1,
+          audit_records: 1
+        }
+      });
+
+      const missing = await request<ApiFailure>(
+        baseUrl,
+        "/admin/discover/posts/post_hidden",
+        { method: "DELETE", actorId: "user_001" }
+      );
+      expect(missing.response.status).toBe(404);
+
+      const reports = await request<ApiSuccess<PageResult<ReportCase>>>(
+        baseUrl,
+        "/admin/discover/reports?status=all",
+        { actorId: "user_001" }
+      );
+      expect(reports.body.data.items).not.toContainEqual(
+        expect.objectContaining({ _id: "report_001" })
+      );
+
+      const audits = await request<ApiSuccess<PageResult<AuditRecord>>>(
+        baseUrl,
+        "/admin/discover/audit?targetId=post_hidden",
+        { actorId: "user_001" }
+      );
+      expect(audits.body.data.items).toHaveLength(1);
+      expect(audits.body.data.items[0]).toMatchObject({
+        action: "permanent_delete_post",
+        target_id: "post_hidden"
+      });
+
+      const afterEvents = await request<ApiSuccess<PageResult<EventItem>>>(
+        baseUrl,
+        "/events"
+      );
+      const afterPlaces = await request<ApiSuccess<PageResult<unknown>>>(
+        baseUrl,
+        "/places"
+      );
+      expect(afterEvents.body.data.total).toBe(beforeEvents.body.data.total);
+      expect(afterPlaces.body.data.total).toBe(beforePlaces.body.data.total);
+    } finally {
+      await close();
+    }
+  });
+
   it("filters public posts and creates posts with deterministic visible state", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 

@@ -6,9 +6,17 @@ import {
 
 export interface EventSignupState {
   canSignup: boolean;
-  label: string;
-  reason: string;
+  code: EventSignupStateCode;
 }
+
+export type EventSignupStateCode =
+  | "unavailable"
+  | "offline"
+  | "notOpen"
+  | "alreadyRegistered"
+  | "ended"
+  | "closed"
+  | "available";
 
 export interface EventSignupStateOptions {
   isRegistered?: boolean;
@@ -64,57 +72,50 @@ export const getEventSignupState = (
   now = new Date(),
   options: EventSignupStateOptions = {}
 ): EventSignupState => {
-  if (!isPublicEvent(event)) {
+  if (event.review_status !== "approved") {
     return {
       canSignup: false,
-      label: "暂不可报名",
-      reason: "活动暂不可访问或已下线。"
+      code: "unavailable"
     };
   }
 
   if (event.publish_status === "offline") {
     return {
       canSignup: false,
-      label: "活动已下线",
-      reason: "该活动已下线，暂不可报名。"
+      code: "offline"
     };
   }
 
   if (event.publish_status !== "published") {
     return {
       canSignup: false,
-      label: "暂不可报名",
-      reason: "该活动暂未开放报名。"
+      code: "notOpen"
     };
   }
 
   if (options.isRegistered) {
     return {
       canSignup: false,
-      label: "已报名",
-      reason: "你已报名该活动，不能重复报名。"
+      code: "alreadyRegistered"
     };
   }
 
   if (new Date(event.end_time).getTime() <= now.getTime()) {
     return {
       canSignup: false,
-      label: "活动已结束",
-      reason: "活动已结束，无法继续报名。"
+      code: "ended"
     };
   }
 
   if (new Date(event.signup_deadline).getTime() <= now.getTime()) {
     return {
       canSignup: false,
-      label: "报名已截止",
-      reason: "报名时间已截止，无法继续提交报名。"
+      code: "closed"
     };
   }
 
   return {
     canSignup: true,
-    label: "立即报名",
-    reason: ""
+    code: "available"
   };
 };

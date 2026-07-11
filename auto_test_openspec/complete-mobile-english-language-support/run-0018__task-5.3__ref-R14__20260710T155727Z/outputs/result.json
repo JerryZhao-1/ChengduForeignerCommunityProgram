@@ -1,0 +1,31 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "5.3",
+  "ref": "R14",
+  "result": "BLOCKED",
+  "taskCheckboxMustRemainOpen": true,
+  "available": {
+    "mpWeixinBuild": true,
+    "devToolsCli": true,
+    "devToolsLoggedIn": true,
+    "devToolsProjectOpened": true
+  },
+  "blockers": [
+    {
+      "severity": "release-blocker",
+      "owner": "content owner",
+      "missing": "real production-candidate export and zero-issue audit",
+      "nextAction": "Export with provenance and run bilingual-content-audit.ts"
+    },
+    {
+      "severity": "release-blocker",
+      "owner": "QA / WeChat account owner",
+      "missing": "current English candidate iOS and Android physical-device evidence",
+      "nextAction": "Execute the checked-in WeChat runbook and attach device/network/native-capability evidence"
+    }
+  ],
+  "realProductionExportUsed": false,
+  "fixtureEvidenceRejected": true,
+  "physicalDeviceEvidenceComplete": false,
+  "previewUploadDeployPerformed": false
+}

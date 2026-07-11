@@ -6,10 +6,18 @@ import type { PlaceListItem } from "@community-map/shared";
 import { mobileApi } from "@/api/client";
 import AsyncStateCard from "@/components/AsyncStateCard.vue";
 import SectionPanel from "@/components/SectionPanel.vue";
+import { getMobileCopy } from "@/i18n";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
-import { getPlacesCopy } from "./copy";
-import { PLACE_LIST_CATEGORIES } from "./list-categories";
+import {
+  getPlaceCategoryPathLabel,
+  getPlaceTagLabel,
+  PLACE_LIST_CATEGORIES
+} from "./list-categories";
 import { placesPagePaths } from "./navigation";
+import {
+  formatPlaceFallbackNotice,
+  resolvePlaceField
+} from "./place-presentation";
 import { usePlaceAsyncState } from "./usePlaceAsyncState";
 
 const { state } = useAppStore();
@@ -23,7 +31,7 @@ const filters = ref({
   sort: "recommended" as "recommended" | "name"
 });
 
-const listCopy = computed(() => getPlacesCopy(state.locale, "list"));
+const listCopy = computed(() => getMobileCopy(state.locale).places.list);
 const categoryOptions = computed(() => [
   {
     value: "",
@@ -31,7 +39,7 @@ const categoryOptions = computed(() => [
   },
   ...PLACE_LIST_CATEGORIES.map((option) => ({
     value: option.value,
-    label: option.label[state.locale]
+    label: getPlaceCategoryPathLabel(state.locale, option.value)
   }))
 ]);
 const activeCategoryIndex = computed(() =>
@@ -47,9 +55,28 @@ const localizedText = (zh: string, en: string) =>
   pickLocalized(state.locale, zh, en).trim();
 
 const placeCategoryLabel = (place: PlaceListItem) =>
-  place.category_level_2
-    ? `${place.category_level_1} / ${place.category_level_2}`
-    : place.category_level_1;
+  getPlaceCategoryPathLabel(
+    state.locale,
+    place.category_level_1,
+    place.category_level_2
+  );
+
+const placeFallbackNotice = (place: PlaceListItem) =>
+  formatPlaceFallbackNotice(state.locale, [
+    resolvePlaceField(state.locale, place.name_zh, place.name_en),
+    resolvePlaceField(
+      state.locale,
+      place.short_address_zh,
+      place.short_address_en,
+      true
+    ),
+    resolvePlaceField(
+      state.locale,
+      place.summary_zh,
+      place.summary_en,
+      true
+    )
+  ]);
 
 const load = async () => {
   const result = await run(
@@ -138,7 +165,7 @@ onLoad((query) => {
         @change="handleCategoryChange"
       >
         <view class="picker">
-          {{ listCopy.categoryLabel }}：{{ categoryOptions[activeCategoryIndex]?.label }}
+          {{ listCopy.categoryLabel }}: {{ categoryOptions[activeCategoryIndex]?.label }}
         </view>
       </picker>
       <view class="sort-row">
@@ -200,6 +227,9 @@ onLoad((query) => {
           </view>
         </view>
         <view class="card-meta">{{ placeCategoryLabel(place) }}</view>
+        <view v-if="placeFallbackNotice(place)" class="fallback-notice">
+          {{ placeFallbackNotice(place) }}
+        </view>
         <view
           v-if="localizedText(place.short_address_zh, place.short_address_en)"
           class="card-text"
@@ -216,7 +246,7 @@ onLoad((query) => {
             class="tag"
             @click.stop="applyTag(tag)"
           >
-            #{{ tag }}
+            #{{ getPlaceTagLabel(state.locale, tag) }}
           </button>
         </view>
       </view>
@@ -309,6 +339,12 @@ onLoad((query) => {
   margin-top: 10rpx;
   color: #6b7280;
   line-height: 1.5;
+}
+
+.fallback-notice {
+  margin-top: 10rpx;
+  color: #9a5b00;
+  font-size: 22rpx;
 }
 
 .place-badge,

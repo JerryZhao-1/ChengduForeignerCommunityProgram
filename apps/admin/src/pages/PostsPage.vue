@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import type {
   Comment,
   DiscoverAuditRecord,
@@ -13,6 +13,7 @@ import type {
 } from "@community-map/shared";
 
 import { adminApi } from "@/api/client";
+import { confirmPermanentPostDeletion } from "./post-permanent-delete";
 
 type QueueTab =
   | "posts"
@@ -325,6 +326,48 @@ const moderatePost = async (
   }
 };
 
+const permanentlyDeletePost = async (post: Post) => {
+  try {
+    const decision = await confirmPermanentPostDeletion(
+      post,
+      (target) =>
+        ElMessageBox.confirm(
+          `将永久删除帖子“${target.title}”（${target._id}）及其评论、互动、举报、通知和媒体文件。此操作不可恢复。`,
+          "确认永久删除帖子",
+          {
+            confirmButtonText: "永久删除",
+            cancelButtonText: "取消",
+            type: "error"
+          }
+        ),
+      async (postId) => {
+        actioning.value = true;
+        return adminApi.admin.permanentlyDeletePost(postId);
+      }
+    );
+    if (decision.status === "cancelled") {
+      return;
+    }
+
+    const deleted = decision.result.data.deleted;
+    ElMessage.success(
+      `已永久删除：评论 ${deleted.comments}、互动 ${deleted.interactions}、举报 ${deleted.reports}、媒体 ${deleted.storage_objects}`
+    );
+    if (selectedPost.value?._id === post._id) {
+      selectedPost.value = null;
+      drawerVisible.value = false;
+    }
+    selectedPosts.value = [];
+    await refreshAll();
+  } catch (error) {
+    ElMessage.error(
+      error instanceof Error ? error.message : "永久删除帖子失败"
+    );
+  } finally {
+    actioning.value = false;
+  }
+};
+
 const updatePostOps = async (
   post: Post,
   patch: Partial<
@@ -592,38 +635,55 @@ onMounted(refreshAll);
               {{ compactDate(row.created_at) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="260" fixed="right">
+          <el-table-column label="操作" width="420" fixed="right">
             <template #default="{ row }">
-              <el-button size="small" @click="openPost(row)">查看</el-button>
-              <el-button
-                size="small"
-                :loading="actioning"
-                @click="moderatePost(row, 'hidden')"
-              >
-                隐藏
-              </el-button>
-              <el-button
-                size="small"
-                :loading="actioning"
-                @click="moderatePost(row, 'visible')"
-              >
-                恢复
-              </el-button>
-              <el-button
-                size="small"
-                type="danger"
-                :loading="actioning"
-                @click="moderatePost(row, 'deleted')"
-              >
-                删除
-              </el-button>
-              <el-button
-                size="small"
-                :loading="actioning"
-                @click="updatePostOps(row, { is_pinned: !row.is_pinned })"
-              >
-                {{ row.is_pinned ? "取消置顶" : "置顶" }}
-              </el-button>
+              <div class="post-actions">
+                <div class="post-action-row">
+                  <el-button size="small" @click="openPost(row)">
+                    查看
+                  </el-button>
+                  <el-button
+                    size="small"
+                    :loading="actioning"
+                    @click="moderatePost(row, 'hidden')"
+                  >
+                    隐藏
+                  </el-button>
+                  <el-button
+                    size="small"
+                    :loading="actioning"
+                    @click="moderatePost(row, 'visible')"
+                  >
+                    恢复
+                  </el-button>
+                  <el-button
+                    size="small"
+                    :loading="actioning"
+                    @click="updatePostOps(row, { is_pinned: !row.is_pinned })"
+                  >
+                    {{ row.is_pinned ? "取消置顶" : "置顶" }}
+                  </el-button>
+                </div>
+                <div class="post-action-row post-action-row-danger">
+                  <el-button
+                    size="small"
+                    type="danger"
+                    :loading="actioning"
+                    @click="moderatePost(row, 'deleted')"
+                  >
+                    软删除
+                  </el-button>
+                  <el-button
+                    size="small"
+                    type="danger"
+                    plain
+                    :loading="actioning"
+                    @click="permanentlyDeletePost(row)"
+                  >
+                    永久删除
+                  </el-button>
+                </div>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -1106,6 +1166,16 @@ onMounted(refreshAll);
             {{ compactDate(selectedPost.created_at) }}
           </el-descriptions-item>
         </el-descriptions>
+        <div class="drawer-actions">
+          <el-button
+            type="danger"
+            plain
+            :loading="actioning"
+            @click="permanentlyDeletePost(selectedPost)"
+          >
+            永久删除帖子
+          </el-button>
+        </div>
         <h4>评论</h4>
         <el-table
           :data="comments.filter((item) => item.post_id === selectedPost?._id)"
@@ -1317,6 +1387,28 @@ onMounted(refreshAll);
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.post-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.post-action-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.post-action-row :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
+.post-action-row-danger {
+  justify-content: flex-start;
 }
 
 .analytics-grid {

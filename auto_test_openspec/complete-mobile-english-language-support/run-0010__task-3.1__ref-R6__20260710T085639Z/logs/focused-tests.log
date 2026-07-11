@@ -1,0 +1,4 @@
+Vitest focused locale/navigation/catalog validation: PASS
+Test files: 3 passed (3)
+Tests: 27 passed (27)
+Expected offline-sync warning was emitted by the negative-path test; the test confirms the selected UI locale is not rolled back.

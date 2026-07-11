@@ -1,61 +1,54 @@
-import { PLACE_TOP_LEVEL_CATEGORIES } from "@community-map/shared";
+import {
+  PLACE_SECONDARY_CATEGORY_OPTIONS,
+  PLACE_TOP_LEVEL_CATEGORIES,
+  type PlaceTopLevelCategory
+} from "@community-map/shared";
+
+import { getMobileCopy, type MobileLocale } from "../../i18n";
 
 export interface PlaceCategoryOption {
-  value: (typeof PLACE_TOP_LEVEL_CATEGORIES)[number];
-  label: {
-    zh: string;
-    en: string;
-  };
+  value: PlaceTopLevelCategory;
 }
 
-const CATEGORY_LABELS: Record<
-  (typeof PLACE_TOP_LEVEL_CATEGORIES)[number],
-  PlaceCategoryOption["label"]
-> = {
-  "public-service": {
-    zh: "公共服务",
-    en: "Public Services"
-  },
-  "food-drink": {
-    zh: "餐饮",
-    en: "Food & Drink"
-  },
-  shopping: {
-    zh: "购物",
-    en: "Shopping"
-  },
-  lifestyle: {
-    zh: "生活方式",
-    en: "Lifestyle"
-  },
-  education: {
-    zh: "教育",
-    en: "Education"
-  },
-  "health-wellness": {
-    zh: "健康",
-    en: "Health & Wellness"
-  },
-  entertainment: {
-    zh: "娱乐",
-    en: "Entertainment"
-  },
-  "outdoor-sports": {
-    zh: "户外运动",
-    en: "Outdoor Sports"
-  },
-  transport: {
-    zh: "交通",
-    en: "Transport"
-  },
-  community: {
-    zh: "社区",
-    en: "Community"
-  }
-};
+type SecondaryCategory =
+  (typeof PLACE_SECONDARY_CATEGORY_OPTIONS)[PlaceTopLevelCategory][number];
 
 export const PLACE_LIST_CATEGORIES: PlaceCategoryOption[] =
-  PLACE_TOP_LEVEL_CATEGORIES.map((value) => ({
-    value,
-    label: CATEGORY_LABELS[value]
-  }));
+  PLACE_TOP_LEVEL_CATEGORIES.map((value) => ({ value }));
+
+const titleCaseCode = (value: string) =>
+  value
+    .split("-")
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
+
+export const getPlaceCategoryLabel = (
+  locale: MobileLocale,
+  category: string
+) => {
+  const categories = getMobileCopy(locale).places.categories;
+  const topLevel = categories.topLevel as Record<string, string>;
+  const secondary = categories.secondary as Record<string, string>;
+
+  return topLevel[category] || secondary[category] || titleCaseCode(category);
+};
+
+export const getPlaceCategoryPathLabel = (
+  locale: MobileLocale,
+  levelOne: PlaceTopLevelCategory,
+  levelTwo?: SecondaryCategory | string | null
+) => {
+  const levelOneLabel = getPlaceCategoryLabel(locale, levelOne);
+  return levelTwo
+    ? `${levelOneLabel} / ${getPlaceCategoryLabel(locale, levelTwo)}`
+    : levelOneLabel;
+};
+
+export const getPlaceTagLabel = (locale: MobileLocale, tag: string) => {
+  const tags = getMobileCopy(locale).places.categories.tags as Record<
+    string,
+    string
+  >;
+  return tags[tag] || titleCaseCode(tag);
+};

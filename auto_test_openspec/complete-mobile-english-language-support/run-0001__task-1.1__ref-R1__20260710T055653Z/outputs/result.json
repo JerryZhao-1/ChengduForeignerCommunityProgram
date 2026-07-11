@@ -1,0 +1,28 @@
+{
+  "change": "complete-mobile-english-language-support",
+  "task": "1.1",
+  "ref": "R1",
+  "commands": [
+    {
+      "command": "./node_modules/.bin/vitest run apps/mobile/src/i18n/catalog.spec.ts apps/mobile/src/pages/events/event-signup-state.spec.ts",
+      "exitCode": 0,
+      "log": "logs/focused-tests.log"
+    },
+    {
+      "command": "pnpm --filter @community-map/mobile typecheck",
+      "exitCode": 0,
+      "log": "logs/mobile-typecheck.log"
+    },
+    {
+      "command": "rg -n '[一-鿿]' apps/mobile/src/pages/events/event-signup-state.ts",
+      "exitCode": 0,
+      "interpretation": "0 means no forbidden domain-helper literals",
+      "log": "logs/domain-copy-scan.log"
+    }
+  ],
+  "assertions": {
+    "catalogParityAndLocalizedCasesExecuted": true,
+    "mobileTypecheckCompleted": true,
+    "domainHelperHasNoHanLiterals": true
+  }
+}

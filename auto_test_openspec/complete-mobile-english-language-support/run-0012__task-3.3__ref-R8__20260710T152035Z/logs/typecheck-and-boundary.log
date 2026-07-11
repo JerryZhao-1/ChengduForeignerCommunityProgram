@@ -1,0 +1,3 @@
+Mobile typecheck: PASS
+Map summary detail-call scan: PASS (rg exit 1 / no matches)
+Shared marker-safe and public client boundary tests: PASS

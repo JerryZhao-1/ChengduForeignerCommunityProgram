@@ -27,6 +27,7 @@ import type {
   PlacePoiSearchItem,
   Post,
   PostInteractionState,
+  PermanentDeletePostResponse,
   ProfileFollowListItem,
   ProfileFollowState,
   PublicProfile
@@ -51,6 +52,10 @@ export interface CommunityMapApiClient {
       password: string;
     }): Promise<ApiResult<AuthSession>>;
     me(): Promise<ApiResult<AuthSession>>;
+    preferences(): Promise<ApiResult<{ preferred_language: "zh" | "en" }>>;
+    updatePreferences(input: {
+      preferred_language: "zh" | "en";
+    }): Promise<ApiResult<{ preferred_language: "zh" | "en" }>>;
     wechatMiniappSession(input?: {
       preferred_language?: "zh" | "en";
     }): Promise<ApiResult<AuthSession>>;
@@ -279,6 +284,9 @@ export interface CommunityMapApiClient {
       id: string,
       input: { review_status: Post["review_status"]; reason?: string }
     ): Promise<ApiResult<Post>>;
+    permanentlyDeletePost(
+      id: string
+    ): Promise<ApiResult<PermanentDeletePostResponse>>;
     updateDiscoverPostOps(
       id: string,
       input: Partial<
@@ -424,6 +432,14 @@ export const createMockClient = (
       },
       async me() {
         return ok(service.auth.me(actorId));
+      },
+      async preferences() {
+        return ok(service.auth.preferences(actorId));
+      },
+      async updatePreferences(input) {
+        return ok(
+          service.auth.updatePreferences(actorId, input.preferred_language)
+        );
       },
       async wechatMiniappSession(input) {
         return ok(
@@ -688,6 +704,14 @@ export const createMockClient = (
       },
       async moderatePost(id, input) {
         return ok(service.posts.moderate(id, input, actorId) as Post);
+      },
+      async permanentlyDeletePost(id) {
+        return ok(
+          service.posts.permanentlyDelete(
+            id,
+            actorId
+          ) as PermanentDeletePostResponse
+        );
       },
       async updateDiscoverPostOps(id, input) {
         return ok(service.posts.updateOps(id, input, actorId) as Post);

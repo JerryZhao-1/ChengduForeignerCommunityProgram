@@ -1,0 +1,9 @@
+Mobile typecheck: PASS
+Admin typecheck: PASS
+Shared typecheck: PASS
+API typecheck: PASS
+Mobile H5 build: PASS
+Mobile mp-weixin build: PASS
+Admin build: PASS (chunk-size warning only)
+Root tests: PASS, 25 files / 183 tests
+Root lint: PASS

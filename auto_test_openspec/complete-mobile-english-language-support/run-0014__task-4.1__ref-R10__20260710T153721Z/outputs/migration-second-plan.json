@@ -1,0 +1,26 @@
+{
+  "mode": "dry-run",
+  "scope": "all",
+  "inputDigest": "5bee62f3a1212b1ddb4fe75201192d0be7397e23b028324d97dc6adb9fe2f97f",
+  "planDigest": "92849d2ac4c30853de44349eb705fd4c4afcbe8d2a926bfa704233ec8252ce8e",
+  "mutationPerformed": false,
+  "actionCount": 0,
+  "actions": [],
+  "editorialReview": [
+    {
+      "collection": "events",
+      "recordId": "event_legacy",
+      "reason": "address_en requires reviewed editorial translation; no value was generated."
+    },
+    {
+      "collection": "notifications",
+      "recordId": "notification_legacy_zh",
+      "reason": "en notification copy requires reviewed editorial content; no translation was generated."
+    },
+    {
+      "collection": "notifications",
+      "recordId": "notification_unknown",
+      "reason": "Legacy notification language is unknown; add an explicit zh/en migration hint before copying."
+    }
+  ]
+}

@@ -27,6 +27,7 @@ import type {
   PlaceMapMarker,
   Post,
   PostInteractionState,
+  PermanentDeletePostResponse,
   ProfileFollowListItem,
   ProfileFollowState,
   PublicProfile,
@@ -56,6 +57,11 @@ export interface ApiProvider {
       password: string;
     }): Promise<AuthSession>;
     me(userId?: string): Promise<AuthSession>;
+    preferences(userId?: string): Promise<{ preferred_language: "zh" | "en" }>;
+    updatePreferences(
+      userId: string | undefined,
+      preferredLanguage: "zh" | "en"
+    ): Promise<{ preferred_language: "zh" | "en" }>;
     wechatMiniappSession(input: {
       preferred_language?: "zh" | "en";
       identity?: WechatMiniappIdentity;
@@ -259,6 +265,10 @@ export interface ApiProvider {
       input: { review_status: Post["review_status"]; reason?: string },
       actorId?: string
     ): Promise<Post | null>;
+    permanentlyDelete(
+      id: string,
+      actorId?: string
+    ): Promise<PermanentDeletePostResponse | null>;
     updateOps(
       id: string,
       input: Partial<

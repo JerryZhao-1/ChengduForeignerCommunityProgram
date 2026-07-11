@@ -1,0 +1,27 @@
+{
+  "evidenceKind": "fixture",
+  "provenance": {
+    "environment": "vitest-fixture",
+    "exportedAt": "2026-07-10T12:00:00.000Z",
+    "source": { "collections": ["events"], "query": "checked-in golden fixture" },
+    "recordCounts": { "events": 1, "places": 0, "announcements": 0, "discoverPosts": 0 }
+  },
+  "events": [{
+    "_id": "event_fixture_001",
+    "review_status": "approved",
+    "publish_status": "published",
+    "title_zh": "社区活动",
+    "title_en": "Community Event",
+    "summary_zh": "活动摘要",
+    "summary_en": "Event summary",
+    "content_zh": "活动内容",
+    "content_en": "Event details",
+    "address_zh": "桐梓林",
+    "address_en": "Tongzilin",
+    "cover_url": "https://assets.example-cdn.test/events/fixture.jpg",
+    "media_attribution": "Synthetic test asset"
+  }],
+  "places": [],
+  "announcements": [],
+  "discoverPosts": []
+}

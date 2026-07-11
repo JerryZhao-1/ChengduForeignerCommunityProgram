@@ -4,11 +4,11 @@ import { onLoad } from "@dcloudio/uni-app";
 
 import { mobileApi } from "@/api/client";
 import { uploadReportEvidence } from "@/api/report-evidence-upload";
-import { appCopy } from "@/i18n/copy";
+import { getMobileCopy } from "@/i18n";
 import { useAppStore } from "@/stores/app-store";
 
 const { state } = useAppStore();
-const copy = computed(() => appCopy[state.locale].discover);
+const copy = computed(() => getMobileCopy(state.locale).discover);
 
 const postId = ref("");
 const statusBarHeight = ref(0);

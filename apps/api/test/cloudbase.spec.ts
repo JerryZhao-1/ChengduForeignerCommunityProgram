@@ -9,6 +9,105 @@ import { main } from "../src/cloudbase";
 import { createCloudbaseProvider } from "../src/providers/cloudbase";
 import { createMockProvider } from "../src/providers/mock";
 
+const createLivePermanentDeleteFixture = async (notificationError: Error) => {
+  const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+  const previousEnvId = process.env.CLOUDBASE_ENV_ID;
+  const dataset = createMockDataset();
+  const livePosts = [
+    {
+      ...dataset.posts.find((post) => post._id === "post_001")!,
+      image_file_ids: [],
+      image_urls: []
+    }
+  ];
+  const liveAudits = [
+    {
+      ...dataset.auditRecords[0],
+      _id: "audit_old_post_001",
+      target_type: "post" as const,
+      target_id: "post_001"
+    }
+  ];
+
+  const createCollection = <TItem extends { _id: string }>(items: TItem[]) => ({
+    limit: vi.fn(() => ({
+      get: vi.fn(async () => ({ data: items }))
+    })),
+    doc: vi.fn((id: string) => ({
+      set: vi.fn(async (payload: Omit<TItem, "_id">) => {
+        items.push({ _id: id, ...payload } as TItem);
+        return { requestId: `req_set_${id}` };
+      }),
+      remove: vi.fn(async () => {
+        const index = items.findIndex((item) => item._id === id);
+        if (index >= 0) {
+          items.splice(index, 1);
+        }
+        return { deleted: index >= 0 ? 1 : 0 };
+      })
+    }))
+  });
+  const collections = {
+    users: createCollection(dataset.users),
+    posts: createCollection(livePosts),
+    comments: createCollection([]),
+    discover_post_interactions: createCollection([]),
+    discover_report_cases: createCollection([]),
+    file_assets: createCollection([]),
+    discover_audit_records: createCollection(liveAudits)
+  };
+  const emptyCollection = createCollection([]);
+  const missingNotificationsCollection = {
+    limit: vi.fn(() => ({
+      get: vi.fn(async () => Promise.reject(notificationError))
+    })),
+    doc: emptyCollection.doc
+  };
+  const initCloudbase = vi.fn(() => ({
+    database: () => ({
+      collection: (name: string) =>
+        name === "notifications"
+          ? missingNotificationsCollection
+          : collections[name as keyof typeof collections] ?? emptyCollection
+    }),
+    deleteFile: vi.fn(async () => ({ fileList: [] }))
+  }));
+
+  vi.resetModules();
+  vi.doMock("@cloudbase/node-sdk", () => ({
+    default: {
+      init: initCloudbase
+    }
+  }));
+  process.env.CLOUDBASE_PROVIDER_MODE = "live";
+  process.env.CLOUDBASE_ENV_ID = "test-env";
+
+  const { createCloudbaseProvider: createLiveProvider } =
+    await import("../src/providers/cloudbase");
+
+  return {
+    provider: createLiveProvider(),
+    livePosts,
+    liveAudits,
+    cleanup() {
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+
+      if (previousEnvId === undefined) {
+        delete process.env.CLOUDBASE_ENV_ID;
+      } else {
+        process.env.CLOUDBASE_ENV_ID = previousEnvId;
+      }
+
+      vi.doUnmock("@cloudbase/node-sdk");
+      vi.resetModules();
+    }
+  };
+};
+
 describe("cloudbase event handler", () => {
   it("returns event list with the same envelope shape", async () => {
     const response = await main({}, {
@@ -505,7 +604,7 @@ describe("cloudbase event handler", () => {
       intro_en: "Test",
       recommended_reason_zh: null,
       recommended_reason_en: null,
-      is_recommended: true,
+      is_recommended: false,
       recommended_rank: 0,
       gallery_file_ids: [],
       gallery_urls: [],
@@ -587,8 +686,12 @@ describe("cloudbase event handler", () => {
 
       const updateResponse = await main(
         {
+          name_zh: "云函数地铁站",
+          name_en: "Cloud Function Metro Station",
           category_level_1: "transport",
           category_level_2: "metro-station",
+          intro_zh: "云函数地点介绍",
+          intro_en: "Cloud function place introduction",
           location: { latitude: 30.6201, longitude: 104.0673 },
           tencent_map_poi_id: "poi_cloud_002",
           is_recommended: true,
@@ -1019,7 +1122,7 @@ describe("cloudbase event handler", () => {
       const updated = await provider.places.update(livePlace._id, {
         name_en: "Live Mutation Place Edited",
         gallery_file_ids: [],
-        recommended_reason_en: null
+        recommended_reason_en: "Edited live recommendation"
       });
 
       expect(updated).toMatchObject({
@@ -1027,13 +1130,13 @@ describe("cloudbase event handler", () => {
         community_id: "tongzilin",
         name_en: "Live Mutation Place Edited",
         gallery_file_ids: [],
-        recommended_reason_en: null
+        recommended_reason_en: "Edited live recommendation"
       });
       expect(doc).toHaveBeenCalledWith(livePlace._id);
       expect(update).toHaveBeenCalledWith({
         name_en: "Live Mutation Place Edited",
         gallery_file_ids: [],
-        recommended_reason_en: null
+        recommended_reason_en: "Edited live recommendation"
       });
       expect(set).not.toHaveBeenCalled();
 
@@ -1694,6 +1797,64 @@ describe("cloudbase event handler", () => {
 
       vi.doUnmock("@cloudbase/node-sdk");
       vi.resetModules();
+    }
+  });
+
+  it("permanently deletes when the optional notifications collection is missing", async () => {
+    const missingCollectionError = Object.assign(
+      new Error("Db or Table not exist: notifications"),
+      { code: "DATABASE_COLLECTION_NOT_EXIST" }
+    );
+    const fixture = await createLivePermanentDeleteFixture(
+      missingCollectionError
+    );
+
+    try {
+      const result = await fixture.provider.posts.permanentlyDelete(
+        "post_001",
+        "user_001"
+      );
+
+      expect(result).toMatchObject({
+        post_id: "post_001",
+        deleted: {
+          posts: 1,
+          notifications: 0,
+          audit_records: 1
+        }
+      });
+      expect(fixture.livePosts).toHaveLength(0);
+      expect(fixture.liveAudits).toHaveLength(1);
+      expect(fixture.liveAudits[0]).toMatchObject({
+        action: "permanent_delete_post",
+        target_id: "post_001"
+      });
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it("does not swallow other notification lookup failures or mutate the post", async () => {
+    const permissionError = Object.assign(
+      new Error("Notification collection permission denied"),
+      { code: "DATABASE_PERMISSION_DENIED" }
+    );
+    const fixture = await createLivePermanentDeleteFixture(permissionError);
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await expect(
+        fixture.provider.posts.permanentlyDelete("post_001", "user_001")
+      ).rejects.toBe(permissionError);
+      expect(fixture.livePosts).toHaveLength(1);
+      expect(fixture.liveAudits).toHaveLength(1);
+      expect(logSpy).toHaveBeenCalledWith(
+        "server_error",
+        expect.stringContaining('"stage":"dependency_lookup"')
+      );
+    } finally {
+      logSpy.mockRestore();
+      fixture.cleanup();
     }
   });
 

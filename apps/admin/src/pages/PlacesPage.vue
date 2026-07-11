@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   CreatePlaceInputSchema,
+  ApiClientError,
   PLACE_SECONDARY_CATEGORY_OPTIONS,
   PLACE_STATUSES,
   PLACE_TOP_LEVEL_CATEGORIES,
   UpdatePlaceInputSchema,
+  validatePlacePublicationReadiness,
   type ApiFailureResult,
   type Place,
   type PlaceAmapMediaSearchItem,
@@ -23,6 +25,7 @@ const saving = ref(false);
 const uploadingGallery = ref(false);
 const editingId = ref<string | null>(null);
 const deletingId = ref<string | null>(null);
+const publishingId = ref<string | null>(null);
 const submittingError = ref("");
 const poiKeyword = ref("");
 const poiSearching = ref(false);
@@ -113,6 +116,18 @@ const getReviewIndicators = (place: Place) => {
   }
   if (place.is_recommended) {
     indicators.push({ type: "success", label: "推荐" });
+  }
+
+  const readiness = validatePlacePublicationReadiness(place);
+  if (readiness.ready) {
+    indicators.push({ type: "success", label: "双语发布就绪" });
+  } else {
+    indicators.push({
+      type: "danger",
+      label: `发布待补：${readiness.issues
+        .map((issue) => issue.field)
+        .join("、")}`
+    });
   }
 
   for (const blocker of place.import_review?.review_blockers ?? []) {
@@ -211,8 +226,20 @@ const isApiFailureResult = (value: unknown): value is ApiFailureResult => {
   return record.success === false && typeof record.error === "object";
 };
 
-const toErrorMessage = (error: unknown, fallback: string) =>
-  error instanceof Error && error.message ? error.message : fallback;
+const toErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof ApiClientError) {
+    const fields = (error.details as {
+      fields?: Array<{ field?: string; message?: string }>;
+    } | undefined)?.fields;
+    if (fields?.length) {
+      return `${error.message} ${fields
+        .map((item) => item.field || item.message)
+        .filter(Boolean)
+        .join("、")}`;
+    }
+  }
+  return error instanceof Error && error.message ? error.message : fallback;
+};
 
 const showOperationError = (error: unknown, fallback: string) => {
   const message = toErrorMessage(error, fallback);
@@ -301,8 +328,23 @@ const buildPayload = () => ({
   status: form.status
 });
 
+const formReadiness = computed(() =>
+  validatePlacePublicationReadiness(buildPayload() as Partial<Place>)
+);
+
 const buildValidatedPayload = () => {
   const payload = buildPayload();
+  const readiness = validatePlacePublicationReadiness(
+    payload as Partial<Place>
+  );
+  if (payload.status === "published" && !readiness.ready) {
+    const message = `发布前请补齐：${readiness.issues
+      .map((issue) => issue.field)
+      .join("、")}`;
+    submittingError.value = message;
+    ElMessage.error(message);
+    return null;
+  }
   const result = editingId.value
     ? UpdatePlaceInputSchema.safeParse(payload)
     : CreatePlaceInputSchema.safeParse(payload);
@@ -363,12 +405,30 @@ const submit = async () => {
 const startCreate = () => fillForm();
 const startEdit = (place: Place) => fillForm(place);
 const quickPublish = async (place: Place, status: Place["status"]) => {
+  if (publishingId.value) {
+    return;
+  }
+  if (status === "published") {
+    const readiness = validatePlacePublicationReadiness(place);
+    if (!readiness.ready) {
+      ElMessage.error(
+        `发布前请补齐：${readiness.issues
+          .map((issue) => issue.field)
+          .join("、")}`
+      );
+      return;
+    }
+  }
+  publishingId.value = place._id;
+  await nextTick();
   try {
     await adminApi.admin.updatePlace(place._id, { status });
     await load();
     ElMessage.success(status === "published" ? "地点已发布。" : "地点已转为草稿。");
   } catch (error) {
     showOperationError(error, "更新地点状态失败。");
+  } finally {
+    publishingId.value = null;
   }
 };
 
@@ -925,6 +985,19 @@ onMounted(async () => {
             </div>
           </div>
         </div>
+        <el-alert
+          :title="
+            formReadiness.ready
+              ? '双语正式内容已满足发布要求。'
+              : `仍不可发布：${formReadiness.issues
+                  .map((issue) => issue.field)
+                  .join('、')}`
+          "
+          :type="formReadiness.ready ? 'success' : 'warning'"
+          :closable="false"
+          show-icon
+          class="mb-16"
+        />
         <div class="editor-actions">
           <el-button @click="startCreate">重置</el-button>
           <el-button type="primary" :loading="saving" @click="submit">
@@ -971,11 +1044,28 @@ onMounted(async () => {
               link
               size="small"
               type="success"
+              :disabled="
+                publishingId !== null ||
+                !validatePlacePublicationReadiness(row).ready
+              "
+              :loading="publishingId === row._id"
+              :title="
+                validatePlacePublicationReadiness(row).ready
+                  ? '双语发布就绪'
+                  : `待补：${validatePlacePublicationReadiness(row).issues
+                      .map((issue) => issue.field)
+                      .join('、')}`
+              "
               @click="quickPublish(row, 'published')"
             >
               发布
             </el-button>
-            <el-button link size="small" @click="quickPublish(row, 'draft')">
+            <el-button
+              link
+              size="small"
+              :loading="publishingId === row._id"
+              @click="quickPublish(row, 'draft')"
+            >
               转草稿
             </el-button>
             <el-button

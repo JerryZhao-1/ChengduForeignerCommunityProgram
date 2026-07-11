@@ -10,6 +10,8 @@
 4. 把所有截图、导出、版本号、审核记录填入 `docs/public-launch-evidence-collector.template.json` 的副本。
 5. 更新最终 handoff；若证据不全，状态保持 `blocked`。
 
+中英双语数据归属、fallback、Admin 修复、production-candidate export/audit 和 rollout/rollback 顺序统一遵循 [Mobile 中英双语运营与发布 Runbook](./mobile-bilingual-operations-and-release.md)。fixture audit 不能替代真实生产候选审计。
+
 公开审核包路径：`apps/mobile/dist/build/mp-weixin`。
 
 重要路径规则：根目录 `project.config.json is development-only`，它指向 `apps/mobile/dist/dev/mp-weixin/`。它不是 public-review upload path。
@@ -84,6 +86,8 @@
    Evidence: 限制截图和负责人签字。
 
 ## review upload / 公开审核包构建与上传
+
+上传前必须保存真实 `production-candidate` 内容导出及来源证明，运行双语审计并确认 `blocking=0`、`editorial=0`、`releaseEligible=true`。原始生产导出不得提交到 Git；只保存脱敏审计结果与证据索引。
 
 1. 在仓库根目录构建公开审核包：
 

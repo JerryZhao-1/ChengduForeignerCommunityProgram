@@ -1,36 +1,69 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 import { mobileApi } from "@/api/client";
 import { mobileEnv } from "@/config/env";
-import { useAppStore } from "@/stores/app-store";
+import { getMobileCopy, interpolate } from "@/i18n";
+import {
+  buildLocalePreferenceInput,
+  useAppStore
+} from "@/stores/app-store";
 
 const session = ref("");
-const { setUserId } = useAppStore();
+const loading = ref(false);
+const error = ref("");
+const { state, setAuthenticatedUser } = useAppStore();
+const copy = computed(() => getMobileCopy(state.locale).auth);
 
 const login = async () => {
-  const result =
-    mobileEnv.apiMode === "cloudbase-function"
-      ? await mobileApi.auth.wechatMiniappSession({ preferred_language: "zh" })
-      : await mobileApi.auth.login({
-          mock_user_id: "user_001",
-          preferred_language: "zh"
-        });
-  setUserId(result.data.user._id);
-  session.value = `${result.data.user.nickname} / ${result.data.token}`;
+  loading.value = true;
+  error.value = "";
+  try {
+    const preferenceInput = buildLocalePreferenceInput(
+      state.locale,
+      state.hasExplicitLocale
+    );
+    const result =
+      mobileEnv.apiMode === "cloudbase-function"
+        ? await mobileApi.auth.wechatMiniappSession(preferenceInput)
+        : await mobileApi.auth.login(preferenceInput);
+    await setAuthenticatedUser(
+      result.data.user._id,
+      result.data.user.preferred_language
+    );
+    session.value = interpolate(copy.value.signedInAs, {
+      name: result.data.user.nickname
+    });
+    uni.showToast({ title: copy.value.success, icon: "none" });
+  } catch {
+    session.value = "";
+    error.value = copy.value.error;
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
 <template>
   <view class="page">
-    <button class="primary" @click="login">Mock 登录</button>
+    <view class="title">{{ copy.title }}</view>
+    <button class="primary" :disabled="loading" @click="login">
+      {{ loading ? copy.signingIn : copy.signIn }}
+    </button>
     <view v-if="session" class="caption">{{ session }}</view>
+    <view v-if="error" class="caption error">{{ error }}</view>
   </view>
 </template>
 
 <style scoped>
 .page {
   padding: 24rpx;
+}
+
+.title {
+  margin-bottom: 24rpx;
+  font-size: 36rpx;
+  font-weight: 700;
 }
 
 .primary {
@@ -41,5 +74,9 @@ const login = async () => {
 .caption {
   margin-top: 20rpx;
   color: #6b7280;
+}
+
+.caption.error {
+  color: #b91c1c;
 }
 </style>

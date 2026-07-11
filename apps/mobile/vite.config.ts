@@ -12,6 +12,9 @@ export default defineConfig({
   plugins: [resolvedUniPlugin()],
   resolve: {
     alias: {
+      "@community-map/shared": fileURLToPath(
+        new URL("../../packages/shared/src/index.ts", import.meta.url)
+      ),
       "@": fileURLToPath(new URL("./src", import.meta.url))
     }
   },
