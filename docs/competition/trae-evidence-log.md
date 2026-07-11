@@ -4,6 +4,7 @@
 
 | ID | Date | TRAE Surface | Session ID | Objective | Main Files | Commit | Screenshot | Result |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| S00 | 2026-07-11 | TRAE Design | 1765147662888432:fc07fccab7d33184e1fdec8ed698f8d1_6a526327a95a86b34af768c8.6a526327a95a86b34af768cb.6a526327a95a86b34af768c9:TRAE Work CN.0.1.34.no_sid.no_ppe.T(2026/7/11 23:37:11) | Visual exploration | docs/competition/design/* | Add TRAE competition H5 demo evidence scaffold (no feature implementation) | evidence/02-design/...png | Selected |
 | S01 | 2026-07-11 | TRAE Design | <full-session-id> | Visual exploration | docs/competition/design/* | <commit> | evidence/02-design/...png | Selected |
 | 01-baseline | 2026-07-11 | TRAE Builder | <full-session-id> | 确认基线 commit/分支/现有能力，搭建证据目录 | docs/competition/README.md, docs/competition/trae-evidence-log.md | <commit> | evidence/01-baseline/...png | Done |
 | 02-design | | | | 选定 demo 叙事方向与屏幕流转 | design/selected-direction.md, design/screen-flow.md | | | |
