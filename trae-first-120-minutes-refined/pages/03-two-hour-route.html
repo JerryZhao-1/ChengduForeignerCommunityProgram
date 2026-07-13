@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>两小时路线 — 桐邻 First 120 Minutes</title>
+    <style id="theme-vars">
+:root {
+  /* ===== 品牌色 ===== */
+  --brand-primary: #0F766E;
+  --brand-primary-dark: #123B3A;
+  --brand-primary-tint: #B3DFDB;
+  --brand-primary-tint-soft: #E8F4F2;
+
+  /* ===== 背景色 ===== */
+  --surface-base: #F6F0E5;
+  --surface-paper: #FBF8F1;
+  --surface-raised: #FFFFFF;
+
+  /* ===== 文字色 ===== */
+  --ink-primary: #263331;
+  --ink-secondary: #5C6B68;
+  --ink-tertiary: #8FA09D;
+
+  /* ===== 功能强调色（严格限定用途） ===== */
+  --accent-activity: #E66A45;
+  --accent-activity-tint: #FCE8E0;
+  --accent-tip: #D39A3A;
+  --accent-tip-tint: #F7EDD8;
+
+  /* ===== 边框 ===== */
+  --border-default: #E5DDD0;
+  --border-soft: #F0EBE0;
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* ===== 字体 ===== */
+  --font-display: "Fraunces", "Songti SC", "STSong", "SimSun", serif;
+  --font-body: "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  /* ===== 阴影 ===== */
+  --shadow-card: 0 1px 3px rgba(18, 59, 58, 0.04);
+  --shadow-raised: 0 4px 16px rgba(18, 59, 58, 0.06);
+  --shadow-stamp: 0 2px 8px rgba(18, 59, 58, 0.08);
+}
+
+.dark {
+  --brand-primary: #2DD4BF;
+  --brand-primary-dark: #0F766E;
+  --brand-primary-tint: #123B3A;
+  --brand-primary-tint-soft: #0A2A29;
+
+  --surface-base: #0A1F1E;
+  --surface-paper: #123B3A;
+  --surface-raised: #1A4A48;
+
+  --ink-primary: #F6F0E5;
+  --ink-secondary: #B3C9C5;
+  --ink-tertiary: #7A928E;
+
+  --accent-activity: #FF8866;
+  --accent-activity-tint: #3A1E16;
+  --accent-tip: #E8B554;
+  --accent-tip-tint: #3A2E14;
+
+  --border-default: #1A4A48;
+  --border-soft: #123B3A;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
+
+/* ===== Root ===== */
+.route-root {
+  max-width: 390px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-base);
+  position: relative;
+  font-family: var(--font-body);
+  color: var(--ink-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Top Bar ===== */
+.tr-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 44px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+.tr-back-btn {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: var(--radius-sm);
+}
+.tr-back-btn:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.tr-back-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  line-height: 1;
+}
+.tr-back-zh {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-primary);
+  line-height: 1;
+}
+.tr-back-en {
+  font-size: 10px;
+  color: var(--ink-tertiary);
+  line-height: 1;
+  padding-left: 22px;
+  margin-top: 2px;
+}
+.tr-title-zh {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  line-height: 1;
+  text-wrap: balance;
+}
+.tr-title-en {
+  font-size: 11px;
+  color: var(--ink-tertiary);
+  line-height: 1;
+  margin-top: 2px;
+}
+.tr-lang-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+}
+.tr-lang-btn {
+  min-height: 44px;
+  min-width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 6px;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: var(--radius-sm);
+}
+.tr-lang-btn:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.tr-lang-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  line-height: 1;
+  white-space: nowrap;
+}
+.tr-lang-active {
+  background: var(--brand-primary);
+  color: #ffffff;
+}
+.tr-lang-inactive {
+  background: transparent;
+  color: var(--ink-tertiary);
+}
+
+/* ===== Map Section ===== */
+.tr-map {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--brand-primary-tint-soft);
+}
+.tr-map-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 380px;
+  object-fit: cover;
+  display: block;
+}
+.tr-map-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+.tr-map-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.tr-route-path {
+  stroke: var(--brand-primary);
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tr-stop-marker {
+  fill: var(--brand-primary);
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+.tr-stop-num {
+  fill: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.tr-pulse {
+  fill: var(--brand-primary);
+  opacity: 0.3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tr-pulse-ring 1.8s infinite ease-out;
+}
+@keyframes tr-pulse-ring {
+  0% { transform: scale(1); opacity: 0.3; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tr-pulse { animation: none; }
+}
+
+/* Map toolbar */
+.tr-map-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+.tr-map-tool {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: var(--radius-sm);
+}
+.tr-map-tool:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.tr-map-tool-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== Route Info Bar ===== */
+.tr-info-bar {
+  height: 48px;
+  background: var(--surface-paper);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 20px;
+  padding-right: 20px;
+  flex-shrink: 0;
+}
+.tr-info-stops {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-primary);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.tr-info-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Bottom Sheet ===== */
+.tr-sheet {
+  flex: 1;
+  background: var(--surface-paper);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  box-shadow: var(--shadow-raised);
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+  margin-top: -12px;
+  display: flex;
+  flex-direction: column;
+}
+.tr-drag-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--ink-tertiary);
+  margin: 8px auto 0;
+  flex-shrink: 0;
+}
+.tr-sheet-title-row {
+  padding: 8px 16px 4px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.tr-sheet-title-zh {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.tr-sheet-title-en {
+  font-size: 11px;
+  color: var(--ink-tertiary);
+  line-height: 1.3;
+}
+.tr-sheet-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.tr-sheet-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px;
+  padding-bottom: env(safe-area-inset-bottom, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+/* ===== Stop Item ===== */
+.tr-stop {
+  display: flex;
+  gap: 10px;
+}
+.tr-stop-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.tr-stop-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.tr-stop-connector {
+  width: 2px;
+  flex: 1;
+  background: var(--brand-primary-tint);
+  min-height: 20px;
+  margin-top: 4px;
+}
+.tr-stop-connector-end {
+  background: transparent;
+  min-height: 0;
+  flex: 0;
+}
+.tr-stop-card {
+  flex: 1;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.tr-stop-photo-wrap {
+  width: 100%;
+  height: 56px;
+  overflow: hidden;
+  background: var(--surface-base);
+}
+.tr-stop-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.tr-stop-body {
+  padding: 10px;
+}
+.tr-stop-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.tr-stop-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-tertiary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.tr-cat-tag {
+  font-size: 10px;
+  background: var(--brand-primary-tint-soft);
+  color: var(--brand-primary);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.tr-cat-en {
+  font-size: 10px;
+  color: var(--ink-tertiary);
+  line-height: 1.3;
+}
+.tr-stop-name-zh {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  line-height: 1.3;
+  text-wrap: balance;
+  word-break: keep-all;
+}
+.tr-stop-name-en {
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--ink-secondary);
+  line-height: 1.3;
+  margin-top: 1px;
+}
+
+/* Tip block */
+.tr-tip {
+  border-left: 2px solid var(--accent-tip);
+  padding: 6px 8px;
+  margin-top: 6px;
+  background: rgba(247, 237, 216, 0.5);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.tr-tip-zh {
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--ink-secondary);
+  font-style: italic;
+  line-height: 1.4;
+}
+.tr-tip-en {
+  font-size: 10px;
+  color: var(--ink-tertiary);
+  line-height: 1.4;
+}
+
+/* Activity badge */
+.tr-activity-badge {
+  background: var(--accent-activity-tint);
+  color: var(--accent-activity);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+.tr-activity-zh {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.tr-activity-en {
+  font-size: 10px;
+  line-height: 1.3;
+  opacity: 0.85;
+}
+
+/* Action buttons */
+.tr-action-text {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  font-family: var(--font-body);
+  text-align: left;
+  margin-top: 2px;
+  border-radius: var(--radius-sm);
+}
+.tr-action-text:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.tr-action-text-zh {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--brand-primary);
+  line-height: 1.2;
+}
+.tr-action-text-en {
+  font-size: 10px;
+  color: var(--ink-tertiary);
+  line-height: 1.2;
+  margin-top: 1px;
+}
+.tr-action-text-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tr-join-btn {
+  width: 100%;
+  min-height: 44px;
+  background: var(--brand-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-family: var(--font-display);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  margin-top: 6px;
+  transition: background-color 150ms cubic-bezier(.2,.8,.2,1), transform 120ms cubic-bezier(.2,.8,.2,1);
+}
+.tr-join-btn:focus-visible {
+  outline: 2px solid var(--brand-primary-dark);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .tr-join-btn:hover {
+    background: var(--brand-primary-dark);
+  }
+}
+.tr-join-btn:active {
+  transform: scale(0.99);
+}
+.tr-join-zh {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.tr-join-en {
+  font-size: 10px;
+  line-height: 1.2;
+  opacity: 0.85;
+  margin-top: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-join-btn { transition: none; }
+  .tr-join-btn:active { transform: none; }
+}
+    </style>
+
+    <div class="route-root">
+      <!-- ===== Top Bar ===== -->
+      <header class="tr-topbar">
+        <button class="tr-back-btn" type="button" aria-label="返回 Back">
+          <div class="tr-back-row">
+            <i data-lucide="chevron-left" style="width: 20px; height: 20px; color: var(--ink-primary);"></i>
+            <span class="tr-back-zh">返回</span>
+          </div>
+          <span class="tr-back-en">Back</span>
+        </button>
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <span class="tr-title-zh">你的路线</span>
+          <span class="tr-title-en">Your Route</span>
+        </div>
+
+        <div class="tr-lang-group">
+          <button class="tr-lang-btn" type="button" aria-label="中文">
+            <span class="tr-lang-pill tr-lang-active">中</span>
+          </button>
+          <button class="tr-lang-btn" type="button" aria-label="English">
+            <span class="tr-lang-pill tr-lang-inactive">EN</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ===== Map Section ===== -->
+      <section class="tr-map">
+        <img src="../assets/community-aerial.jpg" alt="桐梓林社区航拍地图" class="tr-map-img" onerror="this.style.opacity='0'">
+        <div class="tr-map-overlay"></div>
+
+        <svg class="tr-map-svg" viewBox="0 0 390 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Route polyline -->
+          <path d="M 80,80 Q 140,140 195,190 Q 250,240 310,300" class="tr-route-path" />
+
+          <!-- Pulse ring at stop 2 (current location) -->
+          <circle cx="195" cy="190" r="14" class="tr-pulse" />
+
+          <!-- Stop 1 marker -->
+          <circle cx="80" cy="80" r="14" class="tr-stop-marker" />
+          <text x="80" y="80" class="tr-stop-num">1</text>
+
+          <!-- Stop 2 marker -->
+          <circle cx="195" cy="190" r="14" class="tr-stop-marker" />
+          <text x="195" y="190" class="tr-stop-num">2</text>
+
+          <!-- Stop 3 marker -->
+          <circle cx="310" cy="300" r="14" class="tr-stop-marker" />
+          <text x="310" y="300" class="tr-stop-num">3</text>
+        </svg>
+
+        <!-- Map toolbar -->
+        <div class="tr-map-toolbar">
+          <button class="tr-map-tool" type="button" aria-label="放大 Zoom in">
+            <span class="tr-map-tool-circle">
+              <i data-lucide="plus" style="width: 16px; height: 16px; color: var(--ink-primary);"></i>
+            </span>
+          </button>
+          <button class="tr-map-tool" type="button" aria-label="缩小 Zoom out">
+            <span class="tr-map-tool-circle">
+              <i data-lucide="minus" style="width: 16px; height: 16px; color: var(--ink-primary);"></i>
+            </span>
+          </button>
+          <button class="tr-map-tool" type="button" aria-label="定位 Locate">
+            <span class="tr-map-tool-circle">
+              <i data-lucide="locate" style="width: 16px; height: 16px; color: var(--ink-primary);"></i>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===== Route Info Bar ===== -->
+      <div class="tr-info-bar">
+        <div style="display: flex; align-items: baseline; gap: 2px;">
+          <span class="tr-info-stops">3 stops</span>
+          <span class="tr-info-meta"> · 1.5 km · 120 min</span>
+        </div>
+        <i data-lucide="grip-horizontal" style="width: 16px; height: 16px; color: var(--ink-tertiary);"></i>
+      </div>
+
+      <!-- ===== Bottom Sheet ===== -->
+      <section class="tr-sheet">
+        <div class="tr-drag-handle"></div>
+
+        <div class="tr-sheet-title-row">
+          <span class="tr-sheet-title-zh">路线站点</span>
+          <span class="tr-sheet-title-en">Route Stops</span>
+          <span class="tr-sheet-count">3 stops</span>
+        </div>
+
+        <div class="tr-sheet-scroll no-scrollbar">
+
+          <!-- Stop 1 -->
+          <div class="tr-stop">
+            <div class="tr-stop-rail">
+              <div class="tr-stop-num">1</div>
+              <div class="tr-stop-connector"></div>
+            </div>
+            <div class="tr-stop-card">
+              <div class="tr-stop-photo-wrap">
+                <img src="../assets/community-event.jpg" alt="桐梓林社区中心" class="tr-stop-photo" onerror="this.style.opacity='0'">
+              </div>
+              <div class="tr-stop-body">
+                <div class="tr-stop-meta-row">
+                  <span class="tr-stop-time">10:00</span>
+                  <span class="tr-cat-tag">文化</span>
+                  <span class="tr-cat-en">/ Culture</span>
+                </div>
+                <div class="tr-stop-name-zh">桐梓林社区中心</div>
+                <div class="tr-stop-name-en">Tongzilin Community Center</div>
+                <div class="tr-tip">
+                  <i data-lucide="lightbulb" style="width: 12px; height: 12px; color: var(--accent-tip); flex-shrink: 0; margin-top: 1px;"></i>
+                  <span class="tr-tip-zh">每周六上午有社区开放日<span class="tr-tip-en"> / Sat open day</span></span>
+                </div>
+                <button class="tr-action-text" type="button">
+                  <div style="display: flex; flex-direction: column;">
+                    <span class="tr-action-text-zh">了解详情</span>
+                    <span class="tr-action-text-en">Details</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stop 2 -->
+          <div class="tr-stop">
+            <div class="tr-stop-rail">
+              <div class="tr-stop-num">2</div>
+              <div class="tr-stop-connector"></div>
+            </div>
+            <div class="tr-stop-card">
+              <div class="tr-stop-photo-wrap">
+                <img src="../assets/community-cafe.jpg" alt="邻里咖啡馆" class="tr-stop-photo" onerror="this.style.opacity='0'">
+              </div>
+              <div class="tr-stop-body">
+                <div class="tr-stop-meta-row">
+                  <span class="tr-stop-time">10:40</span>
+                  <span class="tr-cat-tag">美食</span>
+                  <span class="tr-cat-en">/ Food</span>
+                </div>
+                <div class="tr-stop-name-zh">邻里咖啡馆</div>
+                <div class="tr-stop-name-en">Neighborhood Cafe</div>
+                <div class="tr-tip">
+                  <i data-lucide="lightbulb" style="width: 12px; height: 12px; color: var(--accent-tip); flex-shrink: 0; margin-top: 1px;"></i>
+                  <span class="tr-tip-zh">尝试点一杯盖碗茶<span class="tr-tip-en"> / Try gaiwan tea</span></span>
+                </div>
+                <button class="tr-action-text" type="button">
+                  <div style="display: flex; flex-direction: column;">
+                    <span class="tr-action-text-zh">导航</span>
+                    <span class="tr-action-text-en">Navigate</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stop 3 -->
+          <div class="tr-stop">
+            <div class="tr-stop-rail">
+              <div class="tr-stop-num">3</div>
+              <div class="tr-stop-connector tr-stop-connector-end"></div>
+            </div>
+            <div class="tr-stop-card">
+              <div class="tr-stop-photo-wrap">
+                <img src="../assets/community-market.jpg" alt="桐梓林农贸市场" class="tr-stop-photo" onerror="this.style.opacity='0'">
+              </div>
+              <div class="tr-stop-body">
+                <div class="tr-stop-meta-row">
+                  <span class="tr-stop-time">11:30</span>
+                  <span class="tr-cat-tag">生活</span>
+                  <span class="tr-cat-en">/ Life</span>
+                </div>
+                <div class="tr-stop-name-zh">桐梓林农贸市场</div>
+                <div class="tr-stop-name-en">Tongzilin Fresh Market</div>
+                <div class="tr-activity-badge">
+                  <i data-lucide="calendar-days" style="width: 12px; height: 12px; color: var(--accent-activity); flex-shrink: 0;"></i>
+                  <span class="tr-activity-zh">活动 · 社区市集开放日</span>
+                  <span class="tr-activity-en">/ Event · Market Open Day</span>
+                </div>
+                <div class="tr-tip">
+                  <i data-lucide="lightbulb" style="width: 12px; height: 12px; color: var(--accent-tip); flex-shrink: 0; margin-top: 1px;"></i>
+                  <span class="tr-tip-zh">带现金，部分摊位仅收现金<span class="tr-tip-en"> / Bring cash</span></span>
+                </div>
+                <button class="tr-join-btn" type="button">
+                  <span class="tr-join-zh">加入活动</span>
+                  <span class="tr-join-en">Join Event</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

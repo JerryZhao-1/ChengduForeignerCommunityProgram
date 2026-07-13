@@ -1,0 +1,107 @@
+{
+  "project": {
+    "name": "桐邻 First 120 Minutes · 精炼设计",
+    "deviceType": "freeSize",
+    "operatingMode": "free-explore",
+    "designRead": "mobile H5 + desktop overview / Chengdu Tongzilin community integration route / editorial handbook style with route completion stamp / medium density / bilingual CN/EN equal weight / warm cream paper with deep teal brand DNA",
+    "designDials": {
+      "layoutVariance": 4,
+      "motionIntensity": 2,
+      "visualDensity": 3
+    },
+    "styleDefinitionBrief": "A refined editorial community exploration handbook for Chengdu Tongzilin: warm cream paper, deep teal brand DNA, Fraunces serif display with Songti SC, terracotta activity accent and amber cultural-tip accent, route completion seal absorbing passport stamp metaphor into editorial language. 5 pages: judge entry, preference builder, two-hour route with map+draggable cards, route completed with stamp seal, desktop overview.",
+    "styleContinuityAnchors": {
+      "colorSystem": "primary #0F766E deep teal; dark #123B3A; cream #F6F0E5 base; terracotta #E66A45 for activities only; amber #D39A3A for cultural tips only; body text #263331",
+      "shapeSystem": "4/8/12px rounded editorial radius; circular stamp seal with dashed inner ring",
+      "typographySystem": "Fraunces variable serif (opsz 9-144) for EN display + Songti SC for CN display; PingFang SC for CN/EN body (matches App.vue); JetBrains Mono for time/IDs only",
+      "spacingSystem": "generous 20-24px page padding; 16-20px card padding; 8-12px component gaps",
+      "componentLanguage": "magazine column hero with route annotations; vertical timeline with place cards; map top half + draggable bottom sheet; editorial completion seal (stamp metaphor refined)",
+      "surfaceAndDepth": "cream paper texture base; cards on paper with shadow <=0.04; floating layers shadow <=0.06; stamp seal with subtle inner shadow for ink effect",
+      "imageryAndIconography": "real community photography only (6 images reused); Lucide line icons; no emoji icons; custom SVG for route annotations and stamp seal",
+      "interactionTone": "bilingual CN/EN at equal visual weight; 44px+ touch targets; 10s value comprehension; 30s to route generation"
+    },
+    "sharedProjectShellContract": {
+      "radiusScale": "4/8/12px editorial; stamp seal uses circular + dashed inner",
+      "typographyStack": "see styleContinuityAnchors.typographySystem",
+      "surfaceDepthModel": "static cards border-led with shadow <=0.04; floating layers shadow <=0.06; stamp seal with inner shadow",
+      "ctaStyle": "primary button bg var(--brand-primary), white text, min-height 44px, radius 8px",
+      "primaryColorSystem": "#0F766E deep teal + #123B3A dark teal"
+    },
+    "generationTree": null
+  },
+  "designSource": {
+    "operatingMode": "free-explore",
+    "libraryIdentity": null,
+    "styleConstraints": {
+      "radiusMax": 12,
+      "staticShadowAlphaMax": 0.06
+    }
+  },
+  "pages": [
+    {
+      "nodeId": "page-01-judge-entry",
+      "title": "评委入口 — 桐邻 First 120 Minutes",
+      "pageIndex": 1,
+      "group": 0,
+      "cssFile": "colors_and_type.css",
+      "pageType": "showcase",
+      "deviceType": "mobile",
+      "canvasSize": { "width": 390, "height": 844 },
+      "visualNorthStar": "A warm editorial handbook cover that immediately communicates product value in 10 seconds: a beautiful community photo with bilingual title, a one-sentence value proposition, language toggle, and a prominent start CTA",
+      "compositionPattern": "asymmetric editorial hero with bilingual title block and sticky CTA",
+      "continuityAnchors": ["deep teal #0F766E", "Fraunces + Songti SC display", "cream #F6F0E5 base"]
+    },
+    {
+      "nodeId": "page-02-preference-builder",
+      "title": "偏好构建 — 桐邻 First 120 Minutes",
+      "pageIndex": 2,
+      "group": 0,
+      "cssFile": "colors_and_type.css",
+      "pageType": "task-driven",
+      "deviceType": "mobile",
+      "canvasSize": { "width": 390, "height": 844 },
+      "visualNorthStar": "An editorial preference form that feels like filling out a guidebook questionnaire — language, interests, time, distance, goal selection with bilingual chip selectors and a generate-route CTA",
+      "compositionPattern": "vertical form sections with editorial section dividers and chip selectors",
+      "continuityAnchors": ["deep teal #0F766E", "Fraunces + Songti SC display", "cream #F6F0E5 base"]
+    },
+    {
+      "nodeId": "page-03-two-hour-route",
+      "title": "两小时路线 — 桐邻 First 120 Minutes",
+      "pageIndex": 3,
+      "group": 0,
+      "cssFile": "colors_and_type.css",
+      "pageType": "task-driven",
+      "deviceType": "mobile",
+      "canvasSize": { "width": 390, "height": 844 },
+      "visualNorthStar": "A split-screen route experience: top half is a community map with numbered stops 1/2/3, bottom half is a draggable bottom sheet with route cards showing place photos, cultural tips, and navigation actions",
+      "compositionPattern": "map top half + draggable bottom sheet with numbered stop cards",
+      "continuityAnchors": ["deep teal #0F766E", "Fraunces + Songti SC display", "cream #F6F0E5 base"]
+    },
+    {
+      "nodeId": "page-04-route-completed",
+      "title": "路线完成 — 桐邻 First 120 Minutes",
+      "pageIndex": 4,
+      "group": 0,
+      "cssFile": "colors_and_type.css",
+      "pageType": "showcase",
+      "deviceType": "mobile",
+      "canvasSize": { "width": 390, "height": 844 },
+      "visualNorthStar": "An editorial completion page featuring a refined route completion seal — a circular stamp with dashed inner ring, serif typography, rotated -8 degrees, on cream paper with decorative dashed route-note frame",
+      "compositionPattern": "centered completion seal with editorial stats summary and share CTA",
+      "continuityAnchors": ["deep teal #0F766E", "Fraunces + Songti SC display", "cream #F6F0E5 base", "stamp seal from Direction B refined"]
+    },
+    {
+      "nodeId": "page-05-desktop-overview",
+      "title": "桌面概览 — 桐邻 First 120 Minutes",
+      "pageIndex": 5,
+      "group": 1,
+      "cssFile": "colors_and_type.css",
+      "pageType": "showcase",
+      "deviceType": "desktop",
+      "canvasSize": { "width": 1440, "height": 900 },
+      "visualNorthStar": "A desktop overview spread: left side explains product value with editorial text and community photos, right side shows the mobile interaction body as device mockups arranged in a flow",
+      "compositionPattern": "split editorial spread: left value proposition column + right mobile mockup gallery",
+      "continuityAnchors": ["deep teal #0F766E", "Fraunces + Songti SC display", "cream #F6F0E5 base"]
+    }
+  ]
+}

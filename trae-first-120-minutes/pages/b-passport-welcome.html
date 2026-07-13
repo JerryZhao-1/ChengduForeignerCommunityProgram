@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B · 首屏 — 国际邻里通行证</title>
+    <style id="theme-vars">
+:root {
+  --brand-primary: #0f766e;
+  --brand-primary-tint: #ccfbf1;
+  --brand-primary-tint-soft: #f0fdfa;
+  --brand-primary-dark: #134e4a;
+  --brand-gradient: linear-gradient(135deg, #0f766e, #155e75);
+
+  --surface-base: #f5f3ee;
+  --surface-paper: #ffffff;
+  --surface-raised: #ffffff;
+
+  --ink-primary: #1c1917;
+  --ink-secondary: #57534e;
+  --ink-tertiary: #a8a29e;
+
+  --border-default: #d6d3d1;
+  --border-soft: #e7e5e4;
+
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-full: 9999px;
+
+  --font-display: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-raised: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  --brand-primary: #2dd4bf;
+  --brand-primary-tint: #134e4a;
+  --brand-primary-tint-soft: #0f3a36;
+  --brand-primary-dark: #0d9488;
+  --brand-gradient: linear-gradient(135deg, #134e4a, #0f766e);
+
+  --surface-base: #1c1917;
+  --surface-paper: #292524;
+  --surface-raised: #2c2826;
+
+  --ink-primary: #fafaf9;
+  --ink-secondary: #a8a29e;
+  --ink-tertiary: #78716c;
+
+  --border-default: #44403c;
+  --border-soft: #292524;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main class="mx-auto relative" style="max-width: 390px; min-height: 100vh; background: var(--surface-base); color: var(--ink-primary); font-family: var(--font-body); overflow-y: auto;">
+      <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+body { background: var(--surface-base); color: var(--ink-primary); font-family: var(--font-body); }
+.tabular { font-variant-numeric: tabular-nums; }
+
+.lang-pill { transition: background 0.15s cubic-bezier(.2,.8,.2,1), color 0.15s cubic-bezier(.2,.8,.2,1), transform 0.1s cubic-bezier(.2,.8,.2,1); cursor: pointer; }
+.lang-pill:active { transform: scale(0.96); }
+.lang-pill:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 1px; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  gap: 4px;
+  transition: border-color 0.15s cubic-bezier(.2,.8,.2,1), background 0.15s cubic-bezier(.2,.8,.2,1), transform 0.1s cubic-bezier(.2,.8,.2,1);
+  cursor: pointer;
+  border: 1px solid var(--border-default);
+  background: var(--surface-paper);
+  color: var(--ink-primary);
+  text-align: center;
+  box-sizing: border-box;
+}
+.chip-selected {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #ffffff;
+}
+.chip:not(.chip-selected):hover { border-color: var(--brand-primary); }
+.chip:active { transform: scale(0.97); }
+.chip:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+
+.ticket-stub {
+  background: var(--surface-paper);
+  border: 1px solid var(--border-default);
+  border-left: 2px dashed var(--brand-primary);
+  border-radius: var(--radius-sm);
+}
+
+.cta-btn { transition: background 0.15s cubic-bezier(.2,.8,.2,1), transform 0.1s cubic-bezier(.2,.8,.2,1); cursor: pointer; }
+.cta-btn:hover { background: var(--brand-primary-dark); }
+.cta-btn:active { transform: scale(0.99); }
+.cta-btn:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
+
+.stamp-slot { transition: background 0.15s; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; }
+}
+@media (pointer: coarse) {
+  .chip:hover, .cta-btn:hover, .lang-pill:hover { transform: none; }
+}
+      </style>
+
+      <!-- ========== Top Bar (sticky, 44px) ========== -->
+      <header class="sticky top-0 z-50 flex items-center justify-between" style="height: 44px; padding: 0 16px; background: var(--surface-paper); border-bottom: 1px solid var(--border-soft);">
+        <!-- Logo: 桐邻 + TONGLIN -->
+        <div class="flex flex-col" style="line-height: 1; gap: 2px;">
+          <span style="font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink-primary);">桐邻</span>
+          <span style="font-family: var(--font-mono); font-size: 9px; color: var(--ink-secondary); letter-spacing: 0.2em; font-weight: 500;">TONGLIN</span>
+        </div>
+        <!-- Right controls -->
+        <div class="flex items-center" style="gap: 8px;">
+          <!-- Language toggle -->
+          <div class="flex items-center" style="border: 1px solid var(--border-default); border-radius: var(--radius-sm); overflow: hidden;">
+            <button type="button" class="lang-pill flex items-center justify-center" style="height: 30px; min-width: 40px; font-size: 11px; background: var(--brand-primary); color: #ffffff; font-weight: 600; border: none;">中文</button>
+            <button type="button" class="lang-pill flex items-center justify-center" style="height: 30px; min-width: 40px; font-size: 11px; background: transparent; color: var(--ink-secondary); border: none;">EN</button>
+          </div>
+          <!-- Judge Access badge -->
+          <div class="flex flex-col items-center justify-center" style="border: 1px solid var(--brand-primary); border-radius: var(--radius-sm); padding: 3px 7px; line-height: 1.15;">
+            <span style="font-family: var(--font-mono); font-size: 8px; color: var(--brand-primary); font-weight: 600; letter-spacing: 0.08em;">评委通道</span>
+            <span style="font-family: var(--font-mono); font-size: 7px; color: var(--brand-primary); letter-spacing: 0.12em;">JUDGE ACCESS</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ========== Passport Card (hero — ~55% screen) ========== -->
+      <section style="padding: 16px;">
+        <div style="background: var(--surface-paper); border: 2px solid var(--border-default); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-card);">
+
+          <!-- Passport header -->
+          <div class="flex items-start justify-between" style="padding: 14px 16px 12px 16px;">
+            <div class="flex flex-col" style="gap: 3px;">
+              <span style="font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--ink-primary); line-height: 1.2;">邻里通行证</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; color: var(--ink-secondary); letter-spacing: 0.15em; font-weight: 500;">NEIGHBORHOOD PASSPORT</span>
+            </div>
+            <div class="flex flex-col items-end" style="gap: 3px;">
+              <span style="font-family: var(--font-mono); font-size: 8px; color: var(--ink-tertiary); letter-spacing: 0.12em; font-weight: 500;">PASSPORT No.</span>
+              <span style="font-family: var(--font-mono); font-size: 13px; color: var(--ink-primary); font-weight: 600;" class="tabular">TL-2026-0711</span>
+            </div>
+          </div>
+
+          <!-- Thin teal divider -->
+          <div style="height: 1px; background: var(--brand-primary); margin: 0 16px;"></div>
+
+          <!-- Photo section (passport photo) -->
+          <div class="relative" style="height: 140px;">
+            <img src="../assets/community-event.jpg" alt="桐梓林社区活动现场，居民聚集交流" class="absolute inset-0 w-full h-full" style="object-fit: cover;" />
+            <!-- Semi-transparent teal gradient overlay -->
+            <div class="absolute inset-x-0 bottom-0" style="height: 90px; background: linear-gradient(to top, rgba(15,118,110,0.88), rgba(15,118,110,0));"></div>
+            <!-- Community label on photo -->
+            <div class="absolute" style="bottom: 12px; left: 16px;">
+              <div style="font-size: 15px; font-weight: 700; color: #ffffff; line-height: 1.2;">桐梓林社区</div>
+              <div style="font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,0.92); letter-spacing: 0.1em; margin-top: 2px;">TONGZILIN COMMUNITY</div>
+            </div>
+          </div>
+
+          <!-- Passport info fields -->
+          <div style="padding: 14px 16px 12px 16px;">
+            <div class="grid grid-cols-2" style="gap: 14px 16px;">
+              <!-- Name -->
+              <div class="flex flex-col" style="gap: 5px;">
+                <span style="font-size: 9px; color: var(--ink-tertiary); letter-spacing: 0.06em; font-weight: 500;">姓名 / Name</span>
+                <div style="border-bottom: 1px solid var(--border-default); height: 16px;"></div>
+              </div>
+              <!-- Nationality -->
+              <div class="flex flex-col" style="gap: 5px;">
+                <span style="font-size: 9px; color: var(--ink-tertiary); letter-spacing: 0.06em; font-weight: 500;">国籍 / Nationality</span>
+                <div style="border-bottom: 1px solid var(--border-default); height: 16px;"></div>
+              </div>
+              <!-- Issue Date -->
+              <div class="flex flex-col" style="gap: 5px;">
+                <span style="font-size: 9px; color: var(--ink-tertiary); letter-spacing: 0.06em; font-weight: 500;">签发日 / Issue Date</span>
+                <span style="font-family: var(--font-mono); font-size: 13px; color: var(--ink-primary); font-weight: 500;" class="tabular">2026.07.11</span>
+              </div>
+              <!-- Valid -->
+              <div class="flex flex-col" style="gap: 5px;">
+                <span style="font-size: 9px; color: var(--ink-tertiary); letter-spacing: 0.06em; font-weight: 500;">有效期 / Valid</span>
+                <span style="font-family: var(--font-mono); font-size: 13px; color: var(--brand-primary); font-weight: 600;" class="tabular">120 min</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider before stamp slots -->
+          <div style="height: 1px; background: var(--border-soft); margin: 0 16px;"></div>
+
+          <!-- Stamp slots row -->
+          <div style="padding: 14px 16px 16px 16px;">
+            <div class="flex items-center" style="gap: 6px; margin-bottom: 12px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-primary);" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <circle cx="9" cy="14" r="2"/>
+                <path d="M11 14h6"/>
+              </svg>
+              <span style="font-size: 11px; color: var(--ink-secondary); font-weight: 600;">印章收集</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; color: var(--ink-tertiary); letter-spacing: 0.12em; font-weight: 500;">STAMP COLLECTION</span>
+              <span style="margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--brand-primary); font-weight: 600;" class="tabular">1 / 4</span>
+            </div>
+
+            <div class="grid grid-cols-4" style="gap: 8px;">
+              <!-- Stamp 1: collected (社区) -->
+              <div class="flex flex-col items-center" style="gap: 6px;">
+                <div class="stamp-slot flex items-center justify-center" style="width: 40px; height: 40px; border: 2px solid var(--brand-primary); border-radius: 50%; background: rgba(204,251,241,0.45);">
+                  <svg width="34" height="34" viewBox="0 0 40 40" fill="none" style="transform: rotate(-9deg);" aria-hidden="true">
+                    <circle cx="20" cy="20" r="16" stroke="#0f766e" stroke-width="1.1" opacity="0.6" fill="none"/>
+                    <circle cx="20" cy="20" r="13" stroke="#0f766e" stroke-width="0.5" opacity="0.38" fill="none"/>
+                    <text x="20" y="18.5" text-anchor="middle" font-family="Noto Sans SC, sans-serif" font-size="6" font-weight="700" fill="#0f766e" opacity="0.72" letter-spacing="0.4">桐梓林</text>
+                    <line x1="10" y1="20.5" x2="30" y2="20.5" stroke="#0f766e" stroke-width="0.4" opacity="0.4"/>
+                    <text x="20" y="25" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="4.2" fill="#0f766e" opacity="0.6" letter-spacing="0.2">2026.07.11</text>
+                  </svg>
+                </div>
+                <div class="flex flex-col items-center" style="gap: 1px;">
+                  <span style="font-size: 10px; color: var(--ink-primary); font-weight: 600; line-height: 1.1;">社区</span>
+                  <span style="font-family: var(--font-mono); font-size: 8px; color: var(--ink-tertiary); letter-spacing: 0.04em;">Community</span>
+                </div>
+              </div>
+
+              <!-- Stamp 2: empty (活动) -->
+              <div class="flex flex-col items-center" style="gap: 6px;">
+                <div class="stamp-slot flex items-center justify-center" style="width: 40px; height: 40px; border: 2px solid var(--brand-primary); border-radius: 50%; background: var(--surface-base); opacity: 0.6;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-tertiary);" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div class="flex flex-col items-center" style="gap: 1px;">
+                  <span style="font-size: 10px; color: var(--ink-secondary); line-height: 1.1;">活动</span>
+                  <span style="font-family: var(--font-mono); font-size: 8px; color: var(--ink-tertiary); letter-spacing: 0.04em;">Event</span>
+                </div>
+              </div>
+
+              <!-- Stamp 3: empty (地点) -->
+              <div class="flex flex-col items-center" style="gap: 6px;">
+                <div class="stamp-slot flex items-center justify-center" style="width: 40px; height: 40px; border: 2px solid var(--brand-primary); border-radius: 50%; background: var(--surface-base); opacity: 0.6;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-tertiary);" aria-hidden="true">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                </div>
+                <div class="flex flex-col items-center" style="gap: 1px;">
+                  <span style="font-size: 10px; color: var(--ink-secondary); line-height: 1.1;">地点</span>
+                  <span style="font-family: var(--font-mono); font-size: 8px; color: var(--ink-tertiary); letter-spacing: 0.04em;">Place</span>
+                </div>
+              </div>
+
+              <!-- Stamp 4: empty (邻里) -->
+              <div class="flex flex-col items-center" style="gap: 6px;">
+                <div class="stamp-slot flex items-center justify-center" style="width: 40px; height: 40px; border: 2px solid var(--brand-primary); border-radius: 50%; background: var(--surface-base); opacity: 0.6;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-tertiary);" aria-hidden="true">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+                <div class="flex flex-col items-center" style="gap: 1px;">
+                  <span style="font-size: 10px; color: var(--ink-secondary); line-height: 1.1;">邻里</span>
+                  <span style="font-family: var(--font-mono); font-size: 8px; color: var(--ink-tertiary); letter-spacing: 0.04em;">Neighbors</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Intro line under passport -->
+        <div style="margin-top: 14px; padding: 0 4px;">
+          <p style="font-size: 12px; color: var(--ink-secondary); line-height: 1.6; margin: 0;">携带这本邻里通行证，在 120 分钟内走访社区、参与活动、结识邻里，收集每一枚印章。</p>
+          <p style="font-size: 11px; color: var(--ink-tertiary); line-height: 1.6; margin: 3px 0 0 0;">Carry this passport to explore the community, join events and meet neighbors within 120 minutes — collect every stamp.</p>
+        </div>
+      </section>
+
+      <!-- ========== Preference Selection (ticket-stub style) ========== -->
+      <section style="padding: 8px 16px 24px 16px;">
+        <!-- Section title -->
+        <div class="flex flex-col" style="line-height: 1.2; margin-bottom: 14px; gap: 3px;">
+          <span style="font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink-primary);">行程偏好</span>
+          <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-secondary); letter-spacing: 0.15em; font-weight: 500;">JOURNEY PREFERENCES</span>
+        </div>
+
+        <!-- Ticket 1: Interests -->
+        <div class="ticket-stub" style="margin-bottom: 12px; padding: 12px 14px;">
+          <div class="flex items-center" style="gap: 6px; margin-bottom: 10px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-primary);" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+            </svg>
+            <span style="font-size: 13px; font-weight: 600; color: var(--ink-primary);">兴趣</span>
+            <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); letter-spacing: 0.1em;">INTERESTS</span>
+          </div>
+          <div class="flex flex-wrap" style="gap: 6px;">
+            <button type="button" class="chip chip-selected" style="flex-direction: column; gap: 1px;">
+              <span style="font-size: 12px; font-weight: 600;">美食</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; opacity: 0.9;">Food</span>
+            </button>
+            <button type="button" class="chip chip-selected" style="flex-direction: column; gap: 1px;">
+              <span style="font-size: 12px; font-weight: 600;">文化</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; opacity: 0.9;">Culture</span>
+            </button>
+            <button type="button" class="chip" style="flex-direction: column; gap: 1px;">
+              <span style="font-size: 12px;">户外</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; opacity: 0.7;">Outdoor</span>
+            </button>
+            <button type="button" class="chip" style="flex-direction: column; gap: 1px;">
+              <span style="font-size: 12px;">社交</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; opacity: 0.7;">Social</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Ticket 2: Duration -->
+        <div class="ticket-stub" style="margin-bottom: 12px; padding: 12px 14px;">
+          <div class="flex items-center" style="gap: 6px; margin-bottom: 10px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-primary);" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span style="font-size: 13px; font-weight: 600; color: var(--ink-primary);">时间</span>
+            <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); letter-spacing: 0.1em;">DURATION</span>
+          </div>
+          <div class="flex" style="gap: 6px;">
+            <button type="button" class="chip" style="flex: 1;">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 500;" class="tabular">1h</span>
+            </button>
+            <button type="button" class="chip chip-selected" style="flex: 1;">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600;" class="tabular">2h</span>
+            </button>
+            <button type="button" class="chip" style="flex: 1;">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 500;" class="tabular">3h</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Ticket 3: Distance -->
+        <div class="ticket-stub" style="margin-bottom: 12px; padding: 12px 14px;">
+          <div class="flex items-center" style="gap: 6px; margin-bottom: 10px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-primary);" aria-hidden="true">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <span style="font-size: 13px; font-weight: 600; color: var(--ink-primary);">距离</span>
+            <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); letter-spacing: 0.1em;">DISTANCE</span>
+          </div>
+          <div class="flex" style="gap: 6px;">
+            <button type="button" class="chip" style="flex: 1;">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 500;" class="tabular">500m</span>
+            </button>
+            <button type="button" class="chip chip-selected" style="flex: 1;">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600;" class="tabular">1km</span>
+            </button>
+            <button type="button" class="chip" style="flex: 1;">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 500;" class="tabular">2km</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Ticket 4: Goal -->
+        <div class="ticket-stub" style="padding: 12px 14px;">
+          <div class="flex items-center" style="gap: 6px; margin-bottom: 10px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-primary);" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="6"/>
+              <circle cx="12" cy="12" r="2"/>
+            </svg>
+            <span style="font-size: 13px; font-weight: 600; color: var(--ink-primary);">目标</span>
+            <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); letter-spacing: 0.1em;">GOAL</span>
+          </div>
+          <div class="flex flex-col" style="gap: 6px;">
+            <button type="button" class="chip chip-selected" style="width: 100%; justify-content: flex-start; padding-left: 12px; gap: 8px;">
+              <span style="font-size: 12px; font-weight: 600;">认识社区</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.9;">Meet the area</span>
+            </button>
+            <button type="button" class="chip" style="width: 100%; justify-content: flex-start; padding-left: 12px; gap: 8px;">
+              <span style="font-size: 12px;">参与活动</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.7;">Join events</span>
+            </button>
+            <button type="button" class="chip" style="width: 100%; justify-content: flex-start; padding-left: 12px; gap: 8px;">
+              <span style="font-size: 12px;">结交邻里</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.7;">Meet neighbors</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== CTA Button (bottom of scroll content) ========== -->
+      <section style="padding: 8px 16px 32px 16px; padding-bottom: max(32px, env(safe-area-inset-bottom));">
+        <button type="button" class="cta-btn w-full flex items-center justify-center" style="height: 52px; background: var(--brand-primary); color: #ffffff; border-radius: var(--radius-sm); font-family: var(--font-display); border: none; gap: 8px;">
+          <div class="flex flex-col items-center" style="line-height: 1.25;">
+            <span style="font-size: 15px; font-weight: 700;">开启融入旅程</span>
+            <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.9; letter-spacing: 0.05em;">Begin Integration Journey</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+        <!-- Mono helper text below CTA -->
+        <div class="flex items-center justify-center" style="gap: 5px; margin-top: 12px;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-primary);" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+          <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-secondary); letter-spacing: 0.02em;">生成你的专属通行路线</span>
+          <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary);">/</span>
+          <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); letter-spacing: 0.02em;">Generate personalized route</span>
+        </div>
+      </section>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

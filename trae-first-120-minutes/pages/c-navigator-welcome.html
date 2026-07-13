@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C · 首屏 — 城市生活导航仪</title>
+    <style id="theme-vars">
+:root {
+  --brand-primary: #0f766e;
+  --brand-primary-tint: #d1faf4;
+  --brand-primary-tint-soft: #f0fdfa;
+  --brand-primary-dark: #134e4a;
+  --brand-gradient: linear-gradient(135deg, #0f766e, #155e75);
+
+  --surface-base: #f0f4f3;
+  --surface-paper: #ffffff;
+  --surface-raised: #ffffff;
+
+  --ink-primary: #0c1820;
+  --ink-secondary: #64748b;
+  --ink-tertiary: #94a3b8;
+
+  --border-default: #cbd5e1;
+  --border-soft: #e2e8f0;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  --font-display: "Inter", "Noto Sans SC", "PingFang SC", sans-serif;
+  --font-body: "Inter", "Noto Sans SC", "PingFang SC", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-raised: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  --brand-primary: #2dd4bf;
+  --brand-primary-tint: #134e4a;
+  --brand-primary-tint-soft: #0f3a36;
+  --brand-primary-dark: #0d9488;
+  --brand-gradient: linear-gradient(135deg, #134e4a, #0f766e);
+
+  --surface-base: #0c1820;
+  --surface-paper: #16242e;
+  --surface-raised: #1a2b36;
+
+  --ink-primary: #f0f4f3;
+  --ink-secondary: #94a3b8;
+  --ink-tertiary: #64748b;
+
+  --border-default: #334155;
+  --border-soft: #1e293b;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main class="relative mx-auto w-full max-w-[390px] overflow-hidden bg-[var(--surface-base)]" style="min-height: 844px; font-family: var(--font-body);">
+
+      <!-- ===== Map Area (full-bleed background, map-dominant ≥ 55%) ===== -->
+      <section class="absolute inset-0" aria-label="桐梓林社区航拍地图">
+        <img src="../assets/community-aerial.jpg" alt="桐梓林社区航拍地图" class="absolute inset-0 h-full w-full object-cover" />
+        <!-- brand tint + bottom depth fade for sheet transition -->
+        <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(15,118,110,0.10) 0%, rgba(12,24,32,0.06) 52%, rgba(12,24,32,0.46) 100%);"></div>
+
+        <!-- overlay zone: visible map area above the bottom sheet -->
+        <div class="absolute inset-x-0 top-0" style="height: 460px;">
+          <!-- route preview: dashed teal polyline + 5 stop dots -->
+          <svg class="absolute left-0 top-0 h-full w-full" viewBox="0 0 390 460" fill="none" preserveAspectRatio="none" aria-hidden="true">
+            <path class="route-dash" d="M 58 96 C 120 150, 150 190, 195 240 C 240 292, 280 330, 332 392" stroke="var(--brand-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 8" fill="none"/>
+            <g fill="var(--brand-primary)">
+              <circle cx="58" cy="96" r="6"/>
+              <circle cx="128" cy="148" r="6"/>
+              <circle cx="195" cy="240" r="6"/>
+              <circle cx="268" cy="296" r="6"/>
+              <circle cx="332" cy="392" r="6"/>
+            </g>
+            <g fill="#ffffff">
+              <circle cx="58" cy="96" r="2.6"/>
+              <circle cx="128" cy="148" r="2.6"/>
+              <circle cx="195" cy="240" r="2.6"/>
+              <circle cx="268" cy="296" r="2.6"/>
+              <circle cx="332" cy="392" r="2.6"/>
+            </g>
+          </svg>
+
+          <!-- current location pin (center) with live pulse -->
+          <div class="absolute" style="left: 195px; top: 240px; transform: translate(-50%, -100%); width: 32px; height: 40px;">
+            <span class="pulse-ring absolute left-1/2 top-4 block h-3 w-3 -translate-x-1/2 rounded-full" style="background: var(--brand-primary);"></span>
+            <svg class="relative" width="32" height="40" viewBox="0 0 32 40" fill="none" aria-label="当前位置 / Current location">
+              <path d="M16 0C7.16 0 0 7.16 0 16c0 11 16 24 16 24s16-13 16-24C32 7.16 24.84 0 16 0z" fill="var(--brand-primary)"/>
+              <circle cx="16" cy="16" r="6" fill="#ffffff"/>
+              <circle cx="16" cy="16" r="3" fill="var(--brand-primary)"/>
+            </svg>
+          </div>
+
+          <!-- top-left floating card: location label + live stops count -->
+          <div class="absolute left-3 top-3 flex items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--surface-paper)] px-2.5 py-2" style="box-shadow: var(--shadow-card);">
+            <span class="relative block h-2 w-2 rounded-full" style="background: var(--brand-primary);">
+              <span class="pulse-ring absolute inset-0 block rounded-full" style="background: var(--brand-primary);"></span>
+            </span>
+            <div class="flex flex-col leading-tight">
+              <span class="text-[13px] font-semibold text-[var(--ink-primary)]">桐梓林 · Tongzilin</span>
+              <span class="font-mono text-[10px] text-[var(--ink-secondary)]">5 stops nearby · 5 个站点</span>
+            </div>
+          </div>
+
+          <!-- top-right language toggle (segmented) -->
+          <div class="absolute right-3 top-3 flex h-[44px] items-stretch overflow-hidden rounded-[var(--radius-sm)] bg-[var(--surface-paper)]" style="box-shadow: var(--shadow-card);" role="group" aria-label="语言切换 / Language">
+            <button type="button" data-dom-id="lang-zh" aria-pressed="true" class="flex w-[40px] items-center justify-center text-[13px] font-semibold text-white whitespace-nowrap" style="background: var(--brand-primary);">中</button>
+            <button type="button" data-dom-id="lang-en" aria-pressed="false" class="flex w-[40px] items-center justify-center text-[13px] font-medium text-[var(--ink-secondary)] whitespace-nowrap">EN</button>
+          </div>
+
+          <!-- bottom-left guest mode badge (bottom of visible map zone, above sheet) -->
+          <div class="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 py-1.5" style="background: var(--brand-primary-tint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-primary-dark);"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 4.5-6 7-6s5.5 2 7 6"/></svg>
+            <span class="text-[11px] font-medium whitespace-nowrap" style="color: var(--brand-primary-dark);">游客模式 · Guest</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Bottom Sheet (primary interaction surface, floating over map) ===== -->
+      <section class="absolute inset-x-0 bottom-0 rounded-t-[var(--radius-lg)] bg-[var(--surface-paper)]" style="box-shadow: var(--shadow-raised);">
+        <!-- drag handle -->
+        <div class="flex justify-center pt-2.5 pb-1">
+          <span class="block h-1 w-9 rounded-full" style="background: var(--border-default);"></span>
+        </div>
+
+        <div class="px-4 pb-4">
+          <!-- title block -->
+          <div class="flex flex-col">
+            <h1 class="text-[22px] font-bold leading-[1.15] text-[var(--ink-primary)]" style="text-wrap: balance; word-break: keep-all;">桐邻 First 120 Minutes</h1>
+            <p class="mt-0.5 text-[12px] font-semibold leading-tight" style="color: var(--brand-primary);">AI Community Integration Route</p>
+            <p class="mt-1.5 text-[11px] leading-snug text-[var(--ink-secondary)]">
+              <span class="block">选择偏好，生成你的两小时社区融入路线</span>
+              <span class="block">Choose preferences, get your 2-hour route</span>
+            </p>
+          </div>
+
+          <!-- preference row: interests -->
+          <div class="mt-3 flex items-stretch gap-2">
+            <div class="flex w-[64px] shrink-0 flex-col justify-center gap-0.5" style="color: var(--ink-secondary);">
+              <span class="flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap" style="color: var(--ink-primary);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M16 8l-2.5 5.5L8 16l2.5-5.5L16 8z"/></svg>兴趣
+              </span>
+              <span class="text-[10px] whitespace-nowrap">Interests</span>
+            </div>
+            <div class="flex flex-1 gap-2 overflow-x-auto no-scrollbar">
+              <button type="button" data-dom-id="chip-interest-food" aria-pressed="true" class="inline-flex min-h-[44px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap text-white" style="background: var(--brand-primary); border-color: var(--brand-primary);">
+                <span class="text-[12px] font-semibold leading-none">美食</span>
+                <span class="text-[10px] leading-none opacity-80">Food</span>
+              </button>
+              <button type="button" data-dom-id="chip-interest-culture" aria-pressed="false" class="inline-flex min-h-[44px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap" style="border-color: var(--border-default);">
+                <span class="text-[12px] font-semibold leading-none text-[var(--ink-primary)]">文化</span>
+                <span class="text-[10px] leading-none text-[var(--ink-secondary)]">Culture</span>
+              </button>
+              <button type="button" data-dom-id="chip-interest-outdoor" aria-pressed="false" class="inline-flex min-h-[44px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap" style="border-color: var(--border-default);">
+                <span class="text-[12px] font-semibold leading-none text-[var(--ink-primary)]">户外</span>
+                <span class="text-[10px] leading-none text-[var(--ink-secondary)]">Outdoor</span>
+              </button>
+              <button type="button" data-dom-id="chip-interest-social" aria-pressed="false" class="inline-flex min-h-[44px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap" style="border-color: var(--border-default);">
+                <span class="text-[12px] font-semibold leading-none text-[var(--ink-primary)]">社交</span>
+                <span class="text-[10px] leading-none text-[var(--ink-secondary)]">Social</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- preference row: range (time + distance combined) -->
+          <div class="mt-2 flex items-stretch gap-2">
+            <div class="flex w-[64px] shrink-0 flex-col justify-center gap-0.5" style="color: var(--ink-secondary);">
+              <span class="flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap" style="color: var(--ink-primary);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>范围
+              </span>
+              <span class="text-[10px] whitespace-nowrap">Time · Dist</span>
+            </div>
+            <div class="flex flex-1 items-stretch gap-2 overflow-x-auto no-scrollbar">
+              <button type="button" data-dom-id="chip-time-1h" aria-pressed="false" class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap" style="border-color: var(--border-default);"><span class="font-mono text-[13px] font-semibold leading-none text-[var(--ink-primary)]">1h</span></button>
+              <button type="button" data-dom-id="chip-time-2h" aria-pressed="true" class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap text-white" style="background: var(--brand-primary); border-color: var(--brand-primary);"><span class="font-mono text-[13px] font-semibold leading-none">2h</span></button>
+              <button type="button" data-dom-id="chip-time-3h" aria-pressed="false" class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap" style="border-color: var(--border-default);"><span class="font-mono text-[13px] font-semibold leading-none text-[var(--ink-primary)]">3h</span></button>
+              <span class="my-auto h-5 w-px shrink-0" style="background: var(--border-default);"></span>
+              <button type="button" data-dom-id="chip-dist-500m" aria-pressed="false" class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap" style="border-color: var(--border-default);"><span class="font-mono text-[13px] font-semibold leading-none text-[var(--ink-primary)]">500m</span></button>
+              <button type="button" data-dom-id="chip-dist-1km" aria-pressed="true" class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap text-white" style="background: var(--brand-primary); border-color: var(--brand-primary);"><span class="font-mono text-[13px] font-semibold leading-none">1km</span></button>
+              <button type="button" data-dom-id="chip-dist-2km" aria-pressed="false" class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap" style="border-color: var(--border-default);"><span class="font-mono text-[13px] font-semibold leading-none text-[var(--ink-primary)]">2km</span></button>
+            </div>
+          </div>
+
+          <!-- preference row: goal -->
+          <div class="mt-2 flex items-stretch gap-2">
+            <div class="flex w-[64px] shrink-0 flex-col justify-center gap-0.5" style="color: var(--ink-secondary);">
+              <span class="flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap" style="color: var(--ink-primary);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>目标
+              </span>
+              <span class="text-[10px] whitespace-nowrap">Goal</span>
+            </div>
+            <div class="flex flex-1 gap-2 overflow-x-auto no-scrollbar">
+              <button type="button" data-dom-id="chip-goal-know" aria-pressed="true" class="inline-flex min-h-[44px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap text-white" style="background: var(--brand-primary); border-color: var(--brand-primary);">
+                <span class="text-[12px] font-semibold leading-none">认识社区</span>
+                <span class="text-[10px] leading-none opacity-80">Get to know</span>
+              </button>
+              <button type="button" data-dom-id="chip-goal-join" aria-pressed="false" class="inline-flex min-h-[44px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap" style="border-color: var(--border-default);">
+                <span class="text-[12px] font-semibold leading-none text-[var(--ink-primary)]">参与活动</span>
+                <span class="text-[10px] leading-none text-[var(--ink-secondary)]">Join events</span>
+              </button>
+              <button type="button" data-dom-id="chip-goal-meet" aria-pressed="false" class="inline-flex min-h-[44px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border px-3 text-center whitespace-nowrap" style="border-color: var(--border-default);">
+                <span class="text-[12px] font-semibold leading-none text-[var(--ink-primary)]">结交邻里</span>
+                <span class="text-[10px] leading-none text-[var(--ink-secondary)]">Meet neighbors</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <button type="button" data-dom-id="cta-generate-route" class="group mt-3 flex h-[52px] w-full items-center justify-center gap-2 rounded-[var(--radius-md)] text-white whitespace-nowrap transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:translate-y-0" style="background: var(--brand-primary); --tw-ring-color: var(--brand-primary); --tw-ring-offset-color: var(--surface-paper);">
+            <span class="text-[15px] font-bold">生成路线</span>
+            <span class="text-[13px] font-medium opacity-80">· Generate Route</span>
+            <svg class="transition-transform duration-150 group-hover:translate-x-0.5" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <p class="mt-1.5 text-center font-mono text-[11px] text-[var(--ink-secondary)]">5 个推荐地点 · 5 recommended places</p>
+        </div>
+      </section>
+    </main>
+    <style>
+      @keyframes navPulse {
+        0% { transform: scale(0.6); opacity: 0.7; }
+        70% { transform: scale(2.4); opacity: 0; }
+        100% { transform: scale(2.4); opacity: 0; }
+      }
+      @keyframes routeFlow {
+        to { stroke-dashoffset: -30; }
+      }
+      .pulse-ring { transform-origin: center; animation: navPulse 2.4s cubic-bezier(.2,.8,.2,1) infinite; }
+      .route-dash { animation: routeFlow 1.4s linear infinite; }
+      @media (prefers-reduced-motion: reduce) {
+        .pulse-ring { animation: none; }
+        .route-dash { animation: none; }
+      }
+      @media (hover: none) {
+        .group:hover .group-hover\:translate-x-0\.5 { transform: none; }
+      }
+    </style>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

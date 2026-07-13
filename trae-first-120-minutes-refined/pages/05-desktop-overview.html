@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桌面概览 — 桐邻 First 120 Minutes</title>
+    <style id="theme-vars">
+:root {
+  /* ===== 品牌色 ===== */
+  --brand-primary: #0F766E;
+  --brand-primary-dark: #123B3A;
+  --brand-primary-tint: #B3DFDB;
+  --brand-primary-tint-soft: #E8F4F2;
+
+  /* ===== 背景色 ===== */
+  --surface-base: #F6F0E5;
+  --surface-paper: #FBF8F1;
+  --surface-raised: #FFFFFF;
+
+  /* ===== 文字色 ===== */
+  --ink-primary: #263331;
+  --ink-secondary: #5C6B68;
+  --ink-tertiary: #8FA09D;
+
+  /* ===== 功能强调色（严格限定用途） ===== */
+  --accent-activity: #E66A45;
+  --accent-activity-tint: #FCE8E0;
+  --accent-tip: #D39A3A;
+  --accent-tip-tint: #F7EDD8;
+
+  /* ===== 边框 ===== */
+  --border-default: #E5DDD0;
+  --border-soft: #F0EBE0;
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* ===== 字体 ===== */
+  --font-display: "Fraunces", "Songti SC", "STSong", "SimSun", serif;
+  --font-body: "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  /* ===== 阴影 ===== */
+  --shadow-card: 0 1px 3px rgba(18, 59, 58, 0.04);
+  --shadow-raised: 0 4px 16px rgba(18, 59, 58, 0.06);
+  --shadow-stamp: 0 2px 8px rgba(18, 59, 58, 0.08);
+}
+
+.dark {
+  --brand-primary: #2DD4BF;
+  --brand-primary-dark: #0F766E;
+  --brand-primary-tint: #123B3A;
+  --brand-primary-tint-soft: #0A2A29;
+
+  --surface-base: #0A1F1E;
+  --surface-paper: #123B3A;
+  --surface-raised: #1A4A48;
+
+  --ink-primary: #F6F0E5;
+  --ink-secondary: #B3C9C5;
+  --ink-tertiary: #7A928E;
+
+  --accent-activity: #FF8866;
+  --accent-activity-tint: #3A1E16;
+  --accent-tip: #E8B554;
+  --accent-tip-tint: #3A2E14;
+
+  --border-default: #1A4A48;
+  --border-soft: #123B3A;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
+
+.page-shell, .page-shell * { box-sizing: border-box; }
+
+.device {
+  width: 220px;
+  height: 280px;
+  border: 6px solid var(--ink-primary);
+  border-radius: 24px;
+  box-shadow: var(--shadow-raised);
+  overflow: hidden;
+  background: var(--surface-raised);
+  position: relative;
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms cubic-bezier(.2,.8,.2,1);
+}
+.device:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(18,59,58,0.12);
+}
+.device-notch {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--ink-primary);
+  border-radius: var(--radius-full);
+  z-index: 10;
+}
+.mockup-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.mockup-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-secondary);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.thumb {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  transition: transform 200ms cubic-bezier(.2,.8,.2,1);
+}
+.thumb:hover { transform: translateY(-2px); }
+.value-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.value-row:last-child { border-bottom: none; }
+.map-grid {
+  background-color: var(--brand-primary-tint-soft);
+  background-image:
+    linear-gradient(var(--brand-primary-tint) 1px, transparent 1px),
+    linear-gradient(90deg, var(--brand-primary-tint) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.chip-on {
+  background: var(--brand-primary);
+  color: #FFFFFF;
+  padding: 7px 6px;
+  border-radius: 6px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+}
+.chip-off {
+  background: var(--surface-base);
+  color: var(--ink-secondary);
+  border: 1px solid var(--border-default);
+  padding: 7px 6px;
+  border-radius: 6px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 10px;
+}
+.cta-bar {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  background: var(--brand-primary);
+  color: #FFFFFF;
+  padding: 8px 0;
+  border-radius: 6px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.lucide { stroke-width: 1.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .device, .thumb { transition: none; }
+  .device:hover { transform: none; box-shadow: var(--shadow-raised); }
+  .thumb:hover { transform: none; }
+}
+    </style>
+    <div class="page-shell" style="width:1440px; height:900px; display:flex; flex-direction:column; background:var(--surface-base); margin:0 auto; overflow:hidden; font-family:var(--font-body); color:var(--ink-primary);">
+
+      <!-- ===== Top Bar 64px ===== -->
+      <header style="height:64px; flex-shrink:0; display:flex; align-items:center; background:var(--surface-base); border-bottom:1px solid var(--border-default);">
+        <div style="flex:1; display:flex; align-items:baseline; padding-left:48px;">
+          <span style="font-family:var(--font-display); font-size:18px; font-weight:600; color:var(--brand-primary); letter-spacing:-0.01em;">桐邻</span>
+          <span style="font-family:var(--font-mono); font-size:10px; color:var(--ink-tertiary); letter-spacing:0.15em; margin-left:10px;">TONGLIN</span>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;">
+          <span style="font-family:var(--font-display); font-size:16px; color:var(--ink-secondary); font-weight:500; letter-spacing:-0.005em;">First 120 Minutes · 社区融入路线设计</span>
+          <span style="font-family:var(--font-display); font-size:12px; color:var(--ink-tertiary);">Community Integration Route Design</span>
+        </div>
+        <div style="flex:1; display:flex; align-items:center; justify-content:flex-end; gap:14px; padding-right:48px;">
+          <span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-secondary); letter-spacing:0.05em;">中 / EN</span>
+          <span style="font-family:var(--font-mono); font-size:11px; color:var(--brand-primary); background:var(--brand-primary-tint-soft); padding:4px 10px; border-radius:4px; letter-spacing:0.02em; font-weight:500;">评委模式 / Judge Mode</span>
+        </div>
+      </header>
+
+      <!-- ===== Main Body ===== -->
+      <div style="flex:1; display:flex; overflow:hidden;">
+
+        <!-- ===== Left Column 560px ===== -->
+        <section style="width:560px; flex-shrink:0; padding:48px 48px; background:var(--surface-base); display:flex; flex-direction:column;">
+          <span style="font-family:var(--font-mono); font-size:11px; color:var(--brand-primary); letter-spacing:0.15em; font-weight:500;">PROJECT / 项目</span>
+          <h1 style="font-family:var(--font-display); font-size:40px; font-weight:600; color:var(--ink-primary); line-height:1.15; margin:12px 0 0 0; letter-spacing:-0.02em; text-wrap:balance;">桐邻 First 120 Minutes</h1>
+          <h2 style="font-family:var(--font-display); font-size:22px; font-weight:500; color:var(--brand-primary); margin:8px 0 0 0; line-height:1.3; letter-spacing:-0.01em; text-wrap:balance;">Your Two-Hour Community Integration Route</h2>
+
+          <!-- Dashed divider with endpoint dots -->
+          <div style="margin:24px 0; display:flex; align-items:center; gap:8px;">
+            <span style="width:4px; height:4px; border-radius:50%; background:var(--brand-primary-tint); flex-shrink:0;"></span>
+            <span style="flex:1; border-top:1px dashed var(--brand-primary-tint); height:0;"></span>
+            <span style="width:4px; height:4px; border-radius:50%; background:var(--brand-primary-tint); flex-shrink:0;"></span>
+          </div>
+
+          <p style="font-family:var(--font-body); font-size:14px; color:var(--ink-secondary); line-height:1.7; margin:0;">为刚到成都桐梓林的中外居民，生成一条包含社区地点、活动、文化提示和社交行动的两小时融入路线。</p>
+          <p style="font-family:var(--font-display); font-size:13px; color:var(--ink-tertiary); line-height:1.7; margin:6px 0 0 0;">A two-hour integration route for new Chinese and international residents of Chengdu Tongzilin &mdash; places, events, cultural tips, and social actions.</p>
+
+          <!-- 4 value points -->
+          <div style="margin-top:28px; display:flex; flex-direction:column;">
+            <div class="value-row">
+              <i data-lucide="route" style="width:20px; height:20px; color:var(--brand-primary); flex-shrink:0;"></i>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-family:var(--font-body); font-size:15px; font-weight:600; color:var(--ink-primary);">个性化路线</span>
+                <span style="font-family:var(--font-display); font-size:13px; color:var(--ink-tertiary);">Personalized Route</span>
+              </div>
+            </div>
+            <div class="value-row">
+              <i data-lucide="map-pin" style="width:20px; height:20px; color:var(--brand-primary); flex-shrink:0;"></i>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-family:var(--font-body); font-size:15px; font-weight:600; color:var(--ink-primary);">真实社区地点</span>
+                <span style="font-family:var(--font-display); font-size:13px; color:var(--ink-tertiary);">Real Community Places</span>
+              </div>
+            </div>
+            <div class="value-row">
+              <i data-lucide="languages" style="width:20px; height:20px; color:var(--brand-primary); flex-shrink:0;"></i>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-family:var(--font-body); font-size:15px; font-weight:600; color:var(--ink-primary);">双语全程支持</span>
+                <span style="font-family:var(--font-display); font-size:13px; color:var(--ink-tertiary);">Bilingual Support</span>
+              </div>
+            </div>
+            <div class="value-row">
+              <i data-lucide="clock" style="width:20px; height:20px; color:var(--brand-primary); flex-shrink:0;"></i>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-family:var(--font-body); font-size:15px; font-weight:600; color:var(--ink-primary);">120 分钟闭环</span>
+                <span style="font-family:var(--font-display); font-size:13px; color:var(--ink-tertiary);">120-Minute Loop</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Photo thumbnail row -->
+          <div style="margin-top:32px; display:flex; gap:12px;">
+            <img class="thumb" src="../assets/community-street-warm.jpg" alt="桐梓林社区街景">
+            <img class="thumb" src="../assets/community-cafe.jpg" alt="社区咖啡馆">
+            <img class="thumb" src="../assets/community-park.jpg" alt="社区公园">
+          </div>
+        </section>
+
+        <!-- ===== Right Column ===== -->
+        <section style="flex:1; padding:40px 48px; background:var(--surface-paper); border-left:1px solid var(--border-default); display:flex; flex-direction:column;">
+          <div style="display:flex; align-items:baseline; gap:10px;">
+            <h3 style="font-family:var(--font-display); font-size:18px; font-weight:600; color:var(--ink-primary); margin:0; letter-spacing:-0.01em;">交互流程</h3>
+            <span style="font-family:var(--font-display); font-size:14px; color:var(--ink-tertiary);">Interaction Flow</span>
+          </div>
+
+          <!-- 2x2 mockup grid -->
+          <div style="margin-top:24px; display:flex; flex-direction:column; gap:24px; align-items:center;">
+
+            <!-- Row 1: Entry -> Preferences -->
+            <div style="display:flex; align-items:center; gap:24px;">
+
+              <!-- Mockup 1: Entry -->
+              <div class="mockup-cell">
+                <div class="device">
+                  <div class="device-notch"></div>
+                  <div style="height:110px; width:100%; overflow:hidden; position:relative;">
+                    <img src="../assets/community-street-warm.jpg" alt="社区街景" style="width:100%; height:100%; object-fit:cover; display:block;">
+                    <span style="position:absolute; top:18px; left:14px; font-family:var(--font-display); font-size:14px; font-weight:600; color:#FFFFFF; text-shadow:0 1px 4px rgba(0,0,0,0.45);">桐邻</span>
+                  </div>
+                  <div style="padding:12px 14px 0;">
+                    <div style="font-family:var(--font-display); font-size:12px; font-weight:600; color:var(--ink-primary);">First 120 Minutes</div>
+                    <div style="font-family:var(--font-body); font-size:9px; color:var(--ink-secondary); margin-top:4px; line-height:1.5;">两小时社区融入路线</div>
+                    <div style="font-family:var(--font-mono); font-size:8px; color:var(--brand-primary); margin-top:8px; letter-spacing:0.08em;">桐梓林 · TONGZILIN</div>
+                  </div>
+                  <div class="cta-bar">
+                    <span>开始生成路线</span>
+                    <i data-lucide="arrow-right" style="width:12px; height:12px;"></i>
+                  </div>
+                </div>
+                <span class="mockup-label">01 入口 / Entry</span>
+              </div>
+
+              <i data-lucide="arrow-right" style="width:20px; height:20px; color:var(--ink-tertiary); flex-shrink:0;"></i>
+
+              <!-- Mockup 2: Preferences -->
+              <div class="mockup-cell">
+                <div class="device">
+                  <div class="device-notch"></div>
+                  <div style="padding:20px 14px 0;">
+                    <div style="display:flex; align-items:baseline; justify-content:space-between;">
+                      <span style="font-family:var(--font-display); font-size:12px; font-weight:600; color:var(--ink-primary);">选择偏好</span>
+                      <span style="font-family:var(--font-mono); font-size:8px; color:var(--ink-tertiary);">1 / 4</span>
+                    </div>
+                    <div style="font-family:var(--font-display); font-size:10px; color:var(--ink-tertiary); margin-top:2px;">Choose Your Preferences</div>
+                  </div>
+                  <div style="padding:14px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div class="chip-on">中文 / EN</div>
+                    <div class="chip-off">咖啡 Café</div>
+                    <div class="chip-on">90 分钟</div>
+                    <div class="chip-off">独自 Solo</div>
+                  </div>
+                  <div style="padding:0 14px;">
+                    <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:8px; color:var(--ink-tertiary); margin-bottom:4px;">
+                      <span>已选 2 / 4</span><span>SELECTED</span>
+                    </div>
+                    <div style="height:3px; background:var(--border-default); border-radius:2px; overflow:hidden;">
+                      <div style="width:50%; height:100%; background:var(--brand-primary);"></div>
+                    </div>
+                  </div>
+                  <div class="cta-bar">下一步</div>
+                </div>
+                <span class="mockup-label">02 偏好 / Preferences</span>
+              </div>
+            </div>
+
+            <!-- Row 2: Route -> Complete -->
+            <div style="display:flex; align-items:center; gap:24px;">
+
+              <!-- Mockup 3: Route -->
+              <div class="mockup-cell">
+                <div class="device">
+                  <div class="device-notch"></div>
+                  <div style="padding:20px 14px 8px;">
+                    <div style="display:flex; align-items:baseline; justify-content:space-between;">
+                      <span style="font-family:var(--font-display); font-size:12px; font-weight:600; color:var(--ink-primary);">你的路线</span>
+                      <span style="font-family:var(--font-mono); font-size:8px; color:var(--ink-tertiary);">120 min</span>
+                    </div>
+                    <div style="font-family:var(--font-display); font-size:10px; color:var(--ink-tertiary); margin-top:2px;">Your Route</div>
+                  </div>
+                  <!-- mini map -->
+                  <div class="map-grid" style="height:80px; width:100%; position:relative;">
+                    <svg width="100%" height="80" viewBox="0 0 208 80" preserveAspectRatio="none" style="position:absolute; top:0; left:0;">
+                      <path d="M 24 56 Q 60 16, 100 38 T 180 30" stroke="var(--brand-primary)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="4 3"/>
+                      <circle cx="24" cy="56" r="5" fill="var(--brand-primary)"/>
+                      <circle cx="100" cy="38" r="4.5" fill="#FFFFFF" stroke="var(--brand-primary)" stroke-width="2"/>
+                      <circle cx="180" cy="30" r="5" fill="var(--brand-primary)"/>
+                    </svg>
+                    <span style="position:absolute; top:6px; left:8px; font-family:var(--font-mono); font-size:8px; color:var(--brand-primary); opacity:0.7;">桐梓林</span>
+                  </div>
+                  <!-- stop cards -->
+                  <div style="padding:8px 14px 0;">
+                    <div style="display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--border-soft);">
+                      <span style="width:8px; height:8px; border-radius:50%; background:var(--brand-primary); flex-shrink:0;"></span>
+                      <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                        <span style="font-family:var(--font-body); font-size:10px; color:var(--ink-primary); font-weight:500;">桐邻咖啡</span>
+                        <span style="font-family:var(--font-display); font-size:8px; color:var(--ink-tertiary);">Tonglin Café</span>
+                      </div>
+                      <span style="font-family:var(--font-mono); font-size:9px; color:var(--ink-tertiary);">15m</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:7px 0;">
+                      <span style="width:8px; height:8px; border-radius:50%; background:var(--brand-primary); flex-shrink:0;"></span>
+                      <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                        <span style="font-family:var(--font-body); font-size:10px; color:var(--ink-primary); font-weight:500;">社区公园</span>
+                        <span style="font-family:var(--font-display); font-size:8px; color:var(--ink-tertiary);">Community Park</span>
+                      </div>
+                      <span style="font-family:var(--font-mono); font-size:9px; color:var(--ink-tertiary);">25m</span>
+                    </div>
+                  </div>
+                  <!-- bottom progress bar -->
+                  <div style="position:absolute; bottom:0; left:0; right:0; padding:8px 14px; border-top:1px solid var(--border-soft); display:flex; align-items:center; justify-content:space-between; background:var(--surface-raised);">
+                    <span style="font-family:var(--font-mono); font-size:8px; color:var(--ink-tertiary); letter-spacing:0.05em;">1 / 4 进行中</span>
+                    <div style="display:flex; gap:4px;">
+                      <span style="width:5px; height:5px; border-radius:50%; background:var(--brand-primary);"></span>
+                      <span style="width:5px; height:5px; border-radius:50%; background:var(--border-default);"></span>
+                      <span style="width:5px; height:5px; border-radius:50%; background:var(--border-default);"></span>
+                      <span style="width:5px; height:5px; border-radius:50%; background:var(--border-default);"></span>
+                    </div>
+                  </div>
+                </div>
+                <span class="mockup-label">03 路线 / Route</span>
+              </div>
+
+              <i data-lucide="arrow-right" style="width:20px; height:20px; color:var(--ink-tertiary); flex-shrink:0;"></i>
+
+              <!-- Mockup 4: Complete -->
+              <div class="mockup-cell">
+                <div class="device">
+                  <div class="device-notch"></div>
+                  <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:6px;">
+                    <div style="width:60px; height:60px; border:2.5px solid var(--brand-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; transform:rotate(-6deg); box-shadow:0 1px 4px rgba(18,59,58,0.1); background:var(--brand-primary-tint-soft);">
+                      <i data-lucide="check" style="width:28px; height:28px; color:var(--brand-primary);"></i>
+                    </div>
+                    <div style="font-family:var(--font-display); font-size:14px; font-weight:600; color:var(--ink-primary); margin-top:14px;">路线完成</div>
+                    <div style="font-family:var(--font-display); font-size:12px; color:var(--ink-tertiary); margin-top:2px;">Route Completed</div>
+                    <div style="font-family:var(--font-mono); font-size:9px; color:var(--brand-primary); margin-top:10px; letter-spacing:0.05em;">120 min · 4 stops</div>
+                    <div style="font-family:var(--font-mono); font-size:8px; color:var(--ink-tertiary); margin-top:8px; letter-spacing:0.1em;">桐邻 · TONGLIN</div>
+                  </div>
+                </div>
+                <span class="mockup-label">04 完成 / Complete</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+      <!-- ===== Bottom Bar 48px ===== -->
+      <footer style="height:48px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:0 48px; background:var(--surface-base); border-top:1px solid var(--border-default);">
+        <span style="font-family:var(--font-display); font-style:italic; font-size:12px; color:var(--ink-tertiary);">桐邻 · Tonglin Guide</span>
+        <span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary); letter-spacing:0.03em;">Direction A · Editorial Handbook · Refined</span>
+      </footer>
+
+    </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

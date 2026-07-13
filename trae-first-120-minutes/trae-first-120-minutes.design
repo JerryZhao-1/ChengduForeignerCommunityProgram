@@ -1,0 +1,189 @@
+{
+  "data": [
+    {
+      "id": "page-a-handbook-welcome",
+      "title": "A · 首屏 — 成都社区探索手册",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/a-handbook-welcome.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-a-handbook-route",
+      "title": "A · 路线页 — 成都社区探索手册",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 420,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/a-handbook-route.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-b-passport-welcome",
+      "title": "B · 首屏 — 国际邻里通行证",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 0,
+        "y": 1384,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/b-passport-welcome.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-b-passport-route",
+      "title": "B · 路线页 — 国际邻里通行证",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 420,
+        "y": 1384,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/b-passport-route.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-c-navigator-welcome",
+      "title": "C · 首屏 — 城市生活导航仪",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 0,
+        "y": 2291,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/c-navigator-welcome.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-c-navigator-route",
+      "title": "C · 路线页 — 城市生活导航仪",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 420,
+        "y": 2291,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/c-navigator-route.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "image-001",
+      "title": "桐梓林街道 · 黄昏暖光",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 0,
+        "y": 2900
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-street-warm.jpg"
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "社区咖啡馆",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 420,
+        "y": 2900
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-cafe.jpg"
+      }
+    },
+    {
+      "id": "image-003",
+      "title": "社区聚会活动",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 840,
+        "y": 2900
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-event.jpg"
+      }
+    },
+    {
+      "id": "image-004",
+      "title": "社区公园",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 1260,
+        "y": 2900
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-park.jpg"
+      }
+    },
+    {
+      "id": "image-005",
+      "title": "桐梓林航拍俯瞰",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 1680,
+        "y": 2900
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-aerial.jpg"
+      }
+    },
+    {
+      "id": "image-006",
+      "title": "本地市场",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752230400000,
+      "canvasData": {
+        "x": 2100,
+        "y": 2900
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-market.jpg"
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "mobile",
+    "projectName": "桐邻 First 120 Minutes · 三方向视觉探索"
+  }
+}

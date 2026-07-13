@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>偏好构建 — 桐邻 First 120 Minutes</title>
+    <style id="theme-vars">
+:root {
+  /* ===== 品牌色 ===== */
+  --brand-primary: #0F766E;
+  --brand-primary-dark: #123B3A;
+  --brand-primary-tint: #B3DFDB;
+  --brand-primary-tint-soft: #E8F4F2;
+
+  /* ===== 背景色 ===== */
+  --surface-base: #F6F0E5;
+  --surface-paper: #FBF8F1;
+  --surface-raised: #FFFFFF;
+
+  /* ===== 文字色 ===== */
+  --ink-primary: #263331;
+  --ink-secondary: #5C6B68;
+  --ink-tertiary: #8FA09D;
+
+  /* ===== 功能强调色（严格限定用途） ===== */
+  --accent-activity: #E66A45;
+  --accent-activity-tint: #FCE8E0;
+  --accent-tip: #D39A3A;
+  --accent-tip-tint: #F7EDD8;
+
+  /* ===== 边框 ===== */
+  --border-default: #E5DDD0;
+  --border-soft: #F0EBE0;
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* ===== 字体 ===== */
+  --font-display: "Fraunces", "Songti SC", "STSong", "SimSun", serif;
+  --font-body: "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  /* ===== 阴影 ===== */
+  --shadow-card: 0 1px 3px rgba(18, 59, 58, 0.04);
+  --shadow-raised: 0 4px 16px rgba(18, 59, 58, 0.06);
+  --shadow-stamp: 0 2px 8px rgba(18, 59, 58, 0.08);
+}
+
+.dark {
+  --brand-primary: #2DD4BF;
+  --brand-primary-dark: #0F766E;
+  --brand-primary-tint: #123B3A;
+  --brand-primary-tint-soft: #0A2A29;
+
+  --surface-base: #0A1F1E;
+  --surface-paper: #123B3A;
+  --surface-raised: #1A4A48;
+
+  --ink-primary: #F6F0E5;
+  --ink-secondary: #B3C9C5;
+  --ink-tertiary: #7A928E;
+
+  --accent-activity: #FF8866;
+  --accent-activity-tint: #3A1E16;
+  --accent-tip: #E8B554;
+  --accent-tip-tint: #3A2E14;
+
+  --border-default: #1A4A48;
+  --border-soft: #123B3A;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main class="pref-main">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');</style>
+    <style>
+      body { background: var(--surface-base); }
+
+      .pref-main {
+        position: relative;
+        max-width: 390px;
+        margin: 0 auto;
+        min-height: 100vh;
+        background: var(--surface-base);
+        font-family: var(--font-body);
+        color: var(--ink-primary);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      /* ===== Top Bar ===== */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        height: 44px;
+        background: var(--surface-base);
+        border-bottom: 1px solid var(--border-soft);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 4px;
+      }
+
+      .topbar-back {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--ink-primary);
+        padding: 0 4px;
+        font-family: var(--font-body);
+      }
+      .topbar-back svg { width: 20px; height: 20px; flex-shrink: 0; }
+      .topbar-back .stack {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        line-height: 1.15;
+      }
+      .topbar-back .zh { font-size: 14px; font-weight: 500; color: var(--ink-primary); }
+      .topbar-back .en { font-size: 11px; color: var(--ink-tertiary); margin-top: 1px; }
+      .topbar-back:active { transform: scale(0.98); }
+      .topbar-back:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: -2px; border-radius: var(--radius-sm); }
+
+      .topbar-title {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.15;
+        pointer-events: none;
+      }
+      .topbar-title .zh {
+        font-family: var(--font-display);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--ink-primary);
+        letter-spacing: 0.01em;
+      }
+      .topbar-title .en {
+        font-family: var(--font-display);
+        font-size: 11px;
+        color: var(--ink-tertiary);
+        margin-top: 1px;
+        letter-spacing: 0.04em;
+      }
+
+      .lang-toggle { display: flex; gap: 4px; align-items: center; }
+      .lang-toggle-btn {
+        background: transparent;
+        border: none;
+        padding: 0;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .lang-toggle-btn:focus-visible { outline: none; }
+      .lang-toggle-btn:focus-visible .lang-pill {
+        outline: 2px solid var(--brand-primary);
+        outline-offset: 2px;
+      }
+      .lang-pill {
+        padding: 6px 14px;
+        border-radius: var(--radius-full);
+        font-family: var(--font-display);
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--border-default);
+        background: transparent;
+        color: var(--ink-primary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 30px;
+        transition: background 150ms cubic-bezier(.2,.8,.2,1),
+                    border-color 150ms cubic-bezier(.2,.8,.2,1),
+                    color 150ms cubic-bezier(.2,.8,.2,1);
+      }
+      .lang-pill.active {
+        background: var(--brand-primary);
+        color: #fff;
+        border-color: var(--brand-primary);
+      }
+      .lang-toggle-btn:hover .lang-pill:not(.active) { border-color: var(--brand-primary); }
+      .lang-toggle-btn:active .lang-pill { transform: scale(0.97); }
+
+      /* ===== Intro ===== */
+      .intro { padding: 24px 20px 0; }
+      .step-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--brand-primary);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 500;
+      }
+      .intro h2 {
+        font-family: var(--font-display);
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--ink-primary);
+        margin: 4px 0 0;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        word-break: keep-all;
+        text-wrap: balance;
+      }
+      .intro .subtitle {
+        font-family: var(--font-display);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--brand-primary);
+        margin-top: 4px;
+        line-height: 1.3;
+      }
+      .dashed-divider {
+        position: relative;
+        margin: 16px 0 0;
+        border-top: 1px dashed var(--brand-primary-tint);
+        height: 0;
+      }
+      .dashed-divider::before,
+      .dashed-divider::after {
+        content: '';
+        position: absolute;
+        top: -3px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--brand-primary);
+      }
+      .dashed-divider::before { left: 0; }
+      .dashed-divider::after { right: 0; }
+
+      /* ===== Preference Groups ===== */
+      .pref-groups {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .pref-group { display: flex; flex-direction: column; }
+      .pref-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .pref-label svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        color: var(--ink-secondary);
+      }
+      .pref-label .zh { font-size: 13px; font-weight: 600; color: var(--ink-primary); }
+      .pref-label .sep { font-size: 11px; color: var(--ink-tertiary); }
+      .pref-label .en { font-size: 11px; color: var(--ink-tertiary); }
+
+      .chip-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .chip-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .chip-col {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .chip {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 44px;
+        padding: 8px 6px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-default);
+        background: var(--surface-paper);
+        color: var(--ink-primary);
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: border-color 150ms cubic-bezier(.2,.8,.2,1),
+                    background 150ms cubic-bezier(.2,.8,.2,1),
+                    color 150ms cubic-bezier(.2,.8,.2,1),
+                    transform 150ms cubic-bezier(.2,.8,.2,1);
+      }
+      .chip .chip-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.25;
+      }
+      .chip .chip-zh { font-size: 13px; font-weight: 500; color: inherit; }
+      .chip .chip-en { font-size: 11px; color: var(--ink-tertiary); margin-top: 2px; }
+      .chip.mono {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0;
+      }
+      .chip.selected {
+        background: var(--brand-primary);
+        border-color: var(--brand-primary);
+        color: #fff;
+      }
+      .chip.selected .chip-zh,
+      .chip.selected .chip-en { color: #fff; }
+      .chip.selected .chip-en { opacity: 0.9; }
+      .chip:not(.selected):hover { border-color: var(--brand-primary); }
+      .chip:active { transform: scale(0.97); }
+      .chip:focus-visible {
+        outline: 2px solid var(--brand-primary);
+        outline-offset: 2px;
+      }
+
+      .chip.chip-block {
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        text-align: left;
+        padding: 12px 16px;
+        gap: 10px;
+      }
+      .chip.chip-block .chip-stack { align-items: flex-start; }
+      .chip.chip-block .chip-marker {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--border-default);
+        flex-shrink: 0;
+        transition: background 150ms cubic-bezier(.2,.8,.2,1);
+      }
+      .chip.chip-block.selected .chip-marker { background: #fff; }
+
+      /* ===== CTA ===== */
+      .cta-wrap {
+        position: sticky;
+        bottom: 0;
+        z-index: 30;
+        padding: 16px 20px 24px;
+        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        background: linear-gradient(to top, var(--surface-base) 55%, rgba(246, 240, 229, 0));
+      }
+      .cta-btn {
+        width: 100%;
+        min-height: 52px;
+        background: var(--brand-primary);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-md);
+        font-family: var(--font-display);
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 20px;
+        transition: background 150ms cubic-bezier(.2,.8,.2,1),
+                    transform 150ms cubic-bezier(.2,.8,.2,1);
+      }
+      .cta-btn .cta-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        line-height: 1.2;
+      }
+      .cta-btn .cta-zh { font-size: 15px; font-weight: 600; color: #fff; }
+      .cta-btn .cta-en {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.9);
+        margin-top: 1px;
+        font-family: var(--font-display);
+      }
+      .cta-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+      .cta-btn:hover { background: var(--brand-primary-dark); }
+      .cta-btn:active { transform: scale(0.99); }
+      .cta-btn:focus-visible {
+        outline: 2px solid var(--brand-primary);
+        outline-offset: 3px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * { transition-duration: 0.01ms !important; }
+      }
+      @media (pointer: coarse) {
+        .chip:hover { transform: none; }
+        .cta-btn:hover { background: var(--brand-primary); }
+      }
+    </style>
+
+    <header class="topbar">
+      <button class="topbar-back" type="button" aria-label="返回 Back">
+        <i data-lucide="chevron-left" width="20" height="20"></i>
+        <span class="stack">
+          <span class="zh">返回</span>
+          <span class="en">Back</span>
+        </span>
+      </button>
+      <div class="topbar-title">
+        <span class="zh">偏好设置</span>
+        <span class="en">Preferences</span>
+      </div>
+      <div class="lang-toggle" role="group" aria-label="语言切换 Language Toggle">
+        <button class="lang-toggle-btn" type="button" aria-label="中文" aria-pressed="true">
+          <span class="lang-pill active">中</span>
+        </button>
+        <button class="lang-toggle-btn" type="button" aria-label="English" aria-pressed="false">
+          <span class="lang-pill">EN</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="intro">
+      <div class="step-label">STEP 01</div>
+      <h2>定制你的融入路线</h2>
+      <div class="subtitle">Customize Your Integration Route</div>
+      <div class="dashed-divider" aria-hidden="true"></div>
+    </section>
+
+    <section class="pref-groups">
+      <!-- Group 1: Language (single select) -->
+      <div class="pref-group">
+        <div class="pref-label">
+          <i data-lucide="languages" width="16" height="16"></i>
+          <span class="zh">语言</span>
+          <span class="sep" aria-hidden="true">/</span>
+          <span class="en">Language</span>
+        </div>
+        <div class="chip-row" role="radiogroup" aria-label="语言 Language">
+          <button class="chip selected" type="button" role="radio" aria-checked="true" name="pref-lang">
+            <span class="chip-stack">
+              <span class="chip-zh">中文</span>
+              <span class="chip-en">Chinese</span>
+            </span>
+          </button>
+          <button class="chip" type="button" role="radio" aria-checked="false" name="pref-lang">
+            <span class="chip-stack">
+              <span class="chip-zh">English</span>
+              <span class="chip-en">英文</span>
+            </span>
+          </button>
+          <button class="chip" type="button" role="radio" aria-checked="false" name="pref-lang">
+            <span class="chip-stack">
+              <span class="chip-zh">双语</span>
+              <span class="chip-en">Bilingual</span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Group 2: Interests (multi-select) -->
+      <div class="pref-group">
+        <div class="pref-label">
+          <i data-lucide="compass" width="16" height="16"></i>
+          <span class="zh">兴趣</span>
+          <span class="sep" aria-hidden="true">/</span>
+          <span class="en">Interests</span>
+        </div>
+        <div class="chip-grid-2" role="group" aria-label="兴趣 Interests">
+          <button class="chip selected" type="button" aria-pressed="true">
+            <span class="chip-stack">
+              <span class="chip-zh">美食</span>
+              <span class="chip-en">Food</span>
+            </span>
+          </button>
+          <button class="chip selected" type="button" aria-pressed="true">
+            <span class="chip-stack">
+              <span class="chip-zh">文化</span>
+              <span class="chip-en">Culture</span>
+            </span>
+          </button>
+          <button class="chip" type="button" aria-pressed="false">
+            <span class="chip-stack">
+              <span class="chip-zh">户外</span>
+              <span class="chip-en">Outdoor</span>
+            </span>
+          </button>
+          <button class="chip" type="button" aria-pressed="false">
+            <span class="chip-stack">
+              <span class="chip-zh">社交</span>
+              <span class="chip-en">Social</span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Group 3: Available Time (single select) -->
+      <div class="pref-group">
+        <div class="pref-label">
+          <i data-lucide="clock" width="16" height="16"></i>
+          <span class="zh">可用时间</span>
+          <span class="sep" aria-hidden="true">/</span>
+          <span class="en">Available Time</span>
+        </div>
+        <div class="chip-row" role="radiogroup" aria-label="可用时间 Available Time">
+          <button class="chip mono" type="button" role="radio" aria-checked="false" name="pref-time">1h</button>
+          <button class="chip mono selected" type="button" role="radio" aria-checked="true" name="pref-time">2h</button>
+          <button class="chip mono" type="button" role="radio" aria-checked="false" name="pref-time">3h</button>
+        </div>
+      </div>
+
+      <!-- Group 4: Walking Distance (single select) -->
+      <div class="pref-group">
+        <div class="pref-label">
+          <i data-lucide="map-pin" width="16" height="16"></i>
+          <span class="zh">步行距离</span>
+          <span class="sep" aria-hidden="true">/</span>
+          <span class="en">Walking Distance</span>
+        </div>
+        <div class="chip-row" role="radiogroup" aria-label="步行距离 Walking Distance">
+          <button class="chip mono" type="button" role="radio" aria-checked="false" name="pref-dist">500m</button>
+          <button class="chip mono selected" type="button" role="radio" aria-checked="true" name="pref-dist">1km</button>
+          <button class="chip mono" type="button" role="radio" aria-checked="false" name="pref-dist">2km</button>
+        </div>
+      </div>
+
+      <!-- Group 5: Integration Goal (single select) -->
+      <div class="pref-group">
+        <div class="pref-label">
+          <i data-lucide="target" width="16" height="16"></i>
+          <span class="zh">融入目标</span>
+          <span class="sep" aria-hidden="true">/</span>
+          <span class="en">Goal</span>
+        </div>
+        <div class="chip-col" role="radiogroup" aria-label="融入目标 Goal">
+          <button class="chip chip-block selected" type="button" role="radio" aria-checked="true" name="pref-goal">
+            <span class="chip-marker" aria-hidden="true"></span>
+            <span class="chip-stack">
+              <span class="chip-zh">认识社区</span>
+              <span class="chip-en">Meet the area</span>
+            </span>
+          </button>
+          <button class="chip chip-block" type="button" role="radio" aria-checked="false" name="pref-goal">
+            <span class="chip-marker" aria-hidden="true"></span>
+            <span class="chip-stack">
+              <span class="chip-zh">参与活动</span>
+              <span class="chip-en">Join events</span>
+            </span>
+          </button>
+          <button class="chip chip-block" type="button" role="radio" aria-checked="false" name="pref-goal">
+            <span class="chip-marker" aria-hidden="true"></span>
+            <span class="chip-stack">
+              <span class="chip-zh">结交邻里</span>
+              <span class="chip-en">Meet neighbors</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="cta-wrap">
+      <button class="cta-btn" type="button">
+        <span class="cta-stack">
+          <span class="cta-zh">生成我的路线</span>
+          <span class="cta-en">Generate My Route</span>
+        </span>
+        <i data-lucide="arrow-right" width="18" height="18"></i>
+      </button>
+    </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

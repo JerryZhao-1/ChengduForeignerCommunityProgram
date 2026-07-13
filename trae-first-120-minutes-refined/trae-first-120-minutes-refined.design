@@ -1,0 +1,174 @@
+{
+  "data": [
+    {
+      "id": "page-01-judge-entry",
+      "title": "评委入口 — 桐邻 First 120 Minutes",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/01-judge-entry.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-02-preference-builder",
+      "title": "偏好构建 — 桐邻 First 120 Minutes",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 620,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/02-preference-builder.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-03-two-hour-route",
+      "title": "两小时路线 — 桐邻 First 120 Minutes",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 1240,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/03-two-hour-route.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-04-route-completed",
+      "title": "路线完成 — 桐邻 First 120 Minutes",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 1860,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/04-route-completed.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-05-desktop-overview",
+      "title": "桌面概览 — 桐邻 First 120 Minutes",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 0,
+        "y": 626,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/05-desktop-overview.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "image-001",
+      "title": "桐梓林街道 · 黄昏暖光",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 0,
+        "y": 1213
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-street-warm.jpg"
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "社区咖啡馆",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 620,
+        "y": 1213
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-cafe.jpg"
+      }
+    },
+    {
+      "id": "image-003",
+      "title": "社区聚会活动",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 1240,
+        "y": 1213
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-event.jpg"
+      }
+    },
+    {
+      "id": "image-004",
+      "title": "社区公园",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 1860,
+        "y": 1213
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-park.jpg"
+      }
+    },
+    {
+      "id": "image-005",
+      "title": "桐梓林航拍俯瞰",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 2480,
+        "y": 1213
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-aerial.jpg"
+      }
+    },
+    {
+      "id": "image-006",
+      "title": "本地市场",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1752300000000,
+      "canvasData": {
+        "x": 3100,
+        "y": 1213
+      },
+      "devMetadata": {
+        "imageSrc": "assets/community-market.jpg"
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "freeSize",
+    "projectName": "桐邻 First 120 Minutes · 精炼设计",
+    "showEdge": false
+  }
+}

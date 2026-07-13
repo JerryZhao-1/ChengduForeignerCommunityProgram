@@ -1,0 +1,114 @@
+{
+  "project": {
+    "name": "桐邻 First 120 Minutes · 三方向视觉探索",
+    "deviceType": "mobile",
+    "operatingMode": "free-explore",
+    "designRead": "mobile H5 community integration route / new expat + local residents / warm editorial vs passport vs navigator / medium density / avoid purple AI tech gradient",
+    "designDials": {
+      "layoutVariance": 5,
+      "motionIntensity": 2,
+      "visualDensity": 3
+    },
+    "styleDefinitionBrief": "Three dramatic directions for a Chengdu Tongzilin community integration H5: editorial handbook (warm paper, serif), passport voucher (ticket stamps, mono), city navigator (map-first, dense). All share deep teal #0f766e brand DNA, bilingual CN/EN.",
+    "styleContinuityAnchors": {
+      "colorSystem": "primary #0f766e deep teal across all directions; each direction has distinct neutral palette: A warm cream, B parchment, C cool gray-green",
+      "shapeSystem": "A: 4/8/12px rounded editorial; B: 2/6px sharp ticket edges; C: 4/8px clean practical",
+      "typographySystem": "A: Noto Serif SC display + Noto Sans SC body; B: Noto Sans SC + JetBrains Mono for ticket IDs; C: Inter + Noto Sans SC, condensed feel",
+      "spacingSystem": "A: generous 20-24px gaps; B: structured 12-16px ticket grid; C: compact 8-12px information density",
+      "componentLanguage": "A: magazine columns + route notes; B: ticket cards with perforations + stamp badges; C: map overlay cards + timeline rail",
+      "surfaceAndDepth": "A: paper texture + subtle shadow ≤0.04; B: flat ticket surfaces + border-led; C: clean white cards on map bg + shadow ≤0.04",
+      "imageryAndIconography": "real community photography only; no emoji icons; custom SVG line icons for all directions",
+      "interactionTone": "all directions: bilingual labels, 44px+ touch targets, 10s value comprehension, 30s to route"
+    },
+    "sharedProjectShellContract": {
+      "radiusScale": "A: 4/8/12px; B: 2/6px; C: 4/8px — each direction independent",
+      "typographyStack": "see styleContinuityAnchors.typographySystem",
+      "surfaceDepthModel": "static cards border-led; floating layers shadow ≤0.08",
+      "ctaStyle": "primary button bg var(--brand-primary), white text, min-height 44px",
+      "primaryColorSystem": "#0f766e deep teal shared across all directions"
+    },
+    "generationTree": null
+  },
+  "designSource": {
+    "operatingMode": "free-explore",
+    "libraryIdentity": null,
+    "styleConstraints": {
+      "radiusMax": 12,
+      "staticShadowAlphaMax": 0.05
+    }
+  },
+  "pages": [
+    {
+      "nodeId": "page-a-handbook-welcome",
+      "title": "A · 首屏 — 成都社区探索手册",
+      "pageIndex": 1,
+      "group": 0,
+      "cssFile": "colors_and_type-handbook.css",
+      "pageType": "showcase",
+      "visualNorthStar": "A warm editorial magazine cover that feels like a curated local guidebook — the user sees a beautiful community photo with route-note annotations, immediately understanding they will get a personal 2-hour integration route",
+      "compositionPattern": "asymmetric editorial hero with handwritten route annotations",
+      "continuityAnchors": ["deep teal brand DNA", "Noto Serif SC display", "warm cream paper bg"],
+      "direction": "A-handbook"
+    },
+    {
+      "nodeId": "page-a-handbook-route",
+      "title": "A · 路线页 — 成都社区探索手册",
+      "pageIndex": 2,
+      "group": 0,
+      "cssFile": "colors_and_type-handbook.css",
+      "pageType": "task-driven",
+      "visualNorthStar": "An editorial route journal page — a hand-drawn-feel timeline with place photos, cultural tips, and route notes, like reading a beautifully designed travel guidebook spread",
+      "compositionPattern": "vertical timeline with magazine-style place cards",
+      "continuityAnchors": ["deep teal brand DNA", "Noto Serif SC display", "warm cream paper bg"],
+      "direction": "A-handbook"
+    },
+    {
+      "nodeId": "page-b-passport-welcome",
+      "title": "B · 首屏 — 国际邻里通行证",
+      "pageIndex": 3,
+      "group": 1,
+      "cssFile": "colors_and_type-passport.css",
+      "pageType": "showcase",
+      "visualNorthStar": "A neighborhood passport entry page — the user sees a travel-document-style card with stamp slots and ticket stubs, immediately understanding they will collect community experiences like passport stamps",
+      "compositionPattern": "passport-spread hero with ticket-stub preference selectors",
+      "continuityAnchors": ["deep teal brand DNA", "Noto Sans SC", "parchment bg", "JetBrains Mono for IDs"],
+      "direction": "B-passport"
+    },
+    {
+      "nodeId": "page-b-passport-route",
+      "title": "B · 路线页 — 国际邻里通行证",
+      "pageIndex": 4,
+      "group": 1,
+      "cssFile": "colors_and_type-passport.css",
+      "pageType": "task-driven",
+      "visualNorthStar": "A stamped itinerary voucher — the route is presented as a series of ticket-style stops with perforated edges, stamp badges for completed actions, and a final completion stamp",
+      "compositionPattern": "ticket-stack timeline with stamp progress",
+      "continuityAnchors": ["deep teal brand DNA", "Noto Sans SC", "parchment bg", "JetBrains Mono for IDs"],
+      "direction": "B-passport"
+    },
+    {
+      "nodeId": "page-c-navigator-welcome",
+      "title": "C · 首屏 — 城市生活导航仪",
+      "pageIndex": 5,
+      "group": 2,
+      "cssFile": "colors_and_type-navigator.css",
+      "pageType": "showcase",
+      "visualNorthStar": "A map-first landing — the user sees an aerial neighborhood map with a route preview overlay, compact preference chips, and a prominent generate-route button, like opening a practical city navigation app",
+      "compositionPattern": "map-dominant full-bleed with overlay cards and bottom sheet",
+      "continuityAnchors": ["deep teal brand DNA", "Inter font", "cool gray-green bg"],
+      "direction": "C-navigator"
+    },
+    {
+      "nodeId": "page-c-navigator-route",
+      "title": "C · 路线页 — 城市生活导航仪",
+      "pageIndex": 6,
+      "group": 2,
+      "cssFile": "colors_and_type-navigator.css",
+      "pageType": "task-driven",
+      "visualNorthStar": "A real-time navigation interface — full-screen map with route polyline, compact stop cards in a bottom sheet, live status indicators, and a completion banner",
+      "compositionPattern": "full-screen map with bottom-sheet timeline and overlay status",
+      "continuityAnchors": ["deep teal brand DNA", "Inter font", "cool gray-green bg"],
+      "direction": "C-navigator"
+    }
+  ]
+}

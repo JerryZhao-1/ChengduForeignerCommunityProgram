@@ -1,0 +1,66 @@
+:root {
+  /* ===== 品牌色 ===== */
+  --brand-primary: #0F766E;
+  --brand-primary-dark: #123B3A;
+  --brand-primary-tint: #B3DFDB;
+  --brand-primary-tint-soft: #E8F4F2;
+
+  /* ===== 背景色 ===== */
+  --surface-base: #F6F0E5;
+  --surface-paper: #FBF8F1;
+  --surface-raised: #FFFFFF;
+
+  /* ===== 文字色 ===== */
+  --ink-primary: #263331;
+  --ink-secondary: #5C6B68;
+  --ink-tertiary: #8FA09D;
+
+  /* ===== 功能强调色（严格限定用途） ===== */
+  --accent-activity: #E66A45;
+  --accent-activity-tint: #FCE8E0;
+  --accent-tip: #D39A3A;
+  --accent-tip-tint: #F7EDD8;
+
+  /* ===== 边框 ===== */
+  --border-default: #E5DDD0;
+  --border-soft: #F0EBE0;
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* ===== 字体 ===== */
+  --font-display: "Fraunces", "Songti SC", "STSong", "SimSun", serif;
+  --font-body: "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  /* ===== 阴影 ===== */
+  --shadow-card: 0 1px 3px rgba(18, 59, 58, 0.04);
+  --shadow-raised: 0 4px 16px rgba(18, 59, 58, 0.06);
+  --shadow-stamp: 0 2px 8px rgba(18, 59, 58, 0.08);
+}
+
+.dark {
+  --brand-primary: #2DD4BF;
+  --brand-primary-dark: #0F766E;
+  --brand-primary-tint: #123B3A;
+  --brand-primary-tint-soft: #0A2A29;
+
+  --surface-base: #0A1F1E;
+  --surface-paper: #123B3A;
+  --surface-raised: #1A4A48;
+
+  --ink-primary: #F6F0E5;
+  --ink-secondary: #B3C9C5;
+  --ink-tertiary: #7A928E;
+
+  --accent-activity: #FF8866;
+  --accent-activity-tint: #3A1E16;
+  --accent-tip: #E8B554;
+  --accent-tip-tint: #3A2E14;
+
+  --border-default: #1A4A48;
+  --border-soft: #123B3A;
+}

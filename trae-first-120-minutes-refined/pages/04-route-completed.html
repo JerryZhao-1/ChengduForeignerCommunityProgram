@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>路线完成 — 桐邻 First 120 Minutes</title>
+    <style id="theme-vars">
+:root {
+  /* ===== 品牌色 ===== */
+  --brand-primary: #0F766E;
+  --brand-primary-dark: #123B3A;
+  --brand-primary-tint: #B3DFDB;
+  --brand-primary-tint-soft: #E8F4F2;
+
+  /* ===== 背景色 ===== */
+  --surface-base: #F6F0E5;
+  --surface-paper: #FBF8F1;
+  --surface-raised: #FFFFFF;
+
+  /* ===== 文字色 ===== */
+  --ink-primary: #263331;
+  --ink-secondary: #5C6B68;
+  --ink-tertiary: #8FA09D;
+
+  /* ===== 功能强调色（严格限定用途） ===== */
+  --accent-activity: #E66A45;
+  --accent-activity-tint: #FCE8E0;
+  --accent-tip: #D39A3A;
+  --accent-tip-tint: #F7EDD8;
+
+  /* ===== 边框 ===== */
+  --border-default: #E5DDD0;
+  --border-soft: #F0EBE0;
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* ===== 字体 ===== */
+  --font-display: "Fraunces", "Songti SC", "STSong", "SimSun", serif;
+  --font-body: "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  /* ===== 阴影 ===== */
+  --shadow-card: 0 1px 3px rgba(18, 59, 58, 0.04);
+  --shadow-raised: 0 4px 16px rgba(18, 59, 58, 0.06);
+  --shadow-stamp: 0 2px 8px rgba(18, 59, 58, 0.08);
+}
+
+.dark {
+  --brand-primary: #2DD4BF;
+  --brand-primary-dark: #0F766E;
+  --brand-primary-tint: #123B3A;
+  --brand-primary-tint-soft: #0A2A29;
+
+  --surface-base: #0A1F1E;
+  --surface-paper: #123B3A;
+  --surface-raised: #1A4A48;
+
+  --ink-primary: #F6F0E5;
+  --ink-secondary: #B3C9C5;
+  --ink-tertiary: #7A928E;
+
+  --accent-activity: #FF8866;
+  --accent-activity-tint: #3A1E16;
+  --accent-tip: #E8B554;
+  --accent-tip-tint: #3A2E14;
+
+  --border-default: #1A4A48;
+  --border-soft: #123B3A;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');</style>
+    <style>
+      body { background: var(--surface-base); }
+
+      .page-shell {
+        max-width: 390px;
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--surface-base);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        font-family: var(--font-body);
+        color: var(--ink-primary);
+        overflow-x: hidden;
+      }
+
+      /* ===== Top Bar ===== */
+      .top-bar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        height: 44px;
+        background: var(--surface-base);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 4px;
+        border-bottom: 1px solid var(--border-soft);
+      }
+      .tb-btn {
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        background: transparent;
+        border: none;
+        color: var(--ink-primary);
+        font-family: var(--font-body);
+        font-size: 13px;
+        cursor: pointer;
+        padding: 0 8px;
+        transition: opacity 120ms ease;
+      }
+      .tb-btn:active { opacity: 0.5; }
+      .tb-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.15;
+      }
+      .tb-center .zh {
+        font-family: var(--font-display);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--ink-primary);
+      }
+      .tb-center .en {
+        font-family: var(--font-display);
+        font-size: 11px;
+        color: var(--ink-tertiary);
+        letter-spacing: 0.04em;
+      }
+
+      /* ===== Content ===== */
+      .content {
+        flex: 1;
+      }
+
+      /* ===== Dashed Divider ===== */
+      .dash-div {
+        position: relative;
+        border-top: 1px dashed var(--brand-primary-tint);
+        height: 0;
+      }
+      .dash-div::before,
+      .dash-div::after {
+        content: '';
+        position: absolute;
+        top: -3px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--brand-primary);
+      }
+      .dash-div::before { left: -3px; }
+      .dash-div::after { right: -3px; }
+
+      /* ===== Route Seal ===== */
+      .route-seal {
+        width: 120px;
+        height: 120px;
+        margin: 32px auto;
+        transform: rotate(-8deg);
+        transition: transform 320ms cubic-bezier(.3,0,0,1);
+        cursor: pointer;
+      }
+      .route-seal:hover { transform: rotate(-5deg) scale(1.02); }
+      @media (hover: none) { .route-seal:hover { transform: rotate(-8deg); } }
+      @media (prefers-reduced-motion: reduce) {
+        .route-seal { transition: none; }
+        .route-seal:hover { transform: rotate(-8deg); }
+      }
+
+      /* ===== Completion Text ===== */
+      .completion {
+        text-align: center;
+        padding: 0 20px;
+      }
+      .completion .ts {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--brand-primary);
+        letter-spacing: 0.12em;
+        margin-bottom: 14px;
+      }
+      .completion h2 {
+        font-family: var(--font-display);
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--ink-primary);
+        line-height: 1.2;
+        margin: 0 0 4px;
+        text-wrap: balance;
+      }
+      .completion .sub {
+        font-family: var(--font-display);
+        font-size: 16px;
+        color: var(--ink-primary);
+        opacity: 0.85;
+        margin: 0 0 18px;
+      }
+      .completion .desc-zh {
+        font-size: 13px;
+        color: var(--ink-secondary);
+        line-height: 1.6;
+        margin: 0;
+      }
+      .completion .desc-en {
+        font-size: 12px;
+        color: var(--ink-tertiary);
+        line-height: 1.6;
+        margin: 2px 0 0;
+      }
+
+      /* ===== Stats ===== */
+      .stats-text {
+        text-align: center;
+        padding: 0 20px 12px;
+      }
+      .stats-text .zh {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--ink-secondary);
+        margin: 0 0 4px;
+      }
+      .stats-text .en {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--ink-tertiary);
+        margin: 0;
+      }
+
+      /* ===== Stamp Collection ===== */
+      .stamps {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        margin: 0 auto 32px;
+      }
+      .stamp-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--brand-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #FFFFFF;
+      }
+
+      /* ===== Share CTA ===== */
+      .share-cta {
+        position: sticky;
+        bottom: 0;
+        z-index: 20;
+        background: var(--surface-base);
+        padding: 16px 20px;
+        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        border-top: 1px solid var(--border-soft);
+      }
+      .share-btn {
+        width: 100%;
+        min-height: 44px;
+        border: 2px solid var(--brand-primary);
+        background: transparent;
+        color: var(--brand-primary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        font-family: var(--font-display);
+        transition: background 160ms cubic-bezier(.2,.8,.2,1);
+      }
+      .share-btn:hover { background: var(--brand-primary-tint-soft); }
+      .share-btn:active { background: var(--brand-primary-tint); }
+      .share-btn:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+      @media (prefers-reduced-motion: reduce) {
+        .share-btn { transition: none; }
+      }
+
+      /* ===== Lucide Icon Sizing ===== */
+      .icon-20 { width: 20px; height: 20px; flex-shrink: 0; }
+      .icon-16 { width: 16px; height: 16px; flex-shrink: 0; }
+      .icon-14 { width: 14px; height: 14px; flex-shrink: 0; }
+    </style>
+
+    <div class="page-shell">
+      <!-- ===== Top Bar ===== -->
+      <header class="top-bar">
+        <button class="tb-btn" type="button" aria-label="返回 Back">
+          <i data-lucide="chevron-left" class="icon-20"></i>
+          <span>返回 / Back</span>
+        </button>
+        <div class="tb-center">
+          <span class="zh">路线完成</span>
+          <span class="en">Route Complete</span>
+        </div>
+        <button class="tb-btn" type="button" aria-label="切换语言 Toggle language">中/EN</button>
+      </header>
+
+      <!-- ===== Content ===== -->
+      <div class="content">
+        <!-- Top dashed divider -->
+        <div class="dash-div" style="margin: 32px 40px 0;"></div>
+
+        <!-- ===== Completion Seal / Stamp ===== -->
+        <div class="route-seal" role="img" aria-label="融入完成印章 Route Complete seal">
+          <div style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--brand-primary); display: flex; align-items: center; justify-content: center; padding: 6px; box-shadow: var(--shadow-stamp);">
+            <div style="width: 100%; height: 100%; border-radius: 50%; border: 1px dashed var(--brand-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--brand-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              <span style="font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--brand-primary); line-height: 1.2;">融入完成</span>
+              <span style="font-family: var(--font-display); font-size: 7px; font-weight: 500; color: var(--brand-primary); letter-spacing: 0.08em;">ROUTE COMPLETE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom dashed divider -->
+        <div class="dash-div" style="margin: 0 40px 32px;"></div>
+
+        <!-- ===== Completion Text ===== -->
+        <div class="completion">
+          <div class="ts">12:00 · COMPLETE</div>
+          <h2>路线完成</h2>
+          <div class="sub">Route Complete</div>
+          <p class="desc-zh">你已完成桐邻 120 分钟融入路线</p>
+          <p class="desc-en">You've completed the Tonglin 120-min integration route</p>
+        </div>
+
+        <!-- ===== Stats Section ===== -->
+        <div class="dash-div" style="margin: 24px 40px 12px;"></div>
+        <div class="stats-text">
+          <p class="zh">3 地点 · 2 文化提示 · 1 活动报名</p>
+          <p class="en">3 places · 2 cultural tips · 1 event joined</p>
+        </div>
+        <div class="dash-div" style="margin: 0 40px 24px;"></div>
+
+        <!-- ===== Stamp Collection ===== -->
+        <div class="stamps">
+          <div class="stamp-dot"><i data-lucide="check" class="icon-14"></i></div>
+          <div class="stamp-dot"><i data-lucide="check" class="icon-14"></i></div>
+          <div class="stamp-dot"><i data-lucide="check" class="icon-14"></i></div>
+        </div>
+      </div>
+
+      <!-- ===== Share CTA ===== -->
+      <footer class="share-cta">
+        <button class="share-btn" type="button">
+          <i data-lucide="share-2" class="icon-16"></i>
+          <span style="display: flex; flex-direction: column; align-items: center; line-height: 1.15;">
+            <span style="font-size: 14px; font-weight: 600;">分享我的路线</span>
+            <span style="font-size: 11px; opacity: 0.85;">Share My Route</span>
+          </span>
+        </button>
+      </footer>
+    </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

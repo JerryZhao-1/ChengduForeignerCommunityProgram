@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A · 首屏 — 成都社区探索手册</title>
+    <style id="theme-vars">
+:root {
+  --brand-primary: #0f766e;
+  --brand-primary-tint: #d1faf4;
+  --brand-primary-tint-soft: #f0fdfa;
+  --brand-primary-dark: #134e4a;
+  --brand-gradient: linear-gradient(135deg, #0f766e, #155e75);
+
+  --surface-base: #faf6f0;
+  --surface-paper: #fffdf8;
+  --surface-raised: #ffffff;
+
+  --ink-primary: #292524;
+  --ink-secondary: #78716c;
+  --ink-tertiary: #a8a29e;
+
+  --border-default: #e7e5e4;
+  --border-soft: #f5f4f2;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  --font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  --brand-primary: #2dd4bf;
+  --brand-primary-tint: #134e4a;
+  --brand-primary-tint-soft: #0f3a36;
+  --brand-primary-dark: #0d9488;
+  --brand-gradient: linear-gradient(135deg, #134e4a, #0f766e);
+
+  --surface-base: #1c1917;
+  --surface-paper: #292524;
+  --surface-raised: #2c2826;
+
+  --ink-primary: #fafaf9;
+  --ink-secondary: #a8a29e;
+  --ink-tertiary: #78716c;
+
+  --border-default: #44403c;
+  --border-soft: #292524;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main class="mx-auto relative" style="max-width: 390px; min-height: 100vh; background: var(--surface-base); color: var(--ink-primary); font-family: var(--font-body);">
+      <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+body { background: var(--surface-base); color: var(--ink-primary); font-family: var(--font-body); }
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  gap: 1px;
+  transition: border-color 0.15s cubic-bezier(.2,.8,.2,1), background 0.15s cubic-bezier(.2,.8,.2,1), transform 0.1s cubic-bezier(.2,.8,.2,1);
+  cursor: pointer;
+  border: 1px solid var(--border-default);
+  background: var(--surface-paper);
+  color: var(--ink-primary);
+  text-align: center;
+}
+.chip-selected {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #ffffff;
+}
+.chip:not(.chip-selected):hover { border-color: var(--brand-primary); }
+.chip:active { transform: scale(0.97); }
+.chip:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+
+.cta-btn {
+  transition: background 0.15s cubic-bezier(.2,.8,.2,1), transform 0.1s cubic-bezier(.2,.8,.2,1);
+  cursor: pointer;
+}
+.cta-btn:hover { background: var(--brand-primary-dark); }
+.cta-btn:active { transform: scale(0.99); }
+.cta-btn:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
+
+.lang-btn { transition: background 0.15s cubic-bezier(.2,.8,.2,1); cursor: pointer; }
+.lang-btn:active { transform: scale(0.95); }
+.lang-btn:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 1px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; }
+}
+@media (pointer: coarse) {
+  .chip:hover, .cta-btn:hover, .lang-btn:hover { transform: none; }
+}
+      </style>
+
+      <!-- ========== Top Bar (sticky, 44px) ========== -->
+      <header class="sticky top-0 z-50 flex items-center justify-between" style="height: 44px; padding: 0 16px; background: var(--surface-paper); border-bottom: 1px solid var(--border-soft);">
+        <!-- Logo -->
+        <div class="flex flex-col" style="line-height: 1; gap: 2px;">
+          <span style="font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--brand-primary);">桐邻</span>
+          <span style="font-size: 9px; color: var(--ink-secondary); letter-spacing: 0.08em;">Tonglin</span>
+        </div>
+        <!-- Right controls -->
+        <div class="flex items-center" style="gap: 8px;">
+          <!-- Language toggle -->
+          <div class="flex items-center" style="border: 1px solid var(--border-default); border-radius: var(--radius-full); overflow: hidden;">
+            <button type="button" class="lang-btn flex items-center justify-center" style="height: 32px; width: 40px; font-size: 11px; background: var(--brand-primary); color: #ffffff; font-weight: 500; border: none;">中文</button>
+            <button type="button" class="lang-btn flex items-center justify-center" style="height: 32px; width: 40px; font-size: 11px; background: transparent; color: var(--ink-secondary); border: none;">EN</button>
+          </div>
+          <!-- Judge badge -->
+          <div class="flex flex-col items-center justify-center" style="background: var(--brand-primary-tint); border-radius: var(--radius-sm); padding: 3px 7px; line-height: 1.15;">
+            <span style="font-size: 9px; color: var(--brand-primary-dark); font-weight: 500;">评委模式</span>
+            <span style="font-size: 8px; color: var(--brand-primary);">Judge</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ========== Hero Section (~45% screen) ========== -->
+      <section class="relative overflow-hidden" style="height: 360px;">
+        <img src="../assets/community-street-warm.jpg" alt="桐梓林社区温暖街景，金色午后光线" class="absolute inset-0 w-full h-full" style="object-fit: cover;" />
+        <!-- Top dark gradient for text readability -->
+        <div class="absolute inset-x-0 top-0" style="height: 130px; background: linear-gradient(to bottom, rgba(0,0,0,0.35), transparent);"></div>
+        <!-- Bottom warm gradient to cream -->
+        <div class="absolute inset-x-0 bottom-0" style="height: 150px; background: linear-gradient(to bottom, transparent, var(--surface-base));"></div>
+
+        <!-- Eyebrow: location -->
+        <div class="absolute" style="top: 16px; left: 20px;">
+          <div class="flex items-center" style="gap: 6px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <span style="font-size: 10px; color: #ffffff; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500;">桐梓林 · Tongzilin</span>
+          </div>
+        </div>
+
+        <!-- Route annotations (handwritten-style margin notes) -->
+        <div class="absolute" style="top: 50%; left: 20px; transform: translateY(-50%);">
+          <p style="font-family: var(--font-display); font-style: italic; font-size: 15px; color: #ffffff; text-shadow: 0 1px 4px rgba(0,0,0,0.35); margin: 0;">→ 你的社区融入起点</p>
+          <p style="font-family: var(--font-display); font-style: italic; font-size: 11px; color: rgba(255,255,255,0.9); text-shadow: 0 1px 4px rgba(0,0,0,0.35); margin: 2px 0 0 0;">→ Your community starting point</p>
+        </div>
+
+        <!-- Duration badge -->
+        <div class="absolute" style="bottom: 56px; left: 20px;">
+          <div class="flex items-center" style="gap: 5px; background: rgba(15,118,110,0.88); padding: 4px 10px; border-radius: var(--radius-full);">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: #ffffff; font-weight: 500;">120 min · 5 stops</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== Content Section ========== -->
+      <section style="padding: 20px 20px 112px 20px;">
+
+        <!-- Headlines -->
+        <h1 style="font-family: var(--font-display); font-size: 26px; font-weight: 600; color: var(--ink-primary); line-height: 1.2; text-wrap: balance; word-break: keep-all; margin: 0;">桐邻 First 120 Minutes</h1>
+        <h2 style="font-family: var(--font-display); font-size: 15px; font-weight: 500; color: var(--brand-primary); line-height: 1.35; text-wrap: balance; margin: 6px 0 0 0;">Your Two-Hour Community Integration Route</h2>
+
+        <!-- Description -->
+        <div style="margin-top: 14px;">
+          <p style="font-size: 13px; color: var(--ink-secondary); line-height: 1.65; margin: 0;">选择你的偏好，生成一条专属的社区融入路线。包含社区地点、活动、文化提示与社交行动。</p>
+          <p style="font-size: 11px; color: var(--ink-tertiary); line-height: 1.65; margin: 4px 0 0 0;">Choose your preferences and get a personalized route with places, events, cultural tips and social actions.</p>
+        </div>
+
+        <!-- Dashed teal route-note divider -->
+        <div style="margin: 20px 0; border-top: 1px dashed var(--brand-primary-tint); position: relative;">
+          <span style="position: absolute; top: -3px; left: 0; width: 6px; height: 6px; background: var(--brand-primary); border-radius: 50%;"></span>
+          <span style="position: absolute; top: -3px; right: 0; width: 6px; height: 6px; background: var(--brand-primary); border-radius: 50%;"></span>
+        </div>
+
+        <!-- ========== Preferences ========== -->
+        <div>
+          <!-- Section label -->
+          <div class="flex flex-col" style="line-height: 1.2; margin-bottom: 18px; gap: 2px;">
+            <div class="flex items-center" style="gap: 6px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-primary);" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="6"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+              <span style="font-size: 13px; color: var(--brand-primary); font-weight: 600;">偏好设置</span>
+            </div>
+            <span style="font-size: 10px; color: var(--brand-primary); letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600; padding-left: 19px;">PREFERENCES</span>
+          </div>
+
+          <!-- Group 1: Interests -->
+          <div style="margin-bottom: 20px;">
+            <div class="flex flex-col" style="line-height: 1.2; margin-bottom: 10px; gap: 1px;">
+              <div class="flex items-center" style="gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-secondary);" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+                </svg>
+                <span style="font-size: 13px; color: var(--ink-primary); font-weight: 500;">兴趣</span>
+              </div>
+              <span style="font-size: 11px; color: var(--ink-tertiary); padding-left: 18px;">Interests</span>
+            </div>
+            <div class="grid grid-cols-2" style="gap: 8px;">
+              <button type="button" class="chip chip-selected">
+                <span style="font-size: 13px; font-weight: 500;">美食</span>
+                <span style="font-size: 11px; opacity: 0.85;">Food</span>
+              </button>
+              <button type="button" class="chip chip-selected">
+                <span style="font-size: 13px; font-weight: 500;">文化</span>
+                <span style="font-size: 11px; opacity: 0.85;">Culture</span>
+              </button>
+              <button type="button" class="chip">
+                <span style="font-size: 13px;">户外</span>
+                <span style="font-size: 11px; opacity: 0.7;">Outdoor</span>
+              </button>
+              <button type="button" class="chip">
+                <span style="font-size: 13px;">社交</span>
+                <span style="font-size: 11px; opacity: 0.7;">Social</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Group 2: Available Time -->
+          <div style="margin-bottom: 20px;">
+            <div class="flex flex-col" style="line-height: 1.2; margin-bottom: 10px; gap: 1px;">
+              <div class="flex items-center" style="gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-secondary);" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span style="font-size: 13px; color: var(--ink-primary); font-weight: 500;">可用时间</span>
+              </div>
+              <span style="font-size: 11px; color: var(--ink-tertiary); padding-left: 18px;">Available Time</span>
+            </div>
+            <div class="flex" style="gap: 8px;">
+              <button type="button" class="chip" style="flex: 1;">
+                <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 500;">1h</span>
+              </button>
+              <button type="button" class="chip chip-selected" style="flex: 1;">
+                <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 500;">2h</span>
+              </button>
+              <button type="button" class="chip" style="flex: 1;">
+                <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 500;">3h</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Group 3: Walking Distance -->
+          <div style="margin-bottom: 20px;">
+            <div class="flex flex-col" style="line-height: 1.2; margin-bottom: 10px; gap: 1px;">
+              <div class="flex items-center" style="gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-secondary);" aria-hidden="true">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span style="font-size: 13px; color: var(--ink-primary); font-weight: 500;">步行距离</span>
+              </div>
+              <span style="font-size: 11px; color: var(--ink-tertiary); padding-left: 18px;">Walking Distance</span>
+            </div>
+            <div class="flex" style="gap: 8px;">
+              <button type="button" class="chip" style="flex: 1;">
+                <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 500;">500m</span>
+              </button>
+              <button type="button" class="chip chip-selected" style="flex: 1;">
+                <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 500;">1km</span>
+              </button>
+              <button type="button" class="chip" style="flex: 1;">
+                <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 500;">2km</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Group 4: Goal -->
+          <div>
+            <div class="flex flex-col" style="line-height: 1.2; margin-bottom: 10px; gap: 1px;">
+              <div class="flex items-center" style="gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-secondary);" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="6"/>
+                  <circle cx="12" cy="12" r="2"/>
+                </svg>
+                <span style="font-size: 13px; color: var(--ink-primary); font-weight: 500;">融入目标</span>
+              </div>
+              <span style="font-size: 11px; color: var(--ink-tertiary); padding-left: 18px;">Goal</span>
+            </div>
+            <div class="flex flex-col" style="gap: 8px;">
+              <button type="button" class="chip chip-selected" style="flex-direction: row; justify-content: flex-start; padding-left: 14px; gap: 8px;">
+                <span style="font-size: 13px; font-weight: 500;">认识社区</span>
+                <span style="font-size: 11px; opacity: 0.85;">Meet the area</span>
+              </button>
+              <button type="button" class="chip" style="flex-direction: row; justify-content: flex-start; padding-left: 14px; gap: 8px;">
+                <span style="font-size: 13px;">参与活动</span>
+                <span style="font-size: 11px; opacity: 0.7;">Join events</span>
+              </button>
+              <button type="button" class="chip" style="flex-direction: row; justify-content: flex-start; padding-left: 14px; gap: 8px;">
+                <span style="font-size: 13px;">结交邻里</span>
+                <span style="font-size: 11px; opacity: 0.7;">Meet neighbors</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========== CTA Button (sticky bottom) ========== -->
+      <div class="sticky bottom-0 z-40" style="padding: 12px 20px 16px 20px; background: linear-gradient(to top, var(--surface-base) 70%, rgba(250,246,240,0));">
+        <button type="button" class="cta-btn w-full flex items-center justify-center" style="height: 52px; background: var(--brand-primary); color: #ffffff; border-radius: var(--radius-md); font-family: var(--font-display); border: none; gap: 6px;">
+          <div class="flex flex-col items-center" style="line-height: 1.25;">
+            <span style="font-size: 15px; font-weight: 600;">生成我的路线</span>
+            <span style="font-size: 11px; opacity: 0.85; font-family: var(--font-body);">Generate My Route</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

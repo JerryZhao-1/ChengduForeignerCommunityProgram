@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A · 路线页 — 成都社区探索手册</title>
+    <style id="theme-vars">
+:root {
+  --brand-primary: #0f766e;
+  --brand-primary-tint: #d1faf4;
+  --brand-primary-tint-soft: #f0fdfa;
+  --brand-primary-dark: #134e4a;
+  --brand-gradient: linear-gradient(135deg, #0f766e, #155e75);
+
+  --surface-base: #faf6f0;
+  --surface-paper: #fffdf8;
+  --surface-raised: #ffffff;
+
+  --ink-primary: #292524;
+  --ink-secondary: #78716c;
+  --ink-tertiary: #a8a29e;
+
+  --border-default: #e7e5e4;
+  --border-soft: #f5f4f2;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  --font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  --brand-primary: #2dd4bf;
+  --brand-primary-tint: #134e4a;
+  --brand-primary-tint-soft: #0f3a36;
+  --brand-primary-dark: #0d9488;
+  --brand-gradient: linear-gradient(135deg, #134e4a, #0f766e);
+
+  --surface-base: #1c1917;
+  --surface-paper: #292524;
+  --surface-raised: #2c2826;
+
+  --ink-primary: #fafaf9;
+  --ink-secondary: #a8a29e;
+  --ink-tertiary: #78716c;
+
+  --border-default: #44403c;
+  --border-soft: #292524;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main class="bg-[var(--surface-base)] min-h-screen pb-[env(safe-area-inset-bottom,24px)]">
+      <!-- Sticky Top Bar -->
+      <header class="sticky top-0 z-30 h-11 flex items-center px-4 bg-[var(--surface-base)]/95 backdrop-blur-sm border-b border-[var(--border-soft)]">
+        <button type="button" data-dom-id="route-back" aria-label="返回 Back" class="flex items-center gap-1 min-h-[44px] -ml-1 pr-2 text-[var(--ink-primary)] hover:opacity-70 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] rounded-[var(--radius-sm)]">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          <span class="text-[14px] font-[var(--font-body)]">返回</span>
+        </button>
+        <div class="flex-1 text-center">
+          <h1 class="font-[var(--font-display)] text-[16px] font-semibold text-[var(--ink-primary)] leading-none tracking-[-0.01em]">你的路线</h1>
+        </div>
+        <button type="button" data-dom-id="route-lang-toggle" aria-label="切换语言 Language" class="min-h-[44px] flex items-center">
+          <span class="inline-flex items-center h-7 px-3 rounded-[var(--radius-full)] border border-[var(--border-default)] text-[12px] font-[var(--font-mono)] text-[var(--ink-secondary)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-colors">中/EN</span>
+        </button>
+      </header>
+
+      <!-- Route Header Card -->
+      <section class="px-4 pt-5">
+        <div class="rounded-[var(--radius-lg)] bg-[var(--brand-primary-tint-soft)] border border-[var(--border-soft)] p-5">
+          <p class="font-[var(--font-mono)] text-[11px] uppercase tracking-[0.12em] text-[var(--brand-primary)] mb-2">Route · 02</p>
+          <h2 class="font-[var(--font-display)] text-[22px] font-semibold leading-[1.2] text-[var(--ink-primary)] tracking-[-0.01em]" style="text-wrap:balance;word-break:keep-all;">你的 120 分钟社区融入路线</h2>
+          <p class="font-[var(--font-display)] text-[15px] leading-[1.4] text-[var(--ink-primary)] mt-1.5" style="text-wrap:balance;word-break:keep-all;">Your 120-Minute Community Integration Route</p>
+          <div class="flex items-center gap-2 mt-3 font-[var(--font-mono)] text-[12px] text-[var(--ink-secondary)]">
+            <span>5 stops</span><span class="text-[var(--ink-tertiary)]">·</span>
+            <span>2.0 km</span><span class="text-[var(--ink-tertiary)]">·</span>
+            <span>120 min</span>
+          </div>
+          <!-- Mini map preview -->
+          <div class="mt-4 h-20 w-full rounded-[var(--radius-md)] overflow-hidden bg-[var(--brand-primary-tint-soft)] border border-[var(--border-soft)] relative">
+            <svg viewBox="0 0 350 80" preserveAspectRatio="none" class="w-full h-full" aria-hidden="true">
+              <path d="M20 60 Q 60 30 95 45 T 175 40 T 255 50 T 330 28" fill="none" stroke="var(--brand-primary)" stroke-width="2" stroke-linecap="round" stroke-dasharray="0"/>
+              <g fill="var(--brand-primary)">
+                <circle cx="20" cy="60" r="4"/>
+                <circle cx="95" cy="45" r="4"/>
+                <circle cx="175" cy="40" r="4"/>
+                <circle cx="255" cy="50" r="4"/>
+                <circle cx="330" cy="28" r="5" fill="var(--brand-primary-dark)"/>
+              </g>
+              <g fill="var(--ink-tertiary)" font-family="var(--font-mono)" font-size="7">
+                <text x="20" y="74" text-anchor="middle">1</text>
+                <text x="95" y="74" text-anchor="middle">2</text>
+                <text x="175" y="74" text-anchor="middle">3</text>
+                <text x="255" y="74" text-anchor="middle">4</text>
+                <text x="330" y="16" text-anchor="middle">5</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section label -->
+      <div class="px-4 mt-7 mb-3 flex items-baseline justify-between">
+        <h3 class="font-[var(--font-display)] text-[15px] font-semibold text-[var(--ink-primary)]">行程时间线</h3>
+        <span class="font-[var(--font-display)] text-[13px] text-[var(--ink-secondary)] italic">Itinerary</span>
+      </div>
+
+      <!-- Timeline -->
+      <section class="px-4">
+        <div class="relative">
+          <!-- Stop 1 -->
+          <div class="flex gap-3">
+            <div class="flex flex-col items-center shrink-0 w-11">
+              <div class="w-11 h-11 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center font-[var(--font-mono)] text-[11px] font-medium">10:00</div>
+              <div class="w-[2px] flex-1 bg-[var(--brand-primary)]/30 my-1"></div>
+            </div>
+            <div class="flex-1 pb-6 min-w-0">
+              <article class="rounded-[var(--radius-md)] bg-[var(--surface-paper)] border border-[var(--border-default)] overflow-hidden" style="box-shadow:var(--shadow-card)">
+                <img src="../assets/community-event.jpg" alt="桐梓林社区中心活动场景" class="w-full h-16 object-cover" loading="lazy">
+                <div class="p-4">
+                  <span class="inline-flex items-center h-6 px-2.5 rounded-[var(--radius-sm)] bg-[var(--brand-primary-tint)] text-[var(--brand-primary-dark)] text-[11px] font-medium font-[var(--font-body)] whitespace-nowrap">文化 / Culture</span>
+                  <h4 class="font-[var(--font-display)] text-[17px] font-semibold text-[var(--ink-primary)] leading-[1.25] mt-2.5 tracking-[-0.01em]" style="text-wrap:balance;word-break:keep-all;">桐梓林社区中心</h4>
+                  <p class="font-[var(--font-display)] text-[14px] text-[var(--ink-primary)]/85 leading-[1.35] mt-0.5">Tongzilin Community Center</p>
+                  <div class="flex gap-2 items-start mt-3 pl-3 border-l-2 border-[var(--brand-primary-tint)]">
+                    <svg class="shrink-0 mt-0.5 text-[var(--brand-primary)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.3 1 2v.5h6V15c0-.7.3-1.3 1-2A6 6 0 0 0 12 3z"/></svg>
+                    <div class="min-w-0">
+                      <p class="font-[var(--font-display)] italic text-[13px] leading-[1.55] text-[var(--ink-secondary)]">每周六上午有社区开放日，适合初次到访。</p>
+                      <p class="font-[var(--font-display)] italic text-[12px] leading-[1.5] text-[var(--ink-tertiary)] mt-0.5">Saturday mornings host community open day — perfect for first visits.</p>
+                    </div>
+                  </div>
+                  <button type="button" data-dom-id="stop1-details" class="mt-3 inline-flex items-center gap-1.5 min-h-[44px] -ml-1 px-1 text-[var(--brand-primary)] text-[14px] font-medium font-[var(--font-body)] hover:gap-2.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] rounded-[var(--radius-sm)]">
+                    了解详情
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                  </button>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Stop 2 -->
+          <div class="flex gap-3">
+            <div class="flex flex-col items-center shrink-0 w-11">
+              <div class="w-11 h-11 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center font-[var(--font-mono)] text-[11px] font-medium">10:30</div>
+              <div class="w-[2px] flex-1 bg-[var(--brand-primary)]/30 my-1"></div>
+            </div>
+            <div class="flex-1 pb-6 min-w-0">
+              <article class="rounded-[var(--radius-md)] bg-[var(--surface-paper)] border border-[var(--border-default)] overflow-hidden" style="box-shadow:var(--shadow-card)">
+                <img src="../assets/community-cafe.jpg" alt="邻里咖啡馆室内场景" class="w-full h-16 object-cover" loading="lazy">
+                <div class="p-4">
+                  <span class="inline-flex items-center h-6 px-2.5 rounded-[var(--radius-sm)] bg-[var(--brand-primary-tint)] text-[var(--brand-primary-dark)] text-[11px] font-medium font-[var(--font-body)] whitespace-nowrap">美食 / Food</span>
+                  <h4 class="font-[var(--font-display)] text-[17px] font-semibold text-[var(--ink-primary)] leading-[1.25] mt-2.5 tracking-[-0.01em]" style="text-wrap:balance;word-break:keep-all;">邻里咖啡馆</h4>
+                  <p class="font-[var(--font-display)] text-[15px] font-medium text-[var(--ink-primary)] leading-[1.35] mt-0.5">Neighborhood Cafe</p>
+                  <div class="flex gap-2 items-start mt-3 pl-3 border-l-2 border-[var(--brand-primary-tint)]">
+                    <svg class="shrink-0 mt-0.5 text-[var(--brand-primary)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.3 1 2v.5h6V15c0-.7.3-1.3 1-2A6 6 0 0 0 12 3z"/></svg>
+                    <div class="min-w-0">
+                      <p class="font-[var(--font-display)] italic text-[13px] leading-[1.55] text-[var(--ink-secondary)]">尝试点一杯盖碗茶，这是成都的日常。</p>
+                      <p class="font-[var(--font-display)] italic text-[12px] leading-[1.5] text-[var(--ink-tertiary)] mt-0.5">Try a cup of gaiwan tea — it's everyday Chengdu.</p>
+                    </div>
+                  </div>
+                  <button type="button" data-dom-id="stop2-navigate" class="mt-3 inline-flex items-center gap-1.5 min-h-[44px] -ml-1 px-1 text-[var(--brand-primary)] text-[14px] font-medium font-[var(--font-body)] hover:gap-2.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] rounded-[var(--radius-sm)]">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s-8-7-8-13a8 8 0 0 1 16 0c0 6-8 13-8 13z"/><circle cx="12" cy="9" r="3"/></svg>
+                    导航
+                  </button>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Stop 3 -->
+          <div class="flex gap-3">
+            <div class="flex flex-col items-center shrink-0 w-11">
+              <div class="w-11 h-11 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center font-[var(--font-mono)] text-[11px] font-medium">11:00</div>
+              <div class="w-[2px] flex-1 bg-[var(--brand-primary)]/30 my-1"></div>
+            </div>
+            <div class="flex-1 pb-6 min-w-0">
+              <article class="rounded-[var(--radius-md)] bg-[var(--surface-paper)] border border-[var(--border-default)] overflow-hidden" style="box-shadow:var(--shadow-card)">
+                <img src="../assets/community-park.jpg" alt="桐梓林社区公园绿地" class="w-full h-16 object-cover" loading="lazy">
+                <div class="p-4">
+                  <span class="inline-flex items-center h-6 px-2.5 rounded-[var(--radius-sm)] bg-[var(--brand-primary-tint)] text-[var(--brand-primary-dark)] text-[11px] font-medium font-[var(--font-body)] whitespace-nowrap">户外 / Outdoor</span>
+                  <h4 class="font-[var(--font-display)] text-[17px] font-semibold text-[var(--ink-primary)] leading-[1.25] mt-2.5 tracking-[-0.01em]" style="text-wrap:balance;word-break:keep-all;">桐梓林社区公园</h4>
+                  <p class="font-[var(--font-display)] text-[15px] font-medium text-[var(--ink-primary)] leading-[1.35] mt-0.5">Tongzilin Community Park</p>
+                  <div class="flex gap-2 items-start mt-3 pl-3 border-l-2 border-[var(--brand-primary-tint)]">
+                    <svg class="shrink-0 mt-0.5 text-[var(--brand-primary)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.3 1 2v.5h6V15c0-.7.3-1.3 1-2A6 6 0 0 0 12 3z"/></svg>
+                    <div class="min-w-0">
+                      <p class="font-[var(--font-display)] italic text-[13px] leading-[1.55] text-[var(--ink-secondary)]">公园东侧有健身器材，早晨最热闹。</p>
+                      <p class="font-[var(--font-display)] italic text-[12px] leading-[1.5] text-[var(--ink-tertiary)] mt-0.5">East side has fitness equipment — busiest in mornings.</p>
+                    </div>
+                  </div>
+                  <button type="button" data-dom-id="stop3-navigate" class="mt-3 inline-flex items-center gap-1.5 min-h-[44px] -ml-1 px-1 text-[var(--brand-primary)] text-[14px] font-medium font-[var(--font-body)] hover:gap-2.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] rounded-[var(--radius-sm)]">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s-8-7-8-13a8 8 0 0 1 16 0c0 6-8 13-8 13z"/><circle cx="12" cy="9" r="3"/></svg>
+                    导航
+                  </button>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Stop 4 -->
+          <div class="flex gap-3">
+            <div class="flex flex-col items-center shrink-0 w-11">
+              <div class="w-11 h-11 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center font-[var(--font-mono)] text-[11px] font-medium">11:30</div>
+              <div class="w-[2px] flex-1 bg-[var(--brand-primary)]/30 my-1"></div>
+            </div>
+            <div class="flex-1 pb-6 min-w-0">
+              <article class="rounded-[var(--radius-md)] bg-[var(--surface-paper)] border border-[var(--border-default)] overflow-hidden" style="box-shadow:var(--shadow-card)">
+                <img src="../assets/community-market.jpg" alt="桐梓林农贸市场摊位" class="w-full h-16 object-cover" loading="lazy">
+                <div class="p-4">
+                  <span class="inline-flex items-center h-6 px-2.5 rounded-[var(--radius-sm)] bg-[var(--brand-primary-tint)] text-[var(--brand-primary-dark)] text-[11px] font-medium font-[var(--font-body)] whitespace-nowrap">生活 / Life</span>
+                  <h4 class="font-[var(--font-display)] text-[17px] font-semibold text-[var(--ink-primary)] leading-[1.25] mt-2.5 tracking-[-0.01em]" style="text-wrap:balance;word-break:keep-all;">桐梓林农贸市场</h4>
+                  <p class="font-[var(--font-display)] text-[15px] font-medium text-[var(--ink-primary)] leading-[1.35] mt-0.5">Tongzilin Fresh Market</p>
+                  <div class="flex gap-2 items-start mt-3 pl-3 border-l-2 border-[var(--brand-primary-tint)]">
+                    <svg class="shrink-0 mt-0.5 text-[var(--brand-primary)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.3 1 2v.5h6V15c0-.7.3-1.3 1-2A6 6 0 0 0 12 3z"/></svg>
+                    <div class="min-w-0">
+                      <p class="font-[var(--font-display)] italic text-[13px] leading-[1.55] text-[var(--ink-secondary)]">带现金，部分摊位不支持移动支付。</p>
+                      <p class="font-[var(--font-display)] italic text-[12px] leading-[1.5] text-[var(--ink-tertiary)] mt-0.5">Bring cash — some stalls don't accept mobile pay.</p>
+                    </div>
+                  </div>
+                  <button type="button" data-dom-id="stop4-join" class="mt-3 inline-flex items-center justify-center gap-1.5 min-h-[44px] w-full px-4 rounded-[var(--radius-md)] bg-[var(--brand-primary)] text-white text-[14px] font-semibold font-[var(--font-body)] hover:bg-[var(--brand-primary-dark)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-paper)] active:scale-[0.99]">
+                    加入活动
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                  </button>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Stop 5 — Completion -->
+          <div class="flex gap-3">
+            <div class="flex flex-col items-center shrink-0 w-11">
+              <div class="w-11 h-11 rounded-full bg-[var(--brand-primary-tint-soft)] border-2 border-[var(--brand-primary)] flex items-center justify-center text-[var(--brand-primary)]">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+              <div class="w-[2px] flex-1 bg-transparent my-1"></div>
+            </div>
+            <div class="flex-1 pb-2 min-w-0">
+              <div class="rounded-[var(--radius-lg)] bg-[var(--brand-primary-tint-soft)] border border-[var(--brand-primary-tint)] p-5 text-center">
+                <p class="font-[var(--font-mono)] text-[11px] uppercase tracking-[0.12em] text-[var(--brand-primary)] mb-3">12:00 · Complete</p>
+                <h4 class="font-[var(--font-display)] text-[22px] font-semibold text-[var(--ink-primary)] leading-[1.2] tracking-[-0.01em]" style="text-wrap:balance;word-break:keep-all;">路线完成</h4>
+                <p class="font-[var(--font-display)] text-[16px] text-[var(--ink-primary)]/85 leading-[1.35] mt-1" style="text-wrap:balance;word-break:keep-all;">Route Complete</p>
+                <p class="font-[var(--font-body)] text-[13px] leading-[1.55] text-[var(--ink-secondary)] mt-3">你已完成桐邻 120 分钟融入路线</p>
+                <p class="font-[var(--font-body)] text-[12px] leading-[1.5] text-[var(--ink-tertiary)] mt-0.5">You've completed the Tonglin 120-min integration route</p>
+                <div class="flex items-center justify-center gap-2 mt-4 font-[var(--font-mono)] text-[12px] text-[var(--ink-secondary)]">
+                  <span>5 地点</span><span class="text-[var(--ink-tertiary)]">·</span>
+                  <span>4 文化提示</span><span class="text-[var(--ink-tertiary)]">·</span>
+                  <span>1 活动报名</span>
+                </div>
+                <p class="font-[var(--font-mono)] text-[11px] text-[var(--ink-tertiary)] mt-1">5 places · 4 cultural tips · 1 event joined</p>
+                <button type="button" data-dom-id="route-share" class="mt-5 inline-flex items-center justify-center gap-2 min-h-[44px] w-full px-4 rounded-[var(--radius-md)] border border-[var(--brand-primary)] text-[var(--brand-primary)] text-[14px] font-semibold font-[var(--font-body)] bg-transparent hover:bg-[var(--brand-primary-tint-soft)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--brand-primary-tint-soft)] active:scale-[0.99]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+                  分享我的路线
+                </button>
+                <p class="font-[var(--font-body)] text-[12px] text-[var(--ink-tertiary)] mt-2">Share My Route</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer note -->
+      <footer class="px-4 mt-8 pt-6 border-t border-[var(--border-soft)]">
+        <div class="flex items-center justify-between">
+          <p class="font-[var(--font-display)] italic text-[12px] text-[var(--ink-tertiary)]">桐邻 · Tonglin Guide</p>
+          <p class="font-[var(--font-mono)] text-[11px] text-[var(--ink-tertiary)]">Route A · 02</p>
+        </div>
+      </footer>
+    </main>
+    <style>
+      @media (prefers-reduced-motion: reduce) {
+        * { transition-duration: 0.01ms !important; }
+      }
+    </style>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评委入口 — 桐邻 First 120 Minutes</title>
+    <style id="theme-vars">
+:root {
+  /* ===== 品牌色 ===== */
+  --brand-primary: #0F766E;
+  --brand-primary-dark: #123B3A;
+  --brand-primary-tint: #B3DFDB;
+  --brand-primary-tint-soft: #E8F4F2;
+
+  /* ===== 背景色 ===== */
+  --surface-base: #F6F0E5;
+  --surface-paper: #FBF8F1;
+  --surface-raised: #FFFFFF;
+
+  /* ===== 文字色 ===== */
+  --ink-primary: #263331;
+  --ink-secondary: #5C6B68;
+  --ink-tertiary: #8FA09D;
+
+  /* ===== 功能强调色（严格限定用途） ===== */
+  --accent-activity: #E66A45;
+  --accent-activity-tint: #FCE8E0;
+  --accent-tip: #D39A3A;
+  --accent-tip-tint: #F7EDD8;
+
+  /* ===== 边框 ===== */
+  --border-default: #E5DDD0;
+  --border-soft: #F0EBE0;
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* ===== 字体 ===== */
+  --font-display: "Fraunces", "Songti SC", "STSong", "SimSun", serif;
+  --font-body: "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  /* ===== 阴影 ===== */
+  --shadow-card: 0 1px 3px rgba(18, 59, 58, 0.04);
+  --shadow-raised: 0 4px 16px rgba(18, 59, 58, 0.06);
+  --shadow-stamp: 0 2px 8px rgba(18, 59, 58, 0.08);
+}
+
+.dark {
+  --brand-primary: #2DD4BF;
+  --brand-primary-dark: #0F766E;
+  --brand-primary-tint: #123B3A;
+  --brand-primary-tint-soft: #0A2A29;
+
+  --surface-base: #0A1F1E;
+  --surface-paper: #123B3A;
+  --surface-raised: #1A4A48;
+
+  --ink-primary: #F6F0E5;
+  --ink-secondary: #B3C9C5;
+  --ink-tertiary: #7A928E;
+
+  --accent-activity: #FF8866;
+  --accent-activity-tint: #3A1E16;
+  --accent-tip: #E8B554;
+  --accent-tip-tint: #3A2E14;
+
+  --border-default: #1A4A48;
+  --border-soft: #123B3A;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
+
+.judge-entry-root {
+  max-width: 390px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--surface-base);
+  position: relative;
+}
+
+/* ===== Top Bar ===== */
+.je-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 44px;
+  background: var(--surface-paper);
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+.je-logo-zh {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--brand-primary);
+  line-height: 1;
+}
+.je-logo-en {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-tertiary);
+  letter-spacing: 0.15em;
+  margin-top: 2px;
+  line-height: 1;
+}
+.je-right-cluster { display: flex; align-items: center; gap: 8px; }
+.je-lang-group { display: flex; align-items: center; gap: 4px; }
+.je-lang-btn {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: var(--radius-sm);
+}
+.je-lang-btn:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.je-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  line-height: 1;
+  white-space: nowrap;
+}
+.je-pill-selected { background: var(--brand-primary); color: #ffffff; }
+.je-pill-unselected {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--ink-secondary);
+}
+.je-badge {
+  background: var(--brand-primary-tint-soft);
+  color: var(--brand-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* ===== Hero ===== */
+.je-hero {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+  background: var(--brand-primary-dark);
+}
+.je-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 380px;
+  object-fit: cover;
+  display: block;
+}
+.je-hero-grad-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 130px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.35), transparent);
+  pointer-events: none;
+}
+.je-hero-grad-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 150px;
+  background: linear-gradient(to top, var(--surface-base), transparent);
+  pointer-events: none;
+}
+.je-hero-loc {
+  position: absolute;
+  top: 20px; left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffff;
+  z-index: 2;
+}
+.je-hero-loc span {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+.je-hero-anno {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 20px;
+  z-index: 2;
+}
+.je-hero-anno p {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+  line-height: 1.4;
+  margin: 0;
+}
+.je-hero-badge {
+  position: absolute;
+  bottom: 20px; left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(15,118,110,0.85);
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  z-index: 2;
+}
+.je-hero-badge span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* ===== Content ===== */
+.je-content { padding: 24px 20px 112px; }
+.je-content h1 {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  line-height: 1.2;
+  margin: 0;
+  text-wrap: balance;
+  word-break: keep-all;
+}
+.je-content h2 {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--brand-primary);
+  line-height: 1.3;
+  margin: 6px 0 0;
+}
+.je-desc-zh {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-secondary);
+  line-height: 1.65;
+  margin: 0;
+}
+.je-desc-en {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--ink-tertiary);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ===== Dashed Divider ===== */
+.je-divider { display: flex; align-items: center; gap: 8px; }
+.je-divider .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  flex-shrink: 0;
+}
+.je-divider .line {
+  flex: 1;
+  border-top: 1px dashed var(--brand-primary-tint);
+}
+
+/* ===== Value Points ===== */
+.je-value-list { display: flex; flex-direction: column; }
+.je-value-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 0;
+}
+.je-value-icon {
+  color: var(--brand-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.je-value-text { display: flex; flex-direction: column; }
+.je-value-zh {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  font-family: var(--font-body);
+  line-height: 1.3;
+}
+.je-value-en {
+  font-size: 11px;
+  color: var(--ink-tertiary);
+  font-family: var(--font-body);
+  line-height: 1.3;
+  margin-top: 1px;
+}
+
+/* ===== CTA ===== */
+.je-cta-wrap {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface-base);
+  z-index: 40;
+}
+.je-cta-fade {
+  height: 16px;
+  background: linear-gradient(to bottom, transparent, var(--surface-base));
+}
+.je-cta-inner {
+  padding: 0 20px calc(24px + env(safe-area-inset-bottom));
+}
+.je-cta-btn {
+  width: 100%;
+  min-height: 52px;
+  background: var(--brand-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 150ms cubic-bezier(.2,.8,.2,1),
+              transform 150ms cubic-bezier(.2,.8,.2,1);
+  -webkit-tap-highlight-color: transparent;
+}
+.je-cta-btn:hover { background: var(--brand-primary-dark); }
+.je-cta-btn:active { transform: scale(0.99); }
+.je-cta-btn:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+.je-cta-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.25;
+}
+.je-cta-zh { font-size: 15px; }
+.je-cta-en { font-size: 11px; opacity: 0.9; }
+.je-cta-arrow {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ===== Lucide icon sizing ===== */
+.je-hero-loc svg { width: 14px; height: 14px; }
+.je-hero-badge svg { width: 12px; height: 12px; }
+.je-value-icon svg { width: 18px; height: 18px; }
+.je-cta-arrow svg { width: 18px; height: 18px; }
+.judge-entry-root svg { stroke-width: 1.5; }
+
+/* ===== Motion fallbacks ===== */
+@media (prefers-reduced-motion: reduce) {
+  .je-cta-btn { transition-duration: 0.01ms; }
+  .je-cta-btn:active { transform: none; }
+}
+@media (pointer: coarse) {
+  .je-cta-btn:hover { background: var(--brand-primary); }
+}
+    </style>
+
+    <div class="judge-entry-root">
+      <!-- ===== Top Bar (sticky, 44px) ===== -->
+      <header class="je-topbar">
+        <div style="display: flex; flex-direction: column;">
+          <span class="je-logo-zh">桐邻</span>
+          <span class="je-logo-en">TONGLIN</span>
+        </div>
+        <div class="je-right-cluster">
+          <div class="je-lang-group">
+            <button class="je-lang-btn" type="button" aria-label="切换到中文" aria-pressed="true">
+              <span class="je-pill je-pill-selected">中文</span>
+            </button>
+            <button class="je-lang-btn" type="button" aria-label="Switch to English" aria-pressed="false">
+              <span class="je-pill je-pill-unselected">EN</span>
+            </button>
+          </div>
+          <span class="je-badge">评委模式</span>
+        </div>
+      </header>
+
+      <!-- ===== Hero Section (~380px) ===== -->
+      <section class="je-hero">
+        <img class="je-hero-img" src="../assets/community-street-warm.jpg" alt="桐梓林社区温暖街景" decoding="async">
+        <div class="je-hero-grad-top"></div>
+        <div class="je-hero-grad-bottom"></div>
+        <div class="je-hero-loc">
+          <i data-lucide="map-pin"></i>
+          <span>桐梓林 · TONGZILIN</span>
+        </div>
+        <div class="je-hero-anno">
+          <p style="font-size: 15px;">→ 你的社区融入起点</p>
+          <p style="font-size: 11px; color: rgba(255,255,255,0.9); margin-top: 4px;">→ Your community starting point</p>
+        </div>
+        <div class="je-hero-badge">
+          <i data-lucide="clock"></i>
+          <span>120 min · 3 stops</span>
+        </div>
+      </section>
+
+      <!-- ===== Content Section ===== -->
+      <section class="je-content">
+        <h1>桐邻 First 120 Minutes</h1>
+        <h2>Your Two-Hour Community Integration Route</h2>
+        <div style="height: 12px;"></div>
+        <p class="je-desc-zh">选择你的偏好，生成一条专属的社区融入路线。</p>
+        <p class="je-desc-en">Choose your preferences and get a personalized community integration route.</p>
+        <div style="height: 20px;"></div>
+        <div class="je-divider">
+          <span class="dot"></span>
+          <div class="line"></div>
+          <span class="dot"></span>
+        </div>
+        <div style="height: 20px;"></div>
+        <div class="je-value-list">
+          <div class="je-value-item">
+            <span class="je-value-icon"><i data-lucide="route"></i></span>
+            <div class="je-value-text">
+              <span class="je-value-zh">个性化路线</span>
+              <span class="je-value-en">Personalized Route</span>
+            </div>
+          </div>
+          <div class="je-value-item">
+            <span class="je-value-icon"><i data-lucide="database"></i></span>
+            <div class="je-value-text">
+              <span class="je-value-zh">真实社区数据</span>
+              <span class="je-value-en">Real Community Data</span>
+            </div>
+          </div>
+          <div class="je-value-item">
+            <span class="je-value-icon"><i data-lucide="languages"></i></span>
+            <div class="je-value-text">
+              <span class="je-value-zh">双语全程支持</span>
+              <span class="je-value-en">Bilingual Support</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== CTA Button (sticky bottom) ===== -->
+      <div class="je-cta-wrap">
+        <div class="je-cta-fade"></div>
+        <div class="je-cta-inner">
+          <button class="je-cta-btn" type="button">
+            <span class="je-cta-text">
+              <span class="je-cta-zh">开始探索</span>
+              <span class="je-cta-en">Start Exploring</span>
+            </span>
+            <span class="je-cta-arrow">
+              <i data-lucide="arrow-right"></i>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

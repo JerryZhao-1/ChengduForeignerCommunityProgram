@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C · 路线页 — 城市生活导航仪</title>
+    <style id="theme-vars">
+:root {
+  --brand-primary: #0f766e;
+  --brand-primary-tint: #d1faf4;
+  --brand-primary-tint-soft: #f0fdfa;
+  --brand-primary-dark: #134e4a;
+  --brand-gradient: linear-gradient(135deg, #0f766e, #155e75);
+
+  --surface-base: #f0f4f3;
+  --surface-paper: #ffffff;
+  --surface-raised: #ffffff;
+
+  --ink-primary: #0c1820;
+  --ink-secondary: #64748b;
+  --ink-tertiary: #94a3b8;
+
+  --border-default: #cbd5e1;
+  --border-soft: #e2e8f0;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  --font-display: "Inter", "Noto Sans SC", "PingFang SC", sans-serif;
+  --font-body: "Inter", "Noto Sans SC", "PingFang SC", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-raised: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  --brand-primary: #2dd4bf;
+  --brand-primary-tint: #134e4a;
+  --brand-primary-tint-soft: #0f3a36;
+  --brand-primary-dark: #0d9488;
+  --brand-gradient: linear-gradient(135deg, #134e4a, #0f766e);
+
+  --surface-base: #0c1820;
+  --surface-paper: #16242e;
+  --surface-raised: #1a2b36;
+
+  --ink-primary: #f0f4f3;
+  --ink-secondary: #94a3b8;
+  --ink-tertiary: #64748b;
+
+  --border-default: #334155;
+  --border-soft: #1e293b;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--brand-primary);
+  }
+  @layer base {
+    body { background: var(--brand-background); color: var(--brand-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@500;600&display=swap');
+        .nav-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+        @keyframes navPulse {
+          0%, 100% { transform: scale(1); opacity: 0.9; }
+          50% { transform: scale(1.5); opacity: 0.35; }
+        }
+        @keyframes ringExpand {
+          0% { transform: scale(0.7); opacity: 0.55; }
+          100% { transform: scale(2.4); opacity: 0; }
+        }
+        @keyframes markerPing {
+          0% { r: 9; opacity: 0.5; }
+          70%, 100% { r: 18; opacity: 0; }
+        }
+        .pulse-dot { animation: navPulse 1.6s ease-in-out infinite; }
+        .pulse-ring { animation: ringExpand 1.8s ease-out infinite; }
+        .marker-ping { animation: markerPing 2s ease-out infinite; }
+        .sheet-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        .sheet-scroll::-webkit-scrollbar { display: none; }
+        .stop-dot-ring { box-shadow: 0 0 0 3px #ffffff; }
+        .nav-btn { transition: background-color 140ms cubic-bezier(.2,.8,.2,1), color 140ms cubic-bezier(.2,.8,.2,1), border-color 140ms cubic-bezier(.2,.8,.2,1); }
+        .nav-btn:active { transform: scale(0.98); }
+        .nav-btn:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+          .pulse-dot, .pulse-ring, .marker-ping { animation: none !important; }
+          .nav-btn { transition: none !important; }
+        }
+      </style>
+
+      <!-- ===== Mobile Canvas 390 x 844 ===== -->
+      <div class="relative mx-auto overflow-hidden bg-[var(--surface-base)]" style="width:390px; height:844px;">
+
+        <!-- ===== Map Background (full screen) ===== -->
+        <div class="absolute inset-0">
+          <img src="../assets/community-aerial.jpg" alt="成都桐梓林社区航拍地图" class="w-full h-full object-cover select-none" draggable="false" />
+          <div class="absolute inset-0" style="background: rgba(255,255,255,0.5);"></div>
+          <!-- faint street grid for nav-app texture -->
+          <svg class="absolute inset-0 w-full h-full" style="opacity:0.14;" viewBox="0 0 390 844" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g stroke="#0f766e" stroke-width="0.6">
+              <line x1="0" y1="170" x2="390" y2="170" />
+              <line x1="0" y1="300" x2="390" y2="300" />
+              <line x1="0" y1="410" x2="390" y2="410" />
+              <line x1="120" y1="0" x2="120" y2="844" />
+              <line x1="245" y1="0" x2="245" y2="844" />
+            </g>
+          </svg>
+          <!-- route polyline + numbered markers -->
+          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 390 844" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- completed segment (stops 1-3): solid teal -->
+            <path d="M 75 200 C 110 250, 130 280, 150 290 C 175 300, 192 262, 220 240"
+                  stroke="#0f766e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            <!-- pending segment (stops 3-5): dashed, lighter -->
+            <path d="M 220 240 C 248 222, 258 312, 290 338 C 312 356, 325 382, 335 400"
+                  stroke="#0f766e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 4" opacity="0.5" fill="none" />
+
+            <!-- marker 1 (done) -->
+            <circle cx="75" cy="200" r="9" fill="#0f766e" />
+            <circle cx="75" cy="200" r="5.5" fill="#ffffff" />
+            <text x="75" y="203" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0f766e" font-family="JetBrains Mono, monospace">1</text>
+
+            <!-- marker 2 (done) -->
+            <circle cx="150" cy="290" r="9" fill="#0f766e" />
+            <circle cx="150" cy="290" r="5.5" fill="#ffffff" />
+            <text x="150" y="293" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0f766e" font-family="JetBrains Mono, monospace">2</text>
+
+            <!-- marker 3 (current) — pulsing ping ring + solid -->
+            <circle cx="220" cy="240" r="9" fill="#0f766e" class="marker-ping" />
+            <circle cx="220" cy="240" r="11" fill="#0f766e" opacity="0.22" />
+            <circle cx="220" cy="240" r="9" fill="#0f766e" />
+            <circle cx="220" cy="240" r="5.5" fill="#ffffff" />
+            <text x="220" y="243" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0f766e" font-family="JetBrains Mono, monospace">3</text>
+            <!-- "you are here" pin above marker 3 -->
+            <g transform="translate(220,212)">
+              <path d="M 0 6 C -6 -3 -9 -7 0 -16 C 9 -7 6 -3 0 6 Z" fill="#0f766e" />
+              <circle cx="0" cy="-9" r="3.2" fill="#ffffff" />
+            </g>
+
+            <!-- marker 4 (pending) -->
+            <circle cx="290" cy="338" r="9" fill="#0f766e" opacity="0.45" />
+            <circle cx="290" cy="338" r="5.5" fill="#ffffff" />
+            <text x="290" y="341" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0f766e" opacity="0.55" font-family="JetBrains Mono, monospace">4</text>
+
+            <!-- marker 5 (pending) -->
+            <circle cx="335" cy="400" r="9" fill="#0f766e" opacity="0.45" />
+            <circle cx="335" cy="400" r="5.5" fill="#ffffff" />
+            <text x="335" y="403" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0f766e" opacity="0.55" font-family="JetBrains Mono, monospace">5</text>
+          </svg>
+        </div>
+
+        <!-- ===== Top Status Bar (floating over map) ===== -->
+        <div class="absolute top-0 left-0 right-0 z-20 px-3 pt-3">
+          <!-- control bar -->
+          <div class="flex items-center justify-between bg-white px-3 py-2" style="border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <!-- back -->
+            <button class="nav-btn flex items-center gap-1 text-[var(--ink-primary)] min-h-[44px]" aria-label="返回 Back">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              <span class="text-[13px] font-medium">返回</span>
+              <span class="text-[11px] text-[var(--ink-secondary)]">/ Back</span>
+            </button>
+            <!-- status -->
+            <div class="flex items-center gap-1.5">
+              <span class="relative flex h-2 w-2">
+                <span class="pulse-dot absolute inline-flex h-full w-full rounded-full" style="background:var(--brand-primary);"></span>
+                <span class="relative inline-flex h-2 w-2 rounded-full" style="background:var(--brand-primary);"></span>
+              </span>
+              <span class="text-[14px] font-semibold text-[var(--ink-primary)]">导航中</span>
+              <span class="text-[11px] text-[var(--ink-secondary)]">/ Navigating</span>
+            </div>
+            <!-- progress + lang -->
+            <div class="flex items-center gap-2">
+              <span class="nav-mono text-[13px] font-semibold text-[var(--brand-primary)]">3/5</span>
+              <button class="nav-btn text-[11px] text-[var(--ink-secondary)] border rounded min-h-[28px] px-1.5" style="border-color:var(--border-default);" aria-label="切换语言">中/EN</button>
+            </div>
+          </div>
+
+          <!-- route info strip -->
+          <div class="mt-2 text-white px-3 py-2.5" style="background:var(--brand-primary); border-radius:8px;">
+            <div class="flex items-center gap-2 nav-mono text-[13px]">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>10:00 → 12:00</span>
+              <span class="opacity-60">·</span>
+              <span>2.0 km</span>
+              <span class="opacity-60">·</span>
+              <span>120 min</span>
+            </div>
+            <div class="mt-1 flex items-center gap-1.5 text-[12px]">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span class="font-medium">当前: 社区公园</span>
+              <span class="opacity-70">/ Current: Community Park</span>
+            </div>
+          </div>
+
+          <!-- progress bar 3/5 = 60% -->
+          <div class="mt-2 h-1 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.7);">
+            <div class="h-full rounded-full" style="width:60%; background:var(--brand-primary);"></div>
+          </div>
+        </div>
+
+        <!-- ===== Bottom Sheet (lower 50%) ===== -->
+        <div class="absolute bottom-0 left-0 right-0 z-30 bg-white flex flex-col" style="height:422px; border-top-left-radius:12px; border-top-right-radius:12px; box-shadow:0 -2px 12px rgba(0,0,0,0.08);">
+          <!-- drag handle -->
+          <div class="flex justify-center pt-2.5 pb-1.5">
+            <div class="w-9 h-1 rounded-full" style="background:var(--border-default);"></div>
+          </div>
+          <!-- sheet header -->
+          <div class="flex items-baseline justify-between px-4 pb-2.5 border-b" style="border-color:var(--border-soft);">
+            <div class="flex items-baseline gap-2">
+              <h2 class="text-[16px] font-semibold text-[var(--ink-primary)]">路线站点</h2>
+              <span class="text-[12px] text-[var(--ink-secondary)]">/ Route Stops</span>
+            </div>
+            <span class="nav-mono text-[12px] text-[var(--ink-secondary)]">5 stops</span>
+          </div>
+
+          <!-- scrollable stops timeline -->
+          <div class="sheet-scroll flex-1 overflow-y-auto px-4 py-3">
+            <div class="relative">
+              <!-- continuous timeline rail -->
+              <div class="absolute top-0 bottom-0 w-[1.5px]" style="left:23px; background:var(--border-soft);"></div>
+
+              <!-- ===== Stop 1 — 10:00 (Done) ===== -->
+              <div class="relative flex gap-3 pb-4">
+                <div class="flex flex-col items-center shrink-0" style="width:48px;">
+                  <span class="nav-mono text-[12px] font-semibold text-[var(--brand-primary)] mb-1">10:00</span>
+                  <span class="flex items-center justify-center w-5 h-5 rounded-full stop-dot-ring" style="background:#059669;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                </div>
+                <div class="flex-1 flex items-center gap-2.5 min-w-0">
+                  <img src="../assets/community-event.jpg" alt="社区中心 Community Center" class="w-10 h-10 object-cover shrink-0" style="border-radius:4px;" />
+                  <div class="min-w-0">
+                    <div class="flex items-baseline gap-1.5">
+                      <span class="text-[14px] font-semibold text-[var(--ink-primary)]">社区中心</span>
+                      <span class="text-[11px] text-[var(--ink-secondary)]">/ Community Center</span>
+                    </div>
+                    <span class="inline-block mt-0.5 text-[11px] rounded px-1.5 py-0.5" style="background:var(--brand-primary-tint); color:var(--brand-primary);">文化 / Culture</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ===== Stop 2 — 10:30 (Done) ===== -->
+              <div class="relative flex gap-3 pb-4">
+                <div class="flex flex-col items-center shrink-0" style="width:48px;">
+                  <span class="nav-mono text-[12px] font-semibold text-[var(--brand-primary)] mb-1">10:30</span>
+                  <span class="flex items-center justify-center w-5 h-5 rounded-full stop-dot-ring" style="background:#059669;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                </div>
+                <div class="flex-1 flex items-center gap-2.5 min-w-0">
+                  <img src="../assets/community-cafe.jpg" alt="邻里咖啡馆 Neighborhood Cafe" class="w-10 h-10 object-cover shrink-0" style="border-radius:4px;" />
+                  <div class="min-w-0">
+                    <div class="flex items-baseline gap-1.5">
+                      <span class="text-[14px] font-semibold text-[var(--ink-primary)]">邻里咖啡馆</span>
+                      <span class="text-[11px] text-[var(--ink-secondary)]">/ Neighborhood Cafe</span>
+                    </div>
+                    <span class="inline-block mt-0.5 text-[11px] rounded px-1.5 py-0.5" style="background:var(--brand-primary-tint); color:var(--brand-primary);">美食 / Food</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ===== Stop 3 — 11:00 (Current) ===== -->
+              <div class="relative flex gap-3 pb-4">
+                <div class="flex flex-col items-center shrink-0" style="width:48px;">
+                  <span class="nav-mono text-[12px] font-semibold text-[var(--brand-primary)] mb-1">11:00</span>
+                  <span class="relative flex items-center justify-center w-5 h-5">
+                    <span class="pulse-ring absolute inline-flex w-5 h-5 rounded-full" style="background:var(--brand-primary);"></span>
+                    <span class="relative flex items-center justify-center w-5 h-5 rounded-full stop-dot-ring" style="background:var(--brand-primary);">
+                      <span class="block w-1.5 h-1.5 rounded-full bg-white"></span>
+                    </span>
+                  </span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2.5">
+                    <img src="../assets/community-park.jpg" alt="社区公园 Community Park" class="w-10 h-10 object-cover shrink-0" style="border-radius:4px;" />
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-baseline gap-1.5">
+                        <span class="text-[14px] font-semibold text-[var(--ink-primary)]">社区公园</span>
+                        <span class="text-[11px] text-[var(--ink-secondary)]">/ Community Park</span>
+                      </div>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="inline-block text-[11px] rounded px-1.5 py-0.5" style="background:var(--brand-primary-tint); color:var(--brand-primary);">户外 / Outdoor</span>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--brand-primary)]">
+                          <span class="inline-block w-1.5 h-1.5 rounded-full pulse-dot" style="background:var(--brand-primary);"></span>
+                          进行中 / In Progress
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- cultural tip -->
+                  <div class="mt-2 flex items-start gap-1.5 text-[12px] text-[var(--ink-secondary)] px-2 py-1.5 rounded" style="background:var(--surface-base);">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-px" style="color:var(--brand-primary);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>东侧健身器材区最热闹 / East fitness area is busiest</span>
+                  </div>
+                  <!-- navigate button -->
+                  <button class="nav-btn mt-2 flex items-center justify-center gap-1.5 w-full border text-[13px] font-semibold" style="border-color:var(--brand-primary); color:var(--brand-primary); border-radius:4px; min-height:44px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                    <span>导航</span>
+                    <span class="text-[11px] opacity-70">/ Navigate</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- ===== Stop 4 — 11:30 (Pending) ===== -->
+              <div class="relative flex gap-3 pb-4">
+                <div class="flex flex-col items-center shrink-0" style="width:48px;">
+                  <span class="nav-mono text-[12px] font-semibold text-[var(--ink-secondary)] mb-1">11:30</span>
+                  <span class="flex items-center justify-center w-5 h-5 rounded-full stop-dot-ring" style="background:var(--border-default);">
+                    <span class="block w-1.5 h-1.5 rounded-full bg-white"></span>
+                  </span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2.5">
+                    <img src="../assets/community-market.jpg" alt="农贸市场 Fresh Market" class="w-10 h-10 object-cover shrink-0" style="border-radius:4px;" />
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-baseline gap-1.5">
+                        <span class="text-[14px] font-semibold text-[var(--ink-primary)]">农贸市场</span>
+                        <span class="text-[11px] text-[var(--ink-secondary)]">/ Fresh Market</span>
+                      </div>
+                      <span class="inline-block mt-0.5 text-[11px] rounded px-1.5 py-0.5" style="background:var(--brand-primary-tint); color:var(--brand-primary);">生活 / Life</span>
+                    </div>
+                  </div>
+                  <!-- join event button -->
+                  <button class="nav-btn mt-2 flex items-center justify-center gap-1.5 w-full text-white text-[13px] font-semibold" style="background:var(--brand-primary); border-radius:4px; min-height:44px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>加入活动</span>
+                    <span class="text-[11px] opacity-80">/ Join Event</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- ===== Stop 5 — 12:00 (Completion banner) ===== -->
+              <div class="relative flex gap-3 pb-2">
+                <div class="flex flex-col items-center shrink-0" style="width:48px;">
+                  <span class="nav-mono text-[12px] font-semibold text-[var(--ink-secondary)] mb-1">12:00</span>
+                  <span class="flex items-center justify-center w-5 h-5 rounded-full stop-dot-ring" style="background:var(--brand-primary);">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <!-- completion banner card -->
+                  <div class="p-3" style="background:var(--brand-primary-tint); border-radius:8px;">
+                    <div class="flex items-center gap-2.5">
+                      <span class="flex items-center justify-center w-7 h-7 rounded-full shrink-0" style="background:var(--brand-primary);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      </span>
+                      <div class="min-w-0">
+                        <div class="flex items-baseline gap-1.5">
+                          <span class="text-[15px] font-semibold text-[var(--brand-primary-dark)]">路线完成</span>
+                          <span class="text-[11px] font-medium" style="color:var(--brand-primary);">/ Route Complete</span>
+                        </div>
+                        <div class="nav-mono text-[12px] text-[var(--ink-secondary)] mt-0.5">5 站 · 2.0 km · 120 min</div>
+                      </div>
+                    </div>
+                    <!-- share route button -->
+                    <button class="nav-btn mt-2.5 flex items-center justify-center gap-1.5 w-full border text-[13px] font-semibold" style="border-color:var(--brand-primary); color:var(--brand-primary); border-radius:4px; min-height:44px; background:rgba(255,255,255,0.5);">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                      <span>分享路线</span>
+                      <span class="text-[11px] opacity-70">/ Share Route</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
