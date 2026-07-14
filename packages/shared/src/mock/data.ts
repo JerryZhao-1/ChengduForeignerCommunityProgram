@@ -259,6 +259,155 @@ export const createMockDataset = (): MockDataset => ({
       organizer_user_id: "user_002",
       review_status: "approved",
       publish_status: "published"
+    },
+    {
+      _id: "event_002",
+      community_id: "tongzilin",
+      title_zh: "桐梓林英语角周聚会",
+      title_en: "Tongzilin English Corner Weekly Meetup",
+      summary_zh: "志愿者主持的开放式英语角，所有水平欢迎。",
+      summary_en: "A volunteer-led open English corner, all levels welcome.",
+      content_zh: "每周三下午在社区广场进行，围绕生活话题自由交流。",
+      content_en:
+        "Held every Wednesday afternoon at the community square for free conversation on daily life topics.",
+      cover_file_id: "cloud://event-cover-002",
+      cover_cloud_path: "public/events/event_002/cover.jpg",
+      cover_url: "https://example.com/public/events/event_002/cover.jpg",
+      place_id: "place_006",
+      address_text: "桐梓林北路社区广场",
+      address_zh: "桐梓林北路社区广场",
+      address_en: "Tongzilin North Road Community Square",
+      location: {
+        latitude: 30.6148,
+        longitude: 104.0622
+      },
+      start_time: "2027-04-09T16:00:00+08:00",
+      end_time: "2027-04-09T18:00:00+08:00",
+      signup_deadline: "2027-04-08T18:00:00+08:00",
+      capacity: 40,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
+    },
+    {
+      _id: "event_003",
+      community_id: "tongzilin",
+      title_zh: "社区健康讲座",
+      title_en: "Community Health Talk",
+      summary_zh: "面向新居民的基础健康资源介绍和问答。",
+      summary_en:
+        "An introductory health resource briefing and Q&A for new residents.",
+      content_zh: "社区药房志愿者介绍常见药品、就近诊所和健康登记流程。",
+      content_en:
+        "Pharmacy volunteers introduce common medicines, nearby clinics, and health registration.",
+      cover_file_id: "cloud://event-cover-003",
+      cover_cloud_path: "public/events/event_003/cover.jpg",
+      cover_url: "https://example.com/public/events/event_003/cover.jpg",
+      place_id: "place_007",
+      address_text: "桐梓林东路健康药房",
+      address_zh: "桐梓林东路 30 号健康药房",
+      address_en: "No. 30, Tongzilin East Road, Health Pharmacy",
+      location: {
+        latitude: 30.616,
+        longitude: 104.0638
+      },
+      start_time: "2027-04-16T10:00:00+08:00",
+      end_time: "2027-04-16T11:30:00+08:00",
+      signup_deadline: "2027-04-15T18:00:00+08:00",
+      capacity: 25,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
+    },
+    {
+      _id: "event_004",
+      community_id: "tongzilin",
+      title_zh: "亲子户外探索日",
+      title_en: "Family Outdoor Discovery Day",
+      summary_zh: "带娃家庭一起探索桐梓林绿地的亲子活动。",
+      summary_en:
+        "A family-friendly outdoor exploration activity at the Tongzilin green space.",
+      content_zh: "自然观察、亲子游戏和邻里互助交流，适合 3-10 岁儿童家庭。",
+      content_en:
+        "Nature observation, family games, and neighbor networking; suitable for families with kids aged 3-10.",
+      cover_file_id: "cloud://event-cover-004",
+      cover_cloud_path: "public/events/event_004/cover.jpg",
+      cover_url: "https://example.com/public/events/event_004/cover.jpg",
+      place_id: "place_008",
+      address_text: "桐梓林南路亲子公园",
+      address_zh: "桐梓林南路社区绿地",
+      address_en: "Tongzilin South Road Community Green Space",
+      location: {
+        latitude: 30.613,
+        longitude: 104.0605
+      },
+      start_time: "2027-04-12T09:00:00+08:00",
+      end_time: "2027-04-12T11:00:00+08:00",
+      signup_deadline: "2027-04-11T18:00:00+08:00",
+      capacity: 30,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
+    },
+    {
+      _id: "event_005",
+      community_id: "tongzilin",
+      title_zh: "国际文化分享夜",
+      title_en: "International Culture Sharing Night",
+      summary_zh: "中外居民分享家乡文化的轻松社交夜。",
+      summary_en:
+        "A relaxed social evening where Chinese and international residents share home cultures.",
+      content_zh: "每位参与者可介绍一道家乡菜或一个文化习俗，现场提供茶饮。",
+      content_en:
+        "Each participant can introduce a hometown dish or cultural custom; tea and drinks provided.",
+      cover_file_id: "cloud://event-cover-005",
+      cover_cloud_path: "public/events/event_005/cover.jpg",
+      cover_url: "https://example.com/public/events/event_005/cover.jpg",
+      place_id: "place_012",
+      address_text: "桐梓林北路邻里厨房",
+      address_zh: "桐梓林北路 42 号邻里厨房",
+      address_en: "No. 42, Tongzilin North Road, Neighborhood Kitchen",
+      location: {
+        latitude: 30.6155,
+        longitude: 104.0626
+      },
+      start_time: "2027-04-19T18:30:00+08:00",
+      end_time: "2027-04-19T20:30:00+08:00",
+      signup_deadline: "2027-04-18T18:00:00+08:00",
+      capacity: 35,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
+    },
+    {
+      _id: "event_006",
+      community_id: "tongzilin",
+      title_zh: "社区志愿者招募日",
+      title_en: "Community Volunteer Recruitment Day",
+      summary_zh: "了解桐梓林志愿者团队并现场报名的开放活动。",
+      summary_en:
+        "An open event to learn about the Tongzilin volunteer team and sign up on site.",
+      content_zh: "介绍社区志愿机会、服务时段和培训流程，欢迎新老居民参加。",
+      content_en:
+        "Introduces community volunteer opportunities, service shifts, and training; all residents welcome.",
+      cover_file_id: "cloud://event-cover-006",
+      cover_cloud_path: "public/events/event_006/cover.jpg",
+      cover_url: "https://example.com/public/events/event_006/cover.jpg",
+      place_id: "place_001",
+      address_text: "桐梓林社区中心",
+      address_zh: "桐梓林北路 88 号社区中心",
+      address_en: "No. 88, Tongzilin North Road, Community Center",
+      location: {
+        latitude: 30.615,
+        longitude: 104.0625
+      },
+      start_time: "2027-04-23T14:00:00+08:00",
+      end_time: "2027-04-23T16:00:00+08:00",
+      signup_deadline: "2027-04-22T18:00:00+08:00",
+      capacity: 50,
+      organizer_user_id: "user_002",
+      review_status: "approved",
+      publish_status: "published"
     }
   ],
   registrations: [
@@ -414,6 +563,337 @@ export const createMockDataset = (): MockDataset => ({
       supports_favorite: true,
       supports_share: true,
       status: "draft"
+    },
+    {
+      _id: "place_004",
+      community_id: "tongzilin",
+      name_zh: "桐梓林地铁广场",
+      name_en: "Tongzilin Metro Square",
+      cover_file_id: "cloud://place-cover-004",
+      cover_url:
+        "https://images.unsplash.com/photo-1474487548417-781cb71495f3",
+      cover_source: null,
+      category_level_1: "transport",
+      category_level_2: "metro-station",
+      tag_ids: ["transport", "orientation", "landmark"],
+      address_zh: "成都市武侯区桐梓林中路地铁口",
+      address_en: "Tongzilin Middle Road Metro Exit, Wuhou District, Chengdu",
+      location: {
+        latitude: 30.6142,
+        longitude: 104.0618
+      },
+      tencent_map_poi_id: "poi_004",
+      business_hours_zh: "全天开放",
+      business_hours_en: "Open all day",
+      intro_zh: "桐梓林地铁站出口广场，是居民通勤和社区公告的天然交汇点。",
+      intro_en:
+        "The metro exit square is a natural meeting point for commuting and community notices.",
+      recommended_reason_zh: "刚搬来时最适合作为认路和方向感的地标。",
+      recommended_reason_en:
+        "Best landmark for orientation when you first arrive.",
+      is_recommended: true,
+      recommended_rank: 3,
+      gallery_file_ids: [],
+      external_gallery_media: [],
+      gallery_urls: [],
+      supports_navigation: true,
+      supports_favorite: true,
+      supports_share: true,
+      status: "published"
+    },
+    {
+      _id: "place_005",
+      community_id: "tongzilin",
+      name_zh: "桐梓林邻里市集",
+      name_en: "Tongzilin Neighborhood Market",
+      cover_file_id: "cloud://place-cover-005",
+      cover_url:
+        "https://images.unsplash.com/photo-1488459716781-31db52582fe9",
+      cover_source: null,
+      category_level_1: "shopping",
+      category_level_2: "market",
+      tag_ids: ["grocery", "daily-life", "family"],
+      address_zh: "成都市武侯区桐梓林南路 18 号",
+      address_en: "No. 18, Tongzilin South Road, Wuhou District, Chengdu",
+      location: {
+        latitude: 30.6135,
+        longitude: 104.0612
+      },
+      tencent_map_poi_id: "poi_005",
+      business_hours_zh: "周一至周日 07:00-21:00",
+      business_hours_en: "Mon-Sun 07:00-21:00",
+      intro_zh: "本地生鲜和小型商户集中的邻里市集，适合采买日常物资。",
+      intro_en:
+        "A neighborhood market with fresh produce and small vendors for daily groceries.",
+      recommended_reason_zh: "搬来第一周补齐生活物资的首选地点。",
+      recommended_reason_en:
+        "Top pick for stocking up on daily essentials in your first week.",
+      is_recommended: true,
+      recommended_rank: 4,
+      gallery_file_ids: [],
+      external_gallery_media: [],
+      gallery_urls: [],
+      supports_navigation: true,
+      supports_favorite: true,
+      supports_share: true,
+      status: "published"
+    },
+    {
+      _id: "place_006",
+      community_id: "tongzilin",
+      name_zh: "桐梓林英语角",
+      name_en: "Tongzilin English Corner",
+      cover_file_id: "cloud://place-cover-006",
+      cover_url:
+        "https://images.unsplash.com/photo-1524178232363-1fb2b075b655",
+      cover_source: null,
+      category_level_1: "community",
+      category_level_2: "social-space",
+      tag_ids: ["language-exchange", "social", "english-friendly"],
+      address_zh: "成都市武侯区桐梓林北路社区广场",
+      address_en:
+        "Tongzilin North Road Community Square, Wuhou District, Chengdu",
+      location: {
+        latitude: 30.6148,
+        longitude: 104.0622
+      },
+      tencent_map_poi_id: "poi_006",
+      business_hours_zh: "周三、周六 16:00-18:00",
+      business_hours_en: "Wed and Sat 16:00-18:00",
+      intro_zh: "社区广场的开放式英语角，志愿者主持，欢迎所有水平的参与者。",
+      intro_en:
+        "An open English corner at the community square, volunteer-led, all levels welcome.",
+      recommended_reason_zh: "练习语言和结识邻居的低压社交场景。",
+      recommended_reason_en:
+        "A low-pressure setting to practice language and meet neighbors.",
+      is_recommended: true,
+      recommended_rank: 5,
+      gallery_file_ids: [],
+      external_gallery_media: [],
+      gallery_urls: [],
+      supports_navigation: true,
+      supports_favorite: true,
+      supports_share: true,
+      status: "published"
+    },
+    {
+      _id: "place_007",
+      community_id: "tongzilin",
+      name_zh: "桐梓林健康药房",
+      name_en: "Tongzilin Health Pharmacy",
+      cover_file_id: "cloud://place-cover-007",
+      cover_url:
+        "https://images.unsplash.com/photo-1631549916768-4119b2e5f926",
+      cover_source: null,
+      category_level_1: "health-wellness",
+      category_level_2: "pharmacy",
+      tag_ids: ["health", "pharmacy", "daily-life"],
+      address_zh: "成都市武侯区桐梓林东路 30 号",
+      address_en: "No. 30, Tongzilin East Road, Wuhou District, Chengdu",
+      location: {
+        latitude: 30.616,
+        longitude: 104.0638
+      },
+      tencent_map_poi_id: "poi_007",
+      business_hours_zh: "周一至周日 08:00-22:00",
+      business_hours_en: "Mon-Sun 08:00-22:00",
+      intro_zh: "社区药房，提供常用药品和基础健康咨询。",
+      intro_en:
+        "A community pharmacy with common medicines and basic health guidance.",
+      recommended_reason_zh: null,
+      recommended_reason_en: null,
+      is_recommended: false,
+      recommended_rank: 0,
+      gallery_file_ids: [],
+      external_gallery_media: [],
+      gallery_urls: [],
+      supports_navigation: true,
+      supports_favorite: true,
+      supports_share: true,
+      status: "published"
+    },
+    {
+      _id: "place_008",
+      community_id: "tongzilin",
+      name_zh: "桐梓林亲子公园",
+      name_en: "Tongzilin Family Park",
+      cover_file_id: "cloud://place-cover-008",
+      cover_url: "https://images.unsplash.com/photo-1518602164578-cd0074062767",
+      cover_source: null,
+      category_level_1: "outdoor-sports",
+      category_level_2: "park",
+      tag_ids: ["family", "outdoor", "kids", "walking"],
+      address_zh: "成都市武侯区桐梓林南路社区绿地",
+      address_en:
+        "Tongzilin South Road Community Green Space, Wuhou District, Chengdu",
+      location: {
+        latitude: 30.613,
+        longitude: 104.0605
+      },
+      tencent_map_poi_id: "poi_008",
+      business_hours_zh: "全天开放",
+      business_hours_en: "Open all day",
+      intro_zh: "带儿童游乐设施的社区绿地，适合晨练、遛弯和亲子活动。",
+      intro_en:
+        "A community green space with children's play facilities, suitable for exercise, walks, and family activities.",
+      recommended_reason_zh: "带娃家庭认识其他家长的自然场所。",
+      recommended_reason_en:
+        "A natural place for families with kids to meet other parents.",
+      is_recommended: true,
+      recommended_rank: 6,
+      gallery_file_ids: [],
+      external_gallery_media: [],
+      gallery_urls: [],
+      supports_navigation: true,
+      supports_favorite: true,
+      supports_share: true,
+      status: "published"
+    },
+    {
+      _id: "place_009",
+      community_id: "tongzilin",
+      name_zh: "桐梓林文化书屋",
+      name_en: "Tongzilin Culture Bookhouse",
+      cover_file_id: "cloud://place-cover-009",
+      cover_url:
+        "https://images.unsplash.com/photo-1521587760476-6c12a4b040da",
+      cover_source: null,
+      category_level_1: "entertainment",
+      category_level_2: "arts-culture",
+      tag_ids: ["culture", "reading", "social", "family"],
+      address_zh: "成都市武侯区桐梓林北路 56 号",
+      address_en: "No. 56, Tongzilin North Road, Wuhou District, Chengdu",
+      location: {
+        latitude: 30.6153,
+        longitude: 104.0628
+      },
+      tencent_map_poi_id: "poi_009",
+      business_hours_zh: "周二至周日 10:00-20:00",
+      business_hours_en: "Tue-Sun 10:00-20:00",
+      intro_zh: "社区文化空间，提供中英文图书、小型展览和文化沙龙。",
+      intro_en:
+        "A community culture space with bilingual books, small exhibitions, and cultural salons.",
+      recommended_reason_zh: "安静了解本地文化氛围的好去处。",
+      recommended_reason_en:
+        "A quiet spot to understand the local cultural atmosphere.",
+      is_recommended: true,
+      recommended_rank: 7,
+      gallery_file_ids: [],
+      external_gallery_media: [],
+      gallery_urls: [],
+      supports_navigation: true,
+      supports_favorite: true,
+      supports_share: true,
+      status: "published"
+    },
+    {
+      _id: "place_010",
+      community_id: "tongzilin",
+      name_zh: "桐梓林国际超市",
+      name_en: "Tongzilin International Mart",
+      cover_file_id: "cloud://place-cover-010",
+      cover_url: "https://images.unsplash.com/photo-1534723452862-4c874018d66d",
+      cover_source: null,
+      category_level_1: "shopping",
+      category_level_2: "supermarket",
+      tag_ids: ["grocery", "international", "daily-life", "english-friendly"],
+      address_zh: "成都市武侯区桐梓林中路 66 号",
+      address_en: "No. 66, Tongzilin Middle Road, Wuhou District, Chengdu",
+      location: {
+        latitude: 30.6145,
+        longitude: 104.0615
+      },
+      tencent_map_poi_id: "poi_010",
+      business_hours_zh: "周一至周日 08:00-22:00",
+      business_hours_en: "Mon-Sun 08:00-22:00",
+      intro_zh: "提供进口商品的双语标示超市，适合国际居民采买。",
+      intro_en:
+        "A bilingual supermarket with imported goods, convenient for international residents.",
+      recommended_reason_zh: null,
+      recommended_reason_en: null,
+      is_recommended: false,
+      recommended_rank: 0,
+      gallery_file_ids: [],
+      external_gallery_media: [],
+      gallery_urls: [],
+      supports_navigation: true,
+      supports_favorite: true,
+      supports_share: true,
+      status: "published"
+    },
+    {
+      _id: "place_011",
+      community_id: "tongzilin",
+      name_zh: "桐梓林社区运动场",
+      name_en: "Tongzilin Community Sports Field",
+      cover_file_id: "cloud://place-cover-011",
+      cover_url: "https://images.unsplash.com/photo-1517649763962-0c623066013b",
+      cover_source: null,
+      category_level_1: "outdoor-sports",
+      category_level_2: "sports-field",
+      tag_ids: ["sports", "social", "family", "outdoor"],
+      address_zh: "成都市武侯区桐梓林南路社区运动场",
+      address_en:
+        "Tongzilin South Road Community Sports Field, Wuhou District, Chengdu",
+      location: {
+        latitude: 30.6128,
+        longitude: 104.06
+      },
+      tencent_map_poi_id: "poi_011",
+      business_hours_zh: "周一至周日 06:00-22:00",
+      business_hours_en: "Mon-Sun 06:00-22:00",
+      intro_zh: "开放的社区运动场，有跑道和简易健身设施，早晨和傍晚最热闹。",
+      intro_en:
+        "An open community sports field with a running track and basic fitness equipment.",
+      recommended_reason_zh: "通过运动结识邻居是最自然的方式之一。",
+      recommended_reason_en:
+        "Meeting neighbors through exercise is one of the most natural approaches.",
+      is_recommended: true,
+      recommended_rank: 8,
+      gallery_file_ids: [],
+      external_gallery_media: [],
+      gallery_urls: [],
+      supports_navigation: true,
+      supports_favorite: true,
+      supports_share: true,
+      status: "published"
+    },
+    {
+      _id: "place_012",
+      community_id: "tongzilin",
+      name_zh: "桐梓林邻里厨房",
+      name_en: "Tongzilin Neighborhood Kitchen",
+      cover_file_id: "cloud://place-cover-012",
+      cover_url:
+        "https://images.unsplash.com/photo-1552566626-52f8b828add9",
+      cover_source: null,
+      category_level_1: "food-drink",
+      category_level_2: "restaurant",
+      tag_ids: ["food", "social", "family", "english-friendly"],
+      address_zh: "成都市武侯区桐梓林北路 42 号",
+      address_en: "No. 42, Tongzilin North Road, Wuhou District, Chengdu",
+      location: {
+        latitude: 30.6155,
+        longitude: 104.0626
+      },
+      tencent_map_poi_id: "poi_012",
+      business_hours_zh: "周一至周日 11:00-21:00",
+      business_hours_en: "Mon-Sun 11:00-21:00",
+      intro_zh: "社区共享厨房和轻食餐厅，定期举办邻里共厨活动。",
+      intro_en:
+        "A shared community kitchen and light-food restaurant hosting neighborhood cooking events.",
+      recommended_reason_zh: "通过一起做饭认识邻居，适合家庭和单人居民。",
+      recommended_reason_en:
+        "Meet neighbors through cooking together; great for families and solo residents.",
+      is_recommended: true,
+      recommended_rank: 9,
+      gallery_file_ids: [],
+      external_gallery_media: [],
+      gallery_urls: [],
+      supports_navigation: true,
+      supports_favorite: true,
+      supports_share: true,
+      status: "published"
     }
   ],
   posts: [

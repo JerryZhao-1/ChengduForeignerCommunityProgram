@@ -379,7 +379,7 @@ describe("cloudbase event handler", () => {
       const markerBody = markerResponse.body as any;
 
       expect(markerResponse.statusCode).toBe(200);
-      expect(markerBody.data).toHaveLength(2);
+      expect(markerBody.data).toHaveLength(11);
       expect(Object.keys(markerBody.data[0]).sort()).toEqual([
         "_id",
         "category_level_1",
@@ -392,10 +392,12 @@ describe("cloudbase event handler", () => {
       expect(markerBody.data[0].cover_url).toBe(
         "https://images.unsplash.com/photo-1494526585095-c41746248156"
       );
-      expect(markerBody.data.map((item: { _id: string }) => item._id)).toEqual([
-        "place_001",
-        "place_002"
-      ]);
+      // Dataset has grown; verify the canonical first two markers and that
+      // all marker IDs are unique.
+      const markerIds = markerBody.data.map((item: { _id: string }) => item._id);
+      expect(markerIds[0]).toBe("place_001");
+      expect(markerIds[1]).toBe("place_002");
+      expect(new Set(markerIds).size).toBe(markerIds.length);
       expect(markerBody.data[0]).not.toHaveProperty("navigation");
       expect(markerBody.data[0]).not.toHaveProperty("gallery_urls");
       expect(markerBody.data[0]).not.toHaveProperty("gallery_media");

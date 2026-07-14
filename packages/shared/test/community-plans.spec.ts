@@ -82,8 +82,10 @@ const basePlan = {
   generated_at: "2026-07-15T00:00:00+08:00",
   items: [basePlaceVisitItem, baseEventAttendItem],
   total_duration_minutes: 120,
+  route_kind: "place_event",
   generation_source: "rule_based",
-  ai_status: "not_configured"
+  ai_status: "not_configured",
+  generated_by: "tongzilin-rule-engine-v1"
 };
 
 describe("community plan preference input", () => {
@@ -545,7 +547,7 @@ describe("community plan invariants", () => {
     ).toBe(false);
   });
 
-  it("rejects a duration sum shorter than the canonical 120 minutes", () => {
+  it("rejects a plan shorter than 120 minutes even when durations match", () => {
     expect(
       CommunityPlanSchema.safeParse({
         ...basePlan,
@@ -558,6 +560,84 @@ describe("community plan invariants", () => {
           }
         ],
         total_duration_minutes: 100
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects route_kind=places_only", () => {
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        route_kind: "places_only",
+        items: [basePlaceVisitItem, baseEventAttendItem]
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects route_kind=place_event with only place_visit items", () => {
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        route_kind: "place_event",
+        items: [
+          basePlaceVisitItem,
+          {
+            ...basePlaceVisitItem,
+            item_id: "stop_place_002",
+            ref_id: "place_002"
+          }
+        ]
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects missing generated_by field", () => {
+    const planWithoutGeneratedBy = { ...basePlan } as Partial<typeof basePlan>;
+    delete planWithoutGeneratedBy.generated_by;
+    expect(CommunityPlanSchema.safeParse(planWithoutGeneratedBy).success).toBe(
+      false
+    );
+  });
+
+  it("rejects empty generated_by string", () => {
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        generated_by: ""
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects unknown route_kind", () => {
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        route_kind: "events_only"
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects a three-item plan", () => {
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        items: [
+          { ...basePlaceVisitItem, duration_minutes: 40 },
+          {
+            ...basePlaceVisitItem,
+            item_id: "stop_place_002",
+            ref_id: "place_002",
+            start_offset_minutes: 40,
+            duration_minutes: 40
+          },
+          {
+            ...basePlaceVisitItem,
+            item_id: "stop_place_003",
+            ref_id: "place_004",
+            start_offset_minutes: 80,
+            duration_minutes: 40
+          }
+        ]
       }).success
     ).toBe(false);
   });

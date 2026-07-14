@@ -17,6 +17,7 @@ export const COMMUNITY_PLAN_INTERESTS = [
 ] as const;
 
 export const CommunityPlanInterestSchema = z.enum(COMMUNITY_PLAN_INTERESTS);
+export type CommunityPlanInterest = z.infer<typeof CommunityPlanInterestSchema>;
 
 export const COMMUNITY_PLAN_ARRIVAL_CONTEXTS = [
   "first-week",
@@ -27,6 +28,9 @@ export const COMMUNITY_PLAN_ARRIVAL_CONTEXTS = [
 export const CommunityPlanArrivalContextSchema = z.enum(
   COMMUNITY_PLAN_ARRIVAL_CONTEXTS
 );
+export type CommunityPlanArrivalContext = z.infer<
+  typeof CommunityPlanArrivalContextSchema
+>;
 
 export const COMMUNITY_PLAN_HOUSEHOLD_TYPES = [
   "solo",
@@ -38,6 +42,9 @@ export const COMMUNITY_PLAN_HOUSEHOLD_TYPES = [
 export const CommunityPlanHouseholdTypeSchema = z.enum(
   COMMUNITY_PLAN_HOUSEHOLD_TYPES
 );
+export type CommunityPlanHouseholdType = z.infer<
+  typeof CommunityPlanHouseholdTypeSchema
+>;
 
 export const COMMUNITY_PLAN_ACCESSIBILITY_NEEDS = [
   "wheelchair",
@@ -157,6 +164,12 @@ export const CommunityPlanItemSchema = z.discriminatedUnion("type", [
   CommunityPlanEventAttendItemSchema
 ]);
 
+// --- Route kind ---
+
+export const COMMUNITY_PLAN_ROUTE_KINDS = ["place_event"] as const;
+
+export const CommunityPlanRouteKindSchema = z.enum(COMMUNITY_PLAN_ROUTE_KINDS);
+
 // --- AI narration enhancement (strict allowlist) ---
 
 export const CommunityPlanAIEnhancementItemSchema = z
@@ -188,7 +201,7 @@ export const CommunityPlanAIEnhancementSchema = z
 /**
  * Binds the strict narration-only payload to the deterministic plan item IDs.
  * The base schema enforces the fixed two-item MVP shape; this schema also
- * rejects missing, extra, or substituted IDs before narration is merged.
+ * missing, extra, or substituted IDs before narration is merged.
  */
 export const createCommunityPlanAIEnhancementSchema = (
   expectedItemIds: readonly string[]
@@ -226,15 +239,16 @@ export const CommunityPlanSchema = z
     plan_id: z.string(),
     community_id: z.literal("tongzilin"),
     generated_at: z.string(),
-    items: z.array(CommunityPlanItemSchema),
+    items: z.array(CommunityPlanItemSchema).length(2),
     total_duration_minutes: z.literal(120),
+    route_kind: CommunityPlanRouteKindSchema,
     generation_source: CommunityPlanGenerationSourceSchema,
     ai_status: CommunityPlanAiStatusSchema,
+    generated_by: z.string().min(1),
     usage: CommunityPlanUsageSchema.optional()
   })
   .strict()
   .superRefine((plan, ctx) => {
-    // Exactly one place_visit and one event_attend for the MVP
     const placeVisits = plan.items.filter((i) => i.type === "place_visit");
     const eventAttends = plan.items.filter((i) => i.type === "event_attend");
 

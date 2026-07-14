@@ -1,4 +1,5 @@
 export * from "./client";
+export * from "./community-plan";
 export * from "./contracts";
 export * from "./enums";
 export * from "./media";

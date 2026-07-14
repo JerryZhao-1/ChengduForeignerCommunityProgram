@@ -78,8 +78,10 @@ const canonicalBundle = {
       }
     ],
     total_duration_minutes: 120,
+    route_kind: "place_event",
     generation_source: "rule_based",
-    ai_status: "not_configured"
+    ai_status: "not_configured",
+    generated_by: "tongzilin-rule-engine-v1"
   },
   markers: [placeProjection],
   places: [placeProjection],
