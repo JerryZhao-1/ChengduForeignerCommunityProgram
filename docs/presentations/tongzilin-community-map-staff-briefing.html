@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="桐梓林社区地图项目工作人员展示与运营说明" />
+  <title>把社区装进一张可参与的地图</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+SC:wght@400;500;600;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet" />
+  <style>
+    /* === THEME TOKENS === */
+    :root {
+      --stage-bg: #073f3c;
+      --slide-bg: #f4ecd9;
+      --green: #0c5c57;
+      --green-deep: #073f3c;
+      --green-soft: #d9e9df;
+      --cream: #f4ecd9;
+      --paper: #fffaf0;
+      --ink: #163230;
+      --muted: #5d716c;
+      --orange: #ec963f;
+      --orange-deep: #d86f28;
+      --yellow: #f5ca72;
+      --line: #cbbd9d;
+      --font-display: "IBM Plex Sans SC", sans-serif;
+      --font-hand: "Ma Shan Zheng", cursive;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* === RESET === */
+    * { box-sizing: border-box; }
+    h1, h2, h3, p, ul { margin: 0; }
+    button { font: inherit; }
+
+    /* ===========================================
+       FIXED 16:9 STAGE: MANDATORY BASE STYLES
+       Include this ENTIRE file in every presentation.
+       Slides are authored at 1920×1080 and scaled as a whole.
+       =========================================== */
+
+    /* 1. Lock the browser viewport */
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--stage-bg, #000);
+    }
+
+    /* 2. Full-window deck viewport */
+    .deck-viewport {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        background: var(--stage-bg, #000);
+    }
+
+    /* 3. Fixed 16:9 design canvas.
+       JavaScript sets transform: translate(...) scale(...). */
+    .deck-stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        transform-origin: 0 0;
+        background: var(--slide-bg, #fff);
+    }
+
+    /* 4. Slides stack inside the fixed stage.
+       Content must be laid out at 1920×1080, not reflowed per device. */
+    .slide {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        display: block;
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+        background: var(--slide-bg, #fff);
+    }
+
+    .slide.active,
+    .slide.visible {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 1;
+    }
+
+    /* 5. Keep media inside authored slide bounds */
+    img,
+    video,
+    canvas,
+    svg {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    /* 6. Presentation chrome stays outside the slide design system */
+    .deck-controls {
+        position: fixed;
+        left: 50%;
+        bottom: 22px;
+        transform: translateX(-50%);
+        z-index: 1000;
+    }
+
+    /* 7. Print one fixed-size slide per page */
+    @media print {
+        @page {
+            size: 1920px 1080px;
+            margin: 0;
+        }
+
+        html,
+        body {
+            width: 1920px;
+            height: auto;
+            overflow: visible;
+            background: #fff;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .deck-viewport {
+            position: static;
+            overflow: visible;
+            background: #fff;
+        }
+
+        .deck-stage {
+            position: static;
+            width: auto;
+            height: auto;
+            transform: none !important;
+            background: none;
+        }
+
+        .slide {
+            position: relative;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            width: 1920px;
+            height: 1080px;
+            break-after: page;
+            page-break-after: always;
+        }
+
+        .slide:last-child {
+            break-after: auto;
+            page-break-after: auto;
+        }
+
+        .slide .reveal,
+        .slide .reveal-left,
+        .slide .reveal-scale {
+            opacity: 1 !important;
+            transform: none !important;
+            visibility: visible !important;
+        }
+
+        .deck-controls,
+        .progress-track,
+        .edit-toggle,
+        .edit-hotzone,
+        .notes-panel,
+        .save-toast {
+            display: none !important;
+        }
+    }
+
+    /* 8. Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* === SHARED MAP ATMOSPHERE === */
+    .slide { color: var(--ink); font-family: var(--font-display); }
+    .map-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: linear-gradient(rgba(12, 92, 87, .075) 2px, transparent 2px), linear-gradient(90deg, rgba(12, 92, 87, .075) 2px, transparent 2px);
+      background-size: 76px 76px;
+    }
+    .map-road { position: absolute; height: 42px; background: #ddcfb1; border: 5px solid var(--cream); box-shadow: 0 0 0 2px #c3b28c; opacity: .78; }
+    .map-road.a { width: 2200px; left: -130px; top: 760px; transform: rotate(-5deg); }
+    .map-road.b { width: 1300px; left: 1100px; top: 310px; transform: rotate(71deg); }
+    .map-road.c { width: 980px; left: 1050px; top: 290px; transform: rotate(18deg); }
+    .pin {
+      width: 78px; height: 94px; background: var(--orange); border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg); position: relative; box-shadow: 9px 9px 0 rgba(7,63,60,.17);
+    }
+    .pin::after { content: ""; position: absolute; width: 28px; height: 28px; border-radius: 50%; background: var(--cream); left: 25px; top: 24px; }
+    .corner-pin { position: absolute; right: 86px; top: 73px; transform: scale(.7); }
+
+    /* === GLOBAL SLIDE FRAME === */
+    .slide-inner { position: absolute; inset: 0; padding: 78px 92px 68px; }
+    .kicker { font-size: 19px; font-weight: 700; letter-spacing: 4px; color: var(--green); text-transform: uppercase; }
+    .slide-title { font-size: 72px; line-height: 1.12; letter-spacing: -3px; max-width: 1420px; color: var(--green-deep); }
+    .slide-title.compact { font-size: 64px; max-width: 1660px; }
+    .slide-subtitle { margin-top: 22px; font-size: 28px; line-height: 1.5; color: var(--muted); max-width: 1250px; }
+    .topline { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--green); padding-bottom: 22px; margin-bottom: 44px; }
+    .section-tag { border: 2px solid var(--green); border-radius: 999px; padding: 8px 18px; font-size: 18px; font-weight: 600; letter-spacing: 2px; }
+    .slide-number { position: absolute; right: 92px; bottom: 50px; font-size: 19px; font-weight: 700; letter-spacing: 3px; color: var(--muted); }
+    .footline { position: absolute; left: 92px; bottom: 50px; font-size: 18px; color: var(--muted); letter-spacing: 1px; }
+
+    /* === ENTRANCE ANIMATIONS === */
+    .reveal, .reveal-left, .reveal-scale { opacity: 0; transition: opacity .5s var(--ease), transform .5s var(--ease); }
+    .reveal { transform: translateY(32px); }
+    .reveal-left { transform: translateX(-45px); }
+    .reveal-scale { transform: scale(.94); }
+    .slide.visible .reveal, .slide.visible .reveal-left, .slide.visible .reveal-scale,
+    .slide.active .reveal, .slide.active .reveal-left, .slide.active .reveal-scale { opacity: 1; transform: none; }
+    .d1 { transition-delay: .08s; } .d2 { transition-delay: .18s; } .d3 { transition-delay: .28s; } .d4 { transition-delay: .38s; } .d5 { transition-delay: .48s; }
+
+    /* === COVER SLIDE === */
+    .cover .map-grid { opacity: 1; }
+    .cover-block { position: absolute; left: 90px; top: 80px; width: 1170px; height: 920px; padding: 82px 90px; background: var(--green); color: #fff9ec; border: 3px solid var(--green-deep); box-shadow: 22px 22px 0 var(--orange); }
+    .cover-stamp { display: inline-flex; align-items: center; gap: 18px; border: 2px solid #93d0bd; border-radius: 999px; padding: 13px 22px; font-size: 19px; font-weight: 600; letter-spacing: 4px; }
+    .cover-stamp i { width: 13px; height: 13px; background: var(--orange); border-radius: 50%; }
+    .cover h1 { margin-top: 108px; font-size: 112px; line-height: 1.16; letter-spacing: -6px; }
+    .cover-hand { display: inline-block; margin-top: 26px; color: #f7c879; font: 70px var(--font-hand); transform: rotate(-3deg); }
+    .cover-sub { margin-top: 42px; font-size: 28px; opacity: .86; }
+    .cover-meta { position: absolute; left: 90px; bottom: 68px; font-size: 19px; letter-spacing: 2px; }
+    .cover-pin { position: absolute; right: 180px; top: 145px; transform: scale(2.7) rotate(-45deg); }
+    .cover-note { position: absolute; right: 82px; bottom: 76px; width: 475px; padding: 34px 38px; background: var(--paper); border: 3px solid var(--green); color: var(--green); font-size: 25px; font-weight: 600; line-height: 1.5; transform: rotate(2deg); }
+    .cover-note b { color: var(--orange-deep); }
+
+    /* === BIG STATEMENT AND NEEDS === */
+    .statement-layout { display: grid; grid-template-columns: 1.08fr .92fr; gap: 70px; margin-top: 78px; align-items: center; }
+    .statement { font-size: 76px; line-height: 1.16; letter-spacing: -4px; color: var(--green-deep); }
+    .statement em { font: 82px var(--font-hand); color: var(--orange-deep); font-style: normal; white-space: nowrap; }
+    .need-list { display: grid; gap: 20px; }
+    .need { background: var(--paper); border: 3px solid var(--green); box-shadow: 9px 9px 0 var(--yellow); padding: 27px 30px; display: grid; grid-template-columns: 64px 1fr; gap: 22px; align-items: center; }
+    .need b { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: white; font-size: 24px; }
+    .need strong { display: block; font-size: 27px; margin-bottom: 5px; }
+    .need span { font-size: 21px; color: var(--muted); }
+
+    /* === THREE MODULES === */
+    .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; margin-top: 62px; }
+    .module { min-height: 520px; border: 3px solid var(--green); padding: 42px 38px; position: relative; overflow: hidden; background: var(--paper); }
+    .module:nth-child(2) { background: var(--green); color: white; }
+    .module:nth-child(3) { background: var(--yellow); }
+    .module-index { font-size: 19px; letter-spacing: 3px; font-weight: 700; opacity: .65; }
+    .module h3 { margin-top: 135px; font-size: 55px; line-height: 1; }
+    .module p { margin-top: 25px; font-size: 24px; line-height: 1.55; max-width: 390px; }
+    .module-icon { position: absolute; right: 35px; top: 38px; font-size: 78px; }
+    .module-verb { position: absolute; bottom: 34px; left: 38px; font: 42px var(--font-hand); color: var(--orange-deep); }
+    .module:nth-child(2) .module-verb { color: var(--yellow); }
+
+    /* === SCREENSHOT FRAMES === */
+    .screen { background: white; border: 3px solid var(--green-deep); box-shadow: 14px 14px 0 rgba(12,92,87,.18); overflow: hidden; }
+    .screen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .screen-bar { height: 35px; background: var(--green-deep); display: flex; gap: 9px; align-items: center; padding-left: 15px; }
+    .screen-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--orange); }
+    .screen-bar i:nth-child(2) { background: var(--yellow); }
+    .screen-bar i:nth-child(3) { background: #78bda7; }
+    .screen-body { height: calc(100% - 35px); }
+    .screen-label { display: inline-block; margin-top: 20px; font-size: 20px; font-weight: 700; color: var(--green); }
+    .shot-caption { font-size: 19px; line-height: 1.4; color: var(--muted); margin-top: 16px; }
+
+    /* === USER PATH === */
+    .journey-layout { display: grid; grid-template-columns: .72fr 1.28fr; gap: 72px; margin-top: 28px; align-items: center; }
+    .journey-phone { justify-self: center; }
+    .journey-copy { padding-top: 6px; }
+    .journey-step { display: grid; grid-template-columns: 74px 1fr; gap: 22px; margin-bottom: 34px; align-items: start; }
+    .journey-step b { width: 68px; height: 68px; display: grid; place-items: center; border-radius: 50%; background: var(--orange); color: white; font-size: 25px; }
+    .journey-step h3 { font-size: 32px; margin-bottom: 8px; }
+    .journey-step p { font-size: 23px; line-height: 1.45; color: var(--muted); }
+
+    /* === FEATURE SLIDES === */
+    .feature-layout { display: grid; grid-template-columns: .72fr 1.28fr; gap: 42px; margin-top: 30px; align-items: center; }
+    .feature-copy h2 { font-size: 82px; line-height: 1; color: var(--green); }
+    .feature-copy .hand { font: 54px var(--font-hand); color: var(--orange-deep); margin: 20px 0 34px; }
+    .feature-points { display: grid; gap: 18px; }
+    .feature-point { display: flex; gap: 18px; align-items: center; padding: 18px 20px; border-bottom: 2px solid var(--line); font-size: 24px; line-height: 1.4; }
+    .feature-point i { width: 14px; height: 14px; background: var(--orange); border-radius: 50%; flex: 0 0 auto; }
+    .dual-shot { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: center; justify-items: center; }
+    .dual-shot .screen { height: 548px; }
+    .dual-shot .screen:first-child { transform: rotate(-1.5deg) translateY(12px); }
+    .dual-shot .screen:last-child { transform: rotate(1.5deg) translateY(-10px); }
+
+    /* === MOBILE PHONE SHOTS === */
+    .phone-device { position: relative; width: 294px; height: 636px; background: #101817; border: 4px solid #092f2d; border-radius: 42px; box-shadow: 13px 15px 0 rgba(12,92,87,.2); flex: 0 0 auto; }
+    .phone-device.large { width: 338px; height: 730px; }
+    .phone-device::before { content: ""; position: absolute; z-index: 2; top: 12px; left: 50%; width: 68px; height: 7px; transform: translateX(-50%); border-radius: 999px; background: #263332; }
+    .phone-device::after { content: ""; position: absolute; z-index: 2; bottom: 9px; left: 50%; width: 82px; height: 5px; transform: translateX(-50%); border-radius: 999px; background: #d8dfdd; }
+    .phone-screen { position: absolute; inset: 26px 11px 23px; overflow: hidden; border-radius: 25px; background: #f5f6f6; }
+    .phone-screen img { width: 100%; height: 100%; object-fit: contain; display: block; background: #f5f6f6; }
+    .phone-caption { margin-top: 14px; text-align: center; font-size: 19px; font-weight: 700; color: var(--green); }
+    .phone-pair { display: flex; gap: 34px; align-items: flex-start; justify-content: center; }
+    .phone-pair > div:first-child { transform: translateY(13px) rotate(-1deg); }
+    .phone-pair > div:last-child { transform: translateY(-8px) rotate(1deg); }
+    .place-detail-layout { display: grid; grid-template-columns: .78fr 1.22fr; gap: 88px; margin-top: 24px; align-items: center; }
+    .place-detail-phone { justify-self: center; }
+
+    /* === DISCOVER === */
+    .discover-layout { display: grid; grid-template-columns: .72fr 1.28fr; gap: 72px; margin-top: 22px; align-items: center; }
+    .discover-phone { justify-self: center; }
+    .quote-card { background: var(--green); color: white; padding: 48px 42px; border: 3px solid var(--green-deep); box-shadow: 13px 13px 0 var(--orange); }
+    .quote-card p { font-size: 38px; line-height: 1.45; }
+    .quote-card small { display: block; margin-top: 28px; font-size: 20px; color: #b9d8cf; }
+    .governance { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 13px; }
+    .governance span { border: 2px solid var(--green); border-radius: 999px; padding: 11px 17px; font-size: 20px; font-weight: 600; background: var(--paper); }
+
+    /* === BILINGUAL EXPERIENCE === */
+    .language-layout { display: grid; grid-template-columns: .72fr 1.28fr; gap: 72px; margin-top: 22px; align-items: center; }
+    .language-phone { justify-self: center; box-shadow: 13px 15px 0 var(--orange); }
+    .language-rules { display: grid; gap: 23px; }
+    .language-rule { background: var(--paper); border-left: 12px solid var(--green); padding: 27px 30px; }
+    .language-rule:nth-child(2) { border-color: var(--orange); }
+    .language-rule:nth-child(3) { border-color: var(--yellow); }
+    .language-rule h3 { font-size: 30px; }
+    .language-rule p { font-size: 22px; line-height: 1.5; color: var(--muted); margin-top: 8px; }
+
+    /* === ADMIN MONTAGE === */
+    .admin-grid { display: grid; grid-template-columns: 1.1fr .9fr; grid-template-rows: 310px 310px; gap: 24px; margin-top: 42px; }
+    .admin-grid .screen { height: 100%; }
+    .admin-grid .screen:first-child { grid-row: 1 / span 2; }
+    .admin-grid img { object-position: top left; }
+    .admin-badges { position: absolute; right: 94px; top: 185px; display: flex; gap: 12px; }
+    .admin-badges span { padding: 10px 15px; background: var(--yellow); border: 2px solid var(--green); font-size: 18px; font-weight: 700; }
+
+    /* === CLOSED LOOP FLOW === */
+    .loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 104px; align-items: stretch; }
+    .loop-step { min-height: 350px; position: relative; padding: 45px 35px; background: var(--paper); border: 3px solid var(--green); }
+    .loop-step::after { content: "→"; position: absolute; right: -46px; top: 126px; font-size: 65px; color: var(--orange-deep); z-index: 2; }
+    .loop-step:last-child::after { display: none; }
+    .loop-step b { display: block; color: var(--orange-deep); font-size: 19px; letter-spacing: 3px; }
+    .loop-step h3 { margin-top: 42px; font-size: 35px; line-height: 1.2; }
+    .loop-step p { margin-top: 18px; font-size: 22px; line-height: 1.5; color: var(--muted); }
+    .loop-result { position: absolute; left: 92px; bottom: 96px; font: 50px var(--font-hand); color: var(--green); }
+
+    /* === OPERATIONS TIMELINE === */
+    .ops-line { position: absolute; left: 170px; right: 170px; top: 540px; height: 8px; background: var(--green); }
+    .ops-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 17px; margin-top: 150px; }
+    .ops-step { text-align: center; position: relative; }
+    .ops-step .dot { width: 54px; height: 54px; border-radius: 50%; border: 8px solid var(--cream); background: var(--orange); margin: 78px auto 30px; box-shadow: 0 0 0 3px var(--green); }
+    .ops-step:nth-child(even) .dot { background: var(--yellow); }
+    .ops-step strong { font-size: 30px; display: block; }
+    .ops-step p { margin-top: 13px; font-size: 20px; line-height: 1.45; color: var(--muted); }
+    .ops-note { position: absolute; right: 110px; top: 250px; transform: rotate(2deg); padding: 18px 28px; background: var(--yellow); border: 3px solid var(--green); font: 34px var(--font-hand); }
+
+    /* === ROLES === */
+    .role-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 72px; }
+    .role { min-height: 450px; padding: 38px 30px; border: 3px solid var(--green); background: var(--paper); position: relative; }
+    .role:nth-child(2), .role:nth-child(4) { transform: translateY(35px); }
+    .role-icon { font-size: 58px; }
+    .role h3 { font-size: 33px; margin-top: 42px; }
+    .role p { font-size: 22px; line-height: 1.55; color: var(--muted); margin-top: 20px; }
+    .role strong { position: absolute; left: 30px; bottom: 30px; font: 32px var(--font-hand); color: var(--orange-deep); }
+
+    /* === CURRENT STATE === */
+    .state-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; margin-top: 74px; }
+    .state-card { min-height: 490px; padding: 46px; border: 3px solid var(--green); background: var(--paper); }
+    .state-card.ready { background: var(--green); color: white; }
+    .state-card h3 { font-size: 42px; }
+    .state-card ul { list-style: none; margin-top: 34px; display: grid; gap: 22px; }
+    .state-card li { display: grid; grid-template-columns: 30px 1fr; gap: 16px; align-items: start; font-size: 24px; line-height: 1.45; }
+    .state-card li::before { content: "✓"; color: var(--yellow); font-weight: 700; }
+    .state-card.pending li::before { content: "○"; color: var(--orange-deep); }
+    .state-card.ready .small { color: #b8d7cf; }
+    .state-card .small { margin-top: 28px; font-size: 20px; line-height: 1.5; color: var(--muted); }
+    .boundary { position: absolute; right: 255px; top: 50px; padding: 8px 18px; border: 3px solid var(--orange-deep); background: var(--yellow); font-size: 18px; font-weight: 700; transform: rotate(-2deg); }
+
+    /* === FUTURE / CLOSING === */
+    .future-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 68px; }
+    .future { min-height: 400px; padding: 38px; border: 3px solid var(--green); background: var(--paper); position: relative; }
+    .future:nth-child(2) { background: var(--yellow); }
+    .future:nth-child(3) { background: var(--green); color: white; }
+    .future b { font-size: 19px; letter-spacing: 3px; color: var(--orange-deep); }
+    .future:nth-child(3) b { color: var(--yellow); }
+    .future h3 { margin-top: 58px; font-size: 37px; line-height: 1.2; }
+    .future p { margin-top: 20px; font-size: 22px; line-height: 1.5; color: var(--muted); }
+    .future:nth-child(3) p { color: #c4ddd6; }
+    .closing-call { position: absolute; left: 92px; bottom: 88px; font: 48px var(--font-hand); color: var(--green); }
+    .closing-call span { color: var(--orange-deep); }
+
+    /* === OUTSIDE-STAGE CONTROLS === */
+    .deck-controls { display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: rgba(4, 35, 33, .88); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; color: white; opacity: 0; transition: opacity .25s ease; backdrop-filter: blur(8px); }
+    .deck-controls:hover, .deck-controls:focus-within { opacity: 1; }
+    .deck-controls button { width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: white; cursor: pointer; }
+    .deck-controls button:hover { background: rgba(255,255,255,.14); }
+    .deck-count { min-width: 76px; text-align: center; font: 500 13px var(--font-display); letter-spacing: 1px; }
+    .progress-track { position: fixed; left: 0; bottom: 0; height: 5px; width: 100%; background: rgba(255,255,255,.12); z-index: 1000; }
+    .progress-bar { height: 100%; width: 0; background: var(--orange); transition: width .35s var(--ease); }
+    .edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+    .edit-toggle { position: fixed; top: 16px; left: 16px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.3); background: var(--green-deep); color: white; opacity: 0; pointer-events: none; transition: opacity .3s ease; z-index: 10001; cursor: pointer; }
+    .edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+    .edit-mode [data-editable] { outline: 3px dashed var(--orange); outline-offset: 7px; cursor: text; }
+    .notes-panel { position: fixed; right: 20px; top: 20px; width: min(440px, calc(100vw - 40px)); max-height: calc(100vh - 40px); overflow: auto; padding: 22px; background: rgba(4,35,33,.96); color: white; border: 1px solid rgba(255,255,255,.2); border-radius: 14px; z-index: 10002; font: 15px/1.65 var(--font-display); display: none; }
+    .notes-panel.show { display: block; }
+    .notes-panel b { color: var(--yellow); display: block; margin-bottom: 8px; }
+    .save-toast { position: fixed; top: 18px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--green-deep); color: white; padding: 12px 20px; border-radius: 999px; z-index: 10003; transition: transform .35s var(--ease); font: 14px var(--font-display); }
+    .save-toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="deck-viewport">
+    <main class="deck-stage" id="deckStage" aria-live="polite">
+      <!-- 01 / Cover -->
+      <section class="slide cover active visible" data-notes="开场先不讲技术。用一句话说明：这不是一张只有坐标的地图，而是居民获取信息、参加活动、贡献内容，工作人员持续维护的社区入口。">
+        <div class="map-grid"></div><div class="map-road a"></div><div class="map-road b"></div><div class="map-road c"></div>
+        <div class="cover-block">
+          <div class="cover-stamp reveal d1"><i></i>TONGZILIN COMMUNITY MAP</div>
+          <h1 class="reveal d2" data-editable>把社区装进一张<br />可参与的地图</h1>
+          <div class="cover-hand reveal d3" data-editable>从看见，到参与</div>
+          <p class="cover-sub reveal d4" data-editable>桐梓林社区地图项目展示与运营说明</p>
+          <div class="cover-meta" data-editable>桐梓林社区地图项目组 · 2026.07.14</div>
+        </div>
+        <div class="pin cover-pin"></div>
+        <div class="cover-note reveal d5" data-editable><b>Events · Discover · Places</b><br />居民使用，工作人员维护，社区共同补充。</div>
+      </section>
+
+      <!-- 02 / Why -->
+      <section class="slide" data-notes="对应三个真实需求：居民不知道去哪里找可信信息；外籍居民面临语言和入口障碍；工作人员需要一个统一维护入口。强调项目只服务桐梓林单社区。">
+        <div class="map-grid"></div><div class="slide-inner">
+          <div class="topline"><span class="kicker">01 / WHY IT EXISTS</span><span class="section-tag">项目价值</span></div>
+          <div class="statement-layout">
+            <div class="statement reveal-left d1" data-editable>让社区信息不再散落，<br />让每个人都能<em>看见、参与、补充</em>。</div>
+            <div class="need-list">
+              <div class="need reveal d2"><b>看</b><div><strong data-editable>居民更快找到可信信息</strong><span data-editable>活动、地点、公告进入同一个入口</span></div></div>
+              <div class="need reveal d3"><b>懂</b><div><strong data-editable>中外居民减少语言门槛</strong><span data-editable>正式内容维护中英双语，UGC 保留原文</span></div></div>
+              <div class="need reveal d4"><b>管</b><div><strong data-editable>工作人员统一维护内容</strong><span data-editable>发布、审核、下架与运营留痕集中处理</span></div></div>
+            </div>
+          </div>
+          <div class="footline">当前聚焦：成都桐梓林单社区</div><div class="slide-number">02 / 15</div>
+        </div>
+      </section>
+
+      <!-- 03 / Product overview -->
+      <section class="slide" data-notes="三个模块是平级入口，不是谁附属于谁。Events 连接参与，Discover 连接交流，Places 连接线下空间。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">02 / PRODUCT MAP</span><span class="section-tag">产品全景</span></div>
+          <h2 class="slide-title reveal d1" data-editable>一张社区地图，三个日常入口</h2>
+          <div class="module-grid">
+            <article class="module reveal-scale d2"><div class="module-index">01 / EVENTS</div><div class="module-icon">◷</div><h3>活动</h3><p data-editable>浏览活动、报名参加、查看票券，并支持现场核销。</p><div class="module-verb">一起参与</div></article>
+            <article class="module reveal-scale d3"><div class="module-index">02 / DISCOVER</div><div class="module-icon">✦</div><h3>发现</h3><p data-editable>阅读邻里分享、发布帖子、评论互动，并提供举报治理。</p><div class="module-verb">彼此连接</div></article>
+            <article class="module reveal-scale d4"><div class="module-index">03 / PLACES</div><div class="module-icon">⌖</div><h3>地点</h3><p data-editable>按列表或地图找地点，查看详情、导航、收藏与分享。</p><div class="module-verb">发现附近</div></article>
+          </div>
+          <div class="footline">可浏览 · 可参与 · 可维护</div><div class="slide-number">03 / 15</div>
+        </div>
+      </section>
+
+      <!-- 04 / Resident journey -->
+      <section class="slide" data-notes="用首页截图说明居民不需要理解后台或技术。从首页进入五个主入口，再完成浏览、参与，最终回到“我的”查看个人记录。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">03 / RESIDENT JOURNEY</span><span class="section-tag">居民使用</span></div>
+          <h2 class="slide-title reveal d1" data-editable>打开小程序，从“我想知道”走到“我已参与”</h2>
+          <div class="journey-layout">
+            <div class="journey-phone reveal-scale d2"><div class="phone-device large"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/home-phone.png" alt="手机端社区导览首页" /></div></div><p class="phone-caption">真实手机视图 · 社区导览首页</p></div>
+            <div class="journey-copy">
+              <div class="journey-step reveal d2"><b>1</b><div><h3 data-editable>浏览</h3><p data-editable>从 Home 查看近期活动、社区公告和地点入口。</p></div></div>
+              <div class="journey-step reveal d3"><b>2</b><div><h3 data-editable>参与</h3><p data-editable>报名活动、评论帖子、收藏地点或发起导航。</p></div></div>
+              <div class="journey-step reveal d4"><b>3</b><div><h3 data-editable>回看</h3><p data-editable>在 Me 查看报名、收藏、帖子、评论和通知。</p></div></div>
+            </div>
+          </div>
+          <div class="slide-number">04 / 15</div>
+        </div>
+      </section>
+
+      <!-- 05 / Places browse -->
+      <section class="slide" data-notes="先讲居民如何发现地点：列表适合分类筛选和快速比较，地图适合判断方位与距离。两种入口读取同一批已发布地点。地图截图来自仓库中已完成的手机端验证记录。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">04 / PLACES — DISCOVER</span><span class="section-tag">核心功能</span></div>
+          <div class="feature-layout">
+            <div class="feature-copy"><h2 class="reveal-left d1">Places ①</h2><div class="hand reveal d2">先找到附近</div><div class="feature-points"><div class="feature-point reveal d2"><i></i><span data-editable>列表查看推荐、分类与地点卡片</span></div><div class="feature-point reveal d3"><i></i><span data-editable>地图判断方位，点选地点摘要</span></div><div class="feature-point reveal d4"><i></i><span data-editable>同一批已发布地点，两种浏览方式</span></div></div></div>
+            <div class="phone-pair"><div class="reveal-scale d2"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/places-list-phone.png" alt="手机端地点列表" /></div></div><p class="phone-caption">01 / 列表筛选</p></div><div class="reveal-scale d3"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/places-map-phone.png" alt="手机端地点地图" /></div></div><p class="phone-caption">02 / 地图定位</p></div></div>
+          </div>
+          <div class="footline">公开页面只展示已发布且属于桐梓林社区的地点</div><div class="slide-number">05 / 15</div>
+        </div>
+      </section>
+
+      <!-- 06 / Places detail -->
+      <section class="slide" data-notes="这一页只讲一次决策：居民进入地点详情后，可以核对图片、地址、营业时间和双语介绍，再收藏、分享或发起导航。拆成独立一页是为了让详情内容在现场清晰可见。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">05 / PLACES — DECIDE</span><span class="section-tag">核心功能</span></div>
+          <div class="place-detail-layout">
+            <div class="place-detail-phone reveal-scale d2"><div class="phone-device large"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/place-detail-phone.png" alt="手机端地点详情" /></div></div><p class="phone-caption">真实地点详情 · 信息集中核对</p></div>
+            <div class="feature-copy"><h2 class="reveal-left d1">Places ②</h2><div class="hand reveal d2">看清楚，再出发</div><div class="feature-points"><div class="feature-point reveal d2"><i></i><span data-editable>图片、地址、营业时间与双语介绍</span></div><div class="feature-point reveal d3"><i></i><span data-editable>从列表或地图进入同一个地点详情</span></div><div class="feature-point reveal d4"><i></i><span data-editable>导航、收藏与分享完成线下连接</span></div></div></div>
+          </div>
+          <div class="footline">详情字段按需加载，列表与地图只保留轻量公开信息</div><div class="slide-number">06 / 15</div>
+        </div>
+      </section>
+
+      <!-- 07 / Events -->
+      <section class="slide" data-notes="活动闭环不仅是展示一张海报。居民从列表进入详情，提交报名后获得票券；工作人员可在后台管理活动并核销。重复报名、活动满员等状态已有规则。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">06 / EVENTS</span><span class="section-tag">核心功能</span></div>
+          <div class="feature-layout">
+            <div class="feature-copy"><h2 class="reveal-left d1">Events</h2><div class="hand reveal d2">从看见活动，到真正到场</div><div class="feature-points"><div class="feature-point reveal d2"><i></i><span data-editable>活动列表与双语详情</span></div><div class="feature-point reveal d3"><i></i><span data-editable>报名、重复报名提示与我的报名</span></div><div class="feature-point reveal d4"><i></i><span data-editable>票券生成与工作人员核销</span></div></div></div>
+            <div class="phone-pair"><div class="reveal-scale d2"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/events-list-phone.png" alt="手机端活动列表" /></div></div><p class="phone-caption">发现活动</p></div><div class="reveal-scale d3"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/event-signup-phone.png" alt="手机端活动报名结果与票券" /></div></div><p class="phone-caption">报名成功 · 获得票券</p></div></div>
+          </div>
+          <div class="slide-number">07 / 15</div>
+        </div>
+      </section>
+
+      <!-- 08 / Discover -->
+      <section class="slide" data-notes="Discover 是居民参与感最强的区域。UGC 可以是中文或英文，保留作者原文；后台提供帖子、评论、举报和用户治理入口。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">07 / DISCOVER</span><span class="section-tag">核心功能</span></div>
+          <h2 class="slide-title reveal d1" data-editable>社区不只被“介绍”，也由居民共同讲述</h2>
+          <div class="discover-layout">
+            <div class="discover-phone reveal-scale d2"><div class="phone-device large"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/discover-feed-phone.png" alt="手机端社区发现内容流" /></div></div><p class="phone-caption">中英文内容共享一个社区内容流</p></div>
+            <div><div class="quote-card reveal d3"><p data-editable>“分享一条路况、一次活动、一个问题，也是在补充社区地图。”</p><small>居民发帖 · 评论互动 · 点赞收藏</small></div><div class="governance reveal d4"><span>发帖</span><span>评论</span><span>举报</span><span>隐藏</span><span>恢复</span><span>审计</span></div></div>
+          </div>
+          <div class="slide-number">08 / 15</div>
+        </div>
+      </section>
+
+      <!-- 09 / Bilingual -->
+      <section class="slide" data-notes="强调双语的边界：正式内容由工作人员维护中英文，不用机器翻译替代内容审核；居民原创内容保持原语言。用户可以在语言设置中切换整个界面。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">08 / BILINGUAL EXPERIENCE</span><span class="section-tag">微信与双语</span></div>
+          <h2 class="slide-title reveal d1" data-editable>让语言成为入口，而不是门槛</h2>
+          <div class="language-layout">
+            <div class="phone-device large language-phone reveal-scale d2"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/home-en-phone.png" alt="手机端英文社区导览首页" /></div></div>
+            <div class="language-rules">
+              <div class="language-rule reveal d2"><h3 data-editable>正式内容：中英双语维护</h3><p data-editable>活动、地点、公告等使用中文和英文字段，发布前由内容负责人补齐。</p></div>
+              <div class="language-rule reveal d3"><h3 data-editable>居民内容：保留作者原文</h3><p data-editable>帖子和评论不伪造另一语言版本，只标注原始语言并本地化界面。</p></div>
+              <div class="language-rule reveal d4"><h3 data-editable>五个入口：随语言即时切换</h3><p data-editable>Home、Events、Discover、Places、Me 及状态提示统一切换。</p></div>
+            </div>
+          </div>
+          <div class="slide-number">09 / 15</div>
+        </div>
+      </section>
+
+      <!-- 10 / Admin -->
+      <section class="slide" data-notes="后台面向社区工作人员，不要求直接操作数据库。用三张截图说明地点、活动和内容治理已经有统一入口；侧边栏还包括公告、文件和操作日志。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">09 / STAFF CONSOLE</span><span class="section-tag">工作人员后台</span></div>
+          <h2 class="slide-title reveal d1" data-editable>一个轻后台，维护居民看到的每一条正式信息</h2>
+          <div class="admin-badges reveal d2"><span>公告</span><span>文件</span><span>日志</span></div>
+          <div class="admin-grid">
+            <div class="screen reveal-scale d2"><div class="screen-bar"><i></i><i></i><i></i></div><div class="screen-body"><img src="tongzilin-community-map-staff-briefing-assets/admin-places.png" alt="后台地点管理" /></div></div>
+            <div class="screen reveal-scale d3"><div class="screen-bar"><i></i><i></i><i></i></div><div class="screen-body"><img src="tongzilin-community-map-staff-briefing-assets/admin-events.png" alt="后台活动管理" /></div></div>
+            <div class="screen reveal-scale d4"><div class="screen-bar"><i></i><i></i><i></i></div><div class="screen-body"><img src="tongzilin-community-map-staff-briefing-assets/admin-posts.png" alt="后台帖子治理" /></div></div>
+          </div>
+          <div class="footline">活动管理 · 帖子治理 · 地点管理 · 公告管理 · 文件回溯 · 操作日志</div><div class="slide-number">10 / 15</div>
+        </div>
+      </section>
+
+      <!-- 11 / Closed loop -->
+      <section class="slide" data-notes="用地点作为最清晰示例。工作人员在后台保存并发布，统一 API 做字段校验和权限控制，前台列表/地图/详情读取同一份数据。草稿不会被公开。">
+        <div class="map-grid"></div><div class="slide-inner">
+          <div class="topline"><span class="kicker">10 / FRONT–BACK LOOP</span><span class="section-tag">前后台闭环</span></div>
+          <h2 class="slide-title reveal d1" data-editable>后台维护一次，前台多个入口同步生效</h2>
+          <div class="loop">
+            <article class="loop-step reveal d2"><b>STEP 01</b><h3 data-editable>采集与编辑</h3><p data-editable>填写名称、分类、坐标、图片和中英文介绍。</p></article>
+            <article class="loop-step reveal d3"><b>STEP 02</b><h3 data-editable>审核并发布</h3><p data-editable>草稿可继续补充；只有 published 内容进入公开端。</p></article>
+            <article class="loop-step reveal d4"><b>STEP 03</b><h3 data-editable>统一 API 校验</h3><p data-editable>字段、权限、状态和公开边界在同一层处理。</p></article>
+            <article class="loop-step reveal d5"><b>STEP 04</b><h3 data-editable>居民看到更新</h3><p data-editable>列表、地图摘要和详情读取正确范围的数据。</p></article>
+          </div>
+          <div class="loop-result">一次维护，不是四处复制。</div><div class="slide-number">11 / 15</div>
+        </div>
+      </section>
+
+      <!-- 12 / Operations -->
+      <section class="slide" data-notes="这是交接给工作人员的日常节奏。强调先草稿、后审核、再发布；双语和坐标等不完整时不要勉强上线；过期或错误信息要维护或下架。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">11 / DAILY OPERATIONS</span><span class="section-tag">日常运营</span></div>
+          <h2 class="slide-title compact reveal d1" data-editable>内容不是“一次录入”，而是一条持续维护的链路</h2>
+          <div class="ops-note reveal d2">先草稿，再发布</div><div class="ops-line"></div>
+          <div class="ops-grid">
+            <div class="ops-step reveal d2"><div class="dot"></div><strong>采集</strong><p>现场、活动方<br />或志愿者提交</p></div>
+            <div class="ops-step reveal d2"><div class="dot"></div><strong>草稿</strong><p>先保存，不对<br />居民公开</p></div>
+            <div class="ops-step reveal d3"><div class="dot"></div><strong>双语审核</strong><p>补齐正式内容<br />核对事实</p></div>
+            <div class="ops-step reveal d3"><div class="dot"></div><strong>发布</strong><p>状态变更后<br />进入公开端</p></div>
+            <div class="ops-step reveal d4"><div class="dot"></div><strong>维护</strong><p>更新图片、时间<br />与联系方式</p></div>
+            <div class="ops-step reveal d4"><div class="dot"></div><strong>下架</strong><p>失效内容及时<br />停止公开</p></div>
+          </div>
+          <div class="slide-number">12 / 15</div>
+        </div>
+      </section>
+
+      <!-- 13 / Roles -->
+      <section class="slide" data-notes="社区运营不是一个人包办。社区工作人员把控发布与治理，内容负责人确保双语质量，活动组织者提供准确资料，志愿者参与点位采集与信息更新。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">12 / PARTICIPATION</span><span class="section-tag">共同运营</span></div>
+          <h2 class="slide-title reveal d1" data-editable>每个人贡献一小步，社区信息就能持续更新</h2>
+          <div class="role-grid">
+            <article class="role reveal d2"><div class="role-icon">◎</div><h3 data-editable>社区工作人员</h3><p data-editable>决定发布、下架和治理，维护公告、地点与运营节奏。</p><strong>把好入口</strong></article>
+            <article class="role reveal d3"><div class="role-icon">文</div><h3 data-editable>内容负责人</h3><p data-editable>核对事实，补齐中英双语正式内容，避免占位信息上线。</p><strong>保证可信</strong></article>
+            <article class="role reveal d4"><div class="role-icon">◷</div><h3 data-editable>活动组织者</h3><p data-editable>提交活动资料、更新状态，现场配合报名名单与票券核销。</p><strong>连接参与</strong></article>
+            <article class="role reveal d5"><div class="role-icon">⌖</div><h3 data-editable>社区志愿者</h3><p data-editable>采集点位、补充图片与变更线索，由工作人员审核后公开。</p><strong>发现变化</strong></article>
+          </div>
+          <div class="slide-number">13 / 15</div>
+        </div>
+      </section>
+
+      <!-- 14 / Status and boundaries -->
+      <section class="slide" data-notes="这一页要诚实。可以说核心功能具备演示和联调基础，但不能说已经正式公开上线。仓库最新交接结论仍为 blocked，剩余事项主要是人工账号、生产配置、真机矩阵和微信审核。">
+        <div class="slide-inner">
+          <div class="topline"><span class="kicker">13 / CURRENT STATE</span><span class="section-tag">现状与边界</span></div>
+          <h2 class="slide-title reveal d1" data-editable>功能闭环已经成形，公开发布还差最后一公里</h2>
+          <div class="boundary reveal d2">可演示 ≠ 已公开上线</div>
+          <div class="state-layout">
+            <article class="state-card ready reveal-scale d2"><h3>已经具备</h3><ul><li data-editable>Events、Discover、Places 三个核心模块</li><li data-editable>移动端、后台与统一 API 的基本闭环</li><li data-editable>中英双语界面和正式内容发布门禁</li><li data-editable>CloudBase 开发环境与真实地点/活动验证基础</li></ul><p class="small">适合继续进行内容准备、工作人员培训和全流程验收。</p></article>
+            <article class="state-card pending reveal-scale d3"><h3>公开发布前仍需</h3><ul><li data-editable>微信账号、备案、域名及隐私合规证据</li><li data-editable>生产配置、安全规则与后台操作员验证</li><li data-editable>iOS / Android 真机验收和内容媒体审计</li><li data-editable>上传审核、发布审批与上线值守安排</li></ul><p class="small">这些事项需要账号负责人、CloudBase 操作员、QA 与发布负责人共同完成。</p></article>
+          </div>
+          <div class="slide-number">14 / 15</div>
+        </div>
+      </section>
+
+      <!-- 15 / Future and invitation -->
+      <section class="slide" data-notes="最后不要落在技术清单上，而是邀请工作人员参与。近期把上线条件补齐；随后建立内容节奏和责任人；再用居民反馈持续改进，但仍专注桐梓林单社区。">
+        <div class="map-grid"></div><div class="slide-inner">
+          <div class="topline"><span class="kicker">14 / NEXT TOGETHER</span><span class="section-tag">后续方向</span></div>
+          <h2 class="slide-title reveal d1" data-editable>下一步，不只是“把系统上线”——而是让它在社区里活起来</h2>
+          <div class="future-grid">
+            <article class="future reveal d2"><b>NOW / 上线闭环</b><h3 data-editable>完成账号、配置、真机与审核</h3><p data-editable>明确负责人和证据，清理测试数据，准备可信的首批正式内容。</p></article>
+            <article class="future reveal d3"><b>NEXT / 常态运营</b><h3 data-editable>建立内容日历与维护责任</h3><p data-editable>持续更新地点、活动和公告，形成双语审核与下架机制。</p></article>
+            <article class="future reveal d4"><b>LATER / 持续改进</b><h3 data-editable>用居民反馈优化社区入口</h3><p data-editable>观察真实使用、通知触达和内容需求，仍然聚焦桐梓林单社区。</p></article>
+          </div>
+          <div class="closing-call reveal d5" data-editable>从今天开始：<span>一起补齐第一批真实内容。</span></div><div class="slide-number">15 / 15</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Outside-stage controls remain usable at every viewport size. -->
+  <nav class="deck-controls" aria-label="幻灯片导航">
+    <button id="prevBtn" aria-label="上一页">←</button><span class="deck-count" id="deckCount">01 / 15</span><button id="nextBtn" aria-label="下一页">→</button><button id="notesBtn" aria-label="演讲者备注">N</button>
+  </nav>
+  <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+  <div class="edit-hotzone" title="进入编辑模式"></div><button class="edit-toggle" id="editToggle" title="编辑模式（E）">✎</button>
+  <aside class="notes-panel" id="notesPanel" aria-live="polite"></aside><div class="save-toast" id="saveToast">修改已保存在此浏览器</div>
+
+  <script>
+    /* === SLIDE PRESENTATION CONTROLLER === */
+    class SlidePresentation {
+      constructor() {
+        this.slides = Array.from(document.querySelectorAll(".slide"));
+        this.currentSlide = 0;
+        this.stage = document.getElementById("deckStage");
+        this.count = document.getElementById("deckCount");
+        this.progress = document.getElementById("progressBar");
+        this.notes = document.getElementById("notesPanel");
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+        this.wheelLocked = false;
+        this.setupStageScale();
+        this.setupNavigation();
+        this.showSlide(this.hashToIndex());
+      }
+      setupStageScale() {
+        const scale = () => {
+          const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+          const x = (window.innerWidth - 1920 * factor) / 2;
+          const y = (window.innerHeight - 1080 * factor) / 2;
+          this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+        };
+        scale();
+        window.addEventListener("resize", scale);
+      }
+      setupNavigation() {
+        document.getElementById("prevBtn").addEventListener("click", () => this.previous());
+        document.getElementById("nextBtn").addEventListener("click", () => this.next());
+        document.getElementById("notesBtn").addEventListener("click", () => this.toggleNotes());
+        document.addEventListener("keydown", event => {
+          if (event.target.getAttribute("contenteditable") === "true") return;
+          if (["ArrowRight", "ArrowDown", " ", "PageDown"].includes(event.key)) { event.preventDefault(); this.next(); }
+          if (["ArrowLeft", "ArrowUp", "PageUp"].includes(event.key)) { event.preventDefault(); this.previous(); }
+          if (event.key === "Home") this.showSlide(0);
+          if (event.key === "End") this.showSlide(this.slides.length - 1);
+          if (event.key === "n" || event.key === "N") this.toggleNotes();
+        });
+        document.addEventListener("wheel", event => {
+          if (this.wheelLocked || Math.abs(event.deltaY) < 15) return;
+          this.wheelLocked = true;
+          event.deltaY > 0 ? this.next() : this.previous();
+          setTimeout(() => { this.wheelLocked = false; }, 600);
+        }, { passive: true });
+        document.addEventListener("touchstart", event => {
+          this.touchStartX = event.changedTouches[0].screenX;
+          this.touchStartY = event.changedTouches[0].screenY;
+        }, { passive: true });
+        document.addEventListener("touchend", event => {
+          const dx = event.changedTouches[0].screenX - this.touchStartX;
+          const dy = event.changedTouches[0].screenY - this.touchStartY;
+          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) dx < 0 ? this.next() : this.previous();
+        }, { passive: true });
+        window.addEventListener("hashchange", () => this.showSlide(this.hashToIndex(), false));
+      }
+      hashToIndex() { const match = location.hash.match(/slide-(\d+)/); return match ? Number(match[1]) - 1 : 0; }
+      next() { this.showSlide(this.currentSlide + 1); }
+      previous() { this.showSlide(this.currentSlide - 1); }
+      showSlide(index, updateHash = true) {
+        this.currentSlide = Math.max(0, Math.min(index, this.slides.length - 1));
+        this.slides.forEach((slide, i) => {
+          slide.classList.toggle("active", i === this.currentSlide);
+          slide.classList.toggle("visible", i === this.currentSlide);
+          slide.setAttribute("aria-hidden", i === this.currentSlide ? "false" : "true");
+        });
+        this.count.textContent = `${String(this.currentSlide + 1).padStart(2, "0")} / ${String(this.slides.length).padStart(2, "0")}`;
+        this.progress.style.width = `${((this.currentSlide + 1) / this.slides.length) * 100}%`;
+        if (updateHash) history.replaceState(null, "", `#slide-${this.currentSlide + 1}`);
+        this.updateNotes();
+      }
+      updateNotes() {
+        this.notes.innerHTML = `<b>第 ${this.currentSlide + 1} 页讲解提示</b>${this.slides[this.currentSlide].dataset.notes || ""}`;
+      }
+      toggleNotes() { this.notes.classList.toggle("show"); this.updateNotes(); }
+    }
+
+    /* === INLINE EDITOR WITH LOCAL AUTOSAVE === */
+    class InlineEditor {
+      constructor() {
+        this.isActive = false;
+        this.key = "tongzilin-community-map-staff-briefing-edits-v1";
+        this.editables = Array.from(document.querySelectorAll("[data-editable]"));
+        this.restore();
+        this.editables.forEach((element, index) => {
+          element.dataset.editIndex = index;
+          element.addEventListener("input", () => this.save());
+        });
+      }
+      toggleEditMode() {
+        this.isActive = !this.isActive;
+        document.body.classList.toggle("edit-mode", this.isActive);
+        document.getElementById("editToggle").classList.toggle("active", this.isActive);
+        this.editables.forEach(element => element.setAttribute("contenteditable", this.isActive ? "true" : "false"));
+        if (!this.isActive) this.save();
+      }
+      save() {
+        const content = this.editables.map(element => element.innerHTML);
+        localStorage.setItem(this.key, JSON.stringify(content));
+        const toast = document.getElementById("saveToast");
+        toast.classList.add("show");
+        clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => toast.classList.remove("show"), 1200);
+      }
+      restore() {
+        try {
+          const content = JSON.parse(localStorage.getItem(this.key) || "null");
+          if (Array.isArray(content)) content.forEach((html, index) => { if (this.editables[index] && typeof html === "string") this.editables[index].innerHTML = html; });
+        } catch (error) { console.warn("Unable to restore local edits", error); }
+      }
+    }
+
+    /* === BOOTSTRAP AND EDIT-TOGGLE HOVER GRACE PERIOD === */
+    const deck = new SlidePresentation();
+    const editor = new InlineEditor();
+    const hotzone = document.querySelector(".edit-hotzone");
+    const editToggle = document.getElementById("editToggle");
+    let hideTimeout = null;
+    editToggle.addEventListener("click", () => editor.toggleEditMode());
+    hotzone.addEventListener("mouseenter", () => { clearTimeout(hideTimeout); editToggle.classList.add("show"); });
+    hotzone.addEventListener("mouseleave", () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove("show"); }, 400); });
+    editToggle.addEventListener("mouseenter", () => clearTimeout(hideTimeout));
+    editToggle.addEventListener("mouseleave", () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove("show"); }, 400); });
+    hotzone.addEventListener("click", () => editor.toggleEditMode());
+    document.addEventListener("keydown", event => {
+      const editingText = event.target.getAttribute("contenteditable") === "true";
+      if ((event.key === "e" || event.key === "E") && !editingText) editor.toggleEditMode();
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); editor.save(); }
+    });
+  </script>
+</body>
+</html>
