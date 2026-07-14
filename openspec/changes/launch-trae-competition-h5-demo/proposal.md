@@ -1,42 +1,48 @@
 ## Why
 
-The ChengduForeignerCommunityProgram currently serves the Tongzilin community with places, events, and discover modules, but new residents—especially foreigners—lack a guided onboarding experience that helps them navigate their first two hours in the community. The TRAE AI Creativity Competition requires a publicly accessible mobile H5 demo that showcases an AI-assisted "First 120 Minutes" community integration route. This change creates that experience as a standalone H5 entry point that reuses the existing uni-app codebase, shared contracts, and API layer, while adding guest/judge access, a preference questionnaire, a structured Community Plan, a rule-based recommendation engine with optional AI enhancement, and a map-based route visualization.
+The current product exposes places, events, and community content as separate modules, but it does not provide a guided outcome for a first-time resident or a competition judge. The July 15 competition release therefore adds a new guest-only product loop: a judge states a small set of preferences, receives a validated "First 120 Minutes" plan, visits one community place, confirms one clearly labelled demo activity, and reaches an explicit completion result within three minutes.
+
+This is a substantive version iteration rather than a repackaging of existing pages. It introduces a new cross-layer Community Plan contract, deterministic recommendation behavior, server-side AI narration with validated fallback, a protected guest actor, session state, an offline-safe projection, a route experience, and independent public deployment evidence.
 
 ## What Changes
 
-- Add a guest/judge mode that allows competition reviewers to access the H5 demo without WeChat login, using a read-only actor with deterministic demo data.
-- Add a structured new-resident preference questionnaire schema in `packages/shared` covering language, interests, arrival context, household type, and accessibility needs.
-- Add a structured Community Plan schema in `packages/shared` that represents a 120-minute timeline of plan items, each referencing a published place or an open event by ID.
-- Add a rule-based recommendation engine in `apps/api` that generates a Community Plan from preferences by selecting and sequencing published places and open events.
-- Add an optional CloudBase AI enhancement layer that can enrich the rule-based plan with personalized narration; the AI call has a configurable timeout and validation gate.
-- Add a deterministic fallback that produces a fixed curated plan when the AI call times out, returns invalid output, or is not configured.
-- Add an H5 route map page that renders place markers and a route overlay using the existing Tencent Map integration and places map-markers contract.
-- Add plan-item linkage to places detail, events registration, and navigation so the user can act on each step of the route.
-- Add a plan completion page that summarizes visited places, registered events, and the overall route result.
-- Extend the central bilingual catalog in `apps/mobile/src/i18n` with all onboarding UI text, maintaining zh/en recursive key parity.
-- Add offline demo data and graceful degradation so the H5 demo works without a live API, falling back to bundled JSON fixtures.
-- Add 390px mobile-first and desktop responsive layout for all onboarding pages.
-- Add rate limiting, request logging, and privacy boundaries for the plan generation endpoint.
-- Add competition evidence and release acceptance validation bundles.
+- Add a public H5 judge entry that uses a dedicated API-internal guest actor without login or mock-user semantics.
+- Add strict shared preference, plan, AI-enhancement, public-safe projection, and offline-bundle schemas for the single `tongzilin` community.
+- Add only `POST /community-plan/generate`; the request does not accept `community_id`, and plans are not persisted or retrievable by ID.
+- Generate a deterministic two-item, 120-minute plan containing one published place visit and one fixed curated demo event; real registration, tickets, capacity checks, and real-time full-event detection are out of scope.
+- Enhance only bilingual plan narration through the server-side DeepSeek API using `deepseek-v4-flash` in non-thinking JSON mode. Timeout, upstream failure, authentication/balance failure, malformed JSON, schema mismatch, or a late response returns the unchanged deterministic plan.
+- Add an H5 judge state machine with explicit Start, Generate, Mark Visited, Demo Confirm, Finish Route, completion, and Start Over transitions.
+- Make the marker-safe route list the required H5 route capability. Tencent Map JavaScript SDK rendering is an optional enhancement when a key and allowed domain are ready.
+- Add an offline demo adapter backed by strict public-safe snapshots and clearly identify offline/fallback results; offline evidence cannot satisfy the live-AI release gate.
+- Extend the central mobile bilingual catalog with every onboarding state and API-error mapping.
+- Build-regress the WeChat Mini Program, but do not expose the onboarding entry or claim Mini Program functional acceptance.
+- Deploy the H5 as the independent CloudBase Web App service `trae-h5-demo`; do not replace or mount over the existing shared Admin Static Hosting.
+- Produce separate online-AI and offline validation evidence plus an append-only release sign-off.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `trae-competition-h5-experience`: The end-to-end H5 onboarding experience covering guest/judge mode, preference questionnaire, plan timeline, route map, completion result, offline demo, responsive layout, and bilingual UI.
-- `community-plan-generation`: The Community Plan data model, rule-based recommendation engine, optional AI enhancement, deterministic fallback, and public-reference validation.
-- `competition-release-evidence`: Competition evidence collection, observability, rate limiting, privacy boundaries, and H5 release acceptance.
+- `community-plan-generation`: strict data contracts, deterministic selection, public-safe projections, DeepSeek API narration, and failure fallback.
+- `trae-competition-h5-experience`: guest judge entry, preferences, timeline, route list/optional map, place visit, demo event confirmation, completion, offline mode, and H5/MP boundaries.
+- `competition-release-evidence`: guest security, rate limiting, privacy, CloudBase preflight, independent deployment, online/offline acceptance, and append-only evidence.
 
 ### Modified Capabilities
 
-- `mobile-language-experience`: Extend the central bilingual catalog with onboarding and community-plan UI text entries, maintaining zh/en recursive key parity and fallback indicator semantics.
+- `mobile-language-experience`: complete zh/en onboarding copy and stable API/error-code-to-catalog mappings.
 
 ## Impact
 
-- `packages/shared`: New schemas (`community-plan.ts`), new contracts (`community-plan.ts`), new paths in `paths.ts`, new mock data and fixtures, new types.
-- `apps/api`: New routes (`community-plan.ts`), new provider methods, rule-based engine, AI enhancement layer, fallback logic, rate limiting middleware, guest actor handling.
-- `apps/mobile`: New onboarding pages (welcome, preferences, plan, route-map, complete), new i18n catalog entries, offline demo data loader, responsive layout components, page registration in `pages.json`.
-- `apps/admin`: No direct changes required; existing place/event management remains the source of truth for plan references.
-- `docs/`: Competition H5 documentation, evidence runbook, and release handoff.
-- `auto_test_openspec/`: New validation bundles under `auto_test_openspec/launch-trae-competition-h5-demo/` (append-only; no modification of existing run folders).
-- External systems: CloudBase AI service (optional), Tencent Map (H5 map rendering), public H5 hosting target.
+- `packages/shared`: new schemas, contracts, path, public-safe fixtures, client surface, and `RATE_LIMITED` error code.
+- `apps/api`: guest actor enforcement, Community Plan provider/route, deterministic engine, server-only DeepSeek API adapter, fallback, rate limiting, privacy-safe logs, and CORS support.
+- `apps/mobile`: five H5 onboarding pages, memory-only session store, HTTP/mock/offline adapters, route list with optional map enhancement, and bilingual catalog additions.
+- `apps/admin`: no source changes; its current CloudBase Static Hosting must remain reachable and unchanged.
+- `docs/`: competition runbook, environment variables, supersession notes, and the canonical three-minute judge script.
+- `auto_test_openspec/`: new immutable validation runs under this change ID only.
+- CloudBase: target environment `cloud1-d7gxdk8t43bd639c0`; independent Web App service `trae-h5-demo`.
+
+## July 15 Scope Boundary
+
+Deferred beyond this MVP: authenticated Community Plan flows, saved preferences, plan persistence/detail GET, `activity` plan items, real event registration/tickets/capacity, Admin plan management, multi-community behavior, Mini Program onboarding functionality, mandatory map SDK/geolocation/routing/navigation, desktop two-column layout, shared plans, and AI control over plan structure.
+
+Release remains blocked until a server-side `DEEPSEEK_API_KEY` is configured, the DeepSeek account has usable balance, a preflight request to `https://api.deepseek.com/chat/completions` succeeds with model `deepseek-v4-flash`, and a real online plan response has `generation_source: "ai_enhanced"`, `ai_status: "ok"`, and `usage.total_tokens > 0`. The key SHALL never be exposed through a `VITE_` variable, browser bundle, log, fixture, or evidence artifact.
