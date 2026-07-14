@@ -172,10 +172,10 @@ enabled = true
 enabled = true
 
 [apps.connector_68df038e0ba48191908c8434991bbac2]
-enabled = false
+enabled = true
 
 [apps.connector_68df33b1a2d081918778431a9cfca8ba]
-enabled = false
+enabled = true
 
 [marketplaces.openai-bundled]
 last_updated = "2026-06-07T12:15:45Z"
