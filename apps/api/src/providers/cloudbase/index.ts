@@ -76,6 +76,8 @@ const DEFAULT_COMMUNITY_ID = "tongzilin";
 const MAX_PLACES_FETCH = 1000;
 const MAX_EVENTS_FETCH = 1000;
 const MAX_DISCOVER_FETCH = 1000;
+const CLOUDBASE_TRANSACTION_BUSY_MAX_ATTEMPTS = 6;
+const CLOUDBASE_TRANSACTION_BUSY_BASE_DELAY_MS = 25;
 const POST_MEDIA_BIZ_TYPES = new Set([
   "post_image",
   "post_video",
@@ -2161,14 +2163,45 @@ type LiveInteractionMutation =
   | { kind: "favorite"; favorited: boolean }
   | { kind: "share" };
 
+const isCloudbaseTransactionBusy = (error: unknown) =>
+  error instanceof Error &&
+  (error.message.includes("ResourceUnavailable.TransactionBusy") ||
+    error.message.includes("Transaction is busy"));
+
+const retryCloudbaseBusyTransaction = async <TResult>(
+  operation: () => Promise<TResult>
+): Promise<TResult> => {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (
+        !isCloudbaseTransactionBusy(error) ||
+        attempt >= CLOUDBASE_TRANSACTION_BUSY_MAX_ATTEMPTS
+      ) {
+        throw error;
+      }
+
+      const exponentialDelay =
+        CLOUDBASE_TRANSACTION_BUSY_BASE_DELAY_MS * 2 ** (attempt - 1);
+      const jitter = Math.floor(
+        Math.random() * CLOUDBASE_TRANSACTION_BUSY_BASE_DELAY_MS
+      );
+      await new Promise((resolve) =>
+        setTimeout(resolve, exponentialDelay + jitter)
+      );
+    }
+  }
+};
+
 const mutateLivePostInteraction = async (
   context: LiveCloudbaseContext,
   postId: string,
   actor: User,
   mutation: LiveInteractionMutation
 ): Promise<PostInteractionState> => {
-  const result: unknown = await context.db.runTransaction(
-    async (transaction: CloudbaseTransaction) => {
+  const result: unknown = await retryCloudbaseBusyTransaction(() =>
+    context.db.runTransaction(async (transaction: CloudbaseTransaction) => {
       const posts = transaction.collection("posts");
       const interactions = transaction.collection("discover_post_interactions");
       const interactionId = `post_interaction_${postId}_${actor._id}`;
@@ -2284,7 +2317,7 @@ const mutateLivePostInteraction = async (
         actor,
         nextRecord ?? undefined
       );
-    }
+    })
   );
 
   return PostInteractionStateSchema.parse(result);

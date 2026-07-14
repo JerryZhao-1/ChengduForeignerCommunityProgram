@@ -1528,21 +1528,28 @@ describe("cloudbase event handler", () => {
     const transaction: FakeTransaction = {
       collection: collectionFor
     };
-    let transactionQueue = Promise.resolve();
+    let transactionActive = false;
+    let transactionBusyCount = 0;
     const database = {
       collection: collectionFor,
-      runTransaction: vi.fn(
-        <TResult>(
-          handler: (nextTransaction: FakeTransaction) => Promise<TResult>
-        ) => {
-          const result = transactionQueue.then(() => handler(transaction));
-          transactionQueue = result.then(
-            () => undefined,
-            () => undefined
+      runTransaction: vi.fn(async <TResult>(
+        handler: (nextTransaction: FakeTransaction) => Promise<TResult>
+      ) => {
+        if (transactionActive) {
+          transactionBusyCount += 1;
+          throw new Error(
+            "[ResourceUnavailable.TransactionBusy] Transaction is busy."
           );
-          return result;
         }
-      )
+
+        transactionActive = true;
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 5));
+          return await handler(transaction);
+        } finally {
+          transactionActive = false;
+        }
+      })
     };
     const initCloudbase = vi.fn(() => ({
       database: () => database,
@@ -1682,6 +1689,7 @@ describe("cloudbase event handler", () => {
       );
       expect(afterDifferentActors.share_count).toBe(beforeDifferentActors + 2);
       expect(database.runTransaction).toHaveBeenCalled();
+      expect(transactionBusyCount).toBeGreaterThan(0);
 
       const ops = await provider.posts.updateOps(
         livePost._id,
