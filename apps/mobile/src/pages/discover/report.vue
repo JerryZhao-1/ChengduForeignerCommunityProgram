@@ -6,11 +6,13 @@ import { mobileApi } from "@/api/client";
 import { uploadReportEvidence } from "@/api/report-evidence-upload";
 import { getMobileCopy } from "@/i18n";
 import { useAppStore } from "@/stores/app-store";
+import { submitDiscoverReport } from "./report-submit";
 
 const { state } = useAppStore();
 const copy = computed(() => getMobileCopy(state.locale).discover);
 
 const postId = ref("");
+const commentId = ref("");
 const statusBarHeight = ref(0);
 const reasonIndex = ref(-1);
 const otherReason = ref("");
@@ -36,6 +38,7 @@ const canAddImages = computed(() => imagePaths.value.length < 9);
 onLoad((query) => {
   statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight ?? 0;
   postId.value = String(query?.id ?? "");
+  commentId.value = String(query?.commentId ?? "");
 });
 
 const goBack = () => {
@@ -164,11 +167,18 @@ const submitReport = async () => {
   try {
     const description = getDescriptionForSubmit();
     const evidenceFileIds = await registerEvidenceFiles();
-    await mobileApi.discover.reportPost(postId.value, {
-      reason,
-      description: description || undefined,
-      evidence_file_ids: evidenceFileIds
-    });
+    await submitDiscoverReport(
+      mobileApi.discover,
+      {
+        postId: postId.value,
+        commentId: commentId.value || undefined
+      },
+      {
+        reason,
+        description: description || undefined,
+        evidence_file_ids: evidenceFileIds
+      }
+    );
     uni.showToast({ title: copy.value.reportSuccess, icon: "success" });
     setTimeout(() => {
       uni.navigateBack({ delta: 1 });

@@ -57,7 +57,7 @@ defineEmits<{
   (event: "openAssociatedEvent"): void;
   (event: "openProfile", userId?: string): void;
   (event: "toggleCommentLike", comment: DetailCommentItem): void;
-  (event: "openCommentActions"): void;
+  (event: "openCommentActions", comment: DetailCommentItem): void;
 }>();
 </script>
 
@@ -255,7 +255,7 @@ defineEmits<{
             <view
               class="comment-more"
               :aria-label="moreActionsLabel"
-              @click.stop="$emit('openCommentActions')"
+              @click.stop="$emit('openCommentActions', comment)"
             >
               <text class="more-dots">⋯</text>
             </view>

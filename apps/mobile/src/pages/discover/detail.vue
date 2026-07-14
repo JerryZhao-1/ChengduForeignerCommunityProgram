@@ -322,12 +322,14 @@ const toggleLike = (comment: CommentItem) => {
   }
 };
 
-const openCommentActions = () => {
+const openCommentActions = (comment: CommentItem) => {
   uni.showActionSheet({
     itemList: [copy.value.reportButton],
     success: ({ tapIndex }) => {
-      if (tapIndex === 0) {
-        uni.showToast({ title: copy.value.reportSuccess, icon: "none" });
+      if (tapIndex === 0 && post.value) {
+        uni.navigateTo({
+          url: `/pages/discover/report?id=${encodeURIComponent(post.value._id)}&commentId=${encodeURIComponent(comment.id)}`
+        });
       }
     }
   });

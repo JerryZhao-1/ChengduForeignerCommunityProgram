@@ -89,6 +89,9 @@ type CloudbaseDatabase = ReturnType<CloudbaseApp["database"]>;
 type CloudbaseCollection = ReturnType<
   ReturnType<ReturnType<typeof tcb.init>["database"]>["collection"]
 >;
+type CloudbaseTransaction = {
+  collection(name: string): CloudbaseCollection;
+};
 
 interface LiveCloudbaseContext {
   app: CloudbaseApp;
@@ -2158,154 +2161,134 @@ type LiveInteractionMutation =
   | { kind: "favorite"; favorited: boolean }
   | { kind: "share" };
 
-const liveInteractionLocks = new Map<string, Promise<void>>();
-
-const withLiveInteractionLock = async <TResult>(
-  key: string,
-  task: () => Promise<TResult>
-) => {
-  const previous = liveInteractionLocks.get(key) ?? Promise.resolve();
-  let release!: () => void;
-  const current = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  const next = previous.catch(() => undefined).then(() => current);
-  liveInteractionLocks.set(key, next);
-
-  await previous.catch(() => undefined);
-
-  try {
-    return await task();
-  } finally {
-    release();
-    if (liveInteractionLocks.get(key) === next) {
-      liveInteractionLocks.delete(key);
-    }
-  }
-};
-
 const mutateLivePostInteraction = async (
   context: LiveCloudbaseContext,
   postId: string,
   actor: User,
   mutation: LiveInteractionMutation
-) =>
-  withLiveInteractionLock(`${postId}:${actor._id}`, async () => {
-  const [posts, recordResult] = await Promise.all([
-    readPosts(context),
-    context.postInteractions
-      .where({
-        post_id: postId,
-        actor_user_id: actor._id
-      })
-      .limit(1)
-      .get()
-  ]);
-  const post = posts.find((item) => item._id === postId) ?? null;
-  if (!post || !isLaunchVisiblePost(post)) {
-    throw apiError("NOT_FOUND", "Post not found.", 404);
-  }
+): Promise<PostInteractionState> => {
+  const result: unknown = await context.db.runTransaction(
+    async (transaction: CloudbaseTransaction) => {
+      const posts = transaction.collection("posts");
+      const interactions = transaction.collection("discover_post_interactions");
+      const interactionId = `post_interaction_${postId}_${actor._id}`;
+      const [postResult, recordResult] = await Promise.all([
+        posts.where({ _id: postId }).limit(1).get(),
+        interactions.where({ _id: interactionId }).limit(1).get()
+      ]);
+      const postRows: unknown[] = Array.isArray(postResult.data)
+        ? postResult.data
+        : [];
+      const recordRows: unknown[] = Array.isArray(recordResult.data)
+        ? recordResult.data
+        : [];
+      const post = postRows
+        .map(normalizePost)
+        .find((item): item is Post => item !== null);
+      if (!post || !isLaunchVisiblePost(post)) {
+        throw apiError("NOT_FOUND", "Post not found.", 404);
+      }
 
-  const existingRecord =
-    recordResult.data
-      .map(normalizePostInteractionRecord)
-      .find((record): record is PostInteractionRecord => record !== null) ??
-    null;
-  const now = new Date().toISOString();
-  const shouldTrackActorState = mutation.kind !== "share";
-  let nextRecord = existingRecord;
-  let shouldWriteRecord = false;
-  let likeDelta = 0;
-  let favoriteDelta = 0;
-  let shareDelta = 0;
+      const existingRecord =
+        recordRows
+          .map(normalizePostInteractionRecord)
+          .find((record): record is PostInteractionRecord => record !== null) ??
+        null;
+      const now = new Date().toISOString();
+      const shouldTrackActorState = mutation.kind !== "share";
+      let nextRecord = existingRecord;
+      let shouldWriteRecord = false;
+      let likeDelta = 0;
+      let favoriteDelta = 0;
+      let shareDelta = 0;
 
-  if (shouldTrackActorState && !nextRecord) {
-    nextRecord = PostInteractionRecordSchema.parse({
-      _id: `post_interaction_${post._id}_${actor._id}`,
-      post_id: post._id,
-      actor_user_id: actor._id,
-      liked: false,
-      favorited: false,
-      created_at: now,
-      updated_at: now
-    });
-    shouldWriteRecord = true;
-  }
+      if (shouldTrackActorState && !nextRecord) {
+        nextRecord = PostInteractionRecordSchema.parse({
+          _id: interactionId,
+          post_id: post._id,
+          actor_user_id: actor._id,
+          liked: false,
+          favorited: false,
+          created_at: now,
+          updated_at: now
+        });
+        shouldWriteRecord = true;
+      }
 
-  if (mutation.kind === "like" && nextRecord) {
-    if (nextRecord.liked !== mutation.liked) {
-      likeDelta = mutation.liked ? 1 : -1;
-      nextRecord = {
-        ...nextRecord,
-        liked: mutation.liked,
-        updated_at: now
+      if (mutation.kind === "like" && nextRecord) {
+        if (nextRecord.liked !== mutation.liked) {
+          likeDelta = mutation.liked ? 1 : -1;
+          nextRecord = {
+            ...nextRecord,
+            liked: mutation.liked,
+            updated_at: now
+          };
+          shouldWriteRecord = true;
+        }
+      } else if (mutation.kind === "favorite" && nextRecord) {
+        if (nextRecord.favorited !== mutation.favorited) {
+          favoriteDelta = mutation.favorited ? 1 : -1;
+          nextRecord = {
+            ...nextRecord,
+            favorited: mutation.favorited,
+            updated_at: now
+          };
+          shouldWriteRecord = true;
+        }
+      } else if (mutation.kind === "share") {
+        shareDelta = 1;
+      }
+
+      const postChanged =
+        likeDelta !== 0 || favoriteDelta !== 0 || shareDelta !== 0;
+      const nextPost = PostSchema.parse({
+        ...post,
+        like_count: Math.max(0, post.like_count + likeDelta),
+        favorite_count: Math.max(0, post.favorite_count + favoriteDelta),
+        share_count: Math.max(0, post.share_count + shareDelta),
+        updated_at: postChanged ? now : post.updated_at
+      });
+      const postUpdate: Partial<Post> = {
+        updated_at: nextPost.updated_at
       };
-      shouldWriteRecord = true;
-    }
-  } else if (mutation.kind === "favorite" && nextRecord) {
-    if (nextRecord.favorited !== mutation.favorited) {
-      favoriteDelta = mutation.favorited ? 1 : -1;
-      nextRecord = {
-        ...nextRecord,
-        favorited: mutation.favorited,
-        updated_at: now
-      };
-      shouldWriteRecord = true;
-    }
-  } else if (mutation.kind === "share") {
-    shareDelta = 1;
-  }
 
-  const postChanged =
-    likeDelta !== 0 || favoriteDelta !== 0 || shareDelta !== 0;
-  const nextPost = PostSchema.parse({
-    ...post,
-    like_count: Math.max(0, post.like_count + likeDelta),
-    favorite_count: Math.max(0, post.favorite_count + favoriteDelta),
-    share_count: Math.max(0, post.share_count + shareDelta),
-    updated_at: postChanged ? now : post.updated_at
-  });
-  const postUpdate: Partial<Post> = {
-    updated_at: nextPost.updated_at
-  };
+      if (likeDelta !== 0) {
+        postUpdate.like_count = nextPost.like_count;
+      }
+      if (favoriteDelta !== 0) {
+        postUpdate.favorite_count = nextPost.favorite_count;
+      }
+      if (shareDelta !== 0) {
+        postUpdate.share_count = nextPost.share_count;
+      }
 
-  if (likeDelta !== 0) {
-    postUpdate.like_count = nextPost.like_count;
-  }
-
-  if (favoriteDelta !== 0) {
-    postUpdate.favorite_count = nextPost.favorite_count;
-  }
-
-  if (shareDelta !== 0) {
-    postUpdate.share_count = nextPost.share_count;
-  }
-
-  await Promise.all([
-    postChanged
-      ? context.posts.doc(post._id).update(postUpdate)
-      : Promise.resolve(),
-    shouldWriteRecord && nextRecord
-      ? existingRecord
-        ? context.postInteractions.doc(nextRecord._id).update({
+      if (postChanged) {
+        await posts.doc(post._id).update(postUpdate);
+      }
+      if (shouldWriteRecord && nextRecord) {
+        if (existingRecord) {
+          await interactions.doc(nextRecord._id).update({
             liked: nextRecord.liked,
             favorited: nextRecord.favorited,
             updated_at: nextRecord.updated_at
-          })
-        : context.postInteractions
+          });
+        } else {
+          await interactions
             .doc(nextRecord._id)
-            .set(toCloudbaseSetDocument(nextRecord))
-      : Promise.resolve()
-  ]);
+            .set(toCloudbaseSetDocument(nextRecord));
+        }
+      }
 
-  const result: unknown = buildLiveInteractionState(
-    nextPost,
-    actor,
-    nextRecord ?? undefined
+      return buildLiveInteractionState(
+        nextPost,
+        actor,
+        nextRecord ?? undefined
+      );
+    }
   );
 
   return PostInteractionStateSchema.parse(result);
-  });
+};
 
 const buildLiveFollowState = (
   follows: UserFollowRecord[],
@@ -3895,7 +3878,8 @@ const createLivePostsProvider = (
 });
 
 const createLiveFilesProvider = (
-  context: LiveCloudbaseContext
+  context: LiveCloudbaseContext,
+  auth: ApiProvider["auth"]
 ): ApiProvider["files"] => ({
   async createUploadRequest(input) {
     const cloud_path = `${input.target_prefix}${input.biz_id}/${randomUUID()}-${sanitizeFileName(input.file_name, "upload")}`;
@@ -3935,7 +3919,7 @@ const createLiveFilesProvider = (
     return asset;
   },
   async privateUrl(input, actorId) {
-    const actor = await createMockProvider().auth.resolveActor(actorId);
+    const actor = await auth.resolveActor(actorId);
     const asset = (await readFileAssets(context)).find(
       (item) => item.file_id === input.file_id && item.status === "active"
     );
@@ -4043,6 +4027,6 @@ export const createCloudbaseProvider = (): ApiProvider => {
     events: createLiveEventsProvider(liveContext, auth),
     places: createLivePlacesProvider(liveContext),
     posts: createLivePostsProvider(liveContext, auth, fallback.posts),
-    files: createLiveFilesProvider(liveContext)
+    files: createLiveFilesProvider(liveContext, auth)
   };
 };

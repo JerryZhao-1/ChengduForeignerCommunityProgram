@@ -1352,6 +1352,103 @@ describe("cloudbase event handler", () => {
     }
   });
 
+  it("authorizes private files with actors stored in live CloudBase", async () => {
+    const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
+    const previousEnvId = process.env.CLOUDBASE_ENV_ID;
+    const dataset = createMockDataset();
+    const liveOwner = {
+      ...dataset.users.find((user) => user._id === "user_002")!,
+      _id: "wx_live_owner"
+    };
+    const liveAdmin = {
+      ...dataset.users.find((user) => user._id === "user_001")!,
+      _id: "wx_live_admin"
+    };
+    const privateFileId =
+      "cloud://test-env/private/reports/live-owner/evidence.jpg";
+    const liveFileAssets = [
+      {
+        _id: "file_live_private",
+        file_id: privateFileId,
+        cloud_path: "private/reports/live-owner/evidence.jpg",
+        visibility: "private",
+        biz_type: "report_evidence",
+        biz_id: "report_live_owner",
+        uploaded_by: liveOwner._id,
+        status: "active"
+      }
+    ];
+    const createCollection = <TItem extends { _id: string }>(
+      items: TItem[]
+    ) => ({
+      limit: vi.fn(() => ({
+        get: vi.fn(async () => ({ data: items }))
+      }))
+    });
+    const collections = {
+      users: createCollection([liveOwner, liveAdmin]),
+      file_assets: createCollection(liveFileAssets)
+    };
+    const emptyCollection = createCollection([]);
+    const getTempFileURL = vi.fn(
+      async ({ fileList }: { fileList: string[] }) => ({
+        fileList: fileList.map((fileID) => ({
+          fileID,
+          tempFileURL: "https://cdn.example.com/private-evidence.jpg"
+        }))
+      })
+    );
+    const initCloudbase = vi.fn(() => ({
+      database: () => ({
+        collection: (name: string) =>
+          collections[name as keyof typeof collections] ?? emptyCollection
+      }),
+      getTempFileURL
+    }));
+
+    try {
+      vi.resetModules();
+      vi.doMock("@cloudbase/node-sdk", () => ({
+        default: {
+          init: initCloudbase
+        }
+      }));
+      process.env.CLOUDBASE_PROVIDER_MODE = "live";
+      process.env.CLOUDBASE_ENV_ID = "test-env";
+
+      const { createCloudbaseProvider: createLiveProvider } =
+        await import("../src/providers/cloudbase");
+      const provider = createLiveProvider();
+
+      await expect(
+        provider.files.privateUrl({ file_id: privateFileId }, liveOwner._id)
+      ).resolves.toMatchObject({
+        temp_url: "https://cdn.example.com/private-evidence.jpg"
+      });
+      await expect(
+        provider.files.privateUrl({ file_id: privateFileId }, liveAdmin._id)
+      ).resolves.toMatchObject({
+        temp_url: "https://cdn.example.com/private-evidence.jpg"
+      });
+      expect(getTempFileURL).toHaveBeenCalledTimes(2);
+    } finally {
+      if (previousProviderMode === undefined) {
+        delete process.env.CLOUDBASE_PROVIDER_MODE;
+      } else {
+        process.env.CLOUDBASE_PROVIDER_MODE = previousProviderMode;
+      }
+
+      if (previousEnvId === undefined) {
+        delete process.env.CLOUDBASE_ENV_ID;
+      } else {
+        process.env.CLOUDBASE_ENV_ID = previousEnvId;
+      }
+
+      vi.doUnmock("@cloudbase/node-sdk");
+      vi.resetModules();
+    }
+  });
+
   it("persists live CloudBase discover social interactions idempotently", async () => {
     const previousProviderMode = process.env.CLOUDBASE_PROVIDER_MODE;
     const previousEnvId = process.env.CLOUDBASE_ENV_ID;
@@ -1431,12 +1528,20 @@ describe("cloudbase event handler", () => {
     const transaction: FakeTransaction = {
       collection: collectionFor
     };
+    let transactionQueue = Promise.resolve();
     const database = {
       collection: collectionFor,
       runTransaction: vi.fn(
-        async <TResult>(
+        <TResult>(
           handler: (nextTransaction: FakeTransaction) => Promise<TResult>
-        ) => handler(transaction)
+        ) => {
+          const result = transactionQueue.then(() => handler(transaction));
+          transactionQueue = result.then(
+            () => undefined,
+            () => undefined
+          );
+          return result;
+        }
       )
     };
     const initCloudbase = vi.fn(() => ({
@@ -1557,6 +1662,26 @@ describe("cloudbase event handler", () => {
       expect(afterConcurrent.share_count).toBe(
         beforeConcurrent.share_count + 1
       );
+
+      const beforeDifferentActors = afterConcurrent.share_count;
+      await Promise.all([
+        provider.posts.recordShare(
+          livePost._id,
+          { channel: "wechat" },
+          "user_001"
+        ),
+        provider.posts.recordShare(
+          livePost._id,
+          { channel: "copy_link" },
+          "user_002"
+        )
+      ]);
+      const afterDifferentActors = await provider.posts.interaction(
+        livePost._id,
+        "user_002"
+      );
+      expect(afterDifferentActors.share_count).toBe(beforeDifferentActors + 2);
+      expect(database.runTransaction).toHaveBeenCalled();
 
       const ops = await provider.posts.updateOps(
         livePost._id,
