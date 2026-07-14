@@ -287,6 +287,10 @@ export const createHttpClient = (
       detail: (id) => request("GET", apiPaths.places.detail(id)),
       mapMarkers: () => request("GET", apiPaths.places.mapMarkers)
     },
+    communityPlan: {
+      generate: (input) =>
+        request("POST", apiPaths.communityPlan.generate, input)
+    },
     announcements: {
       list: () => request("GET", apiPaths.announcements.list),
       detail: (id) => request("GET", apiPaths.announcements.detail(id))

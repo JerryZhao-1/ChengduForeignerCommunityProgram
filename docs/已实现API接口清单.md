@@ -9,9 +9,9 @@
 - `packages/shared/src/contracts/*.ts`：共享契约定义
 - `apps/api/src/providers/*` 与 `packages/shared/src/mock/service.ts`：当前业务实现入口
 
-截至当前版本，`apps/api` 一共注册了 47 个接口：
+截至当前版本，`apps/api` 一共注册了 48 个接口：
 
-- 业务接口 46 个
+- 业务接口 47 个
 - 健康检查接口 1 个：`GET /health`
 
 ## 2. 总入口与核心文件
@@ -26,7 +26,7 @@
 | Provider 接口      | `apps/api/src/providers/types.ts`           | 后端能力总接口定义                                                                                                                                                                                                        |
 | 默认实现           | `apps/api/src/providers/mock/index.ts`      | 默认 provider，对接 mock service                                                                                                                                                                                          |
 | 业务实现           | `packages/shared/src/mock/service.ts`       | 当前大部分接口的实际业务实现                                                                                                                                                                                              |
-| CloudBase Provider | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；`CLOUDBASE_PROVIDER_MODE=live` 时 places、events、discover posts/comments、social interactions、profile follow、tags、ops、analytics 和 files complete/private-url 路径使用 CloudBase 文档数据库与临时文件 URL；auth 与 notification 投递仍以 fallback parity 为主 |
+| CloudBase Provider | `apps/api/src/providers/cloudbase/index.ts` | 默认回退 mock provider；`CLOUDBASE_PROVIDER_MODE=live` 时 places、events、Community Plan、discover posts/comments、social interactions、profile follow、tags、ops、analytics 和 files complete/private-url 路径使用 CloudBase 文档数据库与临时文件 URL；auth 与 notification 投递仍以 fallback parity 为主 |
 | 移动端调用入口     | `apps/mobile/src/api/client.ts`             | 小程序端 API 客户端入口                                                                                                                                                                                                   |
 | 管理端调用入口     | `apps/admin/src/api/client.ts`              | 管理后台 API 客户端入口                                                                                                                                                                                                   |
 | 通用 HTTP Client   | `packages/shared/src/client.ts`             | 统一封装请求逻辑和路径调用                                                                                                                                                                                                |
@@ -163,14 +163,22 @@ Discover public reads 返回 `status="visible"` 且未被管理员 hidden/delete
 - 当前尚未声明 CloudBase 生产部署完成；非 places live providers 与完整线上验收仍属于后续 backend foundation / deployment 工作
 - Week 8 CloudBase dev 部署与 `/api` route 仍未声明完成；2026-06-14 验证时 CloudBase MCP 未登录，详见 `docs/week8-places-cloudbase-integration.md`
 
-### 4.5 公告 Announcements
+### 4.5 社区融入路线 Community Plan
+
+| 方法   | 路径                       | 用途                         | 路由文件                               | 契约文件                                            | 业务实现 |
+| ------ | -------------------------- | ---------------------------- | -------------------------------------- | --------------------------------------------------- | -------- |
+| `POST` | `/community-plan/generate` | 为 H5 评委访客生成 120 分钟路线 | `apps/api/src/routes/community-plan.ts` | `packages/shared/src/contracts/community-plans.ts` | mock 使用确定性安全夹具；CloudBase live 从目标社区已发布地点与固定演示活动生成，服务端可选 DeepSeek 双语叙述增强 |
+
+该接口只接受 `x-guest-mode: judge` 访客请求，不接受 bearer/mock actor 替代；其他访客写操作返回 `403 FORBIDDEN`。请求体由严格 schema 限制为语言、兴趣、到达阶段、家庭类型和无障碍枚举，不接受 `community_id`、PII 或自由文本。接口按可信源执行 10 次/分钟限流并返回 `X-RateLimit-*` headers；HTTP 429 使用标准 `RATE_LIMITED` envelope。`DEEPSEEK_API_KEY` 仅配置在服务端，AI 失败时返回不改变结构的确定性回退路线。
+
+### 4.6 公告 Announcements
 
 | 方法  | 路径                 | 用途         | 路由文件                               | 契约文件                                         | 业务实现                                                        |
 | ----- | -------------------- | ------------ | -------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------- |
 | `GET` | `/announcements`     | 获取公告列表 | `apps/api/src/routes/announcements.ts` | `packages/shared/src/contracts/announcements.ts` | `packages/shared/src/mock/service.ts` 中 `announcements.list`   |
 | `GET` | `/announcements/:id` | 获取公告详情 | `apps/api/src/routes/announcements.ts` | `packages/shared/src/contracts/announcements.ts` | `packages/shared/src/mock/service.ts` 中 `announcements.detail` |
 
-### 4.6 通知 Notifications
+### 4.7 通知 Notifications
 
 | 方法   | 路径                      | 用途                 | 路由文件                               | 契约文件                                         | 业务实现                                                          |
 | ------ | ------------------------- | -------------------- | -------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------- |
@@ -181,7 +189,7 @@ Notifications list/read 只作用于当前 actor 自己的通知；跨用户 mar
 
 新系统通知同时写 `title_zh/title_en` 与 `body_zh/body_en`；legacy `title/body` 在迁移窗口继续可读。Mobile 按当前 locale、另一 locale、legacy 的顺序安全回退，不改变 owner/read-state 规则。
 
-### 4.7 文件 Files
+### 4.8 文件 Files
 
 | 方法   | 路径                     | 用途                                 | 路由文件                       | 契约文件                                 | 业务实现                                                             |
 | ------ | ------------------------ | ------------------------------------ | ------------------------------ | ---------------------------------------- | -------------------------------------------------------------------- |
@@ -193,7 +201,7 @@ Notifications list/read 只作用于当前 actor 自己的通知；跨用户 mar
 
 Files 当前允许 public upload request/complete；`public/places/`、`private/tickets/`、`private/exports/`、`private/admin/` 及对应 protected biz type 需要 admin；`report_evidence` 使用 `private/reports/`，允许登录 reporter 通过 `/files/report-evidence` 直接上传并登记为 private 文件，读取仍按 owner/admin 校验；活动封面推荐走 `/admin/events/cover-file` 或 `/admin/events/:id/cover-file` 的直接 multipart 上传；帖子媒体推荐走 `/files/post-media` 直接 multipart 上传；private URL 会校验文件存在和 owner/admin 权限。
 
-### 4.8 系统 System
+### 4.9 系统 System
 
 | 方法  | 路径      | 用途         | 路由文件              | 备注                                                 |
 | ----- | --------- | ------------ | --------------------- | ---------------------------------------------------- |

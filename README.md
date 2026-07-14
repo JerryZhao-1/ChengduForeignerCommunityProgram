@@ -351,7 +351,7 @@ Admin 和 Mobile 当前都识别这些环境变量：
 - `VITE_MOCK_ACTOR_ID`
   - 仅开发模式使用，默认 `user_001`；生产构建不注入 mock actor header。
 
-API 端地点搜索使用这些环境变量：
+API 服务端使用这些环境变量：
 
 - `API_ADMIN_USERNAME`
   - Admin Web 正式登录用户名。
@@ -367,6 +367,16 @@ API 端地点搜索使用这些环境变量：
   - 腾讯位置服务 WebServiceAPI key，用于 Admin 地点表单的“搜索地标/地址”。
 - `TENCENT_MAP_SECRET_KEY`
   - 可选。开启腾讯位置服务 SN 校验后填写 SecretKey/SK，API 会在服务端生成 `sig`。
+- `COMMUNITY_PLAN_DEMO_EVENT_ID`
+  - 可选。Community Plan 固定演示活动 ID，默认 `event_001`；CloudBase live 必须存在对应的桐梓林已发布活动。
+- `COMMUNITY_PLAN_AI_ENABLED`
+  - 设为 `true` 时启用服务端 DeepSeek 双语叙述增强；未启用时保持确定性规则路线。
+- `DEEPSEEK_API_KEY`
+  - 仅服务端配置的 DeepSeek 密钥，禁止使用 `VITE_` 前缀或写入客户端、日志和证据文件。
+- `COMMUNITY_PLAN_AI_TIMEOUT_MS`
+  - 可选。DeepSeek 请求超时，默认 `8000` 毫秒。
+- `API_TRUSTED_PROXY_IPS`
+  - 可选。逗号分隔的可信反向代理 IP；仅可信代理来源的 `X-Forwarded-For` 会参与 Community Plan 10 次/分钟限流源解析。
 
 腾讯地图 key 不要写入 Admin 的 `VITE_` 环境变量。Admin 通过 `GET /admin/places/poi-search` 调用 API 代理，key 只保存在本地 API 进程或 CloudBase `community-map-api` 函数环境变量中。CloudBase dev 部署时需要在保留 `API_PROVIDER=cloudbase`、`CLOUDBASE_PROVIDER_MODE=live`、`CLOUDBASE_ENV_ID=cloud1-d7gxdk8t43bd639c0` 的基础上追加上述 key。
 

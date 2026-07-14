@@ -12,6 +12,7 @@ import {
 import { createProvider } from "./providers";
 import { registerAnnouncementRoutes } from "./routes/announcements";
 import { registerAuthRoutes } from "./routes/auth";
+import { registerCommunityPlanRoutes } from "./routes/community-plan";
 import { registerDiscoverRoutes } from "./routes/discover";
 import { registerEventRoutes } from "./routes/events";
 import { registerFileRoutes } from "./routes/files";
@@ -58,6 +59,7 @@ export const createApp = (mode?: string) => {
   registerEventRoutes(router);
   registerDiscoverRoutes(router);
   registerPlaceRoutes(router);
+  registerCommunityPlanRoutes(router);
   registerAnnouncementRoutes(router);
   registerNotificationRoutes(router);
   registerFileRoutes(router);

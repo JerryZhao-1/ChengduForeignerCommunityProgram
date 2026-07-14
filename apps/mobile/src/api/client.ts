@@ -120,3 +120,28 @@ export const mobileApi =
             ? createCloudbaseFunctionRequester()
             : createUniRequester()
       });
+
+/**
+ * Guest judge client for the Community Plan H5 flow.
+ *
+ * The competition H5 entry must work without login, WeChat授权, or a mock
+ * actor header. This client sends `x-guest-mode: judge` for server-side
+ * traceability (`authenticatedVia: "guest"`) and intentionally omits
+ * `x-mock-user-id` / `authorization`. Reuses the same transport as
+ * `mobileApi` so H5, 微信小程序 HTTP, and CloudBase function modes stay
+ * consistent. Only `communityPlan.generate` is intended to be called on
+ * this client — all other guest writes remain 403.
+ */
+export const createMobileGuestClient = () =>
+  mobileEnv.apiMode === "mock"
+    ? createMockClient({})
+    : createHttpClient({
+        baseUrl: mobileEnv.apiBaseUrl,
+        defaultHeaders: { "x-guest-mode": "judge" },
+        requester:
+          mobileEnv.apiMode === "cloudbase-function"
+            ? createCloudbaseFunctionRequester()
+            : createUniRequester()
+      });
+
+export const mobileGuestUsesOfflineBundle = mobileEnv.apiMode === "mock";

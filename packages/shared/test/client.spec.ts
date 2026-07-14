@@ -5,7 +5,8 @@ import {
   createMockClient,
   createMockService,
   apiPaths,
-  type HttpRequester
+  type HttpRequester,
+  type NewResidentPreference
 } from "@community-map/shared";
 import { describe, expect, it, vi } from "vitest";
 
@@ -1238,6 +1239,127 @@ describe("shared api clients", () => {
       "http://localhost:8787/admin/places/gallery-files",
       expect.any(FormData),
       { "x-mock-user-id": "user_001" }
+    );
+  });
+
+  it("mock client generates a deterministic community plan for valid preferences", async () => {
+    const mockClient = createMockClient({ actorId: "user_001" });
+    const preference: NewResidentPreference = {
+      preferred_language: "zh",
+      interests: ["community-service", "social"],
+      arrival_context: "first-week",
+      household_type: "solo",
+      accessibility_needs: []
+    };
+
+    const result = await mockClient.communityPlan.generate(preference);
+
+    expect(result.success).toBe(true);
+    expect(result.data.community_id).toBe("tongzilin");
+    expect(result.data.items).toHaveLength(2);
+    expect(result.data.total_duration_minutes).toBe(120);
+    expect(result.data.generation_source).toBe("rule_based");
+    expect(result.data.ai_status).toBe("not_configured");
+    expect(result.data.items.map((item) => item.type)).toEqual([
+      "place_visit",
+      "event_attend"
+    ]);
+  });
+
+  it("mock client produces identical plans for identical preferences", async () => {
+    const mockClient = createMockClient({ actorId: "user_001" });
+    const preference: NewResidentPreference = {
+      preferred_language: "en",
+      interests: ["family-kids", "outdoor-sports"],
+      arrival_context: "first-month",
+      household_type: "family-with-kids",
+      accessibility_needs: []
+    };
+
+    const first = await mockClient.communityPlan.generate(preference);
+    const second = await mockClient.communityPlan.generate(preference);
+
+    expect(first.data.plan_id).toBe(second.data.plan_id);
+    expect(first.data.items.map((item) => item.ref_id)).toEqual(
+      second.data.items.map((item) => item.ref_id)
+    );
+  });
+
+  it("http client posts preferences to /community-plan/generate", async () => {
+    const requester = vi.fn(async () => ({
+      success: true,
+      requestId: "req_plan_001",
+      data: {
+        plan_id: "plan_http_001",
+        community_id: "tongzilin",
+        generated_at: "2027-04-02T09:00:00+08:00",
+        items: [],
+        total_duration_minutes: 120,
+        route_kind: "place_event",
+        generation_source: "rule_based",
+        ai_status: "not_configured",
+        generated_by: "tongzilin-rule-engine-v1"
+      }
+    }));
+    const httpClient = createHttpClient({
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    const preference: NewResidentPreference = {
+      preferred_language: "zh",
+      interests: ["social"],
+      arrival_context: "first-week",
+      household_type: "solo",
+      accessibility_needs: []
+    };
+
+    const result = await httpClient.communityPlan.generate(preference);
+
+    expect(result.success).toBe(true);
+    expect(result.data.plan_id).toBe("plan_http_001");
+    expect(requester).toHaveBeenCalledWith(
+      "POST",
+      "http://localhost:8787/community-plan/generate",
+      preference,
+      undefined
+    );
+  });
+
+  it("http client communityPlan.generate does not send a mock actor header by default", async () => {
+    const requester = vi.fn(async () => ({
+      success: true,
+      requestId: "req_plan_guest",
+      data: {
+        plan_id: "plan_guest_001",
+        community_id: "tongzilin",
+        generated_at: "2027-04-02T09:00:00+08:00",
+        items: [],
+        total_duration_minutes: 120,
+        route_kind: "place_event",
+        generation_source: "rule_based",
+        ai_status: "not_configured",
+        generated_by: "tongzilin-rule-engine-v1"
+      }
+    }));
+    const httpClient = createHttpClient({
+      baseUrl: "http://localhost:8787",
+      requester: requester as unknown as HttpRequester
+    });
+
+    await httpClient.communityPlan.generate({
+      preferred_language: "zh",
+      interests: ["social"],
+      arrival_context: "first-week",
+      household_type: "solo",
+      accessibility_needs: []
+    });
+
+    expect(requester).toHaveBeenCalledWith(
+      "POST",
+      "http://localhost:8787/community-plan/generate",
+      expect.objectContaining({ preferred_language: "zh" }),
+      undefined
     );
   });
 });

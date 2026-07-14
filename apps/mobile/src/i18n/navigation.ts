@@ -30,7 +30,12 @@ export const ROUTE_TITLE_KEYS: Record<string, NavigationKey> = {
   "pages/more/my-report-detail": "reportDetail",
   "pages/more/profile": "profile",
   "pages/more/follows": "follows",
-  "pages/more/language-settings": "languageSettings"
+  "pages/more/language-settings": "languageSettings",
+  "pages/onboarding/welcome": "home",
+  "pages/onboarding/preferences": "home",
+  "pages/onboarding/plan": "home",
+  "pages/onboarding/route-map": "home",
+  "pages/onboarding/complete": "home"
 };
 
 export const TAB_ITEMS: Array<{
@@ -60,10 +65,7 @@ export const routeTitle = (route: string, locale: MobileLocale) => {
 };
 
 const ignoreUniApiRejection = (result: unknown) => {
-  if (
-    result &&
-    typeof (result as { then?: unknown }).then === "function"
-  ) {
+  if (result && typeof (result as { then?: unknown }).then === "function") {
     void Promise.resolve(result).catch(() => undefined);
   }
 };

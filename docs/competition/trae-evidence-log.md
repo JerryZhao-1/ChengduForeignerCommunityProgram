@@ -11,7 +11,7 @@
 | 03-openspec | 2026-07-13 | TRAE Builder | 1765147662888432:e8fbe666dcf835d5fdacc6e9280dd5d5_6a5501981867b5102a9bda91.6a5501981867b5102a9bda94.6a5501981867b5102a9bda92:TRAE Work CN.0.1.34.no_sid.no_ppe.T(2026/7/13 23:17:44) | OpenSpec change proposal 创建与校验（截图仅记录初稿创建；当前九任务版本的最终校验证据待补） | openspec/changes/launch-trae-competition-h5-demo/* | | evidence/03-openspec/Screenshot 2026-07-13 at 11.28.04 PM.png | IN-PROGRESS |
 | 04-contracts | | | 1765147662888432:b04e85cabcefca9b94dc5daff105203e_6a55de784cb7ae6cb7a670d2.6a55de784cb7ae6cb7a670d5.6a55de784cb7ae6cb7a670d3:TRAE Work CN.0.1.35.no_sid.no_ppe.T(2026/7/14 15:00:08)| 确认复用 shared contracts 与 demo 数据子集 | packages/shared/src/contracts/* | | | |
 | 05-onboarding | | |1765147662888432:b04e85cabcefca9b94dc5daff105203e_6a55de784cb7ae6cb7a670d2.6a55de784cb7ae6cb7a670d5.6a55de784cb7ae6cb7a670d3:TRAE Work CN.0.1.35.no_sid.no_ppe.T(2026/7/14 15:00:08) | 首屏融入路线引导页实现 | apps/mobile/src/pages/home/* | | | |
-| 06-planner | | | | 融入路线步骤规划器 | | | | |
+| 06-planner | | | 1765147662888432:c2b1008a91f58e4ece112ecf9cbf13f4_6a55efe94cb7ae6cb7a6728a.6a55efe94cb7ae6cb7a6728d.6a55efe94cb7ae6cb7a6728b:TRAE Work CN.0.1.35.no_sid.no_ppe.T(2026/7/14 16:14:33)| 融入路线步骤规划器 | | | | |
 | 07-map | | | | 地图与地点导航动线 | apps/mobile/src/pages/places/* | | | |
 | 08-registration | | | | 活动报名与参与动线 | apps/mobile/src/pages/events/* | | | |
 | 09-resilience | | | | 错误态/空状态/加载态韧性 | | | | |

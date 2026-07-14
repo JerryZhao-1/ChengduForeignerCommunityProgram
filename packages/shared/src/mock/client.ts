@@ -2,6 +2,7 @@ import type {
   Announcement,
   AuthSession,
   Comment,
+  CommunityPlan,
   DiscoverAuditRecord,
   DiscoverAnalytics,
   DiscoverTag,
@@ -16,6 +17,7 @@ import type {
   EventRegistration,
   EventTicket,
   FileAsset,
+  NewResidentPreference,
   Notification,
   Place,
   DeletePlaceResponse,
@@ -34,6 +36,8 @@ import type {
 } from "../types/entities";
 import type { ApiResult, PageResult } from "../types/common";
 
+import { createCompetitionDemoEngineInput } from "./competition-fixtures";
+import { generateCommunityPlan } from "../community-plan/engine";
 import { createMockService, MockServiceError } from "./service";
 
 export interface ClientContext {
@@ -210,6 +214,9 @@ export interface CommunityMapApiClient {
     }): Promise<ApiResult<PageResult<PlaceListItem>>>;
     detail(id: string): Promise<ApiResult<PlaceDetail>>;
     mapMarkers(): Promise<ApiResult<PlaceMapMarker[]>>;
+  };
+  communityPlan: {
+    generate(input: NewResidentPreference): Promise<ApiResult<CommunityPlan>>;
   };
   announcements: {
     list(): Promise<ApiResult<PageResult<Announcement>>>;
@@ -586,6 +593,13 @@ export const createMockClient = (
       },
       async mapMarkers() {
         return ok(service.places.mapMarkers());
+      }
+    },
+    communityPlan: {
+      async generate(input) {
+        const engineInput = createCompetitionDemoEngineInput(input);
+        const plan = generateCommunityPlan(engineInput);
+        return ok(plan);
       }
     },
     announcements: {

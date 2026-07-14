@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import {
   PENDING_PLACE_GALLERY_BIZ_ID,
+  createCompetitionDemoEngineInput,
   createMockService,
+  generateCommunityPlan,
   isMockServiceError
 } from "@community-map/shared";
 
@@ -343,6 +345,14 @@ export const createMockProvider = (): ApiProvider => {
             file_asset: asset,
             gallery_file_ids: place?.gallery_file_ids ?? [asset.file_id]
           };
+        });
+      }
+    },
+    communityPlan: {
+      async generate(input) {
+        return withMockErrors(() => {
+          const engineInput = createCompetitionDemoEngineInput(input);
+          return generateCommunityPlan(engineInput);
         });
       }
     },

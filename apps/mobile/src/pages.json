@@ -166,6 +166,41 @@
       "style": {
         "navigationBarTitleText": "语言设置"
       }
+    },
+    {
+      "path": "pages/onboarding/welcome",
+      "style": {
+        "navigationBarTitleText": "桐邻 120 分钟",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/onboarding/preferences",
+      "style": {
+        "navigationBarTitleText": "偏好设置",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/onboarding/plan",
+      "style": {
+        "navigationBarTitleText": "你的路线",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/onboarding/route-map",
+      "style": {
+        "navigationBarTitleText": "路线清单",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/onboarding/complete",
+      "style": {
+        "navigationBarTitleText": "路线完成",
+        "navigationStyle": "custom"
+      }
     }
   ],
   "subPackages": [],

@@ -9,7 +9,7 @@ export interface AuthenticatedState {
   actor?: User;
   requestId: string;
   wechatMiniappIdentity?: WechatMiniappIdentity;
-  authenticatedVia?: "bearer" | "wechat-miniapp" | "mock";
+  authenticatedVia?: "bearer" | "wechat-miniapp" | "mock" | "guest";
 }
 
 const isMockActorHeaderAllowed = () =>
@@ -47,7 +47,7 @@ const isAnonymousPublicRoute = (method: string, path: string) => {
     return true;
   }
 
-  if (method !== "GET") {
+  if (method !== "GET" && method !== "HEAD") {
     return false;
   }
 
@@ -68,6 +68,19 @@ const isAnonymousPublicRoute = (method: string, path: string) => {
   );
 };
 
+const isGuestModeRequest = (ctx: Context) => {
+  const guestMode = ctx.get("x-guest-mode").trim().toLowerCase();
+  return guestMode === "judge";
+};
+
+const isGuestAllowedRoute = (method: string, path: string) => {
+  if (method === "POST" && path === "/community-plan/generate") {
+    return true;
+  }
+
+  return isAnonymousPublicRoute(method, path);
+};
+
 export const actorMiddleware = async (ctx: Context, next: Next) => {
   if (ctx.path === "/auth/admin/login") {
     await next();
@@ -77,6 +90,7 @@ export const actorMiddleware = async (ctx: Context, next: Next) => {
   const bearerActorId = verifyAdminBearerToken(ctx.get("authorization"));
   const identity = resolveWechatMiniappIdentity((name) => ctx.get(name));
   const mockActorId = ctx.get("x-mock-user-id") || undefined;
+  const guestMode = isGuestModeRequest(ctx);
   const actorId =
     bearerActorId ?? (isMockActorHeaderAllowed() ? mockActorId : undefined);
   ctx.state.wechatMiniappIdentity = identity;
@@ -86,7 +100,22 @@ export const actorMiddleware = async (ctx: Context, next: Next) => {
       ? "wechat-miniapp"
       : actorId
         ? "mock"
-        : undefined;
+        : guestMode
+          ? "guest"
+          : undefined;
+
+  if (guestMode && !actorId && !identity) {
+    if (!isGuestAllowedRoute(ctx.method, ctx.path)) {
+      throw apiError(
+        "FORBIDDEN",
+        "Guest access is not allowed for this action.",
+        403
+      );
+    }
+    ctx.state.actor = undefined;
+    await next();
+    return;
+  }
 
   if (!actorId && !identity) {
     if (!isAnonymousPublicRoute(ctx.method, ctx.path)) {

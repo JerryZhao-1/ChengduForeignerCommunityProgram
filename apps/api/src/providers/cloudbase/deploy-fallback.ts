@@ -1,4 +1,6 @@
 import {
+  createCompetitionDemoEngineInput,
+  generateCommunityPlan,
   type Announcement,
   type AuthSession,
   type User
@@ -43,7 +45,11 @@ const session = (user: User): AuthSession => ({
 });
 
 const unsupported = async (): Promise<never> => {
-  throw apiError("NOT_IMPLEMENTED", "Fallback provider path is unavailable.", 501);
+  throw apiError(
+    "NOT_IMPLEMENTED",
+    "Fallback provider path is unavailable.",
+    501
+  );
 };
 
 export const createMockProvider = (): ApiProvider => ({
@@ -74,7 +80,9 @@ export const createMockProvider = (): ApiProvider => ({
       return { preferred_language: user.preferred_language };
     },
     async wechatMiniappSession(input) {
-      return session(await this.resolveActor(input.identity?.openid ?? "user_001"));
+      return session(
+        await this.resolveActor(input.identity?.openid ?? "user_001")
+      );
     }
   },
   events: {
@@ -146,6 +154,11 @@ export const createMockProvider = (): ApiProvider => ({
     update: unsupported,
     delete: unsupported,
     uploadGalleryFile: unsupported
+  },
+  communityPlan: {
+    async generate(input) {
+      return generateCommunityPlan(createCompetitionDemoEngineInput(input));
+    }
   },
   announcements: {
     list: async () => page<Announcement>(),

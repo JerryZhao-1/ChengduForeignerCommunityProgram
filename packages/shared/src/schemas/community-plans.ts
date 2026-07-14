@@ -57,6 +57,9 @@ export const COMMUNITY_PLAN_ACCESSIBILITY_NEEDS = [
 export const CommunityPlanAccessibilityNeedSchema = z.enum(
   COMMUNITY_PLAN_ACCESSIBILITY_NEEDS
 );
+export type CommunityPlanAccessibilityNeed = z.infer<
+  typeof CommunityPlanAccessibilityNeedSchema
+>;
 
 // --- Strict guest preference request (no community_id, no PII, no free text) ---
 

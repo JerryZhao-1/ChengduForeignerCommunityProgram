@@ -182,6 +182,132 @@ const foundationCopy = {
         cancelled: "已取消",
         closed: "已关闭"
       }
+    },
+    onboarding: {
+      heroTitle: "今天，什么能让桐梓林变成你的家？",
+      heroSubtitle: "30 秒生成你的专属社区融入路线",
+      judgeEntry: "30 秒评委体验",
+      judgeEntryCaption: "使用预置偏好，快速体验完整流程",
+      planEntry: "为我制定计划",
+      planEntryCaption: "回答 4 个问题，生成你的路线",
+      guestNotice: "评委模式 · 无需登录、验证码或微信授权",
+      communityDefault: "桐梓林",
+      communityManualHint: "默认定位桐梓林，你也可以手动选择",
+      stepIndicator: "第 {current} / {total} 步",
+      step1Title: "你更希望使用哪种语言？",
+      step2Title: "你对哪些社区活动感兴趣？",
+      step2Hint: "至少选择一项",
+      step3Title: "你来到桐梓林多久了？",
+      step4Title: "还有什么我们需要知道的？",
+      step4Hint: "可跳过",
+      languageZh: "中文",
+      languageEn: "English",
+      useExample: "使用示例偏好",
+      next: "下一步",
+      back: "返回",
+      submit: "生成我的路线",
+      skip: "跳过",
+      interests: {
+        "community-service": "社区服务",
+        "food-drink": "美食饮品",
+        social: "社交聚会",
+        "language-exchange": "语言交换",
+        "family-kids": "亲子家庭",
+        "health-wellness": "健康养生",
+        transport: "交通出行",
+        "outdoor-sports": "户外运动"
+      },
+      arrivalContexts: {
+        "first-week": "刚到第一周",
+        "first-month": "第一个月内",
+        settled: "已经安顿"
+      },
+      householdTypes: {
+        solo: "独自居住",
+        couple: "伴侣同住",
+        "family-with-kids": "带小孩家庭",
+        shared: "合租共享"
+      },
+      accessibilityNeeds: {
+        wheelchair: "轮椅通行",
+        "low-vision": "低视力支持",
+        "low-mobility": "行动不便支持",
+        "hearing-support": "听力支持",
+        "quiet-environment": "安静环境"
+      },
+      generating: {
+        title: "正在为你组织路线...",
+        checkTime: "检查可用时间",
+        matchPlaces: "匹配附近地点",
+        checkCapacity: "检查活动名额",
+        organizeTips: "组织双语提示"
+      },
+      plan: {
+        title: "你的桐邻 120 分钟",
+        offlineNotice: "离线演示模式 · 使用预置路线",
+        validationError: "输入有误，请检查后重试",
+        networkError: "网络异常，已切换到离线演示",
+        forbiddenError: "当前评委会话不可用，请重新开始",
+        notFoundError: "路线生成服务暂不可用，请稍后重试",
+        conflictError: "当前状态已变化，请重新生成路线",
+        rateLimitedError: "请求过于频繁，请稍后再试",
+        genericError: "暂时无法生成路线，请稍后重试",
+        requestId: "请求编号：{requestId}",
+        retry: "重试",
+        startOver: "重新开始",
+        duration: "总时长 {minutes} 分钟",
+        viewRoute: "查看路线详情",
+        stopLabel: "第 {index} 站",
+        openPlace: "打开地点详情",
+        markVisited: "标记为已到访",
+        visited: "已到访",
+        unavailable: "地点暂不可用",
+        demoConfirm: "演示确认",
+        demoConfirmed: "已演示确认",
+        demoDisclosure: "仅作本地演示，不创建报名、预约、票券或名额占用。",
+        finish: "完成路线",
+        finishGuidance: "到访地点并完成活动演示确认后即可结束路线",
+        itemTypes: {
+          place_visit: "地点到访",
+          event_attend: "活动演示"
+        },
+        generationSources: {
+          rule_based: "规则路线",
+          ai_enhanced: "AI 双语增强",
+          rule_based_fallback: "安全回退路线"
+        },
+        aiStatuses: {
+          ok: "AI 双语提示已生成",
+          not_configured: "使用确定性社区路线",
+          timeout: "AI 响应超时，已使用安全路线",
+          validation_failed: "AI 内容未通过校验，已使用安全路线",
+          upstream_error: "AI 服务暂不可用，已使用安全路线",
+          unavailable: "AI 未启用，已使用安全路线"
+        }
+      },
+      route: {
+        title: "路线清单",
+        subtitle: "按顺序完成你的桐梓林第一程",
+        mapUnavailable: "地图增强未启用，路线清单仍可正常使用",
+        back: "返回计划",
+        openPlace: "查看地点",
+        coordinates: "位置 {latitude}, {longitude}"
+      },
+      complete: {
+        title: "你的第一程已完成",
+        subtitle: "欢迎来到桐梓林，社区探索才刚刚开始。",
+        places: "地点到访 {visited}/{total}",
+        events: "演示确认 {confirmed}/{total}",
+        unavailablePlaces: "地点暂不可用，本次按 {visited}/{total} 计算",
+        demoDisclosure: "演示确认未创建任何报名、预约、票券或名额占用。",
+        startOver: "重新体验"
+      },
+      mpOnly: {
+        title: "请在 H5 体验桐邻路线",
+        description:
+          "当前微信小程序仅保留现有社区功能，评委体验请使用 H5 链接。"
+      },
+      continueExploring: "继续探索"
     }
   },
   en: {
@@ -334,7 +460,8 @@ const foundationCopy = {
       english: "English",
       selected: "Current language",
       saved: "Language preference saved",
-      syncPending: "Saved on this device and will sync when the network returns."
+      syncPending:
+        "Saved on this device and will sync when the network returns."
     },
     notifications: {
       title: "Notifications",
@@ -363,6 +490,141 @@ const foundationCopy = {
         cancelled: "Cancelled",
         closed: "Closed"
       }
+    },
+    onboarding: {
+      heroTitle: "What would make Tongzilin feel like home today?",
+      heroSubtitle: "Generate your personalized community route in 30 seconds",
+      judgeEntry: "30-second judge experience",
+      judgeEntryCaption: "Use preset preferences to try the full flow",
+      planEntry: "Build my plan",
+      planEntryCaption: "Answer 4 questions to generate your route",
+      guestNotice: "Judge mode · No login, code, or WeChat authorization",
+      communityDefault: "Tongzilin",
+      communityManualHint:
+        "Defaults to Tongzilin — you can also choose manually",
+      stepIndicator: "Step {current} of {total}",
+      step1Title: "Which language do you prefer?",
+      step2Title: "What are you interested in?",
+      step2Hint: "Select at least one",
+      step3Title: "How new are you to Tongzilin?",
+      step4Title: "Anything else we should know?",
+      step4Hint: "Optional",
+      languageZh: "中文",
+      languageEn: "English",
+      useExample: "Use example preferences",
+      next: "Next",
+      back: "Back",
+      submit: "Generate my route",
+      skip: "Skip",
+      interests: {
+        "community-service": "Community Service",
+        "food-drink": "Food & Drink",
+        social: "Social",
+        "language-exchange": "Language Exchange",
+        "family-kids": "Family & Kids",
+        "health-wellness": "Health & Wellness",
+        transport: "Transport",
+        "outdoor-sports": "Outdoor Sports"
+      },
+      arrivalContexts: {
+        "first-week": "First week",
+        "first-month": "First month",
+        settled: "Settled in"
+      },
+      householdTypes: {
+        solo: "Solo",
+        couple: "Couple",
+        "family-with-kids": "Family with kids",
+        shared: "Shared"
+      },
+      accessibilityNeeds: {
+        wheelchair: "Wheelchair access",
+        "low-vision": "Low vision support",
+        "low-mobility": "Low mobility support",
+        "hearing-support": "Hearing support",
+        "quiet-environment": "Quiet environment"
+      },
+      generating: {
+        title: "Building your route...",
+        checkTime: "Checking available time",
+        matchPlaces: "Matching nearby places",
+        checkCapacity: "Checking event availability",
+        organizeTips: "Organizing bilingual tips"
+      },
+      plan: {
+        title: "Your Tonglin 120 Minutes",
+        offlineNotice: "Offline demo mode · Using preset route",
+        validationError: "Please check your input and try again",
+        networkError: "Network issue, switched to offline demo",
+        forbiddenError: "This judge session is unavailable. Please start over.",
+        notFoundError:
+          "The route service is temporarily unavailable. Please retry.",
+        conflictError:
+          "The current state changed. Please generate a new route.",
+        rateLimitedError: "Too many requests. Please try again shortly.",
+        genericError: "Unable to generate a route right now. Please retry.",
+        requestId: "Request ID: {requestId}",
+        retry: "Retry",
+        startOver: "Start over",
+        duration: "{minutes} minutes total",
+        viewRoute: "View route details",
+        stopLabel: "Stop {index}",
+        openPlace: "Open place details",
+        markVisited: "Mark visited",
+        visited: "Visited",
+        unavailable: "Place unavailable",
+        demoConfirm: "Demo Confirm",
+        demoConfirmed: "Demo confirmed",
+        demoDisclosure:
+          "Local demo only. This creates no booking, reservation, ticket, or capacity hold.",
+        finish: "Finish route",
+        finishGuidance: "Visit the place and confirm the demo event to finish",
+        itemTypes: {
+          place_visit: "Place visit",
+          event_attend: "Demo event"
+        },
+        generationSources: {
+          rule_based: "Rule-based route",
+          ai_enhanced: "AI bilingual enhancement",
+          rule_based_fallback: "Safe fallback route"
+        },
+        aiStatuses: {
+          ok: "AI bilingual tips generated",
+          not_configured: "Using the deterministic community route",
+          timeout: "AI timed out; using the safe route",
+          validation_failed:
+            "AI content did not validate; using the safe route",
+          upstream_error: "AI is temporarily unavailable; using the safe route",
+          unavailable: "AI is not enabled; using the safe route"
+        }
+      },
+      route: {
+        title: "Route list",
+        subtitle: "Follow your first Tongzilin journey in order",
+        mapUnavailable:
+          "Map enhancement is unavailable; the route list remains fully usable",
+        back: "Back to plan",
+        openPlace: "View place",
+        coordinates: "Location {latitude}, {longitude}"
+      },
+      complete: {
+        title: "Your first journey is complete",
+        subtitle:
+          "Welcome to Tongzilin. Your community exploration has just begun.",
+        places: "Place visits {visited}/{total}",
+        events: "Demo confirms {confirmed}/{total}",
+        unavailablePlaces:
+          "A place was unavailable; this result is {visited}/{total}",
+        demoDisclosure:
+          "Demo Confirm created no booking, reservation, ticket, or capacity hold.",
+        startOver: "Start over"
+      },
+      mpOnly: {
+        title: "Open the Tonglin route in H5",
+        description:
+          "The Mini Program keeps the existing community features. Use the H5 link for the judge experience."
+      },
+      continueExploring: "Continue exploring"
     }
   }
 } as const;

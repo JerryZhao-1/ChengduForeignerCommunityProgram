@@ -2,6 +2,7 @@ import type {
   Announcement,
   AuthSession,
   Comment,
+  CommunityPlan,
   DiscoverAuditRecord,
   DiscoverAnalytics,
   DiscoverTag,
@@ -16,6 +17,7 @@ import type {
   EventRegistration,
   EventTicket,
   FileAsset,
+  NewResidentPreference,
   Notification,
   PageResult,
   Place,
@@ -389,6 +391,9 @@ export interface ApiProvider {
       },
       actorId?: string
     ): Promise<DirectPlaceGalleryUploadResponse | null>;
+  };
+  communityPlan: {
+    generate(input: NewResidentPreference): Promise<CommunityPlan>;
   };
   announcements: {
     list(input: {
