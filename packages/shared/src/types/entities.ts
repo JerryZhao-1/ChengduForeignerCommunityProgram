@@ -52,6 +52,19 @@ import type {
   PlaceMapMarkerSchema,
   PlacePoiSearchItemSchema
 } from "../schemas/places";
+import type {
+  CommunityPlanSchema,
+  CommunityPlanItemSchema,
+  CommunityPlanPlaceVisitItemSchema,
+  CommunityPlanEventAttendItemSchema,
+  CommunityPlanPlaceProjectionSchema,
+  CommunityPlanEventProjectionSchema,
+  CommunityPlanAIEnhancementSchema,
+  CommunityPlanAIEnhancementItemSchema,
+  CommunityPlanUsageSchema,
+  CommunityPlanOfflineBundleSchema,
+  NewResidentPreferenceSchema
+} from "../schemas/community-plans";
 
 export type User = z.infer<typeof UserSchema>;
 export type AuthSession = z.infer<typeof AuthSessionSchema>;
@@ -116,4 +129,29 @@ export type DirectPlaceGalleryUploadResponse = z.infer<
 >;
 export type DirectEventCoverUploadResponse = z.infer<
   typeof DirectEventCoverUploadResponseSchema
+>;
+export type NewResidentPreference = z.infer<typeof NewResidentPreferenceSchema>;
+export type CommunityPlan = z.infer<typeof CommunityPlanSchema>;
+export type CommunityPlanItem = z.infer<typeof CommunityPlanItemSchema>;
+export type CommunityPlanPlaceVisitItem = z.infer<
+  typeof CommunityPlanPlaceVisitItemSchema
+>;
+export type CommunityPlanEventAttendItem = z.infer<
+  typeof CommunityPlanEventAttendItemSchema
+>;
+export type CommunityPlanPlaceProjection = z.infer<
+  typeof CommunityPlanPlaceProjectionSchema
+>;
+export type CommunityPlanEventProjection = z.infer<
+  typeof CommunityPlanEventProjectionSchema
+>;
+export type CommunityPlanAIEnhancement = z.infer<
+  typeof CommunityPlanAIEnhancementSchema
+>;
+export type CommunityPlanAIEnhancementItem = z.infer<
+  typeof CommunityPlanAIEnhancementItemSchema
+>;
+export type CommunityPlanUsage = z.infer<typeof CommunityPlanUsageSchema>;
+export type CommunityPlanOfflineBundle = z.infer<
+  typeof CommunityPlanOfflineBundleSchema
 >;

@@ -10,6 +10,7 @@ exports[`shared contracts > keeps page envelope, file rules, and enums stable 1`
     "UPSTREAM_ERROR",
     "NOT_FOUND",
     "CONFLICT",
+    "RATE_LIMITED",
     "NOT_IMPLEMENTED",
     "INTERNAL_ERROR",
   ],

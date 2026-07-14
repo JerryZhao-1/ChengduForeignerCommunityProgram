@@ -1,5 +1,6 @@
 export * from "./announcements";
 export * from "./auth";
+export * from "./community-plans";
 export * from "./define-contract";
 export * from "./discover";
 export * from "./events";

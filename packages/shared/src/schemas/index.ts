@@ -1,5 +1,6 @@
 export * from "./announcements";
 export * from "./auth";
+export * from "./community-plans";
 export * from "./common";
 export * from "./discover";
 export * from "./entities";

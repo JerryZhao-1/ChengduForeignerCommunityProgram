@@ -52,6 +52,9 @@ export const apiPaths = {
     detail: (id: string) => `/places/${id}`,
     mapMarkers: "/places/map-markers"
   },
+  communityPlan: {
+    generate: "/community-plan/generate"
+  },
   announcements: {
     list: "/announcements",
     detail: (id: string) => `/announcements/${id}`

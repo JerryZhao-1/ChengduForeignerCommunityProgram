@@ -13,6 +13,7 @@ export const API_ERROR_CODES = [
   "UPSTREAM_ERROR",
   "NOT_FOUND",
   "CONFLICT",
+  "RATE_LIMITED",
   "NOT_IMPLEMENTED",
   "INTERNAL_ERROR"
 ] as const;
