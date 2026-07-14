@@ -70,7 +70,28 @@ export const NewResidentPreferenceSchema = z
       .array(CommunityPlanAccessibilityNeedSchema)
       .default([])
   })
-  .strict();
+  .strict()
+  .superRefine((preference, ctx) => {
+    const uniqueInterests = new Set(preference.interests);
+    if (uniqueInterests.size !== preference.interests.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "interests must not contain duplicate values",
+        path: ["interests"]
+      });
+    }
+
+    const uniqueAccessibilityNeeds = new Set(preference.accessibility_needs);
+    if (
+      uniqueAccessibilityNeeds.size !== preference.accessibility_needs.length
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "accessibility_needs must not contain duplicate values",
+        path: ["accessibility_needs"]
+      });
+    }
+  });
 
 // --- Public-safe projections (explicit allowlists) ---
 
@@ -82,10 +103,12 @@ export const CommunityPlanPlaceProjectionSchema = z
     cover_url: z.string().url().nullable(),
     category_level_1: PlaceTopLevelCategorySchema,
     is_recommended: z.boolean(),
-    location: z.object({
-      latitude: z.number(),
-      longitude: z.number()
-    })
+    location: z
+      .object({
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180)
+      })
+      .strict()
   })
   .strict();
 
@@ -96,8 +119,8 @@ export const CommunityPlanEventProjectionSchema = z
     title_en: z.string(),
     summary_zh: z.string(),
     summary_en: z.string(),
-    start_time: z.string(),
-    end_time: z.string(),
+    start_time: z.string().datetime({ offset: true }),
+    end_time: z.string().datetime({ offset: true }),
     cover_url: z.string().url()
   })
   .strict();
@@ -238,7 +261,7 @@ export const CommunityPlanSchema = z
   .object({
     plan_id: z.string(),
     community_id: z.literal("tongzilin"),
-    generated_at: z.string(),
+    generated_at: z.string().datetime({ offset: true }),
     items: z.array(CommunityPlanItemSchema).length(2),
     total_duration_minutes: z.literal(120),
     route_kind: CommunityPlanRouteKindSchema,
@@ -265,6 +288,38 @@ export const CommunityPlanSchema = z
         message: "Plan must contain exactly one event_attend item",
         path: ["items"]
       });
+    }
+
+    for (let i = 0; i < plan.items.length; i++) {
+      const item = plan.items[i];
+      const projectionId =
+        item.type === "place_visit" ? item.place._id : item.event._id;
+      if (item.ref_id !== projectionId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "ref_id must match the embedded public projection ID",
+          path: ["items", i, "ref_id"]
+        });
+      }
+
+      if (item.type === "event_attend") {
+        const generatedAtMs = Date.parse(plan.generated_at);
+        const attendanceStartMs =
+          generatedAtMs + item.start_offset_minutes * 60 * 1000;
+        const attendanceEndMs =
+          attendanceStartMs + item.duration_minutes * 60 * 1000;
+        const eventStartMs = Date.parse(item.event.start_time);
+        const eventEndMs = Date.parse(item.event.end_time);
+
+        if (eventStartMs > attendanceStartMs || eventEndMs < attendanceEndMs) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "event must cover its complete attendance window in the plan",
+            path: ["items", i, "event"]
+          });
+        }
+      }
     }
 
     // Unique item_ids
@@ -392,4 +447,72 @@ export const CommunityPlanOfflineBundleSchema = z
     places: z.array(CommunityPlanPlaceProjectionSchema),
     events: z.array(CommunityPlanEventProjectionSchema)
   })
-  .strict();
+  .strict()
+  .superRefine((bundle, ctx) => {
+    const placeItem = bundle.plan.items.find(
+      (item) => item.type === "place_visit"
+    );
+    const eventItem = bundle.plan.items.find(
+      (item) => item.type === "event_attend"
+    );
+
+    const requireSingleProjection = (
+      collection: "markers" | "places" | "events",
+      expectedId: string | undefined
+    ) => {
+      const projections = bundle[collection];
+      const ids = projections.map((projection) => projection._id);
+      if (
+        expectedId === undefined ||
+        projections.length !== 1 ||
+        ids[0] !== expectedId ||
+        new Set(ids).size !== ids.length
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${collection} must contain exactly the projection referenced by the plan`,
+          path: [collection]
+        });
+      }
+    };
+
+    requireSingleProjection("markers", placeItem?.ref_id);
+    requireSingleProjection("places", placeItem?.ref_id);
+    requireSingleProjection("events", eventItem?.ref_id);
+
+    if (
+      placeItem?.type === "place_visit" &&
+      bundle.markers[0] !== undefined &&
+      JSON.stringify(bundle.markers[0]) !== JSON.stringify(placeItem.place)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "marker projection must match the plan place projection",
+        path: ["markers", 0]
+      });
+    }
+
+    if (
+      placeItem?.type === "place_visit" &&
+      bundle.places[0] !== undefined &&
+      JSON.stringify(bundle.places[0]) !== JSON.stringify(placeItem.place)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "place snapshot must match the plan place projection",
+        path: ["places", 0]
+      });
+    }
+
+    if (
+      eventItem?.type === "event_attend" &&
+      bundle.events[0] !== undefined &&
+      JSON.stringify(bundle.events[0]) !== JSON.stringify(eventItem.event)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "event snapshot must match the plan event projection",
+        path: ["events", 0]
+      });
+    }
+  });

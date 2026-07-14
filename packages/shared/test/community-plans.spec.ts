@@ -79,7 +79,7 @@ const baseEventAttendItem = {
 const basePlan = {
   plan_id: "plan_test_001",
   community_id: "tongzilin",
-  generated_at: "2026-07-15T00:00:00+08:00",
+  generated_at: "2027-04-02T09:00:00+08:00",
   items: [basePlaceVisitItem, baseEventAttendItem],
   total_duration_minutes: 120,
   route_kind: "place_event",
@@ -198,6 +198,28 @@ describe("community plan preference input", () => {
         arrival_context: "first-week",
         household_type: "solo",
         accessibility_needs: ["wheelchair", "unknown-need"]
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects duplicate multi-select values", () => {
+    expect(
+      NewResidentPreferenceSchema.safeParse({
+        preferred_language: "zh",
+        interests: ["food-drink", "food-drink"],
+        arrival_context: "first-week",
+        household_type: "solo",
+        accessibility_needs: []
+      }).success
+    ).toBe(false);
+
+    expect(
+      NewResidentPreferenceSchema.safeParse({
+        preferred_language: "zh",
+        interests: ["food-drink"],
+        arrival_context: "first-week",
+        household_type: "solo",
+        accessibility_needs: ["wheelchair", "wheelchair"]
       }).success
     ).toBe(false);
   });
@@ -358,6 +380,30 @@ describe("community plan public-safe projections", () => {
       }).success
     ).toBe(false);
   });
+
+  it("rejects out-of-range place coordinates", () => {
+    expect(
+      CommunityPlanPlaceProjectionSchema.safeParse({
+        ...validPlaceProjection,
+        location: { latitude: 999, longitude: 104.0625 }
+      }).success
+    ).toBe(false);
+    expect(
+      CommunityPlanPlaceProjectionSchema.safeParse({
+        ...validPlaceProjection,
+        location: { latitude: 30.615, longitude: -999 }
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects invalid event timestamps", () => {
+    expect(
+      CommunityPlanEventProjectionSchema.safeParse({
+        ...validEventProjection,
+        start_time: "not-a-date"
+      }).success
+    ).toBe(false);
+  });
 });
 
 describe("community plan discriminated items", () => {
@@ -485,6 +531,28 @@ describe("community plan invariants", () => {
         items: [
           basePlaceVisitItem,
           { ...baseEventAttendItem, ref_id: basePlaceVisitItem.ref_id }
+        ]
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects ref_ids that do not match embedded projection IDs", () => {
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        items: [
+          { ...basePlaceVisitItem, ref_id: "place_other" },
+          baseEventAttendItem
+        ]
+      }).success
+    ).toBe(false);
+
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        items: [
+          basePlaceVisitItem,
+          { ...baseEventAttendItem, ref_id: "event_other" }
         ]
       }).success
     ).toBe(false);
@@ -656,6 +724,34 @@ describe("community plan invariants", () => {
       CommunityPlanSchema.safeParse({
         ...basePlan,
         generation_source: "ai-only"
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects invalid generated_at timestamps", () => {
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        generated_at: "not-a-date"
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects an event that does not cover its plan attendance window", () => {
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        items: [
+          basePlaceVisitItem,
+          {
+            ...baseEventAttendItem,
+            event: {
+              ...validEventProjection,
+              start_time: "2027-04-03T10:00:00+08:00",
+              end_time: "2027-04-03T12:00:00+08:00"
+            }
+          }
+        ]
       }).success
     ).toBe(false);
   });
@@ -932,6 +1028,35 @@ describe("community plan offline bundle", () => {
         version: "1",
         plan: { ...basePlan, total_duration_minutes: 10 },
         markers: [validPlaceProjection],
+        places: [validPlaceProjection],
+        events: [validEventProjection]
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects bundle missing snapshots referenced by the plan", () => {
+    expect(
+      CommunityPlanOfflineBundleSchema.safeParse({
+        version: "1",
+        plan: basePlan,
+        markers: [],
+        places: [],
+        events: []
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects bundle snapshots that disagree with the plan projection", () => {
+    expect(
+      CommunityPlanOfflineBundleSchema.safeParse({
+        version: "1",
+        plan: basePlan,
+        markers: [
+          {
+            ...validPlaceProjection,
+            name_en: "Different marker title"
+          }
+        ],
         places: [validPlaceProjection],
         events: [validEventProjection]
       }).success

@@ -4,7 +4,7 @@ exports[`community plan judge scenarios > scenario 0 plan matches the determinis
 {
   "ai_status": "not_configured",
   "community_id": "tongzilin",
-  "generated_at": "2027-04-01T09:00:00+08:00",
+  "generated_at": "2027-04-02T09:00:00+08:00",
   "generated_by": "tongzilin-rule-engine-v1",
   "generation_source": "rule_based",
   "items": [
@@ -71,7 +71,7 @@ exports[`community plan judge scenarios > scenario 1 plan matches the determinis
 {
   "ai_status": "not_configured",
   "community_id": "tongzilin",
-  "generated_at": "2027-04-01T09:00:00+08:00",
+  "generated_at": "2027-04-02T09:00:00+08:00",
   "generated_by": "tongzilin-rule-engine-v1",
   "generation_source": "rule_based",
   "items": [
@@ -138,7 +138,7 @@ exports[`community plan judge scenarios > scenario 2 plan matches the determinis
 {
   "ai_status": "not_configured",
   "community_id": "tongzilin",
-  "generated_at": "2027-04-01T09:00:00+08:00",
+  "generated_at": "2027-04-02T09:00:00+08:00",
   "generated_by": "tongzilin-rule-engine-v1",
   "generation_source": "rule_based",
   "items": [

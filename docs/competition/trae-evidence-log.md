@@ -9,8 +9,8 @@
 | 01-baseline | 2026-07-11 | TRAE Builder | <full-session-id> | 确认基线 commit/分支/现有能力，搭建证据目录 | docs/competition/README.md, docs/competition/trae-evidence-log.md | <commit> | evidence/01-baseline/...png | Done |
 | 02-design | | | 1765147662888432:a488816ddcb158f64332106c1e7bbe71_6a526837a95a86b34af769b0.6a527546a95a86b34af76d1a.6a527546a95a86b34af76d18:TRAE Work CN.0.1.34.no_sid.no_ppe.T(2026/7/12 00:54:30)| 选定 demo 叙事方向与屏幕流转 | design/selected-direction.md, design/screen-flow.md | | | |
 | 03-openspec | 2026-07-13 | TRAE Builder | 1765147662888432:e8fbe666dcf835d5fdacc6e9280dd5d5_6a5501981867b5102a9bda91.6a5501981867b5102a9bda94.6a5501981867b5102a9bda92:TRAE Work CN.0.1.34.no_sid.no_ppe.T(2026/7/13 23:17:44) | OpenSpec change proposal 创建与校验（截图仅记录初稿创建；当前九任务版本的最终校验证据待补） | openspec/changes/launch-trae-competition-h5-demo/* | | evidence/03-openspec/Screenshot 2026-07-13 at 11.28.04 PM.png | IN-PROGRESS |
-| 04-contracts | | | | 确认复用 shared contracts 与 demo 数据子集 | packages/shared/src/contracts/* | | | |
-| 05-onboarding | | | | 首屏融入路线引导页实现 | apps/mobile/src/pages/home/* | | | |
+| 04-contracts | | | 1765147662888432:b04e85cabcefca9b94dc5daff105203e_6a55de784cb7ae6cb7a670d2.6a55de784cb7ae6cb7a670d5.6a55de784cb7ae6cb7a670d3:TRAE Work CN.0.1.35.no_sid.no_ppe.T(2026/7/14 15:00:08)| 确认复用 shared contracts 与 demo 数据子集 | packages/shared/src/contracts/* | | | |
+| 05-onboarding | | |1765147662888432:b04e85cabcefca9b94dc5daff105203e_6a55de784cb7ae6cb7a670d2.6a55de784cb7ae6cb7a670d5.6a55de784cb7ae6cb7a670d3:TRAE Work CN.0.1.35.no_sid.no_ppe.T(2026/7/14 15:00:08) | 首屏融入路线引导页实现 | apps/mobile/src/pages/home/* | | | |
 | 06-planner | | | | 融入路线步骤规划器 | | | | |
 | 07-map | | | | 地图与地点导航动线 | apps/mobile/src/pages/places/* | | | |
 | 08-registration | | | | 活动报名与参与动线 | apps/mobile/src/pages/events/* | | | |

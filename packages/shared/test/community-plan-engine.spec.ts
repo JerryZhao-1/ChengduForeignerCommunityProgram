@@ -74,7 +74,7 @@ describe("community plan engine filtering", () => {
     expect(filterPlaceCandidates(invalidCoordPlaces)).toHaveLength(0);
   });
 
-  it("excludes ended public-safe events without capacity data", () => {
+  it("excludes events that cannot cover the planned attendance window", () => {
     const endedEvent = {
       ...eventProjections[0],
       end_time: "2027-03-31T10:00:00+08:00"
@@ -84,23 +84,23 @@ describe("community plan engine filtering", () => {
     ).toHaveLength(0);
   });
 
-  it("includes published active events without inspecting capacity", () => {
+  it("excludes future events outside the two-hour route window", () => {
+    const futureEvent = {
+      ...eventProjections[0],
+      start_time: "2027-04-03T10:00:00+08:00",
+      end_time: "2027-04-03T12:00:00+08:00"
+    };
+    expect(
+      filterEventCandidates([futureEvent], COMPETITION_DEMO_NOW)
+    ).toHaveLength(0);
+  });
+
+  it("includes only events that cover the minute-60 attendance slot", () => {
     const validEvents = filterEventCandidates(
       eventProjections,
       COMPETITION_DEMO_NOW
     );
-    expect(validEvents).toHaveLength(7);
-    expect(validEvents.map((e) => e._id).sort()).toEqual(
-      [
-        "event_001",
-        "event_002",
-        "event_003",
-        "event_004",
-        "event_005",
-        "event_006",
-        "event_full"
-      ].sort()
-    );
+    expect(validEvents.map((event) => event._id)).toEqual(["event_001"]);
   });
 
   it("includes at least 10 published places", () => {
@@ -153,6 +153,20 @@ describe("community plan engine scoring", () => {
     });
     expect(score).toBeGreaterThan(scoreNoMatch);
   });
+
+  it("does not score duplicate interests more than once", () => {
+    const place = validPlaces_findByCategory("food-drink");
+    const singleScore = scorePlace(place, {
+      ...basePreference,
+      interests: ["food-drink"]
+    });
+    const duplicateScore = scorePlace(place, {
+      ...basePreference,
+      interests: ["food-drink", "food-drink"]
+    });
+
+    expect(duplicateScore).toBe(singleScore);
+  });
 });
 
 function validPlaces_findByCategory(category: string) {
@@ -187,6 +201,25 @@ describe("community plan engine route generation", () => {
   it("always sets total_duration_minutes to 120 for the canonical route", () => {
     const plan = generateCommunityPlan(createEngineInput());
     expect(plan.total_duration_minutes).toBe(120);
+  });
+
+  it("aligns the event attendance offset with the real event window", () => {
+    const plan = generateCommunityPlan(createEngineInput());
+    const eventItem = plan.items.find((item) => item.type === "event_attend");
+    if (!eventItem) throw new Error("expected an event_attend item");
+
+    const routeStartMs = Date.parse(plan.generated_at);
+    const attendanceStartMs =
+      routeStartMs + eventItem.start_offset_minutes * 60 * 1000;
+    const attendanceEndMs =
+      attendanceStartMs + eventItem.duration_minutes * 60 * 1000;
+
+    expect(Date.parse(eventItem.event.start_time)).toBeLessThanOrEqual(
+      attendanceStartMs
+    );
+    expect(Date.parse(eventItem.event.end_time)).toBeGreaterThanOrEqual(
+      attendanceEndMs
+    );
   });
 
   it("sets generated_by to the rule engine ID, never AI", () => {
@@ -247,7 +280,7 @@ describe("community plan engine public-safe projections", () => {
 
   it("competition demo event projections are all public-safe", () => {
     const projections = getCompetitionDemoEventProjections();
-    expect(projections.length).toBeGreaterThanOrEqual(6);
+    expect(projections.map((event) => event._id)).toEqual(["event_001"]);
     for (const e of projections) {
       expect(() => CommunityPlanEventProjectionSchema.parse(e)).not.toThrow();
     }

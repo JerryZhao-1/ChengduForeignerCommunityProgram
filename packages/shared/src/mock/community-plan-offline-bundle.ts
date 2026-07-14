@@ -12,8 +12,7 @@ const placeProjection = {
   _id: "place_001",
   name_zh: "桐梓林社区中心",
   name_en: "Tongzilin Community Center",
-  cover_url:
-    "https://images.unsplash.com/photo-1494526585095-c41746248156",
+  cover_url: "https://images.unsplash.com/photo-1494526585095-c41746248156",
   category_level_1: "public-service",
   is_recommended: true,
   location: {
@@ -38,7 +37,7 @@ const canonicalBundle = {
   plan: {
     plan_id: "offline_tongzilin_120",
     community_id: "tongzilin",
-    generated_at: "2026-07-15T00:00:00+08:00",
+    generated_at: "2027-04-02T09:00:00+08:00",
     items: [
       {
         item_id: "stop_place_001",

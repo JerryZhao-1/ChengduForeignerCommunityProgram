@@ -82,19 +82,28 @@ export function filterPlaceCandidates(
 }
 
 /**
- * Rejects ended public-safe event candidates. Publication and community
- * filtering belongs to the provider before it creates this projection. The
- * MVP deliberately does not inspect registration or capacity state.
+ * Keeps public-safe event candidates that cover the complete minute-60 to
+ * minute-120 attendance slot. Publication and community filtering belongs to
+ * the provider before it creates this projection. The MVP deliberately does
+ * not inspect registration or capacity state.
  */
 export function filterEventCandidates(
   events: CommunityPlanEventProjection[],
   now: string
 ): CommunityPlanEventProjection[] {
   const nowMs = Date.parse(now);
+  if (Number.isNaN(nowMs)) return [];
+
+  const attendanceStartMs = nowMs + PLACE_VISIT_DURATION_MINUTES * 60 * 1000;
+  const attendanceEndMs =
+    attendanceStartMs + EVENT_ATTEND_DURATION_MINUTES * 60 * 1000;
+
   return events.filter((event) => {
+    const startMs = Date.parse(event.start_time);
     const endMs = Date.parse(event.end_time);
-    if (Number.isNaN(endMs) || endMs <= nowMs) return false;
-    return true;
+    if (Number.isNaN(startMs) || Number.isNaN(endMs)) return false;
+
+    return startMs <= attendanceStartMs && endMs >= attendanceEndMs;
   });
 }
 
@@ -127,7 +136,7 @@ export function scorePlace(
   let score = 0;
 
   // Interest match: +12 per matched interest category
-  for (const interest of preference.interests) {
+  for (const interest of new Set(preference.interests)) {
     const categories = INTEREST_CATEGORY_MAP[interest];
     if (categories.includes(place.category_level_1)) {
       score += 12;

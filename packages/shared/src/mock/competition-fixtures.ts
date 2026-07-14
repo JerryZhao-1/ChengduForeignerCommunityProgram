@@ -15,7 +15,7 @@ import { COMMUNITY_PLAN_DEMO_EVENT_ID } from "./community-plan-offline-bundle";
  * never calls Date.now(); all filtering uses this fixed value so identical
  * inputs always produce identical outputs.
  */
-export const COMPETITION_DEMO_NOW = "2027-04-01T09:00:00+08:00";
+export const COMPETITION_DEMO_NOW = "2027-04-02T09:00:00+08:00";
 
 /**
  * Three judge scenarios that exercise different preference profiles and
