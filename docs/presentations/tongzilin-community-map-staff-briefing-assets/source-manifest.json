@@ -1,0 +1,101 @@
+{
+  "captured_at": "2026-07-14T14:06:45.798Z",
+  "captured_at_timezone": "Asia/Shanghai",
+  "environment": {
+    "kind": "CloudBase dev",
+    "env_id": "cloud1-d7gxdk8t43bd639c0",
+    "region": "ap-shanghai",
+    "function_name": "community-map-api",
+    "appid": "wx7518a3c1fcdd39a5"
+  },
+  "capture": {
+    "client": "WeChat DevTools Stable 2.01.2510280",
+    "automation": "miniprogram-automator 0.12.1",
+    "device_preset": "iPhone 15 Pro Max",
+    "device_note": "The installed DevTools did not expose an iPhone 15 Pro preset; iPhone 15 Pro Max was the closest available iPhone 15 preset.",
+    "source_pixel_ratio": 3,
+    "normalized_size": "780x1688",
+    "normalization": "Proportional Lanczos scaling with solid page-background padding; no generative image editing, content replacement, or screenshot cropping."
+  },
+  "records": {
+    "place": {
+      "id": "place_d6af35be-acea-41b8-92ed-cfd0fa909072",
+      "name_zh": "OBelian·西餐厅·BAR(桐梓林店)",
+      "name_en": "Obelian Bar"
+    },
+    "event": {
+      "id": "event_001",
+      "title_zh": "周末国际邻里早午餐",
+      "title_en": "Weekend Neighborhood Brunch"
+    },
+    "posts": [
+      {
+        "id": "post_43a58b7b-a84d-41c0-945b-411dac7c65b2",
+        "title": "[演示] 欢迎使用桐梓林社区地图",
+        "language": "zh",
+        "tag_ids": ["community"],
+        "place_id": "place_d6af35be-acea-41b8-92ed-cfd0fa909072",
+        "cleanup": "Retain through the staff briefing, then hide or delete this explicitly labeled CloudBase dev demo post."
+      },
+      {
+        "id": "post_56848714-7045-4b9a-9989-3226ae76b3f7",
+        "title": "[Demo] Weekend Neighborhood Brunch",
+        "language": "en",
+        "tag_ids": ["community"],
+        "event_id": "event_001",
+        "cleanup": "Retain through the staff briefing, then hide or delete this explicitly labeled CloudBase dev demo post."
+      }
+    ],
+    "registration": {
+      "id": "reg_a4b3b163-83ab-403b-9648-e00ddfdb4e70",
+      "event_id": "event_001",
+      "contact_name": "社区演示用户",
+      "attendee_count": 1,
+      "ticket_id": "ticket_1b92ea8b-6e36-4974-b411-58c96b7145e4",
+      "ticket_code": "TZL-1783751292009",
+      "cleanup": "Retain through the staff briefing, then cancel or close the demo registration and invalidate its ticket using the normal application workflow."
+    }
+  },
+  "screenshots": [
+    {
+      "file": "home-live-phone.png",
+      "route": "/pages/home/index",
+      "state": "Scrolled to the live Places area; OBelian and the second published place are visible."
+    },
+    {
+      "file": "places-list-live-phone.png",
+      "route": "/pages/places/index",
+      "state": "Published-place list sorted with recommended places first."
+    },
+    {
+      "file": "places-map-live-phone.png",
+      "route": "/pages/places/map",
+      "state": "Native map with Tencent street basemap, multiple CloudBase markers, OBelian selected, and navigation entry visible."
+    },
+    {
+      "file": "place-detail-live-phone.png",
+      "route": "/pages/places/detail?id=place_d6af35be-acea-41b8-92ed-cfd0fa909072",
+      "state": "Chinese OBelian detail scrolled to gallery, navigation, map, favorite, share, and related demo post."
+    },
+    {
+      "file": "events-list-live-phone.png",
+      "route": "/pages/events/index",
+      "state": "CloudBase event_001 with the current user's registered state."
+    },
+    {
+      "file": "event-signup-live-phone.png",
+      "route": "/pages/events/signup?id=event_001",
+      "state": "Existing registration notice and real ticket code visible."
+    },
+    {
+      "file": "discover-live-phone.png",
+      "route": "/pages/discover/index",
+      "state": "Two explicitly labeled CloudBase dev demo posts visible in the live feed."
+    },
+    {
+      "file": "place-detail-en-live-phone.png",
+      "route": "/pages/places/detail?id=place_d6af35be-acea-41b8-92ed-cfd0fa909072",
+      "state": "English locale with OBelian formal content, controls, and related UGC language preserved."
+    }
+  ]
+}

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="桐梓林社区地图项目工作人员展示与运营说明" />
-  <title>把社区装进一张可参与的地图</title>
+  <meta name="description" content="桐邻项目工作人员展示与社区运营说明" />
+  <title>桐邻｜一张可参与的社区地图</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+SC:wght@400;500;600;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet" />
@@ -149,6 +149,9 @@
             visibility: visible !important;
             opacity: 1 !important;
             pointer-events: auto !important;
+            isolation: isolate;
+            z-index: 0 !important;
+            background: var(--slide-bg) !important;
             width: 1920px;
             height: 1080px;
             break-after: page;
@@ -160,12 +163,24 @@
             page-break-after: auto;
         }
 
+        .slide::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: var(--slide-bg);
+        }
+
         .slide .reveal,
         .slide .reveal-left,
         .slide .reveal-scale {
             opacity: 1 !important;
             transform: none !important;
             visibility: visible !important;
+        }
+
+        .phone-pair > div {
+            transform: none !important;
         }
 
         .deck-controls,
@@ -214,7 +229,7 @@
     .slide-subtitle { margin-top: 22px; font-size: 28px; line-height: 1.5; color: var(--muted); max-width: 1250px; }
     .topline { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--green); padding-bottom: 22px; margin-bottom: 44px; }
     .section-tag { border: 2px solid var(--green); border-radius: 999px; padding: 8px 18px; font-size: 18px; font-weight: 600; letter-spacing: 2px; }
-    .slide-number { position: absolute; right: 92px; bottom: 50px; font-size: 19px; font-weight: 700; letter-spacing: 3px; color: var(--muted); }
+    .slide-number { position: absolute; right: 180px; bottom: 50px; font-size: 19px; font-weight: 700; letter-spacing: 3px; color: var(--muted); }
     .footline { position: absolute; left: 92px; bottom: 50px; font-size: 18px; color: var(--muted); letter-spacing: 1px; }
 
     /* === ENTRANCE ANIMATIONS === */
@@ -243,6 +258,9 @@
     .statement-layout { display: grid; grid-template-columns: 1.08fr .92fr; gap: 70px; margin-top: 78px; align-items: center; }
     .statement { font-size: 76px; line-height: 1.16; letter-spacing: -4px; color: var(--green-deep); }
     .statement em { font: 82px var(--font-hand); color: var(--orange-deep); font-style: normal; white-space: nowrap; }
+    .statement .brand-name { display: block; font-size: 132px; line-height: 1; letter-spacing: 10px; color: var(--green); }
+    .statement small { display: block; margin: 24px 0 28px; font-size: 30px; line-height: 1.5; letter-spacing: 0; color: var(--muted); font-weight: 500; }
+    .statement .brand-vision { display: block; font: 58px/1.35 var(--font-hand); color: var(--orange-deep); white-space: normal; }
     .need-list { display: grid; gap: 20px; }
     .need { background: var(--paper); border: 3px solid var(--green); box-shadow: 9px 9px 0 var(--yellow); padding: 27px 30px; display: grid; grid-template-columns: 64px 1fr; gap: 22px; align-items: center; }
     .need b { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: white; font-size: 24px; }
@@ -412,32 +430,32 @@
   <div class="deck-viewport">
     <main class="deck-stage" id="deckStage" aria-live="polite">
       <!-- 01 / Cover -->
-      <section class="slide cover active visible" data-notes="开场先不讲技术。用一句话说明：这不是一张只有坐标的地图，而是居民获取信息、参加活动、贡献内容，工作人员持续维护的社区入口。">
+      <section class="slide cover active visible" data-notes="先介绍项目的新名字——桐邻。‘桐’来自桐梓林，‘邻’代表邻里之间的连接。它不是一张只有坐标的地图，而是居民获取信息、参加活动、贡献内容，工作人员持续维护的社区入口。">
         <div class="map-grid"></div><div class="map-road a"></div><div class="map-road b"></div><div class="map-road c"></div>
         <div class="cover-block">
-          <div class="cover-stamp reveal d1"><i></i>TONGZILIN COMMUNITY MAP</div>
-          <h1 class="reveal d2" data-editable>把社区装进一张<br />可参与的地图</h1>
-          <div class="cover-hand reveal d3" data-editable>从看见，到参与</div>
-          <p class="cover-sub reveal d4" data-editable>桐梓林社区地图项目展示与运营说明</p>
-          <div class="cover-meta" data-editable>桐梓林社区地图项目组 · 2026.07.14</div>
+          <div class="cover-stamp reveal d1"><i></i>TONGLIN COMMUNITY MAP</div>
+          <h1 class="reveal d2" data-editable>桐邻：一张<br />可参与的社区地图</h1>
+          <div class="cover-hand reveal d3" data-editable>从看见，到参与，到相邻</div>
+          <p class="cover-sub reveal d4" data-editable>桐邻项目展示与社区运营说明</p>
+          <div class="cover-meta" data-editable>桐邻项目组 · 2026.7.15</div>
         </div>
         <div class="pin cover-pin"></div>
         <div class="cover-note reveal d5" data-editable><b>Events · Discover · Places</b><br />居民使用，工作人员维护，社区共同补充。</div>
       </section>
 
       <!-- 02 / Why -->
-      <section class="slide" data-notes="对应三个真实需求：居民不知道去哪里找可信信息；外籍居民面临语言和入口障碍；工作人员需要一个统一维护入口。强调项目只服务桐梓林单社区。">
+      <section class="slide" data-notes="这一页解释‘桐邻’的名字和愿景：‘桐’说明我们从桐梓林这一片真实街区出发；‘邻’说明目标不是堆积信息，而是让居民、外籍居民、社区工作人员和线下空间建立连接。当前仍聚焦桐梓林单社区。">
         <div class="map-grid"></div><div class="slide-inner">
           <div class="topline"><span class="kicker">01 / WHY IT EXISTS</span><span class="section-tag">项目价值</span></div>
           <div class="statement-layout">
-            <div class="statement reveal-left d1" data-editable>让社区信息不再散落，<br />让每个人都能<em>看见、参与、补充</em>。</div>
+            <div class="statement reveal-left d1" data-editable><span class="brand-name">桐邻</span><small>“桐”来自桐梓林，<br />“邻”代表邻里之间的连接。</small><em class="brand-vision">让附近的人与事，彼此看见。</em></div>
             <div class="need-list">
-              <div class="need reveal d2"><b>看</b><div><strong data-editable>居民更快找到可信信息</strong><span data-editable>活动、地点、公告进入同一个入口</span></div></div>
-              <div class="need reveal d3"><b>懂</b><div><strong data-editable>中外居民减少语言门槛</strong><span data-editable>正式内容维护中英双语，UGC 保留原文</span></div></div>
-              <div class="need reveal d4"><b>管</b><div><strong data-editable>工作人员统一维护内容</strong><span data-editable>发布、审核、下架与运营留痕集中处理</span></div></div>
+              <div class="need reveal d2"><b>看</b><div><strong data-editable>一处入口，看见附近</strong><span data-editable>活动、地点、公告进入同一个社区入口</span></div></div>
+              <div class="need reveal d3"><b>连</b><div><strong data-editable>中外居民，连接邻里</strong><span data-editable>正式内容维护中英双语，UGC 保留原文</span></div></div>
+              <div class="need reveal d4"><b>共</b><div><strong data-editable>工作人员与居民共同维护</strong><span data-editable>发布、审核、补充、下架与运营留痕集中处理</span></div></div>
             </div>
           </div>
-          <div class="footline">当前聚焦：成都桐梓林单社区</div><div class="slide-number">02 / 15</div>
+          <div class="footline">从桐梓林出发，让每一位邻居更容易找到彼此与社区</div><div class="slide-number">02 / 15</div>
         </div>
       </section>
 
@@ -445,7 +463,7 @@
       <section class="slide" data-notes="三个模块是平级入口，不是谁附属于谁。Events 连接参与，Discover 连接交流，Places 连接线下空间。">
         <div class="slide-inner">
           <div class="topline"><span class="kicker">02 / PRODUCT MAP</span><span class="section-tag">产品全景</span></div>
-          <h2 class="slide-title reveal d1" data-editable>一张社区地图，三个日常入口</h2>
+          <h2 class="slide-title reveal d1" data-editable>桐邻，把三个日常入口放进一张地图</h2>
           <div class="module-grid">
             <article class="module reveal-scale d2"><div class="module-index">01 / EVENTS</div><div class="module-icon">◷</div><h3>活动</h3><p data-editable>浏览活动、报名参加、查看票券，并支持现场核销。</p><div class="module-verb">一起参与</div></article>
             <article class="module reveal-scale d3"><div class="module-index">02 / DISCOVER</div><div class="module-icon">✦</div><h3>发现</h3><p data-editable>阅读邻里分享、发布帖子、评论互动，并提供举报治理。</p><div class="module-verb">彼此连接</div></article>
@@ -456,14 +474,14 @@
       </section>
 
       <!-- 04 / Resident journey -->
-      <section class="slide" data-notes="用首页截图说明居民不需要理解后台或技术。从首页进入五个主入口，再完成浏览、参与，最终回到“我的”查看个人记录。">
+      <section class="slide" data-notes="用连接 CloudBase dev 的小程序首页说明居民不需要理解后台或技术。画面滚动到 Places 区域，展示后台已发布的真实地点；再从五个主入口完成浏览、参与和个人记录回看。">
         <div class="slide-inner">
           <div class="topline"><span class="kicker">03 / RESIDENT JOURNEY</span><span class="section-tag">居民使用</span></div>
-          <h2 class="slide-title reveal d1" data-editable>打开小程序，从“我想知道”走到“我已参与”</h2>
+          <h2 class="slide-title reveal d1" data-editable>打开桐邻，从“我想知道”走到“我已参与”</h2>
           <div class="journey-layout">
-            <div class="journey-phone reveal-scale d2"><div class="phone-device large"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/home-phone.png" alt="手机端社区导览首页" /></div></div><p class="phone-caption">真实手机视图 · 社区导览首页</p></div>
+            <div class="journey-phone reveal-scale d2"><div class="phone-device large"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/home-live-phone.png" alt="CloudBase dev 实时地点数据的微信小程序首页" /></div></div><p class="phone-caption">微信小程序 · CloudBase dev 实时数据</p></div>
             <div class="journey-copy">
-              <div class="journey-step reveal d2"><b>1</b><div><h3 data-editable>浏览</h3><p data-editable>从 Home 查看近期活动、社区公告和地点入口。</p></div></div>
+              <div class="journey-step reveal d2"><b>1</b><div><h3 data-editable>浏览</h3><p data-editable>从 Home 查看真实活动、已发布地点和常用入口。</p></div></div>
               <div class="journey-step reveal d3"><b>2</b><div><h3 data-editable>参与</h3><p data-editable>报名活动、评论帖子、收藏地点或发起导航。</p></div></div>
               <div class="journey-step reveal d4"><b>3</b><div><h3 data-editable>回看</h3><p data-editable>在 Me 查看报名、收藏、帖子、评论和通知。</p></div></div>
             </div>
@@ -473,12 +491,12 @@
       </section>
 
       <!-- 05 / Places browse -->
-      <section class="slide" data-notes="先讲居民如何发现地点：列表适合分类筛选和快速比较，地图适合判断方位与距离。两种入口读取同一批已发布地点。地图截图来自仓库中已完成的手机端验证记录。">
+      <section class="slide" data-notes="先讲居民如何发现地点：列表适合分类筛选和快速比较，地图适合判断方位与距离。两种入口都读取 CloudBase dev 的 11 个已发布地点；原生地图同时显示道路底图、多个真实坐标点和 OBelian 摘要。">
         <div class="slide-inner">
           <div class="topline"><span class="kicker">04 / PLACES — DISCOVER</span><span class="section-tag">核心功能</span></div>
           <div class="feature-layout">
             <div class="feature-copy"><h2 class="reveal-left d1">Places ①</h2><div class="hand reveal d2">先找到附近</div><div class="feature-points"><div class="feature-point reveal d2"><i></i><span data-editable>列表查看推荐、分类与地点卡片</span></div><div class="feature-point reveal d3"><i></i><span data-editable>地图判断方位，点选地点摘要</span></div><div class="feature-point reveal d4"><i></i><span data-editable>同一批已发布地点，两种浏览方式</span></div></div></div>
-            <div class="phone-pair"><div class="reveal-scale d2"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/places-list-phone.png" alt="手机端地点列表" /></div></div><p class="phone-caption">01 / 列表筛选</p></div><div class="reveal-scale d3"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/places-map-phone.png" alt="手机端地点地图" /></div></div><p class="phone-caption">02 / 地图定位</p></div></div>
+            <div class="phone-pair"><div class="reveal-scale d2"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/places-list-live-phone.png" alt="CloudBase dev 已发布地点列表" /></div></div><p class="phone-caption">微信小程序 · CloudBase dev 实时数据</p></div><div class="reveal-scale d3"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/places-map-live-phone.png" alt="腾讯地图道路底图、真实地点标记和 OBelian 摘要" /></div></div><p class="phone-caption">微信小程序 · CloudBase dev 实时数据</p></div></div>
           </div>
           <div class="footline">公开页面只展示已发布且属于桐梓林社区的地点</div><div class="slide-number">05 / 15</div>
         </div>
@@ -489,7 +507,7 @@
         <div class="slide-inner">
           <div class="topline"><span class="kicker">05 / PLACES — DECIDE</span><span class="section-tag">核心功能</span></div>
           <div class="place-detail-layout">
-            <div class="place-detail-phone reveal-scale d2"><div class="phone-device large"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/place-detail-phone.png" alt="手机端地点详情" /></div></div><p class="phone-caption">真实地点详情 · 信息集中核对</p></div>
+            <div class="place-detail-phone reveal-scale d2"><div class="phone-device large"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/place-detail-live-phone.png" alt="OBelian 中文详情、导航、收藏与相关讨论" /></div></div><p class="phone-caption">微信小程序 · CloudBase dev 实时数据</p></div>
             <div class="feature-copy"><h2 class="reveal-left d1">Places ②</h2><div class="hand reveal d2">看清楚，再出发</div><div class="feature-points"><div class="feature-point reveal d2"><i></i><span data-editable>图片、地址、营业时间与双语介绍</span></div><div class="feature-point reveal d3"><i></i><span data-editable>从列表或地图进入同一个地点详情</span></div><div class="feature-point reveal d4"><i></i><span data-editable>导航、收藏与分享完成线下连接</span></div></div></div>
           </div>
           <div class="footline">详情字段按需加载，列表与地图只保留轻量公开信息</div><div class="slide-number">06 / 15</div>
@@ -497,24 +515,24 @@
       </section>
 
       <!-- 07 / Events -->
-      <section class="slide" data-notes="活动闭环不仅是展示一张海报。居民从列表进入详情，提交报名后获得票券；工作人员可在后台管理活动并核销。重复报名、活动满员等状态已有规则。">
+      <section class="slide" data-notes="活动闭环不仅是展示一张海报。画面中的 event_001、报名状态和票券均来自 CloudBase dev；居民报名后获得票券，工作人员可在后台管理并核销。">
         <div class="slide-inner">
           <div class="topline"><span class="kicker">06 / EVENTS</span><span class="section-tag">核心功能</span></div>
           <div class="feature-layout">
             <div class="feature-copy"><h2 class="reveal-left d1">Events</h2><div class="hand reveal d2">从看见活动，到真正到场</div><div class="feature-points"><div class="feature-point reveal d2"><i></i><span data-editable>活动列表与双语详情</span></div><div class="feature-point reveal d3"><i></i><span data-editable>报名、重复报名提示与我的报名</span></div><div class="feature-point reveal d4"><i></i><span data-editable>票券生成与工作人员核销</span></div></div></div>
-            <div class="phone-pair"><div class="reveal-scale d2"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/events-list-phone.png" alt="手机端活动列表" /></div></div><p class="phone-caption">发现活动</p></div><div class="reveal-scale d3"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/event-signup-phone.png" alt="手机端活动报名结果与票券" /></div></div><p class="phone-caption">报名成功 · 获得票券</p></div></div>
+            <div class="phone-pair"><div class="reveal-scale d2"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/events-list-live-phone.png" alt="CloudBase dev 真实活动列表" /></div></div><p class="phone-caption">微信小程序 · CloudBase dev 实时数据</p></div><div class="reveal-scale d3"><div class="phone-device"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/event-signup-live-phone.png" alt="event_001 真实报名状态与票券" /></div></div><p class="phone-caption">微信小程序 · CloudBase dev 实时数据</p></div></div>
           </div>
           <div class="slide-number">07 / 15</div>
         </div>
       </section>
 
       <!-- 08 / Discover -->
-      <section class="slide" data-notes="Discover 是居民参与感最强的区域。UGC 可以是中文或英文，保留作者原文；后台提供帖子、评论、举报和用户治理入口。">
+      <section class="slide" data-notes="Discover 是居民参与感最强的区域。画面中的中英文帖子由当前小程序身份写入 CloudBase dev，并明确标注为工作人员演示数据；后台提供帖子、评论、举报和用户治理入口。">
         <div class="slide-inner">
           <div class="topline"><span class="kicker">07 / DISCOVER</span><span class="section-tag">核心功能</span></div>
           <h2 class="slide-title reveal d1" data-editable>社区不只被“介绍”，也由居民共同讲述</h2>
           <div class="discover-layout">
-            <div class="discover-phone reveal-scale d2"><div class="phone-device large"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/discover-feed-phone.png" alt="手机端社区发现内容流" /></div></div><p class="phone-caption">中英文内容共享一个社区内容流</p></div>
+            <div class="discover-phone reveal-scale d2"><div class="phone-device large"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/discover-live-phone.png" alt="包含两条 CloudBase dev 演示记录的社区内容流" /></div></div><p class="phone-caption">微信小程序 · CloudBase dev 实时数据</p></div>
             <div><div class="quote-card reveal d3"><p data-editable>“分享一条路况、一次活动、一个问题，也是在补充社区地图。”</p><small>居民发帖 · 评论互动 · 点赞收藏</small></div><div class="governance reveal d4"><span>发帖</span><span>评论</span><span>举报</span><span>隐藏</span><span>恢复</span><span>审计</span></div></div>
           </div>
           <div class="slide-number">08 / 15</div>
@@ -522,16 +540,16 @@
       </section>
 
       <!-- 09 / Bilingual -->
-      <section class="slide" data-notes="强调双语的边界：正式内容由工作人员维护中英文，不用机器翻译替代内容审核；居民原创内容保持原语言。用户可以在语言设置中切换整个界面。">
+      <section class="slide" data-notes="强调双语的边界：OBelian 英文详情与界面标签都由小程序语言设置切换；正式内容由工作人员维护中英文，不用机器翻译替代内容审核，居民原创内容保持原语言。">
         <div class="slide-inner">
           <div class="topline"><span class="kicker">08 / BILINGUAL EXPERIENCE</span><span class="section-tag">微信与双语</span></div>
           <h2 class="slide-title reveal d1" data-editable>让语言成为入口，而不是门槛</h2>
           <div class="language-layout">
-            <div class="phone-device large language-phone reveal-scale d2"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/home-en-phone.png" alt="手机端英文社区导览首页" /></div></div>
+            <div><div class="phone-device large language-phone reveal-scale d2"><div class="phone-screen"><img src="tongzilin-community-map-staff-briefing-assets/place-detail-en-live-phone.png" alt="OBelian 英文详情、英文界面和导航收藏入口" /></div></div><p class="phone-caption">微信小程序 · CloudBase dev 实时数据</p></div>
             <div class="language-rules">
               <div class="language-rule reveal d2"><h3 data-editable>正式内容：中英双语维护</h3><p data-editable>活动、地点、公告等使用中文和英文字段，发布前由内容负责人补齐。</p></div>
               <div class="language-rule reveal d3"><h3 data-editable>居民内容：保留作者原文</h3><p data-editable>帖子和评论不伪造另一语言版本，只标注原始语言并本地化界面。</p></div>
-              <div class="language-rule reveal d4"><h3 data-editable>五个入口：随语言即时切换</h3><p data-editable>Home、Events、Discover、Places、Me 及状态提示统一切换。</p></div>
+              <div class="language-rule reveal d4"><h3 data-editable>界面与正式内容：随语言切换</h3><p data-editable>导航、按钮、状态提示和地点正式内容统一切换，UGC 仍保留作者原文。</p></div>
             </div>
           </div>
           <div class="slide-number">09 / 15</div>
@@ -616,10 +634,10 @@
       </section>
 
       <!-- 15 / Future and invitation -->
-      <section class="slide" data-notes="最后不要落在技术清单上，而是邀请工作人员参与。近期把上线条件补齐；随后建立内容节奏和责任人；再用居民反馈持续改进，但仍专注桐梓林单社区。">
+      <section class="slide" data-notes="最后回到‘桐邻’的愿景，不要落在技术清单上。近期把上线条件补齐；随后建立内容节奏和责任人；再用居民反馈持续改进，但仍专注桐梓林单社区。">
         <div class="map-grid"></div><div class="slide-inner">
           <div class="topline"><span class="kicker">14 / NEXT TOGETHER</span><span class="section-tag">后续方向</span></div>
-          <h2 class="slide-title reveal d1" data-editable>下一步，不只是“把系统上线”——而是让它在社区里活起来</h2>
+          <h2 class="slide-title reveal d1" data-editable>下一步，让桐邻在社区里真正活起来</h2>
           <div class="future-grid">
             <article class="future reveal d2"><b>NOW / 上线闭环</b><h3 data-editable>完成账号、配置、真机与审核</h3><p data-editable>明确负责人和证据，清理测试数据，准备可信的首批正式内容。</p></article>
             <article class="future reveal d3"><b>NEXT / 常态运营</b><h3 data-editable>建立内容日历与维护责任</h3><p data-editable>持续更新地点、活动和公告，形成双语审核与下架机制。</p></article>
@@ -720,7 +738,7 @@
     class InlineEditor {
       constructor() {
         this.isActive = false;
-        this.key = "tongzilin-community-map-staff-briefing-edits-v1";
+        this.key = "tonglin-community-map-staff-briefing-edits-v2";
         this.editables = Array.from(document.querySelectorAll("[data-editable]"));
         this.restore();
         this.editables.forEach((element, index) => {
