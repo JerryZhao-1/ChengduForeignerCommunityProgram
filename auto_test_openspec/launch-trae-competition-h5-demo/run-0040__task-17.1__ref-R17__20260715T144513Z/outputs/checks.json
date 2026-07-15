@@ -1,0 +1,15 @@
+{
+  "apiTypecheck": true,
+  "focusedApiTests": true,
+  "rootTypecheck": true,
+  "repositoryTests": true,
+  "lint": true,
+  "h5Build": true,
+  "mpWeixinBuild": true,
+  "openSpecStrict": true,
+  "rawScenarioKeyLogAbsent": true,
+  "addedTypeSuppressionEscapes": 0,
+  "deploymentPerformed": false,
+  "traeEvidenceClaimed": false,
+  "finalDecision": "pending_supervisor"
+}

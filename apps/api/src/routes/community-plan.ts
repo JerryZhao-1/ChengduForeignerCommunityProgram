@@ -34,7 +34,6 @@ export const registerCommunityPlanRoutes = (router: Router) => {
           requestId: ctx.state.requestId,
           actor_kind: ctx.state.authenticatedVia,
           community_id: plan.community_id,
-          scenario_key: plan.scenario_key,
           catalog_version: plan.catalog_version,
           duration_ms: Date.now() - startedAt,
           timestamp: new Date().toISOString()

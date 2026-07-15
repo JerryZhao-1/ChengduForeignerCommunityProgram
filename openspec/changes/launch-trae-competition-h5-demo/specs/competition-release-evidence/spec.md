@@ -39,12 +39,12 @@ Current API source, environment configuration, browser traffic, public contracts
 
 ### Requirement: Generation observability SHALL be useful without logging content
 
-Each generation log SHALL contain only request ID, actor kind, fixed community ID, scenario key, catalog version, duration, and timestamp. It SHALL exclude complete preferences, accessibility choice, explanation/item copy, PII, detail/admin fields, credentials, and raw request bodies.
+Each generation log SHALL contain only request ID, actor kind, fixed community ID, catalog version, duration, and timestamp. It SHALL exclude scenario keys because those keys encode the complete logical preference, as well as complete preferences, accessibility choice, explanation/item copy, PII, detail/admin fields, credentials, and raw request bodies.
 
 #### Scenario: Privacy-safe log is correlated
 
 - **WHEN** generation succeeds
-- **THEN** its request ID, scenario key, and catalog version are available for correlation
+- **THEN** its request ID and catalog version are available for correlation
 - **AND** no excluded content is logged
 
 ### Requirement: Online and offline acceptance SHALL be separate

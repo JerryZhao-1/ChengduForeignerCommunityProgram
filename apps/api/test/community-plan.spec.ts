@@ -312,13 +312,11 @@ describe("community-plan routes", () => {
           "community_id",
           "duration_ms",
           "requestId",
-          "scenario_key",
           "timestamp"
         ].sort()
       );
       expect(entry.actor_kind).toBe("guest");
       expect(entry.community_id).toBe("tongzilin");
-      expect(entry.scenario_key).toBe("v1:community-service:first-week:solo:none");
       expect(entry.catalog_version).toBe("tongzilin-curated-v1");
       expect(typeof entry.duration_ms).toBe("number");
       expect(typeof entry.timestamp).toBe("string");
@@ -330,6 +328,10 @@ describe("community-plan routes", () => {
         "arrival_context",
         "household_type",
         "preferred_language",
+        "scenario_key",
+        "community-service",
+        "first-week",
+        "solo",
         "selection_explanation",
         "items",
         "place_visit",

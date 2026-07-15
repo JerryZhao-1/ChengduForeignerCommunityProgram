@@ -116,7 +116,7 @@
 - guest 除 generation 和 public reads 外的 mutation 全部拒绝。
 - 保留 spoof-resistant 10/60s 限流、过期清理和 bucket 上限。
 - 严格 Zod 输入、统一成功/错误 envelope。
-- 日志只包含 requestId、actor kind、固定 community、scenario_key、catalog_version、duration、timestamp。
+- 日志只包含 requestId、actor kind、固定 community、catalog_version、duration、timestamp；不得记录会编码完整偏好的 scenario_key。
 - 不记录完整偏好、accessibility_need、解释文案、实体详情或请求体。
 - CORS 只增加必要的 x-guest-mode 支持。
 - 不破坏 Places list/map/detail 字段边界。

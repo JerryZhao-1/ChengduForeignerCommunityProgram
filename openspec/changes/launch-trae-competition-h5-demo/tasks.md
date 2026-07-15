@@ -30,7 +30,7 @@ A checked task records DONE and requires both implementation completion and `sup
 ## 13. API, provider, guest security, and privacy
 
 - [x] 13.1 Remove Community Plan model integration and use the shared matcher [#R13]
-  - ACCEPT: API route/providers use the shared curated bundle and matcher, remove the competition model adapter/config/tests, keep guest-only authorization and spoof-resistant limiter, preserve Places boundaries, reject legacy requests, produce strict responses, log only request/scenario/catalog metadata, and make no external model request.
+  - ACCEPT: API route/providers use the shared curated bundle and matcher, remove the competition model adapter/config/tests, keep guest-only authorization and spoof-resistant limiter, preserve Places boundaries, reject legacy requests, produce strict responses, log only request/catalog metadata without the preference-encoding scenario key, and make no external model request.
   - TEST: SCOPE: CLI
     - Run focused API/provider/security/limiter/log tests plus API typecheck, including all 576 provider profiles and missing-curated-data failure. Store results in a new immutable R13 bundle.
 

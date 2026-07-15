@@ -110,7 +110,7 @@ The fixed event action says Demo Confirm and creates no booking, reservation, ti
 
 ### 10. Rate limiting and logging remain bounded
 
-The guest endpoint remains limited to 10 requests per 60 seconds per trusted resolved source, with two-minute expiry and a 10,000-bucket cap. Generation logs contain only request ID, actor kind, fixed community ID, scenario key, catalog version, duration, and timestamp. They exclude full preferences, accessibility choice, explanation text, entity detail fields, and personal data.
+The guest endpoint remains limited to 10 requests per 60 seconds per trusted resolved source, with two-minute expiry and a 10,000-bucket cap. Generation logs contain only request ID, actor kind, fixed community ID, catalog version, duration, and timestamp. They exclude scenario keys because those keys encode the complete logical preference, as well as full preferences, accessibility choice, explanation text, entity detail fields, and personal data.
 
 ### 11. H5 and Mini Program boundaries remain explicit
 
