@@ -24,7 +24,7 @@
 
 | ID   | Date | TRAE Surface | Session ID            | Objective                       | Main Files                                                           | Commit | Screenshot                     | Result                |
 | ---- | ---- | ------------ | --------------------- | ------------------------------- | -------------------------------------------------------------------- | ------ | ------------------------------ | --------------------- |
-| S07A |      |              | `<copy-from-TRAE-UI>` | 无 AI OpenSpec 规格迁移         | `openspec/changes/launch-trae-competition-h5-demo/*`                 |        | `evidence/trae-sessions/S07A/` | PENDING-TRAE-EVIDENCE |
+| S07A | 2026-07-15 | TRAE Builder | 1765147662888432:21cd53361f71f03da144eed79636b31c_6a5749159a8237841b12c9d8.6a5749159a8237841b12c9db.6a5749159a8237841b12c9d9:TRAE Work CN.0.1.35.no_sid.no_ppe.T(2026/7/15 16:47:17) | 无 AI OpenSpec 规格迁移         | `openspec/changes/launch-trae-competition-h5-demo/*`, `auto_test_openspec/launch-trae-competition-h5-demo/run-0020__task-10.1__ref-R10__20260715T090916Z/` | e47cfa4 | `evidence/trae-sessions/S07A/trae-session-overview.jpg` | Done |
 | S07B |      |              | `<copy-from-TRAE-UI>` | 单选偏好与解释型 contract       | `packages/shared/src/schemas/*`, `packages/shared/src/types/*`       |        | `evidence/trae-sessions/S07B/` | PENDING-TRAE-EVIDENCE |
 | S07C |      |              | `<copy-from-TRAE-UI>` | 策展目录与 576 组合 matcher     | `packages/shared/src/community-plan/*`, `packages/shared/src/mock/*` |        | `evidence/trae-sessions/S07C/` | PENDING-TRAE-EVIDENCE |
 | S08  |      |              | `<copy-from-TRAE-UI>` | 无模型 Community Plan API       | `apps/api/src/*`                                                     |        | `evidence/trae-sessions/S08/`  | PENDING-TRAE-EVIDENCE |
@@ -56,5 +56,7 @@
 | ------ | -------------------- | ------ | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `0017` | R17 local gate       | FAIL   | `auto_test_openspec/launch-trae-competition-h5-demo/run-0017__task-17.1__ref-R17__20260715T083941Z/` | 验证脚本错误地扫描了两份未修改历史文档；保留失败记录，不覆盖。  |
 | `0018` | R17 local gate retry | PASS   | `auto_test_openspec/launch-trae-competition-h5-demo/run-0018__task-17.1__ref-R17__20260715T084100Z/` | Codex/local CLI 证据，不替代 TRAE Session、GUI 或公开部署证据。 |
+| `0019` | R10 S07A review      | FAIL   | `auto_test_openspec/launch-trae-competition-h5-demo/run-0019__task-10.1__ref-R10__20260715T085112Z/` | Windows 脚本未传播 OpenSpec 失败且缺少文档扫描与 JSON 输出；保留记录，不覆盖。 |
+| `0020` | R10 S07A retry       | PASS   | `auto_test_openspec/launch-trae-competition-h5-demo/run-0020__task-10.1__ref-R10__20260715T090916Z/` | 修复跨平台失败传播与等价检查；CLI 证据不替代 GUI、部署或 R18 验收。 |
 
 证据状态分为 `implementation complete`、`worker bundle prepared` 和 `supervisor verified`。只有包含真实 outputs/logs、所需 GUI 证据、最终 verdict 和证据指针的 run 才能作为对应范围的 PASS。
