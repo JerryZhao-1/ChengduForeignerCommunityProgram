@@ -53,7 +53,7 @@ onMounted(() => {
   <!-- #ifdef H5 -->
   <view class="page">
     <view class="complete-card">
-      <view class="eyebrow">Tongzilin · 桐梓林</view>
+      <view class="eyebrow">{{ copy.brandEyebrow }}</view>
       <view class="title">{{ copy.complete.title }}</view>
       <view class="subtitle">{{ copy.complete.subtitle }}</view>
       <view class="results">

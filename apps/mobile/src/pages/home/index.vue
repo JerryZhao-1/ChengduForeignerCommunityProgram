@@ -72,7 +72,7 @@ onMounted(load);
       <!-- #ifdef H5 -->
       <!-- Competition hero (H5 judge entry) -->
       <view class="competition-hero">
-        <view class="hero-eyebrow">Tongzilin · 桐梓林</view>
+        <view class="hero-eyebrow">{{ onboardingCopy.brandEyebrow }}</view>
         <view class="hero-title">{{ onboardingCopy.heroTitle }}</view>
         <view class="hero-subtitle">{{ onboardingCopy.heroSubtitle }}</view>
         <view class="hero-notice">{{ onboardingCopy.guestNotice }}</view>

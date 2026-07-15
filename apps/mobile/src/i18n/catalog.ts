@@ -184,6 +184,7 @@ const foundationCopy = {
       }
     },
     onboarding: {
+      brandEyebrow: "Tongzilin · 桐梓林",
       heroTitle: "今天，什么能让桐梓林变成你的家？",
       heroSubtitle: "30 秒匹配你的专属社区融入路线",
       judgeEntry: "30 秒评委体验",
@@ -494,6 +495,7 @@ const foundationCopy = {
       }
     },
     onboarding: {
+      brandEyebrow: "Tongzilin · 桐梓林",
       heroTitle: "What would make Tongzilin feel like home today?",
       heroSubtitle: "Match your community route in 30 seconds",
       judgeEntry: "30-second judge experience",

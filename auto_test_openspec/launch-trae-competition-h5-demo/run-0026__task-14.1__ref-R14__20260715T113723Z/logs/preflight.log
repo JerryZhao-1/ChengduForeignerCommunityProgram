@@ -1,0 +1,15 @@
+Run: 0026
+Executed at: 2026-07-15T12:07:25Z
+Executor: Codex Supervisor
+
+$ pnpm --filter @community-map/mobile typecheck
+Exit: 0
+Result: vue-tsc completed without errors.
+
+$ pnpm exec vitest run apps/mobile/src/stores/onboarding-store.spec.ts apps/mobile/src/api/community-plan-adapter.spec.ts apps/mobile/src/i18n/catalog.spec.ts
+Exit: 0
+Result: 3 test files passed; 27 tests passed (store 8, adapter 11, catalog 8).
+
+$ git diff --check
+Exit: 0
+Result: no whitespace errors.

@@ -29,7 +29,7 @@ const goPlan = () => {
   <scroll-view scroll-y enable-flex class="page-scroll">
     <view class="page">
       <view class="hero">
-        <view class="eyebrow">Tongzilin · 桐梓林</view>
+        <view class="eyebrow">{{ copy.brandEyebrow }}</view>
         <view class="hero-title">{{ copy.heroTitle }}</view>
         <view class="hero-subtitle">{{ copy.heroSubtitle }}</view>
         <view class="guest-notice">{{ copy.guestNotice }}</view>
