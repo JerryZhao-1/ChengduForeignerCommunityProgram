@@ -294,6 +294,7 @@ const foundationCopy = {
         imageUnavailable: "地点图片暂不可用，不影响路线信息",
         back: "返回计划",
         openPlace: "查看地点",
+        openEvent: "查看活动",
         coordinates: "位置 {latitude}, {longitude}"
       },
       complete: {
@@ -612,6 +613,7 @@ const foundationCopy = {
           "The place image is unavailable; route information still works",
         back: "Back to plan",
         openPlace: "View place",
+        openEvent: "View event",
         coordinates: "Location {latitude}, {longitude}"
       },
       complete: {

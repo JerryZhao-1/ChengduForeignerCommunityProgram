@@ -1,0 +1,76 @@
+# R16 run-0033 preflight log
+
+Date: 2026-07-15 (UTC 20260715T125139Z)
+HEAD: ff8b801a (before route-map.vue changes)
+Working tree: modified route-map.vue, catalog.ts; new run-0033 bundle
+
+## CLI checks
+
+### 1. pnpm --filter @community-map/mobile typecheck
+Command: `pnpm --filter @community-map/mobile typecheck`
+Exit code: 0
+Output:
+```
+> @community-map/mobile@0.1.0 typecheck
+> vue-tsc --noEmit -p tsconfig.json
+```
+Result: PASS
+
+### 2. pnpm exec vitest run (focused mobile tests)
+Command: `pnpm exec vitest run apps/mobile/src/stores/onboarding-store.spec.ts apps/mobile/src/api/community-plan-adapter.spec.ts apps/mobile/src/i18n/catalog.spec.ts`
+Exit code: 0
+Output:
+```
+Test Files  3 passed (3)
+     Tests  30 passed (30)
+```
+Breakdown:
+- apps/mobile/src/stores/onboarding-store.spec.ts: 8 tests PASS
+- apps/mobile/src/i18n/catalog.spec.ts: 8 tests PASS
+- apps/mobile/src/api/community-plan-adapter.spec.ts: 14 tests PASS
+Result: PASS
+
+### 3. pnpm --filter @community-map/mobile build:h5
+Command: `pnpm --filter @community-map/mobile build:h5`
+Exit code: 0
+Output:
+```
+Compiler version: 4.36（vue3）
+DONE  Build complete.
+```
+Result: PASS
+
+### 4. pnpm --filter @community-map/mobile build:mp-weixin
+Command: `pnpm --filter @community-map/mobile build:mp-weixin`
+Exit code: 0
+Output:
+```
+Compiling...
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import dist/build/mp-weixin run.
+```
+Result: PASS
+
+## R11 shared contract re-verification (no code changes)
+
+### 5. pnpm --filter @community-map/shared typecheck
+Exit code: 0
+Result: PASS
+
+### 6. pnpm exec vitest run (focused shared tests)
+Command: `pnpm exec vitest run packages/shared/test/community-plans.spec.ts packages/shared/test/contracts.spec.ts packages/shared/test/client.spec.ts`
+Exit code: 0
+Output:
+```
+Test Files  3 passed (3)
+     Tests  62 passed (62)
+```
+Breakdown:
+- packages/shared/test/community-plans.spec.ts: 17 tests PASS
+- packages/shared/test/contracts.spec.ts: 19 tests PASS
+- packages/shared/test/client.spec.ts: 26 tests PASS
+Result: PASS (run-0031 remains authoritative for R11)
+
+## CLI summary
+
+All 6 CLI checks PASS. Mobile typecheck/tests/builds green; shared contracts re-verified unchanged.

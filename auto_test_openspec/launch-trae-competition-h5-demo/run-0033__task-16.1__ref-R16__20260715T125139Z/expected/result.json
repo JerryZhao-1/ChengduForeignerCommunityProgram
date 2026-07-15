@@ -1,0 +1,24 @@
+{
+  "cli": {
+    "mobile_typecheck_exit_code": 0,
+    "focused_tests_exit_code": 0,
+    "focused_tests_pass_count": 30,
+    "h5_build_exit_code": 0,
+    "mp_weixin_build_exit_code": 0
+  },
+  "gui": {
+    "profiles_verified": 4,
+    "locales_verified": ["zh", "en"],
+    "viewports": ["390x844", "1280x900"],
+    "route_map_renders_both_stops": true,
+    "complete_under_180s": true,
+    "zh_en_switch_preserves_plan": true,
+    "refresh_deep_link_redirects_to_welcome": true,
+    "start_over_resets": true,
+    "demo_confirm_disclosure_present": true,
+    "place_404_marks_unavailable": true,
+    "no_horizontal_scroll_at_390px": true,
+    "no_ai_status_text": true,
+    "no_new_ui_library": true
+  }
+}

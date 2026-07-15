@@ -54,6 +54,8 @@ A checked task records implementation completion only. `worker bundle prepared` 
   - ACCEPT: Start through completion remains under 180 seconds, route list works without map SDK, four reasons are clear, zh/en switching preserves session, reset/refresh/404/failure states are explicit, Demo Confirm stays local, and current docs consistently describe the curated AI-free product and TRAE evidence boundary.
   - TEST: SCOPE: MIXED
     - Use MCP-only runbooks for four representative profiles, both locales, mobile/desktop, map degradation, offline mode, and completion. Run documentation stale-claim scans and store evidence pointers in a new immutable R16 bundle.
+  - BUNDLE: `auto_test_openspec/launch-trae-competition-h5-demo/run-0033__task-16.1__ref-R16__20260715T125139Z/`
+  - EVIDENCE: CLI PASS (`logs/preflight.log`, 6/6 checks); GUI PENDING (MCP runbook ready at `tests/gui_runbook_judge_journey.md`, awaiting Supervisor with browser access). Verdict at `logs/supervisor-verdict.md`.
 
 ## 17. Local release gate
 

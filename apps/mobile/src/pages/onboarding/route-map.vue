@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CommunityPlanItem } from "@community-map/shared";
 import { computed, onMounted, ref } from "vue";
 
 import { getMobileCopy } from "@/i18n";
@@ -10,11 +11,8 @@ const { state: appState } = useAppStore();
 const onboarding = useOnboardingStore();
 const copy = computed(() => getMobileCopy(appState.locale).onboarding);
 const failedCoverIds = ref<string[]>([]);
-const placeItems = computed(
-  () =>
-    onboarding.state.plan?.items.filter(
-      (item) => item.type === "place_visit"
-    ) ?? []
+const routeItems = computed<readonly CommunityPlanItem[]>(
+  () => onboarding.state.plan?.items ?? []
 );
 
 const back = () => {
@@ -24,6 +22,10 @@ const back = () => {
 
 const openPlace = (placeId: string) => {
   uni.navigateTo({ url: `/pages/places/detail?id=${placeId}` });
+};
+
+const openEvent = (eventId: string) => {
+  uni.navigateTo({ url: `/pages/events/detail?id=${eventId}` });
 };
 
 const markCoverUnavailable = (placeId: string) => {
@@ -53,48 +55,91 @@ onMounted(() => {
 
       <view class="route-list">
         <view
-          v-for="(item, index) in placeItems"
+          v-for="(item, index) in routeItems"
           :key="item.item_id"
           class="route-card"
         >
           <view class="route-order">{{
             interpolate(copy.plan.stopLabel, { index: index + 1 })
           }}</view>
-          <image
-            v-if="
-              item.place.cover_url &&
-              !failedCoverIds.includes(item.place._id)
-            "
-            class="cover"
-            mode="aspectFill"
-            :src="item.place.cover_url"
-            @error="markCoverUnavailable(item.place._id)"
-          />
-          <view v-else class="cover-fallback">
-            {{ copy.route.imageUnavailable }}
-          </view>
-          <view class="route-name">
-            {{
-              pickLocalized(
-                appState.locale,
-                item.place.name_zh,
-                item.place.name_en
-              )
-            }}
-          </view>
-          <view class="coordinates">
-            {{ interpolate(copy.route.coordinates, item.place.location) }}
-          </view>
-          <button
-            class="action primary"
-            role="button"
-            tabindex="0"
-            @click="openPlace(item.place._id)"
-            @keyup.enter="openPlace(item.place._id)"
-            @keyup.space.prevent="openPlace(item.place._id)"
-          >
-            {{ copy.route.openPlace }}
-          </button>
+
+          <template v-if="item.type === 'place_visit'">
+            <image
+              v-if="
+                item.place.cover_url &&
+                !failedCoverIds.includes(item.place._id)
+              "
+              class="cover"
+              mode="aspectFill"
+              :src="item.place.cover_url"
+              @error="markCoverUnavailable(item.place._id)"
+            />
+            <view v-else class="cover-fallback">
+              {{ copy.route.imageUnavailable }}
+            </view>
+            <view class="route-name">
+              {{
+                pickLocalized(
+                  appState.locale,
+                  item.place.name_zh,
+                  item.place.name_en
+                )
+              }}
+            </view>
+            <view class="coordinates">
+              {{ interpolate(copy.route.coordinates, item.place.location) }}
+            </view>
+            <button
+              class="action primary"
+              role="button"
+              tabindex="0"
+              @click="openPlace(item.place._id)"
+              @keyup.enter="openPlace(item.place._id)"
+              @keyup.space.prevent="openPlace(item.place._id)"
+            >
+              {{ copy.route.openPlace }}
+            </button>
+          </template>
+
+          <template v-else-if="item.type === 'event_attend'">
+            <image
+              v-if="item.event.cover_url"
+              class="cover"
+              mode="aspectFill"
+              :src="item.event.cover_url"
+            />
+            <view v-else class="cover-fallback">
+              {{ copy.route.imageUnavailable }}
+            </view>
+            <view class="route-name">
+              {{
+                pickLocalized(
+                  appState.locale,
+                  item.event.title_zh,
+                  item.event.title_en
+                )
+              }}
+            </view>
+            <view class="route-summary">
+              {{
+                pickLocalized(
+                  appState.locale,
+                  item.event.summary_zh,
+                  item.event.summary_en
+                )
+              }}
+            </view>
+            <button
+              class="action primary"
+              role="button"
+              tabindex="0"
+              @click="openEvent(item.event._id)"
+              @keyup.enter="openEvent(item.event._id)"
+              @keyup.space.prevent="openEvent(item.event._id)"
+            >
+              {{ copy.route.openEvent }}
+            </button>
+          </template>
         </view>
       </view>
 
@@ -167,6 +212,7 @@ onMounted(() => {
 
 .subtitle,
 .coordinates,
+.route-summary,
 .mp-only-description {
   color: #5c6b68;
   font-size: 26rpx;
