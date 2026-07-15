@@ -9,14 +9,19 @@ import { computed, onMounted, ref } from "vue";
 
 import { mobileApi } from "@/api/client";
 import { getMobileCopy } from "@/i18n";
-import { formatLocalizedDate, interpolate } from "@/i18n/localized";
+import {
+  formatLocalizedDate,
+  interpolate,
+  type MobileLocale
+} from "@/i18n/localized";
 import {
   getCompletionProgress,
   useOnboardingStore
 } from "@/stores/onboarding-store";
 import { pickLocalized, useAppStore } from "@/stores/app-store";
 
-const { state: appState } = useAppStore();
+const app = useAppStore();
+const { state: appState } = app;
 const onboarding = useOnboardingStore();
 const copy = computed(() => getMobileCopy(appState.locale).onboarding);
 const plan = computed(() => onboarding.state.plan);
@@ -69,6 +74,11 @@ const itemStatusText = (item: CommunityPlanItem) => {
   return copy.value.plan.itemTypes[item.type];
 };
 
+const switchLocale = async (locale: MobileLocale) => {
+  onboarding.updateDraft({ preferred_language: locale });
+  await app.setLocale(locale);
+};
+
 const openRoute = () => {
   onboarding.goToStep("route-map");
   uni.navigateTo({ url: "/pages/onboarding/route-map" });
@@ -112,6 +122,32 @@ onMounted(() => {
     <view class="page">
       <view v-if="plan" class="plan">
         <view class="plan-header">
+          <view class="language-switcher">
+            <button
+              class="language-option"
+              :class="{ active: appState.locale === 'zh' }"
+              :aria-pressed="appState.locale === 'zh'"
+              role="button"
+              tabindex="0"
+              @click="switchLocale('zh')"
+              @keyup.enter="switchLocale('zh')"
+              @keyup.space.prevent="switchLocale('zh')"
+            >
+              {{ copy.languageZh }}
+            </button>
+            <button
+              class="language-option"
+              :class="{ active: appState.locale === 'en' }"
+              :aria-pressed="appState.locale === 'en'"
+              role="button"
+              tabindex="0"
+              @click="switchLocale('en')"
+              @keyup.enter="switchLocale('en')"
+              @keyup.space.prevent="switchLocale('en')"
+            >
+              {{ copy.languageEn }}
+            </button>
+          </view>
           <view class="plan-title">{{ copy.plan.title }}</view>
           <view class="plan-duration">{{ durationText }}</view>
           <view class="curated-disclosure">
@@ -345,6 +381,43 @@ onMounted(() => {
 
 .plan-header {
   gap: 16rpx;
+}
+
+.language-switcher {
+  display: flex;
+  align-self: flex-end;
+  gap: 8rpx;
+  padding: 6rpx;
+  border: 1rpx solid #cfdedb;
+  border-radius: 16rpx;
+  background: #e8f4f2;
+}
+
+.language-option {
+  min-width: 96rpx;
+  min-height: 72rpx;
+  margin: 0;
+  padding: 12rpx 18rpx;
+  border: 0;
+  border-radius: 12rpx;
+  color: #123b3a;
+  background: transparent;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.language-option::after {
+  border: 0;
+}
+
+.language-option.active {
+  color: #ffffff;
+  background: #0f766e;
+}
+
+.language-option:focus-visible {
+  outline: 4rpx solid #d39a3a;
+  outline-offset: 4rpx;
 }
 
 .plan-title {

@@ -50,12 +50,16 @@ A checked task records DONE and requires both implementation completion and `sup
 
 ## 16. Complete H5 experience and documentation
 
-- [ ] 16.1 Polish the judge flow and update canonical competition documentation [#R16]
+- [x] 16.1 Polish the judge flow and update canonical competition documentation [#R16]
   - ACCEPT: Start through completion remains under 180 seconds, route list works without map SDK, four reasons are clear, zh/en switching preserves session, reset/refresh/404/failure states are explicit, Demo Confirm stays local, and current docs consistently describe the curated AI-free product and TRAE evidence boundary.
   - TEST: SCOPE: MIXED
     - Use MCP-only runbooks for four representative profiles, both locales, mobile/desktop, map degradation, offline mode, and completion. Run documentation stale-claim scans and store evidence pointers in a new immutable R16 bundle.
   - BUNDLE: `auto_test_openspec/launch-trae-competition-h5-demo/run-0033__task-16.1__ref-R16__20260715T125139Z/`
   - EVIDENCE: PARTIAL — CLI PASS (`logs/preflight.log`, 6/6 checks); GUI PENDING. Run-0033 is immutable and does not contain the required GUI outputs or a final PASS/FAIL verdict. Execute the MIXED validation in a new run folder with an MCP-enabled Supervisor before checking this task.
+  - RETRY: `auto_test_openspec/launch-trae-competition-h5-demo/run-0036__task-16.1__ref-R16__20260715T133643Z/`
+  - RETRY EVIDENCE: SUPERVISOR FAIL — 24/24 matrix screenshots, 0 console messages, 390/390 geometry, 0 raw-enum/AI-text matches, ordered two-stop routes, and 1/1 completion passed. Same-session post-plan locale switching is unavailable, and exact 1280×900 desktop evidence was not captured. R16 remains open; run-0036 is immutable.
+  - CORRECTED RETRY: `auto_test_openspec/launch-trae-competition-h5-demo/run-0037__task-16.1__ref-R16__20260715T141344Z/`
+  - CORRECTED EVIDENCE: SUPERVISOR PASS — added visible plan-page zh/en controls without rematching; 24/24 fresh matrix screenshots passed, zh → en → zh preserved the route and session state, console stayed at 0 messages, geometry was 390/390, and exact 1280×900 CSS desktop evidence was captured. Run-0037 is immutable and supersedes run-0036 for current R16 proof.
 
 ## 17. Local release gate
 
@@ -63,6 +67,10 @@ A checked task records DONE and requires both implementation completion and `sup
   - ACCEPT: Shared/API/mobile focused tests, `pnpm typecheck`, `pnpm test`, `pnpm lint`, H5 build, mp-weixin build, and strict OpenSpec validation pass; coverage is 576/576 and 1,152/1,152; provider/local parity is 576/576; current runtime/build contains no Community Plan model credential/call/result field; and active task format is valid.
   - TEST: SCOPE: CLI
     - Capture exact commands, logs, artifact assertions, scans, and consolidated result in a new immutable R17 bundle without editing prior runs.
+  - BUNDLE: `auto_test_openspec/launch-trae-competition-h5-demo/run-0035__task-17.1__ref-R17__20260715T133643Z/`
+  - EVIDENCE: SUPERVISOR PASS — corrected CLI-only retry; 282 repository tests and 61 focused tests passed, dual builds passed, forbidden-marker `rg` exit `1` was distinguished from execution errors, and Worker output remained pending until the Supervisor verdict.
+  - POST-FIX BUNDLE: `auto_test_openspec/launch-trae-competition-h5-demo/run-0038__task-17.1__ref-R17__20260715T142725Z/`
+  - POST-FIX EVIDENCE: SUPERVISOR PASS — authoritative corrected-source gate; 283 repository tests and 62 focused tests passed, typechecks/lint/dual builds passed, forbidden scan failed closed, and the three-file source scope contained no added type-suppression escape.
 
 ## 18. Independent deployment and sign-off
 

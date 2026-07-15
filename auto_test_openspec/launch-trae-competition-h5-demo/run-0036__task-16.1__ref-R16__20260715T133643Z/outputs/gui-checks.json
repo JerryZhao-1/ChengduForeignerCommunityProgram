@@ -1,0 +1,15 @@
+{
+  "profileLocaleFlows": "8/8",
+  "matrixScreenshots": "24/24",
+  "maxCaptureIntervalSeconds": 91,
+  "consoleMessages": 0,
+  "mobileScrollWidth": 390,
+  "mobileClientWidth": 390,
+  "rawEnumMatches": 0,
+  "aiModelTextMatches": 0,
+  "orderedTwoStopRoutes": "8/8",
+  "completeCounters": "8/8",
+  "postPlanLocaleSwitchAvailable": false,
+  "exactDesktopViewportCaptured": false,
+  "finalDecision": "fail"
+}

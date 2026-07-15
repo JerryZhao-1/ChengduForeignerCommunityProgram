@@ -247,6 +247,7 @@ const foundationCopy = {
       },
       plan: {
         title: "你的桐邻 120 分钟",
+        languageSwitcherLabel: "切换计划显示语言",
         offlineNotice: "离线演示 · 使用同版本本地社区目录",
         summaryTitle: "社区策展匹配摘要",
         explanationTitle: "为什么这样匹配",
@@ -560,6 +561,7 @@ const foundationCopy = {
       },
       plan: {
         title: "Your Tonglin 120 Minutes",
+        languageSwitcherLabel: "Switch plan display language",
         offlineNotice:
           "Offline demo · Using the same-version local community catalog",
         summaryTitle: "Curated match summary",

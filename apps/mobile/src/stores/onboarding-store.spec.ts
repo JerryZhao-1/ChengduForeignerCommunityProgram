@@ -59,6 +59,22 @@ describe("onboarding store step navigation", () => {
 });
 
 describe("onboarding completion state", () => {
+  it("preserves the generated plan and progress when display language changes", () => {
+    const store = useOnboardingStore();
+    store.setPlan(examplePlan, "offline");
+    const [placeItem] = examplePlan.items;
+    store.markPlaceVisited(placeItem.item_id);
+
+    const planBeforeSwitch = store.state.plan;
+    const scenarioKeyBeforeSwitch = store.state.plan?.scenario_key;
+    store.updateDraft({ preferred_language: "en" });
+
+    expect(store.state.draft.preferred_language).toBe("en");
+    expect(store.state.plan).toBe(planBeforeSwitch);
+    expect(store.state.plan?.scenario_key).toBe(scenarioKeyBeforeSwitch);
+    expect(store.state.itemStatuses[placeItem.item_id]).toBe("visited");
+  });
+
   it("requires a visited place and locally confirmed demo event", () => {
     const store = useOnboardingStore();
     store.setPlan(examplePlan, "offline");

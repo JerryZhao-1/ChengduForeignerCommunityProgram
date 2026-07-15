@@ -1,0 +1,18 @@
+{
+  "workerChecksComplete": true,
+  "bilingualDimensionModules": "21/21",
+  "logicalScenarioCoverage": "576/576",
+  "uniqueScenarioKeys": 576,
+  "localizedRenderCoverage": "1152/1152",
+  "providerLocalParity": "576/576",
+  "reasonModuleMismatches": 0,
+  "modelRuntimeMarkers": 0,
+  "forbiddenMarkerScanExit": 1,
+  "sourceFiles": [
+    "apps/mobile/src/i18n/catalog.ts",
+    "apps/mobile/src/pages/onboarding/plan.vue",
+    "apps/mobile/src/stores/onboarding-store.spec.ts"
+  ],
+  "typeEscapeMarkers": 0,
+  "finalDecision": "pending_supervisor"
+}

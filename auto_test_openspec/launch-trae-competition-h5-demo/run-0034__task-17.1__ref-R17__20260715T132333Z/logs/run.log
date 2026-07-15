@@ -1,0 +1,199 @@
+=== R17 run-0034 re-gate: 2026-07-15T13:26:47Z ===
+HEAD: 97ad1e40
+
+=== [1/9] openspec validate ===
+Change 'launch-trae-competition-h5-demo' is valid
+
+=== [2/9] shared typecheck ===
+
+> @community-map/shared@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/packages/shared
+> tsc --noEmit -p tsconfig.json
+
+
+=== [3/9] api typecheck ===
+
+> @community-map/api@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/api
+> tsc --noEmit -p tsconfig.json
+
+
+=== [4/9] mobile typecheck ===
+
+> @community-map/mobile@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile
+> vue-tsc --noEmit -p tsconfig.json
+
+
+=== [5/9] root typecheck ===
+
+> chengdu-foreigner-community-program@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> corepack pnpm -r --if-present typecheck
+
+Scope: 4 of 5 workspace projects
+packages/shared typecheck$ tsc --noEmit -p tsconfig.json
+packages/shared typecheck: Done
+apps/api typecheck$ tsc --noEmit -p tsconfig.json
+apps/admin typecheck$ vue-tsc --noEmit -p tsconfig.json
+apps/mobile typecheck$ vue-tsc --noEmit -p tsconfig.json
+apps/api typecheck: Done
+apps/mobile typecheck: Done
+apps/admin typecheck: Done
+
+=== [6/9] pnpm test ===
+
+> chengdu-foreigner-community-program@0.1.0 test /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90m/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram[39m
+
+ [32m✓[39m scripts/bilingual-content-audit.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/pages/events/event-presentation.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+[90mstderr[2m | apps/mobile/src/stores/app-store.spec.ts[2m > [22m[2moffline-first selection and synchronization[2m > [22m[2mdoes not roll back the UI when synchronization fails
+[22m[39mLanguage preference synchronization failed. Error: offline
+    at [90m/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/[39mapps/mobile/src/stores/app-store.spec.ts:102:13
+    at runSync [90m(/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/[39mapps/mobile/src/stores/app-store.ts:106:13[90m)[39m
+    at Object.setLocale [90m(/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/[39mapps/mobile/src/stores/app-store.ts:146:5[90m)[39m
+    at [90m/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/[39mapps/mobile/src/stores/app-store.spec.ts:105:5
+    at [90mfile:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@3.2.4/node_modules/[4m@vitest/runner[24m/dist/chunk-hooks.js:752:20
+
+ [32m✓[39m apps/mobile/src/stores/app-store.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 163[2mms[22m[39m
+ [32m✓[39m packages/shared/test/places-admin-lifecycle.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m packages/shared/test/contracts.spec.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/i18n/catalog.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m packages/shared/test/client.spec.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 52[2mms[22m[39m
+ [32m✓[39m packages/shared/test/places-marker-contract.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+Parsed 19 records; mapped 19 draft places.
+ [32m✓[39m apps/mobile/src/api/community-plan-adapter.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 129[2mms[22m[39m
+ [32m✓[39m packages/shared/test/community-plan-engine.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 200[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/pages/places/favorite-state.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+Parsed 19 records; mapped 19 draft places.
+ [32m✓[39m apps/api/test/multipart.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+Parsed 19 records; mapped 19 draft places.
+ [32m✓[39m apps/mobile/src/i18n/navigation.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m apps/api/test/wechat-miniapp-auth.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 709[2mms[22m[39m
+   [33m[2m✓[22m[39m CloudBase Mini Program auth[2m > [22mcreates and reuses a durable user from Mini Program identity headers [33m 491[2mms[22m[39m
+ [32m✓[39m packages/shared/test/community-plans.spec.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+Parsed 19 records; mapped 19 draft places.
+ [32m✓[39m packages/shared/test/integration-readiness.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/pages/places/navigation.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m packages/shared/test/bilingual-contracts.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m apps/admin/src/pages/post-permanent-delete.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+Parsed 19 records; mapped 19 draft places.
+ [32m✓[39m packages/shared/test/volunteer-import.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 675[2mms[22m[39m
+ [32m✓[39m apps/api/test/bilingual-preferences.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 135[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/pages/more/notification-presentation.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m apps/api/test/bilingual-publication-guards.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 154[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/pages/events/registration-form.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mgenerates a deterministic plan for a guest judge without authentication
+[22m[39mcommunity_plan_generated {"requestId":"ea718e0f-21d9-4f55-848c-225a3d6d8112","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.423Z"}
+
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mreturns identical plans for identical preferences (determinism)
+[22m[39mcommunity_plan_generated {"requestId":"f18d7bc4-4a77-499d-a44b-124ff4b9f98e","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.443Z"}
+
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mreturns identical plans for identical preferences (determinism)
+[22m[39mcommunity_plan_generated {"requestId":"009ee5d4-c7c1-4dc4-8cb9-3012c36e21af","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.445Z"}
+
+ [32m✓[39m apps/mobile/src/stores/onboarding-store.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"88167dd3-7b6f-432b-9eb4-50be5a39db50","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.469Z"}
+
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"ddd4854a-4998-486d-9310-428569d76bd7","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.471Z"}
+
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"e1002cf7-ed6d-4986-a359-2a6ed2fe005e","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":1,"timestamp":"2026-07-15T13:26:56.473Z"}
+
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"c408c7e8-fc51-4832-8604-04c0aa910134","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.474Z"}
+
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"015a1e36-8bac-426e-9345-7123676fcb8f","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.476Z"}
+
+ [32m✓[39m apps/mobile/src/pages/places/place-presentation.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"a1863b8b-ca90-4297-a79e-26cb0491d7e7","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.478Z"}
+
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"206b1771-d8a3-438a-8023-046ee8269fb8","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.479Z"}
+
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"0baa79a9-1811-4cbf-a279-9c928516dbc0","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T13:26:56.480Z"}
+
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"fb0f4378-2741-437c-823c-82f683329c65","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":1,"timestamp":"2026-07-15T13:26:56.482Z"}
+
+ [32m✓[39m apps/mobile/src/api/client.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | apps/api/test/community-plan.spec.ts[2m > [22m[2mcommunity-plan routes[2m > [22m[2mlimits the eleventh guest generation request in one minute
+[22m[39mcommunity_plan_generated {"requestId":"852430c3-3a4f-4979-b507-9ddce3c9b723","actor_kind":"guest","community_id":"tongzilin","scenario_key":"v1:community-service:first-week:solo:none","catalog_version":"tongzilin-curated-v1","duration_ms":1,"timestamp":"2026-07-15T13:26:56.483Z"}
+
+ [32m✓[39m apps/api/test/community-plan.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 274[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/pages/more/registration-presentation.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/pages/events/event-signup-state.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/pages/places/list-categories.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m apps/api/test/integration-readiness.spec.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 355[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/pages/discover/enforcement-error.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m apps/api/test/app.spec.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 433[2mms[22m[39m
+ [32m✓[39m apps/api/test/cloudbase.spec.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 717[2mms[22m[39m
+ [32m✓[39m apps/api/test/admin-public-launch-auth.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 603[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m36 passed[39m[22m[90m (36)[39m
+[2m      Tests [22m [1m[32m282 passed[39m[22m[90m (282)[39m
+[2m   Start at [22m 21:26:54
+[2m   Duration [22m 1.91s[2m (transform 2.37s, setup 0ms, collect 13.15s, tests 4.81s, environment 8ms, prepare 2.68s)[22m
+
+
+=== [7/9] pnpm lint ===
+
+> chengdu-foreigner-community-program@0.1.0 lint /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> eslint .
+
+
+=== [8/9] mobile build:h5 ===
+
+> @community-map/mobile@0.1.0 build:h5 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile
+> uni build
+
+Compiler version: 4.36（vue3）
+Compiling...
+
+欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+DONE  Build complete.
+
+=== [9/9] mobile build:mp-weixin ===
+
+> @community-map/mobile@0.1.0 build:mp-weixin /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile
+> VITE_API_MODE=cloudbase-function VITE_CLOUDBASE_ENV_ID=cloud1-d7gxdk8t43bd639c0 VITE_CLOUDBASE_FUNCTION_NAME=community-map-api uni build -p mp-weixin
+
+Compiling...
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import [36mdist/build/mp-weixin[39m run.
+
+=== Coverage focus tests ===
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90m/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram[39m
+
+ [32m✓[39m packages/shared/test/community-plans.spec.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/stores/onboarding-store.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/i18n/catalog.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m apps/mobile/src/api/community-plan-adapter.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 64[2mms[22m[39m
+ [32m✓[39m packages/shared/test/community-plan-engine.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 103[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m61 passed[39m[22m[90m (61)[39m
+[2m   Start at [22m 21:27:06
+[2m   Duration [22m 540ms[2m (transform 239ms, setup 0ms, collect 1.20s, tests 192ms, environment 0ms, prepare 201ms)[22m
+
+
+=== Build artifact existence ===
+h5/index.html: OK
+mp-weixin/app.json: OK
+
+=== Forbidden model-runtime marker scan ===
+No forbidden markers found.
+
+=== Type-escape scan (no new escapes introduced) ===
+Production code unchanged; no new type escapes possible.
+
+=== Write checks ===
+checks.json matches expected.
+
+=== All R17 run-0034 Worker CLI checks completed; Supervisor decision remains pending. ===
