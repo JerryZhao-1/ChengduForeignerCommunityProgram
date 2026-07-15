@@ -20,7 +20,7 @@
 
 ## 3. API, provider, guest security, and AI
 
-- [ ] 3.1 Implement guest-only Community Plan API after shared contracts and R1 preflight pass [#R3]
+- [x] 3.1 Implement guest-only Community Plan API after shared contracts and R1 preflight pass [#R3]
   - ACCEPT: Add API-internal guest request actor with `authenticatedVia: "guest"` and no shared guest role; allow guest public reads plus only `POST /community-plan/generate`; deny all other guest writes globally; allow `x-guest-mode` in CORS. Inject `tongzilin`, use provider public-safe projections, deterministically select one published place plus configured curated event, and never query/register capacity. Implement a server-only DeepSeek adapter with Node 20 `fetch`/`AbortController`, exact endpoint/model, thinking disabled, non-streaming JSON Output, `max_tokens: 1024`, strict narration validation, 8s timeout, no request-path retry, cancellation/late-result guard, and unchanged deterministic fallback. Map 401/402/missing key to unavailable; map 400/422/429/500/503/network to upstream error; map empty/non-stop/invalid output to validation failure. Add spoof-resistant 10/min guest limiter with trusted-proxy resolution, two-minute expiry, 10,000-bucket cap, standard headers/envelope, and logs that never expose the key, Authorization header, prompt, output, or raw response.
   - TEST: SCOPE: CLI
     - Create `auto_test_openspec/launch-trae-competition-h5-demo/run-<RUN4>__task-3.1__ref-R3__<YYYYMMDDThhmmssZ>/` with request/dataset/AI/rate-limit/log inputs and asserted JSON outputs.
