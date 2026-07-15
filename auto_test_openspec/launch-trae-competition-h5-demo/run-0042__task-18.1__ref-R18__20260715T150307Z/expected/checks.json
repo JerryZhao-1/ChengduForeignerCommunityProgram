@@ -1,0 +1,19 @@
+{
+  "apiCodeUpdate": true,
+  "apiValidation": true,
+  "productionH5Build": true,
+  "buildId": "2601340810",
+  "buildStatus": "SUCCESS",
+  "zhOnlineUnder180Seconds": true,
+  "enOnlineUnder180Seconds": true,
+  "semanticFingerprintEqual": true,
+  "deepLinksAndRefresh": true,
+  "consoleErrors": 0,
+  "englishDesktopScreenshotUsable": false,
+  "blockedApiOfflineFlow": false,
+  "independentHostingIsolation": false,
+  "adminEntryRestored": true,
+  "currentPublicUrlServesH5": false,
+  "traeSessionIdRecorded": false,
+  "finalDecision": "NOT_COMPLETE"
+}

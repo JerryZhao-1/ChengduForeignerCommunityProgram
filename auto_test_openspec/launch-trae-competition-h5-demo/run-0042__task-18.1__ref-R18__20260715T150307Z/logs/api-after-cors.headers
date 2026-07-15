@@ -1,0 +1,11 @@
+HTTP/1.1 204 No Content
+access-control-allow-credentials: true
+access-control-allow-headers: content-type,x-guest-mode
+access-control-allow-methods: POST
+access-control-allow-origin: https://trae-h5-demo-cloud1-d7gxdk8t43bd639c0.webapps.tcloudbase.com
+vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+x-cloudbase-request-id: f106fbf2-d598-4bd4-89e9-bf176441a32e
+x-request-id: f106fbf2-d598-4bd4-89e9-bf176441a32e
+date: Wed, 15 Jul 2026 15:06:34 GMT
+server: tcbgw
+

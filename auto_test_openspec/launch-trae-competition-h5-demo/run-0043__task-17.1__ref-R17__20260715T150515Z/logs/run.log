@@ -1,0 +1,198 @@
+
+> @community-map/api@0.1.0 build:cloudbase-http /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/api
+> node ../../scripts/prepare_cloudbase_api_function.mjs
+
+Prepared community-map-api at apps/api/.cloudbase/community-map-api
+
+> @community-map/api@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/api
+> tsc --noEmit -p tsconfig.json
+
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > generates a deterministic plan for a guest judge without authentication
+community_plan_generated {"requestId":"47588046-c487-4722-acd1-274a8c8b1831","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.500Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > returns identical plans for identical preferences (determinism)
+community_plan_generated {"requestId":"fc81e447-b34a-499b-9df6-ee788e566254","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.510Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > returns identical plans for identical preferences (determinism)
+community_plan_generated {"requestId":"ff3a013b-3ff4-4988-9093-6b824025231d","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.511Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"b7f20535-b817-4713-9704-445ef32d8f6a","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":1,"timestamp":"2026-07-15T15:05:44.518Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"21cdcb2a-de39-4812-897a-a48bbe68ab0e","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.518Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"fcfade36-5126-4987-a072-142b368767dc","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.519Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"81d12ab2-69fe-4c70-93ca-725f644b735e","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.520Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"33eff71e-1c3b-418e-970f-dbbaf87d9088","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.521Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"be3eef28-891c-4823-9190-dac060d5537b","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.522Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"1f0fa694-8580-48d8-a436-18c9599c0aa6","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":1,"timestamp":"2026-07-15T15:05:44.523Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"3b0bb0b5-7f5d-471f-9479-ba1255e4fdc0","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.523Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"b6913648-3b07-417e-a175-94bdca9e06b1","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.523Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"779209f1-9509-4d9c-bb05-9817b0caf4c3","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:44.524Z"}
+
+ ✓ apps/api/test/community-plan.spec.ts (10 tests) 71ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  23:05:43
+   Duration  572ms (transform 182ms, setup 0ms, collect 347ms, tests 71ms, environment 0ms, prepare 38ms)
+
+
+> chengdu-foreigner-community-program@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> corepack pnpm -r --if-present typecheck
+
+Scope: 4 of 5 workspace projects
+packages/shared typecheck$ tsc --noEmit -p tsconfig.json
+packages/shared typecheck: Done
+apps/admin typecheck$ vue-tsc --noEmit -p tsconfig.json
+apps/mobile typecheck$ vue-tsc --noEmit -p tsconfig.json
+apps/api typecheck$ tsc --noEmit -p tsconfig.json
+apps/api typecheck: Done
+apps/admin typecheck: Done
+apps/mobile typecheck: Done
+
+> chengdu-foreigner-community-program@0.1.0 test /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> vitest run
+
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ apps/mobile/src/pages/events/event-presentation.spec.ts (6 tests) 12ms
+stderr | apps/mobile/src/stores/app-store.spec.ts > offline-first selection and synchronization > does not roll back the UI when synchronization fails
+Language preference synchronization failed. Error: offline
+    at /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/src/stores/app-store.spec.ts:102:13
+    at runSync (/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/src/stores/app-store.ts:106:13)
+    at Object.setLocale (/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/src/stores/app-store.ts:146:5)
+    at /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile/src/stores/app-store.spec.ts:105:5
+    at file:///Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/node_modules/.pnpm/@vitest+runner@3.2.4/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+ ✓ apps/mobile/src/stores/app-store.spec.ts (14 tests) 158ms
+ ✓ packages/shared/test/places-marker-contract.spec.ts (4 tests) 9ms
+ ✓ packages/shared/test/places-admin-lifecycle.spec.ts (3 tests) 10ms
+ ✓ apps/mobile/src/i18n/catalog.spec.ts (8 tests) 15ms
+ ✓ packages/shared/test/client.spec.ts (26 tests) 30ms
+Parsed 19 records; mapped 19 draft places.
+ ✓ packages/shared/test/community-plans.spec.ts (17 tests) 10ms
+ ✓ apps/mobile/src/api/community-plan-adapter.spec.ts (14 tests) 83ms
+Parsed 19 records; mapped 19 draft places.
+ ✓ packages/shared/test/community-plan-engine.spec.ts (14 tests) 133ms
+Parsed 19 records; mapped 19 draft places.
+ ✓ apps/api/test/wechat-miniapp-auth.spec.ts (3 tests) 462ms
+   ✓ CloudBase Mini Program auth > creates and reuses a durable user from Mini Program identity headers  302ms
+Parsed 19 records; mapped 19 draft places.
+ ✓ apps/mobile/src/i18n/navigation.spec.ts (6 tests) 4ms
+ ✓ packages/shared/test/contracts.spec.ts (19 tests) 10ms
+ ✓ scripts/bilingual-content-audit.spec.ts (8 tests) 8ms
+ ✓ packages/shared/test/integration-readiness.spec.ts (5 tests) 6ms
+ ✓ apps/api/test/multipart.spec.ts (3 tests) 5ms
+ ✓ packages/shared/test/bilingual-contracts.spec.ts (10 tests) 4ms
+ ✓ apps/mobile/src/stores/onboarding-store.spec.ts (9 tests) 4ms
+Parsed 19 records; mapped 19 draft places.
+ ✓ packages/shared/test/volunteer-import.spec.ts (5 tests) 333ms
+ ✓ apps/mobile/src/pages/places/navigation.spec.ts (7 tests) 3ms
+ ✓ apps/api/test/bilingual-publication-guards.spec.ts (2 tests) 39ms
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > generates a deterministic plan for a guest judge without authentication
+community_plan_generated {"requestId":"7b203d55-2a33-44e8-8c66-5df0d78f8a60","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.703Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > returns identical plans for identical preferences (determinism)
+community_plan_generated {"requestId":"9329548b-943d-4580-b213-20fa3626ad1c","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.716Z"}
+
+ ✓ apps/api/test/bilingual-preferences.spec.ts (6 tests) 56ms
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > returns identical plans for identical preferences (determinism)
+community_plan_generated {"requestId":"2fba0dd7-b18d-4b5e-a64b-52cd66461dc4","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.719Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"f773c545-a5ee-47fa-a764-382d39adbadf","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.729Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"e13d28ec-63ef-4bb4-b09b-7c7710b3fb93","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.768Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"38c9b0a9-ed60-483f-8bb0-203af3e191b3","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.770Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"0d7e99bf-cddf-4445-b42b-184b2b286ce3","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.771Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"aaaec7d9-821d-4288-8a6d-5c0bc1e6febc","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.773Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"1750e370-355a-4374-9623-fe2644210ab9","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.774Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"e50168f2-b01e-48f0-860b-d4cc50bb7c0b","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.775Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"a27fcb0f-14f7-4b54-a3cb-bb6f9a99832a","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.776Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"3038df8a-6d85-4ac9-8ff1-01565d6a23a1","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.777Z"}
+
+stdout | apps/api/test/community-plan.spec.ts > community-plan routes > limits the eleventh guest generation request in one minute
+community_plan_generated {"requestId":"48958252-bbfe-4276-90b2-baaa40d4a19a","actor_kind":"guest","community_id":"tongzilin","catalog_version":"tongzilin-curated-v1","duration_ms":0,"timestamp":"2026-07-15T15:05:48.777Z"}
+
+ ✓ apps/admin/src/pages/post-permanent-delete.spec.ts (3 tests) 3ms
+ ✓ apps/api/test/community-plan.spec.ts (10 tests) 168ms
+ ✓ apps/mobile/src/pages/places/favorite-state.spec.ts (2 tests) 2ms
+ ✓ apps/mobile/src/pages/events/registration-form.spec.ts (2 tests) 2ms
+ ✓ apps/mobile/src/pages/places/place-presentation.spec.ts (2 tests) 3ms
+ ✓ apps/mobile/src/pages/places/list-categories.spec.ts (3 tests) 2ms
+ ✓ apps/mobile/src/pages/more/notification-presentation.spec.ts (2 tests) 1ms
+ ✓ apps/mobile/src/pages/more/registration-presentation.spec.ts (1 test) 2ms
+ ✓ apps/mobile/src/api/client.spec.ts (5 tests) 6ms
+ ✓ apps/mobile/src/pages/events/event-signup-state.spec.ts (4 tests) 2ms
+ ✓ apps/mobile/src/pages/discover/enforcement-error.spec.ts (4 tests) 2ms
+ ✓ apps/api/test/integration-readiness.spec.ts (11 tests) 274ms
+ ✓ apps/api/test/app.spec.ts (21 tests) 334ms
+ ✓ apps/api/test/cloudbase.spec.ts (20 tests) 442ms
+ ✓ apps/api/test/admin-public-launch-auth.spec.ts (4 tests) 473ms
+
+ Test Files  36 passed (36)
+      Tests  283 passed (283)
+   Start at  23:05:47
+   Duration  1.25s (transform 1.37s, setup 0ms, collect 8.12s, tests 3.11s, environment 3ms, prepare 1.66s)
+
+
+> chengdu-foreigner-community-program@0.1.0 lint /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+> eslint .
+
+
+> @community-map/mobile@0.1.0 build:h5 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile
+> uni build
+
+Compiler version: 4.36（vue3）
+Compiling...
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.15.2026070915.html
+
+欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+DONE  Build complete.
+
+> @community-map/mobile@0.1.0 build:mp-weixin /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile
+> VITE_API_MODE=cloudbase-function VITE_CLOUDBASE_ENV_ID=cloud1-d7gxdk8t43bd639c0 VITE_CLOUDBASE_FUNCTION_NAME=community-map-api uni build -p mp-weixin
+
+Compiling...
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.15.2026070915.html
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import dist/build/mp-weixin run.
+Change 'launch-trae-competition-h5-demo' is valid

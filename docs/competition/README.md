@@ -36,6 +36,10 @@
 | 活动 OpenSpec refs    | `R10`–`R18`                       |
 | 截止时间              | 2026-07-15 23:59 Asia/Shanghai    |
 
+## R18 当前状态（2026-07-15）
+
+R18 尚未完成。CloudBase 返回 Web App `trae-h5-demo`、version `trae-h5-demo-001`、build `2601340810` 且构建状态为 SUCCESS，但根路径部署实际覆盖了环境共享 Static Hosting 的 Admin `index.html`。本 Session 已用部署前捕获的原始字节恢复 Admin；根页与 `/places` 的 HTTP 200、ETag、body SHA-256 和入口资源再次与部署前一致。恢复后 Web App 域名也返回 Admin，因此没有可提交的当前 H5 公开 URL。权威失败闭环见 `run-0042__task-18.1__ref-R18__20260715T150307Z/`。
+
 ## 证据结构
 
 - `trae-evidence-log.md`：只记录真实 TRAE Session ID、commit 和截图。

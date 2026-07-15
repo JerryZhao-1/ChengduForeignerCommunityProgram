@@ -9,6 +9,7 @@ coverage
 *.tsbuildinfo
 .cloudbase
 apps/api/.cloudbase
+.vercel
 .DS_Store
 .env.local
 .env.*.local

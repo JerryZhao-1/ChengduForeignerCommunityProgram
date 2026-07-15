@@ -71,6 +71,10 @@ A checked task records DONE and requires both implementation completion and `sup
   - EVIDENCE: SUPERVISOR PASS — corrected CLI-only retry; 282 repository tests and 61 focused tests passed, dual builds passed, forbidden-marker `rg` exit `1` was distinguished from execution errors, and Worker output remained pending until the Supervisor verdict.
   - POST-FIX BUNDLE: `auto_test_openspec/launch-trae-competition-h5-demo/run-0038__task-17.1__ref-R17__20260715T142725Z/`
   - POST-FIX EVIDENCE: SUPERVISOR PASS — authoritative corrected-source gate; 283 repository tests and 62 focused tests passed, typechecks/lint/dual builds passed, forbidden scan failed closed, and the three-file source scope contained no added type-suppression escape.
+  - CURRENT-HEAD BUNDLE: `auto_test_openspec/launch-trae-competition-h5-demo/run-0041__task-17.1__ref-R17__20260715T150145Z/`
+  - CURRENT-HEAD EVIDENCE: SUPERVISOR PASS — exact HEAD `775ede09`; strict OpenSpec, typechecks, 283 repository tests, lint, dual builds, privacy scan, and type-suppression scan passed.
+  - DEPLOY-BUNDLE CORRECTION: `auto_test_openspec/launch-trae-competition-h5-demo/run-0043__task-17.1__ref-R17__20260715T150515Z/`
+  - DEPLOY-BUNDLE EVIDENCE: SUPERVISOR PASS — the production bundler exposed a missing deploy-adapter export; the single-file diff was fingerprinted, the self-contained HTTP bundle was produced, and the complete gate passed again before remote mutation.
 
 ## 18. Independent deployment and sign-off
 
@@ -78,3 +82,5 @@ A checked task records DONE and requires both implementation completion and `sup
   - ACCEPT: After R10–R17 pass and deployment-gate confirmation, deploy H5 as independent Web App `trae-h5-demo`; record public URL/build/API/commit/rollback; prove existing Admin hosting unchanged; complete zh online, en online, and blocked-network offline flows within 180 seconds; record matching scenario/catalog evidence; and finish append-only TRAE/evidence/submission indexes without invented Session IDs.
   - TEST: SCOPE: MIXED
     - Use MCP-only external runbooks and a new immutable R18 bundle. Record pre/post hosting, public responses, screenshots, timings, rollback, Supervisor decision, and final release metadata.
+  - ATTEMPT BUNDLE: `auto_test_openspec/launch-trae-competition-h5-demo/run-0042__task-18.1__ref-R18__20260715T150307Z/`
+  - ATTEMPT EVIDENCE: SUPERVISOR NOT COMPLETE — API update and validation passed; CloudBase build `2601340810` reached SUCCESS and transient zh/en online flows passed. The Web App root unexpectedly shared the existing Admin Hosting root, so the original Admin entry was restored byte-for-byte and the returned Web App domain no longer serves H5. The in-app Browser also lacked request interception for the required API-only offline flow. S14 TRAE evidence remains pending.

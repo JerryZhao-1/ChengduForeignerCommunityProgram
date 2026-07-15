@@ -1,6 +1,8 @@
 export * from "../../../packages/shared/src/contracts";
+export * from "../../../packages/shared/src/community-plan";
 export * from "../../../packages/shared/src/enums";
 export * from "../../../packages/shared/src/media";
+export { createCompetitionDemoEngineInput } from "../../../packages/shared/src/mock/competition-fixtures";
 export * from "../../../packages/shared/src/publication-readiness";
 export * from "../../../packages/shared/src/schemas";
 export * from "../../../packages/shared/src/types/common";

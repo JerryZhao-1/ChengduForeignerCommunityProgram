@@ -1,0 +1,19 @@
+HTTP/1.1 200 OK
+accept-ranges: bytes
+cache-control: no-store, no-cache, must-revalidate, max-age=0
+content-disposition: attachment
+content-length: 552
+content-type: text/html
+date: Wed, 15 Jul 2026 15:07:59 GMT
+etag: "f30eb9e3802d5566abea37b3868d12ec"
+expires: 0
+last-modified: Wed, 15 Jul 2026 15:07:19 GMT
+pragma: no-cache
+server: tcbgw
+x-cloudbase-request-id: 70aa8a61-5137-462f-8f25-6cb4e6b94e24
+x-cloudbase-upstream-status-code: 200
+x-cloudbase-upstream-timecost: 230
+x-cloudbase-upstream-type: Tencent-COS
+x-cos-request-id: NmE1N2EyNGVfMV85MmNkN2QwOV9kNTk3XzQ0YmYxNGY=
+x-request-id: 70aa8a61-5137-462f-8f25-6cb4e6b94e24
+
