@@ -47,7 +47,13 @@ The MCP-only GUI runbook at `tests/gui_runbook_judge_journey.md` is prepared and
 
 - `logs/gui-screenshot-index.md` — to be created after GUI runbook execution by a Supervisor with MCP browser access
 - `outputs/*.png` — to be captured during GUI execution
-- S11 TRAE Session ID in `docs/competition/trae-evidence-log.md` — remains `<copy-from-TRAE-UI>` / `PENDING-TRAE-EVIDENCE`; must be copied from TRAE UI by the user, not fabricated
+
+## TRAE Session ID
+
+S11 TRAE Session ID recorded in `docs/competition/trae-evidence-log.md`:
+`1765147662888432:0b3474c37f3983e1f512563f0bc9c813_6a577e7bfe286641d5f09583.6a577e7bfe286641d5f09586.6a577e7bfe286641d5f09584:TRAE Work CN.0.1.36.no_sid.no_ppe.T(2026/7/15 20:35:07)`
+
+Copied from TRAE UI by the user on 2026-07-15 (not fabricated).
 
 ## Final status
 
