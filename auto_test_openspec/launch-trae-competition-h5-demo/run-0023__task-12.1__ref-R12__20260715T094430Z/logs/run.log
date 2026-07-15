@@ -1,0 +1,19 @@
+--- pnpm --filter @community-map/shared typecheck ---
+
+> @community-map/shared@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/packages/shared
+> tsc --noEmit -p tsconfig.json
+
+
+
+--- eslint packages/shared/test/community-plan-engine.spec.ts ---
+
+
+--- vitest run packages/shared/test/community-plan-engine.spec.ts packages/shared/test/community-plans.spec.ts --reporter=json ---
+JSON report written to /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/launch-trae-competition-h5-demo/run-0023__task-12.1__ref-R12__20260715T094430Z/logs/vitest.json
+
+
+--- summary ---
+finalDecision=pass
+typecheck.passed=true
+lint.passed=true
+vitest.passed=true

@@ -1,0 +1,17 @@
+{
+  "bilingualDimensionModules": 21,
+  "logicalScenarios": 576,
+  "uniqueScenarioKeys": 576,
+  "localizedRenderCases": 1152,
+  "invalidPlans": 0,
+  "missingCopy": 0,
+  "reasonModuleMismatches": 0,
+  "provenBy": "packages/shared/test/community-plan-engine.spec.ts > community plan exhaustive curated coverage > reports the required machine-decidable coverage summary",
+  "provenByFile": "packages/shared/test/community-plan-engine.spec.ts",
+  "provenByTest": "community plan exhaustive curated coverage > reports the required machine-decidable coverage summary",
+  "notes": [
+    "bilingualDimensionModules is computed in the test by summing Object.keys(catalog.<dimension>).length across all four dimensions.",
+    "reasonModuleMismatches is computed in the test by filtering plans whose reason text differs from the catalog module selected by the matching preference dimension.",
+    "All seven values are asserted via expect(summary).toEqual({...}) inside that test, so a pass verdict proves every metric."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "12.1",
+  "ref": "R12",
+  "scope": "CLI",
+  "branch": "competition/trae-h5-demo",
+  "headShort": "cafddb2c",
+  "headFull": "cafddb2c829fa8f5dd4b8ac79b8f2d473a1bab38",
+  "workingTreeNote": "The augmented coverage-summary test in packages/shared/test/community-plan-engine.spec.ts is uncommitted at validation time.",
+  "typecheck": {
+    "command": "pnpm --filter @community-map/shared typecheck",
+    "exit": 0,
+    "passed": true
+  },
+  "lint": {
+    "command": "./node_modules/.bin/eslint packages/shared/test/community-plan-engine.spec.ts",
+    "exit": 0,
+    "passed": true
+  },
+  "vitest": {
+    "command": "./node_modules/.bin/vitest run packages/shared/test/community-plan-engine.spec.ts packages/shared/test/community-plans.spec.ts --reporter=json",
+    "exit": 0,
+    "passed": true,
+    "numTotalTests": 28,
+    "numPassedTests": 28,
+    "numFailedTests": 0,
+    "numTotalTestSuites": 9,
+    "numPassedTestSuites": 9,
+    "numFailedTestSuites": 0
+  },
+  "coverageSummary": {
+    "bilingualDimensionModules": 21,
+    "logicalScenarios": 576,
+    "uniqueScenarioKeys": 576,
+    "localizedRenderCases": 1152,
+    "invalidPlans": 0,
+    "missingCopy": 0,
+    "reasonModuleMismatches": 0,
+    "provenBy": "packages/shared/test/community-plan-engine.spec.ts > community plan exhaustive curated coverage > reports the required machine-decidable coverage summary",
+    "provenByFile": "packages/shared/test/community-plan-engine.spec.ts",
+    "provenByTest": "community plan exhaustive curated coverage > reports the required machine-decidable coverage summary",
+    "notes": [
+      "bilingualDimensionModules is computed in the test by summing Object.keys(catalog.<dimension>).length across all four dimensions.",
+      "reasonModuleMismatches is computed in the test by filtering plans whose reason text differs from the catalog module selected by the matching preference dimension.",
+      "All seven values are asserted via expect(summary).toEqual({...}) inside that test, so a pass verdict proves every metric."
+    ]
+  },
+  "r18Unchecked": true,
+  "finalDecision": "pass"
+}

@@ -119,7 +119,39 @@ describe("community plan exhaustive curated coverage", () => {
   });
 
   it("reports the required machine-decidable coverage summary", () => {
+    const catalog = COMMUNITY_PLAN_FEEDBACK_CATALOG;
+    const moduleFor = (
+      preference: (typeof scenarios)[number],
+      dimension: (typeof plans)[number]["selection_explanation"]["reasons"][number]["dimension"]
+    ) => {
+      switch (dimension) {
+        case "primary_interest":
+          return catalog.primary_interest[preference.primary_interest];
+        case "arrival_context":
+          return catalog.arrival_context[preference.arrival_context];
+        case "household_type":
+          return catalog.household_type[preference.household_type];
+        case "accessibility_need":
+          return catalog.accessibility_need[preference.accessibility_need];
+      }
+    };
+    const bilingualDimensionModules =
+      Object.keys(catalog.primary_interest).length +
+      Object.keys(catalog.arrival_context).length +
+      Object.keys(catalog.household_type).length +
+      Object.keys(catalog.accessibility_need).length;
+    const reasonModuleMismatches = plans.filter((plan, index) =>
+      plan.selection_explanation.reasons.some((reason) => {
+        const module = moduleFor(scenarios[index], reason.dimension);
+        return (
+          !module ||
+          reason.text_zh !== module.reason_zh ||
+          reason.text_en !== module.reason_en
+        );
+      })
+    ).length;
     const summary = {
+      bilingualDimensionModules,
       logicalScenarios: scenarios.length,
       uniqueScenarioKeys: new Set(plans.map((plan) => plan.scenario_key)).size,
       localizedRenderCases: enumerateCommunityPlanLocalizedCases().length,
@@ -130,14 +162,17 @@ describe("community plan exhaustive curated coverage", () => {
         plan.selection_explanation.reasons.some(
           (reason) => !reason.text_zh || !reason.text_en
         )
-      ).length
+      ).length,
+      reasonModuleMismatches
     };
     expect(summary).toEqual({
+      bilingualDimensionModules: 21,
       logicalScenarios: 576,
       uniqueScenarioKeys: 576,
       localizedRenderCases: 1152,
       invalidPlans: 0,
-      missingCopy: 0
+      missingCopy: 0,
+      reasonModuleMismatches: 0
     });
   });
 });
