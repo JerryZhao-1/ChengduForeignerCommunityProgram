@@ -214,4 +214,71 @@ describe("community-plan adapter", () => {
       expect(state.deliveryMode).toBe("online");
     }
   );
+
+  it("shares semantic fingerprint between online and offline but differs in delivery mode", async () => {
+    const fingerprint = (plan: typeof fakePlan) => ({
+      scenario_key: plan.scenario_key,
+      catalog_version: plan.catalog_version,
+      selection_explanation: plan.selection_explanation,
+      items: plan.items.map((item) => ({
+        ref_id: item.ref_id,
+        ref_type: item.ref_type,
+        summary_zh: item.summary_zh,
+        summary_en: item.summary_en,
+        tips_zh: item.tips_zh,
+        tips_en: item.tips_en
+      }))
+    });
+    const apiPlan = generateCommunityPlan(
+      createCompetitionDemoEngineInput(validPreference)
+    );
+
+    vi.mocked(createMobileGuestClient).mockReturnValueOnce({
+      communityPlan: {
+        generate: vi.fn().mockResolvedValue({
+          success: true,
+          data: apiPlan,
+          requestId: "req_online_boundary"
+        })
+      }
+    } as never);
+    const online = await generateCommunityPlanForGuest(validPreference);
+
+    vi.mocked(createMobileGuestClient).mockReturnValueOnce({
+      communityPlan: {
+        generate: vi.fn().mockRejectedValue(new TypeError("offline"))
+      }
+    } as never);
+    const offline = await generateCommunityPlanForGuest(validPreference);
+
+    expect(online.deliveryMode).toBe("online");
+    expect(offline.deliveryMode).toBe("offline");
+    expect(online.requestId).toBe("req_online_boundary");
+    expect(offline.requestId).toBeNull();
+    // Same matcher => deterministic plan_id and generated_at are equal too;
+    // the only intended differentiator is delivery mode + requestId.
+    expect(online.plan?.plan_id).toBe(offline.plan?.plan_id);
+    expect(online.plan?.generated_at).toBe(offline.plan?.generated_at);
+    expect(fingerprint(offline.plan as typeof fakePlan)).toEqual(
+      fingerprint(online.plan as typeof fakePlan)
+    );
+  });
+
+  it.each([
+    "getaddrinfo ENOTFOUND api.example.com",
+    "timeout of 10000ms exceeded"
+  ])("falls back to the offline bundle on transport error: %s", async (message) => {
+    const mockGenerate = vi.fn().mockRejectedValue(new Error(message));
+    vi.mocked(createMobileGuestClient).mockReturnValue({
+      communityPlan: { generate: mockGenerate }
+    } as never);
+
+    const state = await generateCommunityPlanForGuest(validPreference);
+
+    expect(state.status).toBe("fallback");
+    expect(state.plan).not.toBeNull();
+    expect(state.plan?.scenario_key).toBe(fakePlan.scenario_key);
+    expect(state.deliveryMode).toBe("offline");
+    expect(state.errorKey).toBeNull();
+  });
 });

@@ -1,0 +1,18 @@
+{
+  "providerLocalParity": "576/576",
+  "totalScenarios": 576,
+  "mismatchedFingerprints": 0,
+  "deliveryModeInsidePlan": false,
+  "fourXStaysApiError": true,
+  "transportAndFiveXFallback": true,
+  "offlineCompletesRoute": true,
+  "bundleHasNoProductionSecrets": true,
+  "provenBy": "apps/mobile/src/api/community-plan-adapter.spec.ts > community-plan adapter > keeps API and local semantic fingerprints equal for all 576 preferences",
+  "notes": [
+    "providerLocalParity is asserted by iterating all 8 x 3 x 4 x 6 = 576 preferences and comparing online vs offline semantic fingerprints (scenario_key, catalog_version, selection_explanation, items' ref_id/ref_type/summary/tips). plan_id, generated_at and requestId are excluded from the fingerprint contract.",
+    "deliveryModeInsidePlan is false because DeliveryMode is a mobile adapter/store state field and is NOT part of CommunityPlanSchema (locked by R11 run-0027).",
+    "fourXStaysApiError and transportAndFiveXFallback are asserted by the adapter error-branch tests covering 400/403/404/409/429 (status<500 => api_error) and 500/502/503/504 + TypeError/ENOTFOUND/timeout (status>=500 or transport => fallback to offline).",
+    "offlineCompletesRoute is asserted by onboarding-store.spec.ts covering setPlan(plan,'offline') + visit + demo confirm + finish.",
+    "bundleHasNoProductionSecrets is verified by inspection of packages/shared/src/mock/community-plan-offline-bundle.ts which carries only catalog data."
+  ]
+}

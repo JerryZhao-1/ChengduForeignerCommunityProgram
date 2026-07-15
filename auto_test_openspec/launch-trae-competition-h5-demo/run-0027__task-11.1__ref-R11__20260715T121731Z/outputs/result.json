@@ -1,0 +1,55 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "11.1",
+  "ref": "R11",
+  "scope": "CLI",
+  "branch": "competition/trae-h5-demo",
+  "headShort": "e15efde4",
+  "headFull": "e15efde43ad0eb3c3c6317ee32a6c7309fd2d110",
+  "workingTreeNote": "The supplemented contract tests in packages/shared/test/community-plans.spec.ts are uncommitted at validation time.",
+  "typecheck": {
+    "command": "pnpm --filter @community-map/shared typecheck",
+    "exit": 0,
+    "passed": true
+  },
+  "lint": {
+    "command": "./node_modules/.bin/eslint packages/shared/test/community-plans.spec.ts",
+    "exit": 0,
+    "passed": true
+  },
+  "vitest": {
+    "command": "./node_modules/.bin/vitest run packages/shared/test/community-plans.spec.ts packages/shared/test/community-plan-engine.spec.ts packages/shared/test/contracts.spec.ts packages/shared/test/client.spec.ts --reporter=json",
+    "exit": 0,
+    "passed": true,
+    "numTotalTests": 75,
+    "numPassedTests": 75,
+    "numFailedTests": 0,
+    "numTotalTestSuites": 13,
+    "numPassedTestSuites": 13,
+    "numFailedTestSuites": 0
+  },
+  "contractAssertions": {
+    "strictSingularPreferenceFields": 5,
+    "primaryInterestEnumCount": 8,
+    "accessibilityNeedEnumCount": 6,
+    "rejectsLegacyArrays": true,
+    "rejectsCommunityId": true,
+    "rejectsPII": true,
+    "rejectsFreeText": true,
+    "rejectsArrayValuesOnSingularFields": true,
+    "rejectsEachMissingRequiredField": true,
+    "fourOrderedReasons": true,
+    "rejectsModelResultFields": [
+      "generation_source",
+      "ai_status",
+      "usage",
+      "generated_by",
+      "model",
+      "prompt"
+    ],
+    "onlyGenerateExposed": true,
+    "catalogVersion": "tongzilin-curated-v1"
+  },
+  "r18Unchecked": true,
+  "finalDecision": "pass"
+}

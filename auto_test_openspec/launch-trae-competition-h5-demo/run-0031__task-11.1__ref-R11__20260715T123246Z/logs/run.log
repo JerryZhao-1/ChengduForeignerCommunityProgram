@@ -1,0 +1,51 @@
+--- pnpm --filter @community-map/shared typecheck ---
+
+> @community-map/shared@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/packages/shared
+> tsc --noEmit -p tsconfig.json
+
+
+
+--- /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/node_modules/.bin/eslint packages/shared/test/community-plans.spec.ts ---
+
+
+--- /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/node_modules/.bin/vitest run packages/shared/test/community-plans.spec.ts packages/shared/test/community-plan-engine.spec.ts packages/shared/test/contracts.spec.ts packages/shared/test/client.spec.ts --reporter=json --outputFile=/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/launch-trae-competition-h5-demo/run-0031__task-11.1__ref-R11__20260715T123246Z/logs/vitest.json ---
+JSON report written to /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/launch-trae-competition-h5-demo/run-0031__task-11.1__ref-R11__20260715T123246Z/logs/vitest.json
+
+
+--- summary ---
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "11.1",
+  "ref": "R11",
+  "scope": "CLI",
+  "actual": {
+    "typecheckExit": 0,
+    "lintExit": 0,
+    "vitestExit": 0,
+    "failedTests": 0,
+    "requiredTestsPassed": true
+  },
+  "expected": {
+    "typecheckExit": 0,
+    "lintExit": 0,
+    "vitestExit": 0,
+    "failedTests": 0,
+    "requiredTestsPassed": true
+  },
+  "expectedMatches": true,
+  "requiredTestResults": {
+    "community plan singular preference accepts all five required singular fields": "passed",
+    "community plan singular preference rejects missing required fields": "passed",
+    "community plan singular preference rejects array values on singular preference fields": "passed",
+    "community plan singular preference rejects legacy arrays, unknown fields, community_id, PII, and free text": "passed",
+    "community plan singular preference rejects invalid enum values": "passed",
+    "community plan explainable response accepts the curated canonical plan": "passed",
+    "community plan explainable response rejects missing or reordered explanation reasons": "passed",
+    "community plan explainable response rejects legacy model-result fields including model and prompt": "passed",
+    "community plan safe catalog bundle contains every feedback key exactly once": "passed",
+    "community plan safe catalog bundle rejects unsafe place and event projection fields": "passed",
+    "community plan contract surface exposes only POST generation": "passed",
+    "community plan contract surface exposes only generate on the mock client communityPlan surface": "passed"
+  },
+  "finalDecision": "pass"
+}

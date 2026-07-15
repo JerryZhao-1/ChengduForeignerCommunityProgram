@@ -1,0 +1,20 @@
+{
+  "task": "15.1",
+  "ref": "R15",
+  "scope": "CLI",
+  "expectedFinalDecision": "pass",
+  "expectedTypecheckExit": 0,
+  "expectedLintExit": 0,
+  "expectedVitestExit": 0,
+  "expectedVitestFailedTests": 0,
+  "parityAssertions": {
+    "providerLocalParity": "576/576",
+    "totalScenarios": 576,
+    "mismatchedFingerprints": 0,
+    "deliveryModeInsidePlan": false,
+    "fourXStaysApiError": true,
+    "transportAndFiveXFallback": true,
+    "offlineCompletesRoute": true,
+    "bundleHasNoProductionSecrets": true
+  }
+}

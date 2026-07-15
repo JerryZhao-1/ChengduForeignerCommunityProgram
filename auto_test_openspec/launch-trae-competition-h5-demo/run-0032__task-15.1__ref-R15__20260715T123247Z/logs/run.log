@@ -1,0 +1,55 @@
+--- pnpm --filter @community-map/mobile typecheck ---
+
+> @community-map/mobile@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile
+> vue-tsc --noEmit -p tsconfig.json
+
+
+
+--- /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/node_modules/.bin/eslint apps/mobile/src/api/community-plan-adapter.spec.ts packages/shared/test/community-plans.spec.ts ---
+
+
+--- /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/node_modules/.bin/vitest run apps/mobile/src/api/community-plan-adapter.spec.ts apps/mobile/src/stores/onboarding-store.spec.ts packages/shared/test/community-plan-engine.spec.ts packages/shared/test/community-plans.spec.ts --reporter=json --outputFile=/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/launch-trae-competition-h5-demo/run-0032__task-15.1__ref-R15__20260715T123247Z/logs/vitest.json ---
+JSON report written to /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/launch-trae-competition-h5-demo/run-0032__task-15.1__ref-R15__20260715T123247Z/logs/vitest.json
+
+
+--- summary ---
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "15.1",
+  "ref": "R15",
+  "scope": "CLI",
+  "actual": {
+    "typecheckExit": 0,
+    "lintExit": 0,
+    "vitestExit": 0,
+    "failedTests": 0,
+    "requiredTestsPassed": true,
+    "bundleSafetyPassed": true
+  },
+  "expected": {
+    "typecheckExit": 0,
+    "lintExit": 0,
+    "vitestExit": 0,
+    "failedTests": 0,
+    "requiredTestsPassed": true,
+    "bundleSafetyPassed": true
+  },
+  "resultExpectedMatches": true,
+  "parityExpectedMatches": true,
+  "requiredTestResults": {
+    "community-plan adapter keeps API and local semantic fingerprints equal for all 576 preferences": "passed",
+    "community-plan adapter labels mock-mode local matching as offline delivery": "passed",
+    "community-plan adapter returns validation_error state for 400 VALIDATION_ERROR": "passed",
+    "community-plan adapter keeps HTTP 403 as a localized API error without offline fallback": "passed",
+    "community-plan adapter keeps HTTP 404 as a localized API error without offline fallback": "passed",
+    "community-plan adapter keeps HTTP 409 as a localized API error without offline fallback": "passed",
+    "community-plan adapter keeps HTTP 429 as a localized API error without offline fallback": "passed",
+    "community-plan adapter falls back to the offline bundle on 5xx server errors": "passed",
+    "community-plan adapter falls back to the offline bundle on transport/network failures": "passed",
+    "community-plan adapter falls back to the offline bundle on transport error: getaddrinfo ENOTFOUND api.example.com": "passed",
+    "community-plan adapter falls back to the offline bundle on transport error: timeout of 10000ms exceeded": "passed",
+    "onboarding completion state requires a visited place and locally confirmed demo event": "passed",
+    "community plan safe catalog bundle contains no production credentials or backend configuration": "passed"
+  },
+  "finalDecision": "pass"
+}

@@ -1,0 +1,43 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "15.1",
+  "ref": "R15",
+  "scope": "CLI",
+  "branch": "competition/trae-h5-demo",
+  "headShort": "e15efde4",
+  "headFull": "e15efde43ad0eb3c3c6317ee32a6c7309fd2d110",
+  "workingTreeNote": "The supplemented adapter parity/error-branch tests in apps/mobile/src/api/community-plan-adapter.spec.ts are uncommitted at validation time.",
+  "typecheck": {
+    "command": "pnpm --filter @community-map/mobile typecheck",
+    "exit": 0,
+    "passed": true
+  },
+  "lint": {
+    "command": "./node_modules/.bin/eslint apps/mobile/src/api/community-plan-adapter.spec.ts",
+    "exit": 0,
+    "passed": true
+  },
+  "vitest": {
+    "command": "./node_modules/.bin/vitest run apps/mobile/src/api/community-plan-adapter.spec.ts apps/mobile/src/stores/onboarding-store.spec.ts packages/shared/test/community-plan-engine.spec.ts --reporter=json",
+    "exit": 0,
+    "passed": true,
+    "numTotalTests": 36,
+    "numPassedTests": 36,
+    "numFailedTests": 0,
+    "numTotalTestSuites": 10,
+    "numPassedTestSuites": 10,
+    "numFailedTestSuites": 0
+  },
+  "parityAssertions": {
+    "providerLocalParity": "576/576",
+    "totalScenarios": 576,
+    "mismatchedFingerprints": 0,
+    "deliveryModeInsidePlan": false,
+    "fourXStaysApiError": true,
+    "transportAndFiveXFallback": true,
+    "offlineCompletesRoute": true,
+    "bundleHasNoProductionSecrets": true
+  },
+  "r18Unchecked": true,
+  "finalDecision": "pass"
+}

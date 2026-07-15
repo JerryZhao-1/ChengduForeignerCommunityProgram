@@ -1,0 +1,36 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "11.1",
+  "ref": "R11",
+  "scope": "CLI",
+  "actual": {
+    "typecheckExit": 0,
+    "lintExit": 0,
+    "vitestExit": 0,
+    "failedTests": 0,
+    "requiredTestsPassed": true
+  },
+  "expected": {
+    "typecheckExit": 0,
+    "lintExit": 0,
+    "vitestExit": 0,
+    "failedTests": 0,
+    "requiredTestsPassed": true
+  },
+  "expectedMatches": true,
+  "requiredTestResults": {
+    "community plan singular preference accepts all five required singular fields": "passed",
+    "community plan singular preference rejects missing required fields": "passed",
+    "community plan singular preference rejects array values on singular preference fields": "passed",
+    "community plan singular preference rejects legacy arrays, unknown fields, community_id, PII, and free text": "passed",
+    "community plan singular preference rejects invalid enum values": "passed",
+    "community plan explainable response accepts the curated canonical plan": "passed",
+    "community plan explainable response rejects missing or reordered explanation reasons": "passed",
+    "community plan explainable response rejects legacy model-result fields including model and prompt": "passed",
+    "community plan safe catalog bundle contains every feedback key exactly once": "passed",
+    "community plan safe catalog bundle rejects unsafe place and event projection fields": "passed",
+    "community plan contract surface exposes only POST generation": "passed",
+    "community plan contract surface exposes only generate on the mock client communityPlan surface": "passed"
+  },
+  "finalDecision": "pass"
+}

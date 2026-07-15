@@ -1,0 +1,19 @@
+--- pnpm --filter @community-map/mobile typecheck ---
+
+> @community-map/mobile@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/mobile
+> vue-tsc --noEmit -p tsconfig.json
+
+
+
+--- eslint apps/mobile/src/api/community-plan-adapter.spec.ts ---
+
+
+--- vitest run apps/mobile/src/api/community-plan-adapter.spec.ts apps/mobile/src/stores/onboarding-store.spec.ts packages/shared/test/community-plan-engine.spec.ts --reporter=json ---
+JSON report written to /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/launch-trae-competition-h5-demo/run-0028__task-15.1__ref-R15__20260715T122212Z/logs/vitest.json
+
+
+--- summary ---
+finalDecision=pass
+typecheck.passed=true
+lint.passed=true
+vitest.passed=true

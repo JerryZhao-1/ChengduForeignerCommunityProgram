@@ -1,0 +1,24 @@
+{
+  "task": "11.1",
+  "ref": "R11",
+  "scope": "CLI",
+  "expectedFinalDecision": "pass",
+  "expectedTypecheckExit": 0,
+  "expectedLintExit": 0,
+  "expectedVitestExit": 0,
+  "expectedVitestFailedTests": 0,
+  "contractAssertions": {
+    "strictSingularPreferenceFields": 5,
+    "primaryInterestEnumCount": 8,
+    "accessibilityNeedEnumCount": 6,
+    "rejectsLegacyArrays": true,
+    "rejectsCommunityId": true,
+    "rejectsPII": true,
+    "rejectsFreeText": true,
+    "rejectsArrayValuesOnSingularFields": true,
+    "rejectsEachMissingRequiredField": true,
+    "fourOrderedReasons": true,
+    "onlyGenerateExposed": true,
+    "catalogVersion": "tongzilin-curated-v1"
+  }
+}

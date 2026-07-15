@@ -1,0 +1,10 @@
+{
+  "providerLocalParity": "576/576",
+  "totalScenarios": 576,
+  "mismatchedFingerprints": 0,
+  "deliveryModeInsidePlan": false,
+  "fourXStaysApiError": true,
+  "transportAndFiveXFallback": true,
+  "offlineCompletesRoute": true,
+  "bundleHasNoProductionSecrets": true
+}

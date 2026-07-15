@@ -15,6 +15,7 @@ import {
   apiPaths,
   communityPlanCatalogBundle,
   communityPlanContracts,
+  createMockClient,
   generateJudgeScenarioPlan
 } from "@community-map/shared";
 import { describe, expect, it } from "vitest";
@@ -37,15 +38,38 @@ describe("community plan singular preference", () => {
   });
 
   it("rejects missing required fields", () => {
-    const missingAccessibility = {
-      preferred_language: validPreference.preferred_language,
-      primary_interest: validPreference.primary_interest,
-      arrival_context: validPreference.arrival_context,
-      household_type: validPreference.household_type
-    };
-    expect(
-      NewResidentPreferenceSchema.safeParse(missingAccessibility).success
-    ).toBe(false);
+    const requiredKeys = [
+      "preferred_language",
+      "primary_interest",
+      "arrival_context",
+      "household_type",
+      "accessibility_need"
+    ] as const;
+    for (const missingKey of requiredKeys) {
+      const partial: Record<string, unknown> = { ...validPreference };
+      delete partial[missingKey];
+      expect(
+        NewResidentPreferenceSchema.safeParse(partial).success
+      ).toBe(false);
+    }
+  });
+
+  it("rejects array values on singular preference fields", () => {
+    const arrayCases = [
+      { primary_interest: ["community-service"] },
+      { accessibility_need: ["none"] },
+      { arrival_context: ["first-week"] },
+      { household_type: ["solo"] },
+      { preferred_language: ["zh"] }
+    ];
+    for (const arrayOverride of arrayCases) {
+      expect(
+        NewResidentPreferenceSchema.safeParse({
+          ...validPreference,
+          ...arrayOverride
+        }).success
+      ).toBe(false);
+    }
   });
 
   it("rejects legacy arrays, unknown fields, community_id, PII, and free text", () => {
@@ -238,6 +262,47 @@ describe("community plan safe catalog bundle", () => {
       }).success
     ).toBe(false);
   });
+
+  it("contains no production credentials or backend configuration", () => {
+    const forbiddenKeyPattern =
+      /(^|_)(api_?key|secret|secret_?key|token|credential|password|private_?key|cloudbase_?env|backend_?url|base_?url|map_?key)($|_)/i;
+    const forbiddenValuePatterns = [
+      /cloud1-[a-z0-9-]+/i,
+      /(?:localhost|127\.0\.0\.1):8787/i,
+      /\/community-plan\/generate/i,
+      /(?:tencent|amap).*(?:key|secret)/i
+    ];
+    const violations: string[] = [];
+
+    const inspect = (value: unknown, path = "$"): void => {
+      if (Array.isArray(value)) {
+        value.forEach((entry, index) => inspect(entry, `${path}[${index}]`));
+        return;
+      }
+      if (value && typeof value === "object") {
+        for (const [key, entry] of Object.entries(value)) {
+          if (forbiddenKeyPattern.test(key)) violations.push(`${path}.${key}`);
+          inspect(entry, `${path}.${key}`);
+        }
+        return;
+      }
+      if (
+        typeof value === "string" &&
+        forbiddenValuePatterns.some((pattern) => pattern.test(value))
+      ) {
+        violations.push(path);
+      }
+    };
+
+    inspect(JSON.parse(JSON.stringify(communityPlanCatalogBundle)));
+    expect(violations).toEqual([]);
+    expect(
+      CommunityPlanSchema.safeParse({
+        ...basePlan,
+        deliveryMode: "offline"
+      }).success
+    ).toBe(false);
+  });
 });
 
 describe("community plan contract surface", () => {
@@ -249,6 +314,12 @@ describe("community plan contract surface", () => {
     );
     expect(communityPlanContracts.generate.response).toBe(CommunityPlanSchema);
     expect(Object.keys(apiPaths.communityPlan)).toEqual(["generate"]);
+  });
+
+  it("exposes only generate on the mock client communityPlan surface", () => {
+    expect(Object.keys(createMockClient({}).communityPlan)).toEqual([
+      "generate"
+    ]);
   });
 
   it("keeps RATE_LIMITED in the stable error enum", () => {
