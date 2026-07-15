@@ -1,0 +1,26 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "12.1",
+  "ref": "R12",
+  "status": "pass",
+  "provenance": "codex-local-validation",
+  "catalogVersion": "tongzilin-curated-v1",
+  "coverage": {
+    "logicalScenarios": 576,
+    "uniqueScenarioKeys": 576,
+    "localizedRenderCases": 1152,
+    "invalidPlans": 0,
+    "missingCopy": 0
+  },
+  "commands": [
+    {
+      "command": "pnpm --filter @community-map/shared typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test -- packages/shared/test/community-plan-engine.spec.ts packages/shared/test/community-plans.spec.ts",
+      "exitCode": 0,
+      "note": "The repository test script runs the full Vitest suite; 36 files and 273 tests passed, including 13 exhaustive engine tests and 14 schema tests."
+    }
+  ]
+}

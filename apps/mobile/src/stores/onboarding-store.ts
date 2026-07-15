@@ -15,6 +15,7 @@ import {
 } from "@community-map/shared";
 
 import type { CommunityPlanErrorKey } from "../api/community-plan-adapter";
+import type { DeliveryMode } from "../api/community-plan-adapter";
 import type { MobileLocale } from "../i18n/localized";
 
 export type OnboardingStep =
@@ -37,10 +38,10 @@ export type LocalPlanItemStatus =
 export interface OnboardingPreferenceDraft {
   preferred_language: MobileLocale;
   communityId: string;
-  interests: readonly CommunityPlanInterest[];
+  primary_interest: CommunityPlanInterest | null;
   arrival_context: CommunityPlanArrivalContext | null;
   household_type: CommunityPlanHouseholdType | null;
-  accessibility_needs: readonly CommunityPlanAccessibilityNeed[];
+  accessibility_need: CommunityPlanAccessibilityNeed | null;
 }
 
 export interface OnboardingState {
@@ -48,7 +49,7 @@ export interface OnboardingState {
   draft: OnboardingPreferenceDraft;
   plan: CommunityPlan | null;
   itemStatuses: Record<string, LocalPlanItemStatus>;
-  planOffline: boolean;
+  planDeliveryMode: DeliveryMode;
   planErrorKey: CommunityPlanErrorKey | null;
   planErrorRequestId: string | null;
 }
@@ -64,10 +65,10 @@ export interface CompletionProgress {
 export const EXAMPLE_PREFERENCE: OnboardingPreferenceDraft = {
   preferred_language: "zh",
   communityId: "tongzilin",
-  interests: ["community-service", "food-drink", "social"],
+  primary_interest: "community-service",
   arrival_context: "first-week",
   household_type: "solo",
-  accessibility_needs: []
+  accessibility_need: "none"
 };
 
 const PREFERENCE_STEPS: OnboardingStep[] = [
@@ -80,10 +81,10 @@ const PREFERENCE_STEPS: OnboardingStep[] = [
 const createInitialDraft = (): OnboardingPreferenceDraft => ({
   preferred_language: "zh",
   communityId: "tongzilin",
-  interests: [],
+  primary_interest: null,
   arrival_context: null,
   household_type: null,
-  accessibility_needs: []
+  accessibility_need: null
 });
 
 const createInitialState = (): OnboardingState => ({
@@ -91,7 +92,7 @@ const createInitialState = (): OnboardingState => ({
   draft: createInitialDraft(),
   plan: null,
   itemStatuses: {},
-  planOffline: false,
+  planDeliveryMode: "online",
   planErrorKey: null,
   planErrorRequestId: null
 });
@@ -137,7 +138,7 @@ export const useOnboardingStore = () => {
     state.draft = createInitialDraft();
     state.plan = null;
     state.itemStatuses = {};
-    state.planOffline = false;
+    state.planDeliveryMode = "online";
     state.planErrorKey = null;
     state.planErrorRequestId = null;
   };
@@ -168,12 +169,12 @@ export const useOnboardingStore = () => {
     state.draft = { ...state.draft, ...partial };
   };
 
-  const setPlan = (plan: CommunityPlan, offline: boolean) => {
+  const setPlan = (plan: CommunityPlan, deliveryMode: DeliveryMode) => {
     state.plan = plan;
     state.itemStatuses = Object.fromEntries(
       plan.items.map((item) => [item.item_id, "pending" as const])
     );
-    state.planOffline = offline;
+    state.planDeliveryMode = deliveryMode;
     state.planErrorKey = null;
     state.planErrorRequestId = null;
     state.step = "plan";
@@ -255,18 +256,20 @@ export const useOnboardingStore = () => {
 export const isPreferenceComplete = (
   draft: OnboardingPreferenceDraft
 ): boolean =>
-  draft.interests.length > 0 &&
+  draft.primary_interest !== null &&
   draft.arrival_context !== null &&
-  draft.household_type !== null;
+  draft.household_type !== null &&
+  draft.accessibility_need !== null;
 
 export const buildPreferenceFromDraft = (
   draft: OnboardingPreferenceDraft
 ): NewResidentPreference => ({
   preferred_language: draft.preferred_language,
-  interests: [...draft.interests],
+  primary_interest: draft.primary_interest as CommunityPlanInterest,
   arrival_context: draft.arrival_context as CommunityPlanArrivalContext,
   household_type: draft.household_type as CommunityPlanHouseholdType,
-  accessibility_needs: [...draft.accessibility_needs]
+  accessibility_need:
+    draft.accessibility_need as CommunityPlanAccessibilityNeed
 });
 
 export const INTEREST_OPTIONS = COMMUNITY_PLAN_INTERESTS;

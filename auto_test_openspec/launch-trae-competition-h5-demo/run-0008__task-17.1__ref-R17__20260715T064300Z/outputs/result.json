@@ -1,0 +1,33 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "17.1",
+  "ref": "R17",
+  "status": "pass",
+  "provenance": "codex-local-validation",
+  "baselineCommit": "da77c4f520cc44cd8c94ddeb1487bde4c312207e",
+  "branch": "competition/trae-h5-demo",
+  "tests": {
+    "files": "36/36",
+    "assertions": "273/273"
+  },
+  "coverage": {
+    "logicalScenarios": "576/576",
+    "localizedRenderCases": "1152/1152",
+    "providerLocalParity": "576/576"
+  },
+  "commands": [
+    { "command": "pnpm typecheck", "exitCode": 0 },
+    { "command": "pnpm lint", "exitCode": 0 },
+    { "command": "pnpm test", "exitCode": 0 },
+    { "command": "pnpm --filter @community-map/mobile build:h5", "exitCode": 0 },
+    { "command": "pnpm --filter @community-map/mobile build:mp-weixin", "exitCode": 0 },
+    { "command": "openspec validate launch-trae-competition-h5-demo --strict --no-interactive", "exitCode": 0 }
+  ],
+  "audits": {
+    "runtimeForbiddenClaimMatches": 0,
+    "buildForbiddenClaimMatches": 0,
+    "buildSecretMatches": 0
+  },
+  "deploymentPerformed": false,
+  "traeEvidenceComplete": false
+}

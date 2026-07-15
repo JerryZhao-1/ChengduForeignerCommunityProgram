@@ -1,95 +1,50 @@
-# 桐邻 First 120 Minutes｜AI 社区融入路线 — TRAE H5 Demo 证据目录
+# 桐邻 First 120 Minutes｜社区策展融入路线 — TRAE H5 Demo 证据目录
 
-本目录是 TRAE AI 创造力大赛 H5 版本的证据中枢，记录从基线到提交的全过程。
-本阶段仅搭建证据目录骨架，不实现任何比赛功能代码。
+本目录是 TRAE AI 创造力大赛 H5 版本的证据中枢，记录从基线、设计、实现到发布的全过程。比赛产品本身不调用 AI/LLM；TRAE 是本次实质性版本迭代的开发与证据工具。
 
-## 产品名称
+## 产品目标
 
-桐邻 First 120 Minutes｜AI 社区融入路线
+在现有桐梓林社区地图基础上，为新到居民提供可公开访问的移动端 H5：用户完成四个必选单选维度后，获得一条可解释、可导航、可完成的“前 120 分钟”社区融入路线。最终产品继续复用同一套 uni-app 代码构建微信小程序，本次功能验收以 H5 为准。
 
-## 比赛版本目标
+## 当前比赛版本新增能力
 
-在现有桐梓林社区地图 H5 基础上，打造一条面向新到外籍居民的"前 120 分钟社区融入"引导路线 demo。评审版本是可公开访问的移动端 H5，最终产品仍会复用同一套 uni-app 代码发布微信小程序。以 H5 形式呈现可浏览、可参与、可导航的闭环体验，用于 TRAE AI 创造力大赛提交。
+- 无登录访客入口和受限 guest actor。
+- 8 个主兴趣、3 个到达阶段、4 个家庭类型、6 个无障碍/环境选择，共 576 个逻辑组合。
+- 每个组合都有稳定 `scenario_key`、双语摘要和四条选择维度解释。
+- 1,152 个中英渲染案例由同一版本化社区策展目录覆盖。
+- API、mock 和 H5 离线回退使用同一个 shared matcher。
+- 一处地点访问、一项 Demo Confirm 和显式完成结果。
+- marker-safe 路线列表为基线，H5 地图为可选增强。
+- H5 与 mp-weixin 双目标构建回归。
 
-## 原项目已有能力
+## 诚实边界
 
-- `apps/mobile` H5 前台：home / events / discover / places / more 五大页面组
-- events：活动列表、活动详情、报名、票券状态
-- discover：帖子列表、详情、发帖、搜索、举报
-- places：地点列表、地图 marker、详情、推荐、导航
-- more：个人主页、通知、我的帖子/评论/收藏/点赞/报名/举报、关注、登录、语言设置
-- `packages/shared`：完整 contracts（announcements/auth/discover/events/files/notifications/places/paths）、schemas、enums、mock service / mock client
-- `apps/mobile/src/i18n/catalog.ts`：中英双语 catalog（zh / en 双键结构）
-- `apps/api`：统一 BFF，支持 mock 与 CloudBase provider
+- Demo Confirm 不创建真实报名、预约、票券或容量占用。
+- 无障碍选择只生成准备和确认建议，不代表地点设施认证。
+- Community Plan 不持久化，不提供详情 GET 或服务端完成写入。
+- 产品运行时无模型调用、模型密钥或模型结果字段。
+- Codex 只可作为补充质量审查；只有真实 TRAE Session ID、截图和 commit 才能作为 TRAE 开发证明。
 
-## 本次比赛新增能力（计划）
-
-- "First 120 Minutes"融入路线引导层与步骤化动线
-- 面向外籍居民的中英双语首屏体验优化
-- 比赛专用 demo 入口与演示脚本
-- 证据链：从基线到发布的 11 阶段可追溯记录
-
-## 基线信息
+## 项目基线
 
 | 项 | 值 |
-|----|----|
-| 基线 commit | `238f5c4` |
-| 基线分支 | `feat/discover-integration` |
+| --- | --- |
+| 原始项目基线 commit | `238f5c4` |
+| 无 AI 迁移基线 commit | `da77c4f` |
 | 比赛分支 | `competition/trae-h5-demo` |
 | OpenSpec change-id | `launch-trae-competition-h5-demo` |
+| 活动 OpenSpec refs | `R10`–`R18` |
 | 截止时间 | 2026-07-15 23:59 Asia/Shanghai |
 
-## 目录结构
+## 证据结构
 
-- `README.md`：本文件
-- `trae-evidence-log.md`：证据日志（11 阶段逐行记录）
-- `submission-draft.md`：提交材料草稿
-- `demo-script.md`：演示脚本
-- `design/`：设计文档（DESIGN / screen-flow / selected-direction）
-- `evidence/`：11 个阶段证据子目录
+- `trae-evidence-log.md`：只记录真实 TRAE Session ID、commit 和截图。
+- `submission-draft.md`：提交材料草稿。
+- `demo-script.md`：不超过 180 秒的评委流程。
+- `design/`：视觉方向、屏幕流和已选方向。
+- `evidence/`：原阶段证据及新增 `trae-sessions/S07A`–`S15` 截图目录。
+- `auto_test_openspec/launch-trae-competition-h5-demo/`：R10–R18 的不可变机器验证 bundle。
 
-```
-docs/competition/
-├── README.md
-├── trae-evidence-log.md
-├── submission-draft.md
-├── demo-script.md
-├── design/
-│   ├── DESIGN.md
-│   ├── screen-flow.md
-│   └── selected-direction.md
-└── evidence/
-    ├── 01-baseline/
-    ├── 02-design/
-    ├── 03-openspec/
-    ├── 04-contracts/
-    ├── 05-onboarding/
-    ├── 06-planner/
-    ├── 07-map/
-    ├── 08-registration/
-    ├── 09-resilience/
-    ├── 10-qa/
-    └── 11-release/
-```
+## 历史与当前事实源
 
-## evidence 阶段说明
-
-| 编号 | 目录 | 阶段含义 |
-|------|------|----------|
-| 01 | baseline | 基线确认：分支、commit、现有能力盘点 |
-| 02 | design | 设计方向：选定 demo 叙事与屏幕流转 |
-| 03 | openspec | OpenSpec change proposal 创建与校验 |
-| 04 | contracts | 数据契约：复用 shared contracts，定义 demo 数据子集 |
-| 05 | onboarding | 首屏融入路线引导页实现 |
-| 06 | planner | 融入路线步骤规划器 |
-| 07 | map | 地图与地点导航动线 |
-| 08 | registration | 活动报名与参与动线 |
-| 09 | resilience | 错误态 / 空状态 / 加载态韧性 |
-| 10 | qa | QA 验证与 MCP 浏览器验证 |
-| 11 | release | 最终验证、回归、证据归档 |
-
-## 本阶段约束
-
-- 仅搭建证据目录骨架，不修改任何业务源码（`apps/`、`packages/`、`openspec/specs/`）
-- 仅新增 `docs/competition/` 下的文档与占位文件
-- 后续比赛功能实现将在独立阶段进行，并同步更新证据日志
+R1–R9 和既有截图记录了 2026-07-15 决策前的探索与实现历史，其中可能出现已被放弃的 DeepSeek/AI 方案。不得修改或删除这些历史证据。当前功能、发布门槛和测试要求只以本仓库的 `launch-trae-competition-h5-demo` OpenSpec change 及 R10–R18 为准。

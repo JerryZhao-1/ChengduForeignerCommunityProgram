@@ -1,0 +1,22 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "15.1",
+  "ref": "R15",
+  "status": "pass",
+  "provenance": "codex-local-validation",
+  "semanticFingerprintParity": "576/576",
+  "fourXFallback": false,
+  "transportAndFiveXFallback": true,
+  "deliveryModeInsidePlan": false,
+  "commands": [
+    {
+      "command": "pnpm --filter @community-map/mobile typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test -- apps/mobile/src/api/community-plan-adapter.spec.ts packages/shared/test/community-plan-engine.spec.ts",
+      "exitCode": 0,
+      "note": "Covered by the 36-file, 273-test full-suite pass and the 10 adapter tests."
+    }
+  ]
+}

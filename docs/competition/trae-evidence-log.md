@@ -18,6 +18,24 @@
 | 10-qa | | | | QA 验证与 MCP 浏览器验证 | | | | |
 | 11-release | | | | 最终验证、回归、证据归档 | trae-evidence-log.md | | | |
 
+## 2026-07-15 无 AI 策展版本补充会话
+
+以下行只允许填写从 TRAE UI 复制的完整 Session ID。当前 Codex 实施和 Review 不得冒充 TRAE 证据；未在 TRAE 中完成或复核的阶段保持 `PENDING-TRAE-EVIDENCE`。
+
+| ID | Date | TRAE Surface | Session ID | Objective | Main Files | Commit | Screenshot | Result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| S07A | | | `<copy-from-TRAE-UI>` | 无 AI OpenSpec 规格迁移 | `openspec/changes/launch-trae-competition-h5-demo/*` | | `evidence/trae-sessions/S07A/` | PENDING-TRAE-EVIDENCE |
+| S07B | | | `<copy-from-TRAE-UI>` | 单选偏好与解释型 contract | `packages/shared/src/schemas/*`, `packages/shared/src/types/*` | | `evidence/trae-sessions/S07B/` | PENDING-TRAE-EVIDENCE |
+| S07C | | | `<copy-from-TRAE-UI>` | 策展目录与 576 组合 matcher | `packages/shared/src/community-plan/*`, `packages/shared/src/mock/*` | | `evidence/trae-sessions/S07C/` | PENDING-TRAE-EVIDENCE |
+| S08 | | | `<copy-from-TRAE-UI>` | 无模型 Community Plan API | `apps/api/src/*` | | `evidence/trae-sessions/S08/` | PENDING-TRAE-EVIDENCE |
+| S09 | | | `<copy-from-TRAE-UI>` | 单选 onboarding 与解释型方案 UI | `apps/mobile/src/*` | | `evidence/trae-sessions/S09/` | PENDING-TRAE-EVIDENCE |
+| S10 | | | `<copy-from-TRAE-UI>` | 在线/离线共享目录一致性 | shared/API/mobile adapters | | `evidence/trae-sessions/S10/` | PENDING-TRAE-EVIDENCE |
+| S11 | | | `<copy-from-TRAE-UI>` | 评委流程与视觉完善 | H5 onboarding pages | | `evidence/trae-sessions/S11/` | PENDING-TRAE-EVIDENCE |
+| S12 | | | `<copy-from-TRAE-UI>` | 全量 QA 与证据 bundle | tests/build/OpenSpec | | `evidence/trae-sessions/S12/` | PENDING-TRAE-EVIDENCE |
+| S13 | | | `<copy-from-TRAE-UI>` | Review findings closure | scoped fixes | | `evidence/trae-sessions/S13/` | PENDING-TRAE-EVIDENCE |
+| S14 | | | `<copy-from-TRAE-UI>` | 公开部署与外部验收 | deployment evidence | | `evidence/trae-sessions/S14/` | PENDING-TRAE-EVIDENCE |
+| S15 | | | `<copy-from-TRAE-UI>` | 提交材料与最终索引 | competition docs | | `evidence/trae-sessions/S15/` | PENDING-TRAE-EVIDENCE |
+
 ## 字段说明
 
 - **ID**：阶段编号，对应 `evidence/` 子目录
@@ -29,3 +47,5 @@
 - **Commit**：关联 commit hash
 - **Screenshot**：截图路径（相对 `evidence/` 目录）
 - **Result**：该阶段结果（Done / Selected / PASS / BLOCKED / IN-PROGRESS）
+
+历史 R1–R9 证据不得回写。R10–R18 的 OpenSpec 验证目录必须新建并保持不可变。

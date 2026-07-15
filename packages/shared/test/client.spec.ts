@@ -4,6 +4,7 @@ import {
   createHttpClient,
   createMockClient,
   createMockService,
+  generateJudgeScenarioPlan,
   apiPaths,
   type HttpRequester,
   type NewResidentPreference
@@ -1246,10 +1247,10 @@ describe("shared api clients", () => {
     const mockClient = createMockClient({ actorId: "user_001" });
     const preference: NewResidentPreference = {
       preferred_language: "zh",
-      interests: ["community-service", "social"],
+      primary_interest: "community-service",
       arrival_context: "first-week",
       household_type: "solo",
-      accessibility_needs: []
+      accessibility_need: "none"
     };
 
     const result = await mockClient.communityPlan.generate(preference);
@@ -1258,8 +1259,8 @@ describe("shared api clients", () => {
     expect(result.data.community_id).toBe("tongzilin");
     expect(result.data.items).toHaveLength(2);
     expect(result.data.total_duration_minutes).toBe(120);
-    expect(result.data.generation_source).toBe("rule_based");
-    expect(result.data.ai_status).toBe("not_configured");
+    expect(result.data.catalog_version).toBe("tongzilin-curated-v1");
+    expect(result.data.selection_explanation.reasons).toHaveLength(4);
     expect(result.data.items.map((item) => item.type)).toEqual([
       "place_visit",
       "event_attend"
@@ -1270,10 +1271,10 @@ describe("shared api clients", () => {
     const mockClient = createMockClient({ actorId: "user_001" });
     const preference: NewResidentPreference = {
       preferred_language: "en",
-      interests: ["family-kids", "outdoor-sports"],
+      primary_interest: "family-kids",
       arrival_context: "first-month",
       household_type: "family-with-kids",
-      accessibility_needs: []
+      accessibility_need: "low-mobility"
     };
 
     const first = await mockClient.communityPlan.generate(preference);
@@ -1286,20 +1287,11 @@ describe("shared api clients", () => {
   });
 
   it("http client posts preferences to /community-plan/generate", async () => {
+    const responsePlan = generateJudgeScenarioPlan(0);
     const requester = vi.fn(async () => ({
       success: true,
       requestId: "req_plan_001",
-      data: {
-        plan_id: "plan_http_001",
-        community_id: "tongzilin",
-        generated_at: "2027-04-02T09:00:00+08:00",
-        items: [],
-        total_duration_minutes: 120,
-        route_kind: "place_event",
-        generation_source: "rule_based",
-        ai_status: "not_configured",
-        generated_by: "tongzilin-rule-engine-v1"
-      }
+      data: responsePlan
     }));
     const httpClient = createHttpClient({
       baseUrl: "http://localhost:8787",
@@ -1308,16 +1300,16 @@ describe("shared api clients", () => {
 
     const preference: NewResidentPreference = {
       preferred_language: "zh",
-      interests: ["social"],
+      primary_interest: "social",
       arrival_context: "first-week",
       household_type: "solo",
-      accessibility_needs: []
+      accessibility_need: "none"
     };
 
     const result = await httpClient.communityPlan.generate(preference);
 
     expect(result.success).toBe(true);
-    expect(result.data.plan_id).toBe("plan_http_001");
+    expect(result.data.plan_id).toBe(responsePlan.plan_id);
     expect(requester).toHaveBeenCalledWith(
       "POST",
       "http://localhost:8787/community-plan/generate",
@@ -1327,20 +1319,11 @@ describe("shared api clients", () => {
   });
 
   it("http client communityPlan.generate does not send a mock actor header by default", async () => {
+    const responsePlan = generateJudgeScenarioPlan(0);
     const requester = vi.fn(async () => ({
       success: true,
       requestId: "req_plan_guest",
-      data: {
-        plan_id: "plan_guest_001",
-        community_id: "tongzilin",
-        generated_at: "2027-04-02T09:00:00+08:00",
-        items: [],
-        total_duration_minutes: 120,
-        route_kind: "place_event",
-        generation_source: "rule_based",
-        ai_status: "not_configured",
-        generated_by: "tongzilin-rule-engine-v1"
-      }
+      data: responsePlan
     }));
     const httpClient = createHttpClient({
       baseUrl: "http://localhost:8787",
@@ -1349,10 +1332,10 @@ describe("shared api clients", () => {
 
     await httpClient.communityPlan.generate({
       preferred_language: "zh",
-      interests: ["social"],
+      primary_interest: "social",
       arrival_context: "first-week",
       household_type: "solo",
-      accessibility_needs: []
+      accessibility_need: "none"
     });
 
     expect(requester).toHaveBeenCalledWith(

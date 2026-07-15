@@ -167,9 +167,9 @@ Discover public reads 返回 `status="visible"` 且未被管理员 hidden/delete
 
 | 方法   | 路径                       | 用途                         | 路由文件                               | 契约文件                                            | 业务实现 |
 | ------ | -------------------------- | ---------------------------- | -------------------------------------- | --------------------------------------------------- | -------- |
-| `POST` | `/community-plan/generate` | 为 H5 评委访客生成 120 分钟路线 | `apps/api/src/routes/community-plan.ts` | `packages/shared/src/contracts/community-plans.ts` | mock 使用确定性安全夹具；CloudBase live 从目标社区已发布地点与固定演示活动生成，服务端可选 DeepSeek 双语叙述增强 |
+| `POST` | `/community-plan/generate` | 为 H5 评委访客匹配 120 分钟策展路线 | `apps/api/src/routes/community-plan.ts` | `packages/shared/src/contracts/community-plans.ts` | mock、CloudBase deploy fallback 和 CloudBase live 均使用 `tongzilin-curated-v1` 版本化安全快照与 shared matcher |
 
-该接口只接受 `x-guest-mode: judge` 访客请求，不接受 bearer/mock actor 替代；其他访客写操作返回 `403 FORBIDDEN`。请求体由严格 schema 限制为语言、兴趣、到达阶段、家庭类型和无障碍枚举，不接受 `community_id`、PII 或自由文本。接口按可信源执行 10 次/分钟限流并返回 `X-RateLimit-*` headers；HTTP 429 使用标准 `RATE_LIMITED` envelope。`DEEPSEEK_API_KEY` 仅配置在服务端，AI 失败时返回不改变结构的确定性回退路线。
+该接口只接受 `x-guest-mode: judge` 访客请求，不接受 bearer/mock actor 替代；其他访客写操作返回 `403 FORBIDDEN`。请求体由严格 schema 限制为 `preferred_language`、`primary_interest`、`arrival_context`、`household_type`、`accessibility_need` 五个必填单选字段，不接受旧多选字段、`community_id`、PII、自由文本或未知字段。8 × 3 × 4 × 6 共 576 个逻辑组合各自映射唯一 `scenario_key`，响应包含 `catalog_version` 和固定顺序的四条中英选择解释。接口按可信源执行 10 次/分钟限流并返回 `X-RateLimit-*` headers；HTTP 429 使用标准 `RATE_LIMITED` envelope。产品路径不调用模型服务；H5 仅在 transport/timeout/5xx 时使用同版本目录本地匹配，4xx 不离线回退。
 
 ### 4.6 公告 Announcements
 

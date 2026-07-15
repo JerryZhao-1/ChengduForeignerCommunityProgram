@@ -1,0 +1,21 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "13.1",
+  "ref": "R13",
+  "status": "pass",
+  "provenance": "codex-local-validation",
+  "providerProfiles": "576/576",
+  "guestRateLimit": "10/minute; eleventh request rejected",
+  "modelNetworkRequests": 0,
+  "commands": [
+    {
+      "command": "pnpm --filter @community-map/api typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test -- apps/api/test/community-plan.spec.ts apps/api/test/app.spec.ts apps/api/test/cloudbase.spec.ts",
+      "exitCode": 0,
+      "note": "The repository test script runs the full Vitest suite; 36 files and 273 tests passed, including 9 Community Plan API tests."
+    }
+  ]
+}

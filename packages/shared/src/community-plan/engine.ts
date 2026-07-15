@@ -4,36 +4,32 @@ import type {
   CommunityPlanPlaceProjection,
   NewResidentPreference
 } from "../types/entities";
-import { CommunityPlanSchema } from "../schemas/community-plans";
+import {
+  COMMUNITY_PLAN_ACCESSIBILITY_NEEDS,
+  COMMUNITY_PLAN_ARRIVAL_CONTEXTS,
+  COMMUNITY_PLAN_CATALOG_VERSION,
+  COMMUNITY_PLAN_HOUSEHOLD_TYPES,
+  COMMUNITY_PLAN_INTERESTS,
+  CommunityPlanSchema,
+  type CommunityPlanAccessibilityNeed,
+  type CommunityPlanArrivalContext,
+  type CommunityPlanHouseholdType,
+  type CommunityPlanInterest
+} from "../schemas/community-plans";
 import {
   ARRIVAL_CONTEXT_PRIORITY,
   HOUSEHOLD_TYPE_PRIORITY,
   INTEREST_CATEGORY_MAP,
+  getAccessibilityFeedback,
+  getArrivalFeedback,
   getEventNarration,
+  getHouseholdFeedback,
+  getInterestFeedback,
   getPlaceNarration
 } from "./narration";
 
-/**
- * Identifies the generator that produced a Community Plan. The rule engine
- * always sets this to RULE_ENGINE_ID; the API layer may overwrite it with
- * AI_GENERATOR_ID when DeepSeek narration is successfully merged. Fallback
- * paths keep the rule-engine ID so the source is never misattributed.
- */
-export const RULE_ENGINE_ID = "tongzilin-rule-engine-v1";
-export const AI_GENERATOR_ID = "tongzilin-ai-deepseek-v1";
-export const RULE_ENGINE_FALLBACK_ID = "tongzilin-rule-engine-v1-fallback";
-
-/**
- * Fixed duration for the canonical place_visit stop in a place_event route.
- */
 const PLACE_VISIT_DURATION_MINUTES = 60;
-/**
- * Fixed duration for the curated event_attend stop in a place_event route.
- */
 const EVENT_ATTEND_DURATION_MINUTES = 60;
-/**
- * Total target duration for the First 120 Minutes route.
- */
 const TARGET_TOTAL_MINUTES = 120;
 
 export interface CommunityPlanEngineInput {
@@ -41,20 +37,8 @@ export interface CommunityPlanEngineInput {
   places: CommunityPlanPlaceProjection[];
   events: CommunityPlanEventProjection[];
   curatedEventId: string;
-  /**
-   * ISO timestamp used for deterministic event filtering (signup deadline,
-   * ended check). The engine never calls Date.now() so identical inputs
-   * always produce identical outputs.
-   */
   now: string;
-  /**
-   * Optional deterministic plan_id. Defaults to a stable hash-derived ID.
-   */
   planId?: string;
-  /**
-   * Optional deterministic generated_at timestamp. Defaults to the input
-   * `now` value.
-   */
   generatedAt?: string;
 }
 
@@ -68,42 +52,72 @@ export interface ScoredEvent {
   score: number;
 }
 
-/**
- * Rejects malformed public-safe place candidates. Publication and community
- * filtering belongs to the provider before it creates this projection.
- */
-export function filterPlaceCandidates(
-  places: CommunityPlanPlaceProjection[]
-): CommunityPlanPlaceProjection[] {
-  return places.filter((place) => {
-    if (!isValidCoordinate(place.location)) return false;
-    return true;
-  });
-}
+export const buildCommunityPlanScenarioKey = (
+  preference: Pick<
+    NewResidentPreference,
+    | "primary_interest"
+    | "arrival_context"
+    | "household_type"
+    | "accessibility_need"
+  >
+): string =>
+  [
+    "v1",
+    preference.primary_interest,
+    preference.arrival_context,
+    preference.household_type,
+    preference.accessibility_need
+  ].join(":");
 
-/**
- * Keeps public-safe event candidates that cover the complete minute-60 to
- * minute-120 attendance slot. Publication and community filtering belongs to
- * the provider before it creates this projection. The MVP deliberately does
- * not inspect registration or capacity state.
- */
+export const enumerateCommunityPlanScenarios = (): NewResidentPreference[] => {
+  const scenarios: NewResidentPreference[] = [];
+  for (const primary_interest of COMMUNITY_PLAN_INTERESTS) {
+    for (const arrival_context of COMMUNITY_PLAN_ARRIVAL_CONTEXTS) {
+      for (const household_type of COMMUNITY_PLAN_HOUSEHOLD_TYPES) {
+        for (const accessibility_need of COMMUNITY_PLAN_ACCESSIBILITY_NEEDS) {
+          scenarios.push({
+            preferred_language: "zh",
+            primary_interest,
+            arrival_context,
+            household_type,
+            accessibility_need
+          });
+        }
+      }
+    }
+  }
+  return scenarios;
+};
+
+export const enumerateCommunityPlanLocalizedCases = (): NewResidentPreference[] =>
+  enumerateCommunityPlanScenarios().flatMap((preference) => [
+    { ...preference, preferred_language: "zh" },
+    { ...preference, preferred_language: "en" }
+  ]);
+
+export const filterPlaceCandidates = (
+  places: CommunityPlanPlaceProjection[]
+): CommunityPlanPlaceProjection[] =>
+  places.filter((place) => isValidCoordinate(place.location));
+
 export function filterEventCandidates(
   events: CommunityPlanEventProjection[],
   now: string
 ): CommunityPlanEventProjection[] {
   const nowMs = Date.parse(now);
   if (Number.isNaN(nowMs)) return [];
-
   const attendanceStartMs = nowMs + PLACE_VISIT_DURATION_MINUTES * 60 * 1000;
   const attendanceEndMs =
     attendanceStartMs + EVENT_ATTEND_DURATION_MINUTES * 60 * 1000;
-
   return events.filter((event) => {
     const startMs = Date.parse(event.start_time);
     const endMs = Date.parse(event.end_time);
-    if (Number.isNaN(startMs) || Number.isNaN(endMs)) return false;
-
-    return startMs <= attendanceStartMs && endMs >= attendanceEndMs;
+    return (
+      !Number.isNaN(startMs) &&
+      !Number.isNaN(endMs) &&
+      startMs <= attendanceStartMs &&
+      endMs >= attendanceEndMs
+    );
   });
 }
 
@@ -112,8 +126,6 @@ function isValidCoordinate(location: {
   longitude: number;
 }): boolean {
   return (
-    typeof location.latitude === "number" &&
-    typeof location.longitude === "number" &&
     Number.isFinite(location.latitude) &&
     Number.isFinite(location.longitude) &&
     location.latitude >= -90 &&
@@ -123,140 +135,89 @@ function isValidCoordinate(location: {
   );
 }
 
-/**
- * Scores a place candidate by interests, arrival context, household type,
- * recommendation status, and walking distance from a reference point.
- * Higher score is better. Ties are broken by _id for deterministic ordering.
- */
 export function scorePlace(
   place: CommunityPlanPlaceProjection,
   preference: NewResidentPreference,
   referenceLocation?: { latitude: number; longitude: number }
 ): number {
   let score = 0;
+  const interestCategories = INTEREST_CATEGORY_MAP[preference.primary_interest];
+  const interestIndex = interestCategories.indexOf(place.category_level_1);
+  if (interestIndex >= 0) score += 36 - interestIndex * 8;
 
-  // Interest match: +12 per matched interest category
-  for (const interest of new Set(preference.interests)) {
-    const categories = INTEREST_CATEGORY_MAP[interest];
-    if (categories.includes(place.category_level_1)) {
-      score += 12;
-    }
-  }
-
-  // Arrival context priority: +8 if category is in priority list
-  const arrivalPriority = ARRIVAL_CONTEXT_PRIORITY[preference.arrival_context];
-  if (arrivalPriority.includes(place.category_level_1)) {
+  if (
+    ARRIVAL_CONTEXT_PRIORITY[preference.arrival_context].includes(
+      place.category_level_1
+    )
+  ) {
     score += 8;
   }
-
-  // Household type priority: +6 if category matches
-  const householdPriority = HOUSEHOLD_TYPE_PRIORITY[preference.household_type];
-  if (householdPriority.includes(place.category_level_1)) {
+  if (
+    HOUSEHOLD_TYPE_PRIORITY[preference.household_type].includes(
+      place.category_level_1
+    )
+  ) {
     score += 6;
   }
-
-  // Recommendation status: +15 if recommended. Lower rank number means a
-  // stronger recommendation (rank 1 = highest), so we reward low ranks with
-  // up to +5 extra points.
-  if (place.is_recommended) {
-    score += 15;
-  }
-
-  // Walking distance: closer to reference = higher score (max +10)
+  if (place.is_recommended) score += 15;
   if (referenceLocation && isValidCoordinate(referenceLocation)) {
-    const distanceKm = haversineKm(place.location, referenceLocation);
-    // 0 km → +10, 2+ km → +0
-    score += Math.max(0, 10 - distanceKm * 5);
+    score += Math.max(0, 10 - haversineKm(place.location, referenceLocation) * 5);
   }
-
   return score;
 }
 
-/**
- * Scores an event candidate. The curated demo event receives a fixed bonus
- * so it is always selected when available, satisfying the release fixture
- * requirement.
- */
 export function scoreEvent(
   event: CommunityPlanEventProjection,
   preference: NewResidentPreference,
   curatedEventId: string
 ): number {
-  let score = 0;
-
-  // Curated event always wins
-  if (event._id === curatedEventId) {
-    score += 1000;
-  }
-
-  // Social interest boost
-  if (preference.interests.includes("social")) {
-    score += 10;
-  }
-
+  let score = event._id === curatedEventId ? 1000 : 0;
+  if (preference.primary_interest === "social") score += 10;
   return score;
 }
 
-/**
- * Deterministically sorts scored candidates by score descending, then by
- * _id ascending for stable tie-breaking.
- */
-function sortScored<
-  T extends {
-    score: number;
-    place?: CommunityPlanPlaceProjection;
-    event?: CommunityPlanEventProjection;
-  }
->(scored: T[], getId: (item: T) => string): T[] {
-  return [...scored].sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return getId(a).localeCompare(getId(b));
-  });
-}
-
-/**
- * Generates a deterministic Community Plan from public candidates.
- *
- * Produces exactly one place plus the configured curated event. Missing
- * release fixtures are configuration failures rather than alternate routes.
- * - Same inputs always produce identical outputs.
- */
 export function generateCommunityPlan(
   input: CommunityPlanEngineInput
 ): CommunityPlan {
   const validPlaces = filterPlaceCandidates(input.places);
   const validEvents = filterEventCandidates(input.events, input.now);
-
-  // Score and sort places
-  const scoredPlaces: ScoredPlace[] = validPlaces.map((place) => ({
-    place,
-    score: scorePlace(place, input.preference)
-  }));
-  const sortedPlaces = sortScored(scoredPlaces, (item) => item.place._id);
-
-  // Find the curated event among valid events
+  const priorityCategories =
+    INTEREST_CATEGORY_MAP[input.preference.primary_interest];
+  const primaryCategory = priorityCategories.find((category) =>
+    validPlaces.some((place) => place.category_level_1 === category)
+  );
+  const interestScopedPlaces = primaryCategory
+    ? validPlaces.filter(
+        (place) => place.category_level_1 === primaryCategory
+      )
+    : [];
+  const selectedPlace = [...interestScopedPlaces]
+    .map((place) => ({ place, score: scorePlace(place, input.preference) }))
+    .sort(
+      (left, right) =>
+        right.score - left.score || left.place._id.localeCompare(right.place._id)
+    )[0]?.place;
   const curatedEvent = validEvents.find(
     (event) => event._id === input.curatedEventId
   );
-
-  const generatedAt = input.generatedAt ?? input.now;
-  const planId = input.planId ?? derivePlanId(input);
 
   if (!curatedEvent) {
     throw new Error(
       `Community Plan curated event is unavailable: ${input.curatedEventId}`
     );
   }
-
-  if (sortedPlaces.length === 0) {
+  if (!selectedPlace) {
     throw new Error(
-      "Community Plan engine could not produce a plan: no valid place candidates"
+      `Community Plan matcher could not produce a plan: no valid curated place for ${input.preference.primary_interest}`
     );
   }
 
+  const generatedAt = input.generatedAt ?? input.now;
+  const planId = input.planId ?? derivePlanId(input.preference, input.curatedEventId);
   return buildPlaceEventPlan(
-    sortedPlaces[0].place,
+    selectedPlace,
     curatedEvent,
+    input.preference,
     planId,
     generatedAt
   );
@@ -265,64 +226,89 @@ export function generateCommunityPlan(
 function buildPlaceEventPlan(
   place: CommunityPlanPlaceProjection,
   event: CommunityPlanEventProjection,
+  preference: NewResidentPreference,
   planId: string,
   generatedAt: string
 ): CommunityPlan {
   const placeNarration = getPlaceNarration(place.category_level_1);
   const eventNarration = getEventNarration();
+  const interest = getInterestFeedback(preference.primary_interest);
+  const arrival = getArrivalFeedback(preference.arrival_context);
+  const household = getHouseholdFeedback(preference.household_type);
+  const accessibility = getAccessibilityFeedback(preference.accessibility_need);
+  const scenarioKey = buildCommunityPlanScenarioKey(preference);
 
-  const plan = {
+  return CommunityPlanSchema.parse({
     plan_id: planId,
-    community_id: "tongzilin" as const,
+    community_id: "tongzilin",
     generated_at: generatedAt,
+    scenario_key: scenarioKey,
+    catalog_version: COMMUNITY_PLAN_CATALOG_VERSION,
+    selection_explanation: {
+      summary_zh: interest.summary_zh,
+      summary_en: interest.summary_en,
+      reasons: [
+        {
+          dimension: "primary_interest",
+          text_zh: interest.reason_zh,
+          text_en: interest.reason_en
+        },
+        {
+          dimension: "arrival_context",
+          text_zh: arrival.reason_zh,
+          text_en: arrival.reason_en
+        },
+        {
+          dimension: "household_type",
+          text_zh: household.reason_zh,
+          text_en: household.reason_en
+        },
+        {
+          dimension: "accessibility_need",
+          text_zh: accessibility.reason_zh,
+          text_en: accessibility.reason_en
+        }
+      ]
+    },
     items: [
       {
         item_id: "stop_place_001",
         ref_id: place._id,
-        ref_type: "place" as const,
-        type: "place_visit" as const,
+        ref_type: "place",
+        type: "place_visit",
         start_offset_minutes: 0,
         duration_minutes: PLACE_VISIT_DURATION_MINUTES,
         title_zh: place.name_zh,
         title_en: place.name_en,
         summary_zh: placeNarration.reason_zh,
         summary_en: placeNarration.reason_en,
-        tips_zh: placeNarration.tips_zh,
-        tips_en: placeNarration.tips_en,
-        status: "pending" as const,
+        tips_zh: `${placeNarration.tips_zh}${accessibility.tip_zh}`,
+        tips_en: `${placeNarration.tips_en} ${accessibility.tip_en}`,
+        status: "pending",
         place
       },
       {
         item_id: "stop_event_001",
         ref_id: event._id,
-        ref_type: "event" as const,
-        type: "event_attend" as const,
+        ref_type: "event",
+        type: "event_attend",
         start_offset_minutes: PLACE_VISIT_DURATION_MINUTES,
         duration_minutes: EVENT_ATTEND_DURATION_MINUTES,
         title_zh: event.title_zh,
         title_en: event.title_en,
         summary_zh: eventNarration.reason_zh,
         summary_en: eventNarration.reason_en,
-        tips_zh: eventNarration.tips_zh,
-        tips_en: eventNarration.tips_en,
-        status: "pending" as const,
+        tips_zh: `${eventNarration.tips_zh}${household.tip_zh}`,
+        tips_en: `${eventNarration.tips_en} ${household.tip_en}`,
+        status: "pending",
         event
       }
     ],
     total_duration_minutes: TARGET_TOTAL_MINUTES,
-    route_kind: "place_event" as const,
-    generation_source: "rule_based" as const,
-    ai_status: "not_configured" as const,
-    generated_by: RULE_ENGINE_ID
-  };
-
-  return CommunityPlanSchema.parse(plan);
+    route_kind: "place_event"
+  });
 }
 
-/**
- * Projects a full Place entity to the public-safe Community Plan projection.
- * Only allowlisted marker-safe fields are included.
- */
 export function projectPlace(
   place: CommunityPlanPlaceProjection
 ): CommunityPlanPlaceProjection {
@@ -340,10 +326,6 @@ export function projectPlace(
   };
 }
 
-/**
- * Projects a full Event entity to the public-safe Community Plan projection.
- * Only allowlisted public display fields are included.
- */
 export function projectEvent(
   event: CommunityPlanEventProjection
 ): CommunityPlanEventProjection {
@@ -359,44 +341,40 @@ export function projectEvent(
   };
 }
 
-/**
- * Haversine distance in kilometers between two coordinates.
- */
 function haversineKm(
-  a: { latitude: number; longitude: number },
-  b: { latitude: number; longitude: number }
+  left: { latitude: number; longitude: number },
+  right: { latitude: number; longitude: number }
 ): number {
-  const R = 6371;
-  const dLat = toRad(b.latitude - a.latitude);
-  const dLon = toRad(b.longitude - a.longitude);
-  const lat1 = toRad(a.latitude);
-  const lat2 = toRad(b.latitude);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
+  const radiusKm = 6371;
+  const latitudeDelta = toRadians(right.latitude - left.latitude);
+  const longitudeDelta = toRadians(right.longitude - left.longitude);
+  const leftLatitude = toRadians(left.latitude);
+  const rightLatitude = toRadians(right.latitude);
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(leftLatitude) *
+      Math.cos(rightLatitude) *
+      Math.sin(longitudeDelta / 2) ** 2;
+  return 2 * radiusKm * Math.asin(Math.sqrt(haversine));
 }
 
-function toRad(deg: number): number {
-  return (deg * Math.PI) / 180;
-}
+const toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
 
-/**
- * Derives a deterministic plan_id from the preference and curated event.
- * Same inputs always produce the same ID.
- */
-function derivePlanId(input: CommunityPlanEngineInput): string {
-  const interestKey = [...input.preference.interests].sort().join(",");
-  const key = [
-    input.preference.preferred_language,
-    interestKey,
-    input.preference.arrival_context,
-    input.preference.household_type,
-    input.curatedEventId
-  ].join("|");
+function derivePlanId(
+  preference: NewResidentPreference,
+  curatedEventId: string
+): string {
+  const key = `${buildCommunityPlanScenarioKey(preference)}|${curatedEventId}`;
   let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    hash = ((hash << 5) - hash + key.charCodeAt(i)) | 0;
+  for (let index = 0; index < key.length; index++) {
+    hash = ((hash << 5) - hash + key.charCodeAt(index)) | 0;
   }
   return `plan_${(hash >>> 0).toString(36)}`;
 }
+
+export type CommunityPlanScenarioAxes = {
+  primary_interest: CommunityPlanInterest;
+  arrival_context: CommunityPlanArrivalContext;
+  household_type: CommunityPlanHouseholdType;
+  accessibility_need: CommunityPlanAccessibilityNeed;
+};

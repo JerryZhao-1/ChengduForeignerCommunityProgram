@@ -59,10 +59,11 @@ import type {
   CommunityPlanEventAttendItemSchema,
   CommunityPlanPlaceProjectionSchema,
   CommunityPlanEventProjectionSchema,
-  CommunityPlanAIEnhancementSchema,
-  CommunityPlanAIEnhancementItemSchema,
-  CommunityPlanUsageSchema,
-  CommunityPlanOfflineBundleSchema,
+  CommunityPlanCatalogBundleSchema,
+  CommunityPlanCatalogTextSchema,
+  CommunityPlanFeedbackCatalogSchema,
+  CommunityPlanFeedbackReasonSchema,
+  CommunityPlanSelectionExplanationSchema,
   NewResidentPreferenceSchema
 } from "../schemas/community-plans";
 
@@ -145,13 +146,18 @@ export type CommunityPlanPlaceProjection = z.infer<
 export type CommunityPlanEventProjection = z.infer<
   typeof CommunityPlanEventProjectionSchema
 >;
-export type CommunityPlanAIEnhancement = z.infer<
-  typeof CommunityPlanAIEnhancementSchema
+export type CommunityPlanFeedbackReason = z.infer<
+  typeof CommunityPlanFeedbackReasonSchema
 >;
-export type CommunityPlanAIEnhancementItem = z.infer<
-  typeof CommunityPlanAIEnhancementItemSchema
+export type CommunityPlanSelectionExplanation = z.infer<
+  typeof CommunityPlanSelectionExplanationSchema
 >;
-export type CommunityPlanUsage = z.infer<typeof CommunityPlanUsageSchema>;
-export type CommunityPlanOfflineBundle = z.infer<
-  typeof CommunityPlanOfflineBundleSchema
+export type CommunityPlanCatalogText = z.infer<
+  typeof CommunityPlanCatalogTextSchema
+>;
+export type CommunityPlanFeedbackCatalog = z.infer<
+  typeof CommunityPlanFeedbackCatalogSchema
+>;
+export type CommunityPlanCatalogBundle = z.infer<
+  typeof CommunityPlanCatalogBundleSchema
 >;

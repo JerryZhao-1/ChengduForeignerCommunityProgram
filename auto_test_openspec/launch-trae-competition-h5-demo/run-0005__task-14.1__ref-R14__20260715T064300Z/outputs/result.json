@@ -1,0 +1,29 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "14.1",
+  "ref": "R14",
+  "status": "pass",
+  "provenance": "codex-local-validation",
+  "commands": [
+    {
+      "command": "pnpm --filter @community-map/mobile typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test -- apps/mobile/src/stores/onboarding-store.spec.ts apps/mobile/src/api/community-plan-adapter.spec.ts apps/mobile/src/i18n/catalog.spec.ts",
+      "exitCode": 0,
+      "note": "The repository test script runs the full Vitest suite; 36 files and 273 tests passed, including 8 onboarding, 10 adapter, and 8 catalog tests."
+    }
+  ],
+  "screenshots": [
+    "output/playwright/01-zh-interest.png",
+    "output/playwright/04-en-accessibility.png",
+    "output/playwright/07-en-wheelchair-plan.png",
+    "output/playwright/08-clean-anonymous-online.png",
+    "output/playwright/09-route-degradation.png",
+    "output/playwright/10-place-detail-network-state.png"
+  ],
+  "minimumTargetSizePx": 44,
+  "keyboardRadioActivationVerified": true,
+  "rawEnumVisible": false
+}

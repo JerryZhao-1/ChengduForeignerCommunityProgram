@@ -1,55 +1,64 @@
-# 提交材料草稿
-
-本文件为 TRAE AI 创造力大赛提交材料的迭代草稿，最终版本在 10-qa 阶段定稿。
+# 比赛提交材料草稿
 
 ## 作品名称
 
-桐邻 First 120 Minutes｜AI 社区融入路线
+桐邻 First 120 Minutes｜社区策展融入路线
 
 ## 一句话简介
 
-面向成都桐梓林新到外籍居民的 H5 社区融入引导 demo，帮助用户在抵达前 120 分钟内完成活动发现、地点导航与社区连接。
+面向成都桐梓林新居民的双语 H5：用四个单选问题匹配一条可立即执行的 120 分钟社区路线，并解释每个选择为什么影响结果。
 
-## 目标用户
+## 产品价值
 
-- 新到桐梓林的外籍居民
-- 需要快速了解社区活动、地点和邻里动态的在地居民
+- 新居民不需要登录、微信授权、验证码或测试资格，30 秒内进入核心体验。
+- 8 个首要兴趣、3 个到达阶段、4 个家庭结构和 6 个参与需求组成 576 个稳定场景。
+- 每个场景有唯一 `scenario_key`、完整中英摘要和固定四维理由。
+- 路线固定包含一个地点和一个策展活动，总时长 120 分钟。
+- API 与断网 H5 使用 `tongzilin-curated-v1` 同一安全目录与 shared matcher；断网只改变提示，不改变内容。
 
-## 核心场景
+## 真实边界
 
-1. 抵达社区：首屏展示融入路线引导
-2. 发现活动：浏览本周活动并完成报名
-3. 找到地点：地图查看社区关键地点并导航
-4. 连接邻里：浏览 discover 社区内容流
+- 产品本身不调用 AI/LLM；TRAE 是本次实质迭代的开发工具。
+- Demo Confirm 仅修改当前浏览器内存状态，不创建报名、预约、票券或名额占用。
+- 无障碍/环境反馈只给出出发前确认建议，不代表地点设施认证。
+- 不持久化偏好或计划，不采集 PII。
+
+## 本次实质迭代
+
+- 将旧多选画像迁移为五字段严格单选契约。
+- 新增版本化双语社区策展目录和 576 组合确定性匹配器。
+- 新增“为什么这样匹配”的四维可解释方案界面。
+- 新增 HTTP 5xx/transport/timeout 的本地同版本匹配容灾。
+- 保留地点到访、活动演示确认和完成页闭环。
+- 同一套 uni-app 代码继续兼容 H5 与微信小程序构建。
 
 ## 技术栈
 
-- uni-app + Vue 3 + Vite（H5 / 微信小程序）
-- TypeScript + Zod schema
-- packages/shared 共享契约层
-- mock provider（本地 demo）
+- uni-app + Vue 3 + Vite
+- TypeScript + Zod
+- Koa API / CloudBase 目标部署
+- `packages/shared` 共享 schema、contract、策展目录和 matcher
+- Vitest 穷举与跨路径一致性验证
 
-## 演示链接
+## 提交入口
 
-（待填写：H5 部署地址或本地启动方式）
+- 立即体验 H5：`PENDING_PUBLIC_URL`
+- 备用离线 Demo：`PENDING_OFFLINE_ZIP`
+- 2–3 分钟演示视频：`PENDING_VIDEO_URL`
+- 可选微信小程序截图/体验版说明：`PENDING`
 
-## 仓库信息
+## 仓库与证据
 
-- 仓库：ChengduForeignerCommunityProgram
 - 比赛分支：`competition/trae-h5-demo`
-- 基线 commit：`238f5c4`
+- 无 AI 迁移基线：`da77c4f`
+- TRAE Session 证据索引：`docs/competition/trae-evidence-log.md`
+- OpenSpec：`openspec/changes/launch-trae-competition-h5-demo`
+- 当前发布门槛：R10–R18；历史 R1–R9 已被 2026-07-15 决策取代。
 
-## 截图与视频
+## 发布前待补
 
-（待补充：存放于 `evidence/` 各阶段子目录）
-
-## TRAE 使用说明
-
-（待补充：记录 TRAE AI 在各阶段的具体使用方式）
-
-## 待定项
-
-- [ ] 演示链接
-- [ ] 截图与视频清单
-- [ ] TRAE 使用说明
-- [ ] 最终简介文案
+- [ ] 公开 H5 URL、build ID、最终 commit
+- [ ] 离线 ZIP 与视频 URL
+- [ ] S07A–S15 真实 TRAE Session ID、截图和对应 commit
+- [ ] 外部中文、英文、离线三条流程记录
+- [ ] Admin Static Hosting 部署前后不变证据

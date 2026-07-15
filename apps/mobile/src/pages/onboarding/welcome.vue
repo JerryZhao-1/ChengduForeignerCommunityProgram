@@ -5,18 +5,21 @@ import { getMobileCopy } from "@/i18n";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useAppStore } from "@/stores/app-store";
 
-const { state: appState } = useAppStore();
+const app = useAppStore();
+const { state: appState } = app;
 const onboarding = useOnboardingStore();
 const copy = computed(() => getMobileCopy(appState.locale).onboarding);
 
-const goJudge = () => {
+const goJudge = async () => {
   onboarding.startOnboarding();
   onboarding.useExamplePreference();
+  await app.setLocale(onboarding.state.draft.preferred_language);
   uni.navigateTo({ url: "/pages/onboarding/preferences" });
 };
 
 const goPlan = () => {
   onboarding.startOnboarding();
+  onboarding.updateDraft({ preferred_language: appState.locale });
   uni.navigateTo({ url: "/pages/onboarding/preferences" });
 };
 </script>
@@ -33,14 +36,28 @@ const goPlan = () => {
       </view>
 
       <view class="entries">
-        <view class="entry-card primary" @click="goJudge">
+        <div
+          class="entry-card primary"
+          role="button"
+          tabindex="0"
+          @click="goJudge"
+          @keyup.enter="goJudge"
+          @keyup.space.prevent="goJudge"
+        >
           <view class="entry-title">{{ copy.judgeEntry }}</view>
           <view class="entry-caption">{{ copy.judgeEntryCaption }}</view>
-        </view>
-        <view class="entry-card secondary" @click="goPlan">
+        </div>
+        <div
+          class="entry-card secondary"
+          role="button"
+          tabindex="0"
+          @click="goPlan"
+          @keyup.enter="goPlan"
+          @keyup.space.prevent="goPlan"
+        >
           <view class="entry-title">{{ copy.planEntry }}</view>
           <view class="entry-caption">{{ copy.planEntryCaption }}</view>
-        </view>
+        </div>
       </view>
     </view>
   </scroll-view>
@@ -143,6 +160,11 @@ const goPlan = () => {
 
 .entry-card.secondary {
   background: #fbf8f1;
+}
+
+.entry-card:focus-visible {
+  outline: 4rpx solid #d39a3a;
+  outline-offset: 4rpx;
 }
 
 .entry-title {

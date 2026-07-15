@@ -3,7 +3,6 @@ import { NewResidentPreferenceSchema } from "@community-map/shared";
 
 import { parseOrThrow, sendSuccess } from "../lib/http";
 import { createGuestPlanRateLimitMiddleware } from "../lib/community-plan-rate-limit";
-import { enhanceCommunityPlanNarration } from "../lib/community-plan-ai";
 import { apiError } from "../lib/errors";
 
 export const registerCommunityPlanRoutes = (router: Router) => {
@@ -27,11 +26,19 @@ export const registerCommunityPlanRoutes = (router: Router) => {
     rateLimit,
     async (ctx) => {
       const input = parseOrThrow(NewResidentPreferenceSchema, ctx.request.body);
-      const deterministicPlan =
-        await ctx.state.provider.communityPlan.generate(input);
-      const plan = await enhanceCommunityPlanNarration(
-        deterministicPlan,
-        input
+      const startedAt = Date.now();
+      const plan = await ctx.state.provider.communityPlan.generate(input);
+      console.info(
+        "community_plan_generated",
+        JSON.stringify({
+          requestId: ctx.state.requestId,
+          actor_kind: ctx.state.authenticatedVia,
+          community_id: plan.community_id,
+          scenario_key: plan.scenario_key,
+          catalog_version: plan.catalog_version,
+          duration_ms: Date.now() - startedAt,
+          timestamp: new Date().toISOString()
+        })
       );
       sendSuccess(ctx, plan, 200);
     }

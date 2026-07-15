@@ -144,4 +144,4 @@ export const createMobileGuestClient = () =>
             : createUniRequester()
       });
 
-export const mobileGuestUsesOfflineBundle = mobileEnv.apiMode === "mock";
+export const mobileGuestUsesLocalMatcher = mobileEnv.apiMode === "mock";

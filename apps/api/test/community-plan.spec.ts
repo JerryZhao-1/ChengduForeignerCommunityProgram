@@ -1,6 +1,12 @@
 import { createServer } from "node:http";
 
+import {
+  enumerateCommunityPlanScenarios,
+  type CommunityPlan
+} from "@community-map/shared";
+
 import { createApp } from "../src/app";
+import { createMockProvider } from "../src/providers/mock";
 
 interface ApiSuccess<TData> {
   success: true;
@@ -12,33 +18,6 @@ interface ApiFailure {
   success: false;
   error: { code: string; message: string; details?: unknown };
   requestId: string;
-}
-
-interface CommunityPlanItem {
-  item_id: string;
-  ref_id: string;
-  ref_type: "place" | "event";
-  type: "place_visit" | "event_attend";
-  start_offset_minutes: number;
-  duration_minutes: number;
-  title_zh: string;
-  title_en: string;
-  status: "pending";
-}
-
-interface CommunityPlan {
-  plan_id: string;
-  community_id: string;
-  total_duration_minutes: number;
-  generation_source: "rule_based" | "ai_enhanced" | "rule_based_fallback";
-  ai_status:
-    | "ok"
-    | "not_configured"
-    | "timeout"
-    | "validation_failed"
-    | "upstream_error"
-    | "unavailable";
-  items: CommunityPlanItem[];
 }
 
 const createTestBaseUrl = async () => {
@@ -65,13 +44,31 @@ const createTestBaseUrl = async () => {
 
 const validPreference = {
   preferred_language: "zh" as const,
-  interests: ["community-service", "food-drink"],
+  primary_interest: "community-service" as const,
   arrival_context: "first-week" as const,
   household_type: "solo" as const,
-  accessibility_needs: []
+  accessibility_need: "none" as const
 };
 
 describe("community-plan routes", () => {
+  it("generates all 576 curated preferences through the provider", async () => {
+    const provider = createMockProvider();
+    const scenarios = enumerateCommunityPlanScenarios();
+    const plans = await Promise.all(
+      scenarios.map((preference) => provider.communityPlan.generate(preference))
+    );
+
+    expect(plans).toHaveLength(576);
+    expect(new Set(plans.map((plan) => plan.scenario_key)).size).toBe(576);
+    expect(
+      plans.every(
+        (plan) =>
+          plan.catalog_version === "tongzilin-curated-v1" &&
+          plan.selection_explanation.reasons.length === 4
+      )
+    ).toBe(true);
+  });
+
   it("generates a deterministic plan for a guest judge without authentication", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 
@@ -93,8 +90,11 @@ describe("community-plan routes", () => {
       expect(body.data.community_id).toBe("tongzilin");
       expect(body.data.items).toHaveLength(2);
       expect(body.data.total_duration_minutes).toBe(120);
-      expect(body.data.generation_source).toBe("rule_based");
-      expect(body.data.ai_status).toBe("not_configured");
+      expect(body.data.scenario_key).toBe(
+        "v1:community-service:first-week:solo:none"
+      );
+      expect(body.data.catalog_version).toBe("tongzilin-curated-v1");
+      expect(body.data.selection_explanation.reasons).toHaveLength(4);
       const types = body.data.items.map((item) => item.type);
       expect(types).toContain("place_visit");
       expect(types).toContain("event_attend");
@@ -208,7 +208,7 @@ describe("community-plan routes", () => {
     }
   });
 
-  it("returns 400 VALIDATION_ERROR for empty interests", async () => {
+  it("returns 400 VALIDATION_ERROR for legacy multi-select interests", async () => {
     const { baseUrl, close } = await createTestBaseUrl();
 
     try {
@@ -220,13 +220,37 @@ describe("community-plan routes", () => {
         },
         body: JSON.stringify({
           ...validPreference,
-          interests: []
+          interests: ["community-service"]
         })
       });
       const body = (await response.json()) as ApiFailure;
 
       expect(response.status).toBe(400);
       expect(body.success).toBe(false);
+      expect(body.error.code).toBe("VALIDATION_ERROR");
+    } finally {
+      await close();
+    }
+  });
+
+  it("returns 400 VALIDATION_ERROR for legacy accessibility_needs", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+
+    try {
+      const response = await fetch(`${baseUrl}/community-plan/generate`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-guest-mode": "judge"
+        },
+        body: JSON.stringify({
+          ...validPreference,
+          accessibility_needs: []
+        })
+      });
+      const body = (await response.json()) as ApiFailure;
+
+      expect(response.status).toBe(400);
       expect(body.error.code).toBe("VALIDATION_ERROR");
     } finally {
       await close();

@@ -64,7 +64,14 @@ onMounted(() => {
         </view>
       </view>
       <view class="disclosure">{{ copy.complete.demoDisclosure }}</view>
-      <button class="start-over" @click="startOver">
+      <button
+        class="start-over"
+        role="button"
+        tabindex="0"
+        @click="startOver"
+        @keyup.enter="startOver"
+        @keyup.space.prevent="startOver"
+      >
         {{ copy.complete.startOver }}
       </button>
     </view>
@@ -159,6 +166,11 @@ onMounted(() => {
 
 .start-over::after {
   border: 0;
+}
+
+.start-over:focus-visible {
+  outline: 4rpx solid #d39a3a;
+  outline-offset: 4rpx;
 }
 
 .mp-only-title {

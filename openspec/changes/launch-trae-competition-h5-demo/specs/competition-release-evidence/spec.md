@@ -1,172 +1,96 @@
 ## ADDED Requirements
 
-### Requirement: Release SHALL remain blocked until DeepSeek API and CloudBase hosting preflight pass
+### Requirement: Release SHALL prove exhaustive catalog coverage
 
-The AI provider SHALL be the direct DeepSeek OpenAI-compatible API. Before AI implementation or release, evidence SHALL record:
+Before release, machine-decidable evidence SHALL prove 576 logical scenarios, 576 unique scenario keys, 1,152 complete localized render cases, zero invalid plans, and zero missing catalog copy.
 
-1. the authenticated `https://platform.deepseek.com/usage` page shows usable account balance/credits, with financial/account details redacted;
-2. a `DEEPSEEK_API_KEY` is present in the server secret configuration and absent from every client-visible or recorded artifact;
-3. the configured endpoint is exactly `https://api.deepseek.com/chat/completions` and the model is exactly `deepseek-v4-flash` with thinking disabled;
-4. a minimal sanitized non-streaming JSON smoke request returns HTTP 200, `finish_reason: "stop"`, valid JSON, and `usage.total_tokens > 0`;
-5. the official DeepSeek pricing/model page is captured with timestamp for release-cost provenance;
-6. CloudBase EnvId `cloud1-d7gxdk8t43bd639c0` is normal, existing Static Hosting is recorded, and independent Web App service `trae-h5-demo` remains the deployment target.
+#### Scenario: Coverage gate passes
 
-CloudBase Token Credits, `DescribeAIModels`, `DescribeManagedAIModelList`, and `UpdateAIModel` SHALL NOT be required. Offline or deterministic fallback SHALL NOT satisfy the DeepSeek smoke gate.
+- **WHEN** the exhaustive shared suite runs
+- **THEN** all required counts match exactly
+- **AND** every result contains four unique ordered reasons
 
-#### Scenario: Missing or invalid DeepSeek key blocks release
+### Requirement: Online and local matching SHALL have exhaustive semantic parity
 
-- **WHEN** the server key is absent or the smoke request returns HTTP 401
-- **THEN** release evidence records BLOCKED without exposing the key or Authorization header
-- **AND** no AI-ready or release-ready claim is made
+Provider/API and local paths SHALL be compared across all 576 profiles using a semantic fingerprint containing scenario key, catalog version, item refs, explanation, summaries, and tips. Request ID and generated timestamp MAY differ.
 
-#### Scenario: Insufficient DeepSeek balance blocks release
+#### Scenario: Parity gate passes
 
-- **WHEN** the usage page has no usable balance or the smoke request returns HTTP 402
-- **THEN** release evidence records BLOCKED and points the owner to the DeepSeek usage/top-up page
+- **WHEN** all provider and local results are fingerprinted
+- **THEN** 576/576 fingerprints match
 
-#### Scenario: DeepSeek preflight passes
+### Requirement: Competition runtime SHALL be model-free
 
-- **WHEN** the funded account, protected server secret, exact model/configuration, and positive-token smoke result are all evidenced
-- **THEN** direct DeepSeek enhancement may be enabled for online release
+Current API source, environment configuration, browser traffic, public contracts, frontend artifacts, and user-facing copy SHALL contain no Community Plan model endpoint, model credential, model response field, or product AI-generation claim. The official competition name and clearly marked historical superseded evidence MAY retain AI terminology.
 
-### Requirement: Guest plan generation SHALL have bounded spoof-resistant rate limiting
+#### Scenario: Model-free audit passes
 
-`POST /community-plan/generate` SHALL apply a guest limit of 10 requests per 60-second sliding window. It SHALL resolve the source through `ctx.ip` and explicit trusted-proxy configuration; raw `X-Forwarded-For` SHALL be ignored when the sender is not trusted. IPv4/IPv6 forms SHALL be normalized. Buckets SHALL expire after two minutes, and the in-memory map SHALL be capped at 10,000 entries with deterministic oldest-expiry eviction.
+- **WHEN** current runtime paths and build artifacts are scanned and browser traffic is inspected
+- **THEN** no competition Community Plan model request or result field is present
 
-All generation responses SHALL include `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset`. Exhaustion SHALL return HTTP 429 and `RATE_LIMITED` in the existing standard error envelope. Multi-instance consistency remains a documented MVP limitation.
+### Requirement: Guest generation SHALL remain bounded and write-safe
 
-#### Scenario: Eleventh guest request is limited
+`POST /community-plan/generate` SHALL keep the 10-per-60-second trusted-source limiter, standard headers, two-minute expiry, and 10,000-bucket cap. Guest writes across events, discover, files, places, preferences, notifications, and admin SHALL return `403 FORBIDDEN` without mutation.
 
-- **WHEN** the same resolved source sends 11 requests inside 60 seconds
-- **THEN** the eleventh returns `429 RATE_LIMITED`
-- **AND** remaining is zero
+#### Scenario: Guest security regression passes
 
-#### Scenario: Spoofed forwarding header does not bypass the limit
-
-- **WHEN** an untrusted client changes `X-Forwarded-For` between requests
-- **THEN** the limiter continues to use the trusted resolved source
-- **AND** the request series is still limited
-
-#### Scenario: Limiter memory is bounded
-
-- **WHEN** expired buckets or more than 10,000 distinct sources are introduced
-- **THEN** expired/oldest-expiry entries are removed
-- **AND** the bucket map never grows beyond the configured cap
-
-### Requirement: Release tests SHALL prove guest write denial and privacy boundaries
-
-Security tests SHALL exercise representative guest writes across events, discover, files, places, auth/preferences, notifications, and admin and prove `403` with no provider mutation. Privacy tests SHALL prove guest preferences, plans, visit state, and Demo Confirm are not persisted. DeepSeek requests and logs SHALL exclude `accessibility_needs`, complete preferences, free text, contact data, detail projections, and admin fields. Logs and non-UI evidence SHALL additionally exclude the API key, Authorization header, prompts, raw generated output, and raw DeepSeek responses. GUI screenshots MAY contain only the validated narration rendered by the product UI and SHALL NOT expose raw upstream payloads, prompts, model-debug views, or unvalidated output.
-
-#### Scenario: Guest cannot mutate any existing business module
-
-- **WHEN** the security suite sends guest-authenticated write requests to every scoped route family
-- **THEN** each receives `403 FORBIDDEN`
-- **AND** before/after provider state is identical
-
-#### Scenario: Sensitive values are absent from AI and logs
-
-- **WHEN** generation runs with every preference option populated and AI succeeds or fails
-- **THEN** captured model input and structured logs contain only the documented allowlist
-- **AND** no accessibility value, PII, API key/Authorization value, prompt/output text, detail field, or admin field is present
+- **WHEN** representative writes and 11 generation requests are executed
+- **THEN** writes are denied, the eleventh generation is `429 RATE_LIMITED`, and provider state is unchanged
 
 ### Requirement: Generation observability SHALL be useful without logging content
 
-Each generation SHALL log `requestId`, actor kind, fixed community ID, generation source, AI status, duration, timestamp, provider `deepseek`, model `deepseek-v4-flash`, upstream HTTP status category, and successful token total when present. Fallback logs SHALL record only the stable failure category. The public response SHALL retain the standard success/error envelope and request ID.
+Each generation log SHALL contain only request ID, actor kind, fixed community ID, scenario key, catalog version, duration, and timestamp. It SHALL exclude complete preferences, accessibility choice, explanation/item copy, PII, detail/admin fields, credentials, and raw request bodies.
 
-#### Scenario: AI success has correlated metadata
+#### Scenario: Privacy-safe log is correlated
 
-- **WHEN** a live AI generation succeeds
-- **THEN** a structured log contains request ID, `ai_enhanced`, `ok`, duration, provider `deepseek`, model `deepseek-v4-flash`, and positive token total
-- **AND** it contains no generated narration or preferences
+- **WHEN** generation succeeds
+- **THEN** its request ID, scenario key, and catalog version are available for correlation
+- **AND** no excluded content is logged
 
-#### Scenario: AI failure has a stable category
+### Requirement: Online and offline acceptance SHALL be separate
 
-- **WHEN** timeout, validation failure, upstream error, or unavailable configuration occurs
-- **THEN** the log records the corresponding stable AI status and request ID
-- **AND** it does not record raw exceptions or upstream bodies as user-visible content
+The online run SHALL use the public HTTP API and complete the canonical path within 180 seconds with no offline badge. The offline run SHALL block API access, use the shared local matcher, show the offline badge, and complete the same actions. The selected profile SHALL have matching semantic content in both runs.
 
-### Requirement: Online AI and offline Demo acceptance SHALL be separate hard gates
+#### Scenario: Both public delivery paths pass
 
-The online acceptance run SHALL use the public HTTP API, with offline fallback disabled for the assertion, and SHALL prove a real DeepSeek-backed 2xx `/community-plan/generate` response containing `generation_source: "ai_enhanced"`, `ai_status: "ok"`, and `usage.total_tokens > 0`. Correlated sanitized logs SHALL identify provider `deepseek` and model `deepseek-v4-flash`. It SHALL then complete the canonical H5 state machine within 180 seconds and show `1/1` visited place plus `1/1` Demo Confirm.
+- **WHEN** online and blocked-network runbooks execute
+- **THEN** both complete with `1/1` visit and `1/1` Demo Confirm
+- **AND** their semantic fingerprints match
 
-The offline acceptance run SHALL block network/API access, load the bundled safe fixture, display the localized offline badge, and complete the same local actions. It SHALL NOT report `ai_enhanced`, and its evidence SHALL NOT substitute for the online run.
+### Requirement: H5 SHALL deploy independently without changing Admin hosting
 
-#### Scenario: Online run proves real AI
+The production H5 SHALL deploy as CloudBase Web App `trae-h5-demo`, not over existing shared Static Hosting. Evidence SHALL capture pre/post Admin hosting, returned H5 URL, build/version ID, API URL, commit, external access, and rollback action.
 
-- **WHEN** the public judge flow generates a plan in online mode
-- **THEN** the captured response and correlated log prove AI success and positive token usage
-- **AND** no offline badge is visible
+#### Scenario: Hosting isolation is proven
 
-#### Scenario: Offline run proves decoupled resilience
+- **WHEN** pre/post evidence is compared
+- **THEN** the independent H5 is available and existing Admin content remains unchanged
 
-- **WHEN** network access is unavailable
-- **THEN** the full local judge path completes from the safe bundle with an offline badge
-- **AND** the result is explicitly recorded as offline rather than AI success
+### Requirement: Release SHALL verify repository and dual-target health
 
-#### Scenario: Rule-based fallback cannot pass online gate
-
-- **WHEN** the online response uses `rule_based` or `rule_based_fallback`, or token usage is absent/non-positive
-- **THEN** the online release gate fails even if the UI remains usable
-
-### Requirement: H5 SHALL deploy as independent CloudBase Web App without changing Admin hosting
-
-The production H5 artifact SHALL be deployed through CloudBase Web Apps with service name `trae-h5-demo`, producing a platform-returned independent URL under the Web Apps domain. Deployment SHALL NOT use, overwrite, clear, or remount the environment's existing shared Static Hosting at `cloud1-d7gxdk8t43bd639c0-1441004938.tcloudbaseapp.com`.
-
-Before and after deployment, evidence SHALL record the existing Static Hosting URL/configuration and representative Admin content checks. It SHALL also record the returned `trae-h5-demo` URL, version/build ID, API base URL, rollback action, and successful access from an external network.
-
-#### Scenario: Independent service is deployed
-
-- **WHEN** the H5 is deployed
-- **THEN** CloudBase Web Apps lists service `trae-h5-demo` with a successful version and public URL
-- **AND** the H5 loads from that independent URL
-
-#### Scenario: Existing Admin hosting is unchanged
-
-- **WHEN** pre/post hosting evidence is compared
-- **THEN** the existing shared hosting URL/configuration and representative Admin content remain available
-- **AND** no Admin file was replaced by the H5 deployment
-
-### Requirement: Release SHALL verify H5, Mini Program, tests, contracts, and scope
-
-Before release sign-off, `pnpm typecheck`, `pnpm test`, `pnpm lint`, the Mobile H5 production build, the mp-weixin production build, and `openspec validate launch-trae-competition-h5-demo --strict --no-interactive` SHALL exit successfully. A task-format check SHALL prove each checkbox has one unique `[#R<n>]`, a dot-numbered task ID, `ACCEPT`, `TEST`, and `SCOPE`. New source SHALL not use `any`, `as any`, `@ts-ignore`, or `@ts-nocheck` to bypass typing.
-
-Focused tests SHALL cover schema invariants, safe projection forbidden fields, guest denial, IP spoofing/bounds, DeepSeek 200 success, HTTP 400/401/402/422/429/500/503 mappings, timeout/abort/late response, empty/non-stop/invalid JSON output, secret leakage, client 4xx localization, offline selection, unavailable place handling, catalog parity, H5 state transitions, and both builds.
+`pnpm typecheck`, `pnpm test`, `pnpm lint`, mobile H5 build, mp-weixin build, and strict OpenSpec validation SHALL exit zero. Focused tests SHALL cover strict contracts, 576 coverage/parity, guest security, limiter bounds, privacy, 4xx/5xx fallback, offline session actions, catalog parity, and target boundaries. New source SHALL not add type-suppression escapes.
 
 #### Scenario: Full local gate passes
 
-- **WHEN** all documented commands and focused assertions run
-- **THEN** every command exits zero and all required scenarios pass
-
-#### Scenario: Mini Program build is regression-only
-
-- **WHEN** mp-weixin acceptance is reviewed
-- **THEN** a successful build and localized H5-only placeholder are required
-- **AND** no Mini Program onboarding/map functionality is claimed
+- **WHEN** documented release commands run
+- **THEN** every command exits zero and required artifacts exist
 
 ### Requirement: Evidence SHALL be append-only and supervisor-verifiable
 
-Every task SHALL receive a new immutable run folder under `auto_test_openspec/launch-trae-competition-h5-demo/` using the format required by `openspec/project.md`. Worker bundles SHALL not declare PASS/FAIL. The Supervisor SHALL execute the bundle, record exact commands/exit codes, and write final PASS/FAIL plus evidence pointers. GUI/MIXED checks SHALL use an MCP-only browser runbook and screenshots; executable browser automation scripts are prohibited.
+Active tasks R10–R18 SHALL receive new immutable run folders under `auto_test_openspec/launch-trae-competition-h5-demo/`. Historical R1–R9 evidence SHALL remain unchanged and SHALL be labelled superseded rather than reused as current release proof. GUI/MIXED checks SHALL use MCP-only runbooks and screenshots. TRAE session IDs SHALL be copied from TRAE UI and SHALL never be invented.
 
-Evidence SHALL include timestamp, commit, environment ID, service URL/build ID, request IDs, redacted DeepSeek usage/pricing provenance, sanitized logs, input/output assertions, screenshots, online/offline mode, and final release sign-off. It SHALL never include `DEEPSEEK_API_KEY`, Authorization headers, or key fragments. Prior run folders SHALL never be edited.
-
-#### Scenario: Every task has immutable evidence
+#### Scenario: Active evidence is complete
 
 - **WHEN** release sign-off is attempted
-- **THEN** each of the nine tasks has a corresponding new run folder with required files and Supervisor result
-- **AND** no previous run folder has changed
+- **THEN** R10–R18 have evidence pointers and Supervisor results
+- **AND** no historical run folder or screenshot was modified
 
-#### Scenario: Evidence identifies online and offline modes
+### Requirement: Competition documentation SHALL identify the curated version as canonical
 
-- **WHEN** online and offline screenshots/logs are reviewed
-- **THEN** each artifact identifies its mode and correlated request/build information
-- **AND** offline artifacts are not cited as proof of live AI
+Competition design, screen-flow, demo script, API list, environment/runbook, submission draft, and evidence log SHALL describe “桐邻 First 120 Minutes｜社区策展融入路线”, the singular profile, 576 combinations, explainable result, shared online/offline matcher, Demo-only action, and advisory accessibility boundary. Codex review SHALL be described only as supplemental quality review, not TRAE implementation proof.
 
-### Requirement: Competition documentation SHALL identify this change as canonical
+#### Scenario: Submission claims match runtime
 
-`docs/competition/design/DESIGN.md`, `docs/competition/design/screen-flow.md`, and `docs/competition/demo-script.md` SHALL receive clear supersession notes pointing to this change for implementation scope. The implementation/runbook documentation SHALL identify direct server-side DeepSeek API, `deepseek-v4-flash`, secret handling, usage/balance check, and error/fallback mappings, and SHALL remove CloudBase Token Credits/model setup instructions. The demo script SHALL use the canonical Start → preferences → plan → route list → place visit → Demo Confirm → Finish Route → completion sequence. Older “no routes/no mobile changes” constraints SHALL be explicitly superseded, while the approved visual tokens remain reusable.
-
-#### Scenario: Old implementation constraints cannot override this change
-
-- **WHEN** the competition documents are read
-- **THEN** they identify this OpenSpec change as the implementation source of truth
-- **AND** the old module-tour path is not the primary judge script
+- **WHEN** current competition documents are reviewed
+- **THEN** they make no product AI-runtime claim
+- **AND** all functional claims map to current specs and evidence

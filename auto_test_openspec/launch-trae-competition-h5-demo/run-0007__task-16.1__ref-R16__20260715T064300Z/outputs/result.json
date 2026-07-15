@@ -1,0 +1,39 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "16.1",
+  "ref": "R16",
+  "status": "pass",
+  "provenance": "codex-local-validation",
+  "profilesExercised": 4,
+  "locales": ["zh", "en"],
+  "viewports": ["390px", "desktop"],
+  "automatedJudgeFlowElapsedMs": 234,
+  "completion": {
+    "placeVisits": "1/1",
+    "demoConfirmations": "1/1",
+    "keyboardOnlyActionsVerified": true
+  },
+  "anonymousOnlineBrowser": {
+    "consoleErrors": 0,
+    "businessRequests": [
+      "POST http://127.0.0.1:8787/community-plan/generate => 200"
+    ],
+    "authMeRequestObserved": false,
+    "modelRequestObserved": false
+  },
+  "degradationStates": {
+    "mapListFallback": true,
+    "imageFallback": true,
+    "placeDetailNetworkMessage": true,
+    "routeCardRemainsUsable": true
+  },
+  "screenshots": [
+    "output/playwright/02-zh-offline-plan.png",
+    "output/playwright/03-zh-complete.png",
+    "output/playwright/06-zh-desktop-plan.png",
+    "output/playwright/07-en-wheelchair-plan.png",
+    "output/playwright/08-clean-anonymous-online.png",
+    "output/playwright/09-route-degradation.png",
+    "output/playwright/10-place-detail-network-state.png"
+  ]
+}

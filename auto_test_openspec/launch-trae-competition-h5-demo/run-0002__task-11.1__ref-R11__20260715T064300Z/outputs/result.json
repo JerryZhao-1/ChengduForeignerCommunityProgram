@@ -1,0 +1,21 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "11.1",
+  "ref": "R11",
+  "status": "pass",
+  "provenance": "codex-local-validation",
+  "commands": [
+    {
+      "command": "pnpm --filter @community-map/shared typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test -- packages/shared/test/community-plans.spec.ts packages/shared/test/client.spec.ts",
+      "exitCode": 0,
+      "note": "The repository test script runs the full Vitest suite; 36 files and 273 tests passed, including 14 schema and 26 client tests."
+    }
+  ],
+  "legacyRequestRejected": true,
+  "legacyResponseFieldsRejected": true,
+  "orderedReasonDimensions": 4
+}

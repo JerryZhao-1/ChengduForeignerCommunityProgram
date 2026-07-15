@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import {
   ApiClientError,
+  type CommunityPlanEventAttendItem,
   type CommunityPlanItem,
   type CommunityPlanPlaceVisitItem
 } from "@community-map/shared";
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 import { mobileApi } from "@/api/client";
 import { getMobileCopy } from "@/i18n";
@@ -20,6 +21,7 @@ const onboarding = useOnboardingStore();
 const copy = computed(() => getMobileCopy(appState.locale).onboarding);
 const plan = computed(() => onboarding.state.plan);
 const progress = computed(() => getCompletionProgress(onboarding.state));
+const placeDetailErrorItemId = ref<string | null>(null);
 
 const durationText = computed(() =>
   plan.value
@@ -47,6 +49,15 @@ const stopLabel = (index: number): string =>
 const localized = (zh: string, en: string) =>
   pickLocalized(appState.locale, zh, en);
 
+const firstActionText = computed(() => {
+  const firstItem = plan.value?.items[0];
+  return firstItem
+    ? interpolate(copy.value.plan.firstAction, {
+        title: localized(firstItem.title_zh, firstItem.title_en)
+      })
+    : "";
+});
+
 const itemStatus = (item: CommunityPlanItem) =>
   onboarding.state.itemStatuses[item.item_id] ?? "pending";
 
@@ -64,14 +75,20 @@ const openRoute = () => {
 };
 
 const openPlace = async (item: CommunityPlanPlaceVisitItem) => {
+  placeDetailErrorItemId.value = null;
   try {
     await mobileApi.places.detail(item.ref_id);
     uni.navigateTo({ url: `/pages/places/detail?id=${item.ref_id}` });
   } catch (error) {
+    placeDetailErrorItemId.value = item.item_id;
     if (error instanceof ApiClientError && error.status === 404) {
       onboarding.markPlaceUnavailable(item.item_id);
     }
   }
+};
+
+const openEvent = (item: CommunityPlanEventAttendItem) => {
+  uni.navigateTo({ url: `/pages/events/detail?id=${item.ref_id}` });
 };
 
 const finish = () => {
@@ -97,20 +114,55 @@ onMounted(() => {
         <view class="plan-header">
           <view class="plan-title">{{ copy.plan.title }}</view>
           <view class="plan-duration">{{ durationText }}</view>
-          <view class="source-badges">
-            <view class="source-badge">
-              {{ copy.plan.generationSources[plan.generation_source] }}
-            </view>
-            <view class="source-badge">
-              {{ copy.plan.aiStatuses[plan.ai_status] }}
-            </view>
+          <view class="curated-disclosure">
+            {{ copy.plan.curatedDisclosure }}
           </view>
-          <view v-if="onboarding.state.planOffline" class="offline-notice">
+          <view
+            v-if="onboarding.state.planDeliveryMode === 'offline'"
+            class="offline-notice"
+          >
             {{ copy.plan.offlineNotice }}
           </view>
-          <button class="action-button route" @click="openRoute">
+          <view class="summary-panel">
+            <view class="section-kicker">{{ copy.plan.summaryTitle }}</view>
+            <view class="summary-text">
+              {{
+                localized(
+                  plan.selection_explanation.summary_zh,
+                  plan.selection_explanation.summary_en
+                )
+              }}
+            </view>
+          </view>
+          <view class="first-action">{{ firstActionText }}</view>
+          <button
+            class="action-button route"
+            role="button"
+            tabindex="0"
+            @click="openRoute"
+            @keyup.enter="openRoute"
+            @keyup.space.prevent="openRoute"
+          >
             {{ copy.plan.viewRoute }}
           </button>
+        </view>
+
+        <view class="explanation-panel">
+          <view class="explanation-title">{{ copy.plan.explanationTitle }}</view>
+          <view class="reason-list">
+            <view
+              v-for="reason in plan.selection_explanation.reasons"
+              :key="reason.dimension"
+              class="reason-row"
+            >
+              <view class="reason-label">
+                {{ copy.plan.dimensionLabels[reason.dimension] }}
+              </view>
+              <view class="reason-text">
+                {{ localized(reason.text_zh, reason.text_en) }}
+              </view>
+            </view>
+          </view>
         </view>
 
         <view class="route-list">
@@ -142,14 +194,24 @@ onMounted(() => {
                 <button
                   class="action-button secondary"
                   :disabled="itemStatus(item) === 'unavailable'"
+                  role="button"
+                  :tabindex="itemStatus(item) === 'unavailable' ? -1 : 0"
                   @click="openPlace(item)"
+                  @keyup.enter="openPlace(item)"
+                  @keyup.space.prevent="openPlace(item)"
                 >
                   {{ copy.plan.openPlace }}
                 </button>
                 <button
                   class="action-button primary"
                   :disabled="itemStatus(item) !== 'pending'"
+                  role="button"
+                  :tabindex="itemStatus(item) === 'pending' ? 0 : -1"
                   @click="onboarding.markPlaceVisited(item.item_id)"
+                  @keyup.enter="onboarding.markPlaceVisited(item.item_id)"
+                  @keyup.space.prevent="
+                    onboarding.markPlaceVisited(item.item_id)
+                  "
                 >
                   {{
                     itemStatus(item) === "visited"
@@ -159,14 +221,46 @@ onMounted(() => {
                 </button>
               </view>
 
-              <view v-else class="item-actions event-actions">
+              <div
+                v-if="
+                  item.type === 'place_visit' &&
+                  placeDetailErrorItemId === item.item_id
+                "
+                class="item-error"
+                role="status"
+              >
+                {{ copy.plan.placeDetailError }}
+              </div>
+
+              <view
+                v-if="item.type === 'event_attend'"
+                class="item-actions event-actions"
+              >
                 <view class="demo-disclosure">{{
                   copy.plan.demoDisclosure
                 }}</view>
                 <button
+                  class="action-button secondary"
+                  role="button"
+                  tabindex="0"
+                  @click="openEvent(item)"
+                  @keyup.enter="openEvent(item)"
+                  @keyup.space.prevent="openEvent(item)"
+                >
+                  {{ copy.plan.openEvent }}
+                </button>
+                <button
                   class="action-button event"
                   :disabled="itemStatus(item) === 'demo_confirmed'"
+                  role="button"
+                  :tabindex="
+                    itemStatus(item) === 'demo_confirmed' ? -1 : 0
+                  "
                   @click="onboarding.confirmDemoEvent(item.item_id)"
+                  @keyup.enter="onboarding.confirmDemoEvent(item.item_id)"
+                  @keyup.space.prevent="
+                    onboarding.confirmDemoEvent(item.item_id)
+                  "
                 >
                   {{
                     itemStatus(item) === "demo_confirmed"
@@ -186,7 +280,11 @@ onMounted(() => {
           <button
             class="action-button finish"
             :disabled="!progress.canFinish"
+            role="button"
+            :tabindex="progress.canFinish ? 0 : -1"
             @click="finish"
+            @keyup.enter="finish"
+            @keyup.space.prevent="finish"
           >
             {{ copy.plan.finish }}
           </button>
@@ -237,7 +335,8 @@ onMounted(() => {
 
 .plan-header,
 .stop-card,
-.finish-panel {
+.finish-panel,
+.explanation-panel {
   padding: 32rpx;
   border: 1rpx solid #e5ddd0;
   border-radius: 24rpx;
@@ -263,20 +362,72 @@ onMounted(() => {
   font-size: 24rpx;
 }
 
-.source-badges,
 .item-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
 }
 
-.source-badge,
 .offline-notice,
 .item-status {
   align-self: flex-start;
   padding: 8rpx 16rpx;
   border-radius: 10rpx;
   background: #e8f4f2;
+}
+
+.curated-disclosure,
+.section-kicker,
+.reason-label {
+  color: #0f766e;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.summary-panel {
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background: #e8f4f2;
+}
+
+.summary-text,
+.reason-text {
+  margin-top: 8rpx;
+  color: #263331;
+  font-size: 27rpx;
+  line-height: 1.6;
+}
+
+.first-action {
+  color: #263331;
+  font-size: 29rpx;
+  font-weight: 600;
+}
+
+.explanation-panel,
+.reason-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.explanation-panel {
+  gap: 24rpx;
+}
+
+.explanation-title {
+  color: #263331;
+  font-family: "Fraunces", "Songti SC", serif;
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.reason-list {
+  gap: 16rpx;
+}
+
+.reason-row {
+  padding: 20rpx 0;
+  border-top: 1rpx solid #e5ddd0;
 }
 
 .offline-notice {
@@ -319,6 +470,15 @@ onMounted(() => {
   color: #5c6b68;
   font-size: 27rpx;
   line-height: 1.6;
+}
+
+.item-error {
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  color: #8a3b2a;
+  background: #fce8e0;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 
 .stop-tips,
@@ -365,6 +525,11 @@ onMounted(() => {
 
 .action-button[disabled] {
   opacity: 0.48;
+}
+
+.action-button:focus-visible {
+  outline: 4rpx solid #d39a3a;
+  outline-offset: 4rpx;
 }
 
 .finish-panel {

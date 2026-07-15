@@ -1,0 +1,8 @@
+{
+  "semanticFingerprintParity": "576/576",
+  "mockDeliveryMode": "offline",
+  "transportAndFiveXFallback": true,
+  "fourXFallback": false,
+  "deliveryModeInsidePlan": false
+}
+

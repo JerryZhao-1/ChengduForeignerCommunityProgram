@@ -3,7 +3,6 @@ import { createHash, randomUUID } from "node:crypto";
 import tcb from "@cloudbase/node-sdk";
 import {
   FILE_PATH_RULES,
-  COMMUNITY_PLAN_DEMO_EVENT_ID,
   PLACE_TOP_LEVEL_CATEGORIES,
   PENDING_EVENT_COVER_BIZ_ID,
   PENDING_PLACE_GALLERY_BIZ_ID,
@@ -31,9 +30,8 @@ import {
   validateEventPublicationReadiness,
   validatePlacePublicationReadiness,
   postHasVideoMedia,
+  createCompetitionDemoEngineInput,
   generateCommunityPlan,
-  projectEvent,
-  projectPlace,
   type Event,
   type EventAdminListItem,
   type DiscoverAuditRecord,
@@ -888,55 +886,9 @@ const readPlaces = async (context: LiveCloudbaseContext) => {
     .filter((place): place is Place => !!place);
 };
 
-const createLiveCommunityPlanProvider = (
-  context: LiveCloudbaseContext
-): ApiProvider["communityPlan"] => ({
+const createLiveCommunityPlanProvider = (): ApiProvider["communityPlan"] => ({
   async generate(preference) {
-    const curatedEventId =
-      process.env.COMMUNITY_PLAN_DEMO_EVENT_ID?.trim() ||
-      COMMUNITY_PLAN_DEMO_EVENT_ID;
-    const [places, events] = await Promise.all([
-      readPlaces(context),
-      readEvents(context)
-    ]);
-    const publishedPlaces = places.filter(
-      (place) =>
-        place.community_id === DEFAULT_COMMUNITY_ID &&
-        place.status === "published"
-    );
-    const curatedEvent = events.find(
-      (event) =>
-        event._id === curatedEventId &&
-        event.community_id === DEFAULT_COMMUNITY_ID &&
-        isLaunchVisibleEvent(event)
-    );
-
-    if (!curatedEvent) {
-      throw apiError(
-        "CONFIGURATION_ERROR",
-        "The curated Community Plan event is unavailable.",
-        500
-      );
-    }
-
-    const eventStart = Date.parse(curatedEvent.start_time);
-    if (Number.isNaN(eventStart)) {
-      throw apiError(
-        "CONFIGURATION_ERROR",
-        "The curated Community Plan event has an invalid start time.",
-        500
-      );
-    }
-
-    const generatedAt = new Date(eventStart - 60 * 60 * 1000).toISOString();
-    return generateCommunityPlan({
-      preference,
-      places: publishedPlaces.map(projectPlace),
-      events: [projectEvent(curatedEvent)],
-      curatedEventId,
-      now: generatedAt,
-      generatedAt
-    });
+    return generateCommunityPlan(createCompetitionDemoEngineInput(preference));
   }
 });
 
@@ -4098,7 +4050,7 @@ export const createCloudbaseProvider = (): ApiProvider => {
     auth,
     events: createLiveEventsProvider(liveContext, auth),
     places: createLivePlacesProvider(liveContext),
-    communityPlan: createLiveCommunityPlanProvider(liveContext),
+    communityPlan: createLiveCommunityPlanProvider(),
     posts: createLivePostsProvider(liveContext, auth, fallback.posts),
     files: createLiveFilesProvider(liveContext)
   };

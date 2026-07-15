@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 import { getMobileCopy } from "@/i18n";
 import { interpolate } from "@/i18n/localized";
@@ -9,6 +9,7 @@ import { pickLocalized, useAppStore } from "@/stores/app-store";
 const { state: appState } = useAppStore();
 const onboarding = useOnboardingStore();
 const copy = computed(() => getMobileCopy(appState.locale).onboarding);
+const failedCoverIds = ref<string[]>([]);
 const placeItems = computed(
   () =>
     onboarding.state.plan?.items.filter(
@@ -23,6 +24,12 @@ const back = () => {
 
 const openPlace = (placeId: string) => {
   uni.navigateTo({ url: `/pages/places/detail?id=${placeId}` });
+};
+
+const markCoverUnavailable = (placeId: string) => {
+  if (!failedCoverIds.value.includes(placeId)) {
+    failedCoverIds.value = [...failedCoverIds.value, placeId];
+  }
 };
 
 onMounted(() => {
@@ -54,11 +61,18 @@ onMounted(() => {
             interpolate(copy.plan.stopLabel, { index: index + 1 })
           }}</view>
           <image
-            v-if="item.place.cover_url"
+            v-if="
+              item.place.cover_url &&
+              !failedCoverIds.includes(item.place._id)
+            "
             class="cover"
             mode="aspectFill"
             :src="item.place.cover_url"
+            @error="markCoverUnavailable(item.place._id)"
           />
+          <view v-else class="cover-fallback">
+            {{ copy.route.imageUnavailable }}
+          </view>
           <view class="route-name">
             {{
               pickLocalized(
@@ -71,13 +85,27 @@ onMounted(() => {
           <view class="coordinates">
             {{ interpolate(copy.route.coordinates, item.place.location) }}
           </view>
-          <button class="action primary" @click="openPlace(item.place._id)">
+          <button
+            class="action primary"
+            role="button"
+            tabindex="0"
+            @click="openPlace(item.place._id)"
+            @keyup.enter="openPlace(item.place._id)"
+            @keyup.space.prevent="openPlace(item.place._id)"
+          >
             {{ copy.route.openPlace }}
           </button>
         </view>
       </view>
 
-      <button class="action secondary" @click="back">
+      <button
+        class="action secondary"
+        role="button"
+        tabindex="0"
+        @click="back"
+        @keyup.enter="back"
+        @keyup.space.prevent="back"
+      >
         {{ copy.route.back }}
       </button>
     </view>
@@ -165,6 +193,19 @@ onMounted(() => {
   border-radius: 16rpx;
 }
 
+.cover-fallback {
+  min-height: 160rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5c6b68;
+  background: #e8f4f2;
+  font-size: 24rpx;
+  text-align: center;
+}
+
 .route-name {
   color: #263331;
   font-size: 32rpx;
@@ -191,6 +232,11 @@ onMounted(() => {
 .action.secondary {
   color: #123b3a;
   background: #e8f4f2;
+}
+
+.action:focus-visible {
+  outline: 4rpx solid #d39a3a;
+  outline-offset: 4rpx;
 }
 
 .mp-only {

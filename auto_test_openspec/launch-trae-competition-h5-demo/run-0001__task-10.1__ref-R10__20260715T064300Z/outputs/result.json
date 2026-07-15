@@ -1,0 +1,16 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "task": "10.1",
+  "ref": "R10",
+  "status": "pass",
+  "provenance": "codex-local-validation",
+  "commands": [
+    {
+      "command": "openspec validate launch-trae-competition-h5-demo --strict --no-interactive",
+      "exitCode": 0,
+      "summary": "Change 'launch-trae-competition-h5-demo' is valid"
+    }
+  ],
+  "historicalEvidenceModified": false,
+  "traeSessionIdRecorded": false
+}

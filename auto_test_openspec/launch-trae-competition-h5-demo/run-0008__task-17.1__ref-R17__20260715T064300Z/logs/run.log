@@ -1,0 +1,32 @@
+2026-07-15T06:58:39Z pnpm typecheck
+exit 0; shared, admin, api, and mobile typechecks passed
+
+2026-07-15T06:58:39Z pnpm lint
+exit 0; eslint completed without findings
+
+2026-07-15T06:58:39Z pnpm test
+exit 0; 36 test files passed; 273 tests passed
+expected stderr: the offline-first app-store test logs its simulated offline synchronization failure and passes
+
+2026-07-15T06:58:45Z pnpm --filter @community-map/mobile build:h5
+exit 0; DONE Build complete
+
+2026-07-15T06:58:45Z pnpm --filter @community-map/mobile build:mp-weixin
+exit 0; DONE Build complete
+
+2026-07-15T06:58:45Z openspec validate launch-trae-competition-h5-demo --strict --no-interactive
+exit 0; Change 'launch-trae-competition-h5-demo' is valid
+
+2026-07-15T07:01:00Z runtime/build forbidden-field and secret scans
+exit 1 from rg; no matches (expected pass condition)
+
+Coverage assertions from the passing test suite:
+logicalScenarios=576
+uniqueScenarioKeys=576
+localizedRenderCases=1152
+invalidPlans=0
+missingCopy=0
+providerLocalParity=576/576
+
+Excluded from this local gate:
+public CloudBase deployment, public URL/build ID, external-network acceptance, and TRAE Session IDs

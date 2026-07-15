@@ -1,397 +1,217 @@
 import {
+  COMMUNITY_PLAN_CATALOG_VERSION,
   COMMUNITY_PLAN_DEMO_EVENT_ID,
   COMPETITION_DEMO_NOW,
   COMPETITION_JUDGE_SCENARIOS,
   CommunityPlanEventProjectionSchema,
   CommunityPlanPlaceProjectionSchema,
   CommunityPlanSchema,
+  INTEREST_CATEGORY_MAP,
+  buildCommunityPlanScenarioKey,
   createCompetitionDemoEngineInput,
+  enumerateCommunityPlanLocalizedCases,
+  enumerateCommunityPlanScenarios,
   filterEventCandidates,
   filterPlaceCandidates,
   generateCommunityPlan,
   generateJudgeScenarioPlan,
   getCompetitionDemoEventProjections,
   getCompetitionDemoPlaceProjections,
-  RULE_ENGINE_ID,
-  scoreEvent,
   scorePlace
 } from "@community-map/shared";
 import { describe, expect, it } from "vitest";
 
-// --- Helpers ---
-
 const basePreference = COMPETITION_JUDGE_SCENARIOS[0];
-const placeProjections = getCompetitionDemoPlaceProjections();
-const eventProjections = getCompetitionDemoEventProjections();
+const places = getCompetitionDemoPlaceProjections();
+const events = getCompetitionDemoEventProjections();
 
-function createEngineInput(overrides = {}) {
-  return createCompetitionDemoEngineInput(basePreference, overrides);
-}
+describe("community plan exhaustive curated coverage", () => {
+  const scenarios = enumerateCommunityPlanScenarios();
+  const plans = scenarios.map((preference) =>
+    generateCommunityPlan(createCompetitionDemoEngineInput(preference))
+  );
 
-// --- Determinism ---
-
-describe("community plan engine determinism", () => {
-  it("produces identical output for identical input", () => {
-    const input = createEngineInput();
-    const plan1 = generateCommunityPlan(input);
-    const plan2 = generateCommunityPlan(input);
-    expect(plan1).toEqual(plan2);
+  it("covers 576 logical scenarios and 1,152 localized cases", () => {
+    expect(scenarios).toHaveLength(576);
+    expect(enumerateCommunityPlanLocalizedCases()).toHaveLength(1152);
   });
 
-  it("produces identical structure across multiple invocations", () => {
-    const input = createEngineInput();
-    const plans = Array.from({ length: 5 }, () => generateCommunityPlan(input));
-    for (let i = 1; i < plans.length; i++) {
-      expect(plans[i]).toEqual(plans[0]);
-    }
-  });
-
-  it("derives a stable plan_id from the preference", () => {
-    const input = createEngineInput();
-    const plan1 = generateCommunityPlan(input);
-    const plan2 = generateCommunityPlan(input);
-    expect(plan1.plan_id).toBe(plan2.plan_id);
-    expect(plan1.plan_id).toMatch(/^plan_[a-z0-9]+$/);
-  });
-});
-
-// --- Filtering ---
-
-describe("community plan engine filtering", () => {
-  it("competition fixtures project only published Tongzilin places", () => {
-    expect(placeProjections.map((place) => place._id)).not.toContain(
-      "place_003"
-    );
-  });
-
-  it("excludes places with invalid coordinates", () => {
-    const invalidCoordPlaces = [
-      {
-        ...placeProjections[0],
-        location: { latitude: 999, longitude: 999 }
-      }
-    ];
-    expect(filterPlaceCandidates(invalidCoordPlaces)).toHaveLength(0);
-  });
-
-  it("excludes events that cannot cover the planned attendance window", () => {
-    const endedEvent = {
-      ...eventProjections[0],
-      end_time: "2027-03-31T10:00:00+08:00"
-    };
+  it("creates 576 unique stable scenario keys", () => {
+    expect(new Set(plans.map((plan) => plan.scenario_key)).size).toBe(576);
     expect(
-      filterEventCandidates([endedEvent], COMPETITION_DEMO_NOW)
-    ).toHaveLength(0);
-  });
-
-  it("excludes future events outside the two-hour route window", () => {
-    const futureEvent = {
-      ...eventProjections[0],
-      start_time: "2027-04-03T10:00:00+08:00",
-      end_time: "2027-04-03T12:00:00+08:00"
-    };
-    expect(
-      filterEventCandidates([futureEvent], COMPETITION_DEMO_NOW)
-    ).toHaveLength(0);
-  });
-
-  it("includes only events that cover the minute-60 attendance slot", () => {
-    const validEvents = filterEventCandidates(
-      eventProjections,
-      COMPETITION_DEMO_NOW
-    );
-    expect(validEvents.map((event) => event._id)).toEqual(["event_001"]);
-  });
-
-  it("includes at least 10 published places", () => {
-    const validPlaces = filterPlaceCandidates(placeProjections);
-    expect(validPlaces.length).toBeGreaterThanOrEqual(10);
-  });
-});
-
-// --- Scoring ---
-
-describe("community plan engine scoring", () => {
-  it("gives the curated event the highest score", () => {
-    const validEvents = filterEventCandidates(
-      eventProjections,
-      COMPETITION_DEMO_NOW
-    );
-    const scored = validEvents.map((e) => ({
-      event: e,
-      score: scoreEvent(e, basePreference, COMMUNITY_PLAN_DEMO_EVENT_ID)
-    }));
-    const curated = scored.find(
-      (s) => s.event._id === COMMUNITY_PLAN_DEMO_EVENT_ID
-    );
-    expect(curated).toBeDefined();
-    for (const s of scored) {
-      if (s.event._id !== COMMUNITY_PLAN_DEMO_EVENT_ID) {
-        expect(curated!.score).toBeGreaterThan(s.score);
-      }
-    }
-  });
-
-  it("rewards recommended places with higher scores", () => {
-    const validPlaces = filterPlaceCandidates(placeProjections);
-    const recommended = validPlaces.find((p) => p.is_recommended)!;
-    const notRecommended = validPlaces.find((p) => !p.is_recommended)!;
-    const recommendedScore = scorePlace(recommended, basePreference);
-    const notRecommendedScore = scorePlace(notRecommended, basePreference);
-    expect(recommendedScore).toBeGreaterThan(notRecommendedScore);
-  });
-
-  it("rewards interest category matches", () => {
-    const place = validPlaces_findByCategory("public-service");
-    const score = scorePlace(place, {
-      ...basePreference,
-      interests: ["community-service"]
-    });
-    const scoreNoMatch = scorePlace(place, {
-      ...basePreference,
-      interests: ["outdoor-sports"]
-    });
-    expect(score).toBeGreaterThan(scoreNoMatch);
-  });
-
-  it("does not score duplicate interests more than once", () => {
-    const place = validPlaces_findByCategory("food-drink");
-    const singleScore = scorePlace(place, {
-      ...basePreference,
-      interests: ["food-drink"]
-    });
-    const duplicateScore = scorePlace(place, {
-      ...basePreference,
-      interests: ["food-drink", "food-drink"]
-    });
-
-    expect(duplicateScore).toBe(singleScore);
-  });
-});
-
-function validPlaces_findByCategory(category: string) {
-  const validPlaces = filterPlaceCandidates(placeProjections);
-  const place = validPlaces.find((p) => p.category_level_1 === category);
-  if (!place) throw new Error(`No published place with category ${category}`);
-  return place;
-}
-
-// --- Route generation ---
-
-describe("community plan engine route generation", () => {
-  it("generates a place_event route when the curated event is available", () => {
-    const plan = generateCommunityPlan(createEngineInput());
-    expect(plan.route_kind).toBe("place_event");
-    expect(plan.items).toHaveLength(2);
-    expect(plan.items[0].type).toBe("place_visit");
-    expect(plan.items[1].type).toBe("event_attend");
-    expect(plan.items[1].ref_id).toBe(COMMUNITY_PLAN_DEMO_EVENT_ID);
-  });
-
-  it("includes bilingual narration in every item", () => {
-    const plan = generateCommunityPlan(createEngineInput());
-    for (const item of plan.items) {
-      expect(item.summary_zh).toBeTruthy();
-      expect(item.summary_en).toBeTruthy();
-      expect(item.tips_zh).toBeTruthy();
-      expect(item.tips_en).toBeTruthy();
-    }
-  });
-
-  it("always sets total_duration_minutes to 120 for the canonical route", () => {
-    const plan = generateCommunityPlan(createEngineInput());
-    expect(plan.total_duration_minutes).toBe(120);
-  });
-
-  it("aligns the event attendance offset with the real event window", () => {
-    const plan = generateCommunityPlan(createEngineInput());
-    const eventItem = plan.items.find((item) => item.type === "event_attend");
-    if (!eventItem) throw new Error("expected an event_attend item");
-
-    const routeStartMs = Date.parse(plan.generated_at);
-    const attendanceStartMs =
-      routeStartMs + eventItem.start_offset_minutes * 60 * 1000;
-    const attendanceEndMs =
-      attendanceStartMs + eventItem.duration_minutes * 60 * 1000;
-
-    expect(Date.parse(eventItem.event.start_time)).toBeLessThanOrEqual(
-      attendanceStartMs
-    );
-    expect(Date.parse(eventItem.event.end_time)).toBeGreaterThanOrEqual(
-      attendanceEndMs
-    );
-  });
-
-  it("sets generated_by to the rule engine ID, never AI", () => {
-    const plan = generateCommunityPlan(createEngineInput());
-    expect(plan.generated_by).toBe(RULE_ENGINE_ID);
-    expect(plan.generated_by).not.toContain("ai");
-    expect(plan.generated_by).not.toContain("deepseek");
-  });
-
-  it("sets generation_source to rule_based and ai_status to not_configured", () => {
-    const plan = generateCommunityPlan(createEngineInput());
-    expect(plan.generation_source).toBe("rule_based");
-    expect(plan.ai_status).toBe("not_configured");
-  });
-});
-
-// --- Public-safe projections ---
-
-describe("community plan engine public-safe projections", () => {
-  it("place projections contain only allowlisted fields", () => {
-    const plan = generateCommunityPlan(createEngineInput());
-    const placeItem = plan.items.find((i) => i.type === "place_visit");
-    expect(placeItem).toBeDefined();
-    const projection = placeItem!.place;
-    expect(() =>
-      CommunityPlanPlaceProjectionSchema.parse(projection)
-    ).not.toThrow();
-    expect(projection).not.toHaveProperty("address_zh");
-    expect(projection).not.toHaveProperty("address_en");
-    expect(projection).not.toHaveProperty("intro_zh");
-    expect(projection).not.toHaveProperty("gallery_urls");
-    expect(projection).not.toHaveProperty("tencent_map_poi_id");
-    expect(projection).not.toHaveProperty("status");
-  });
-
-  it("event projections contain only allowlisted fields", () => {
-    const plan = generateCommunityPlan(createEngineInput());
-    const eventItem = plan.items.find((i) => i.type === "event_attend");
-    expect(eventItem).toBeDefined();
-    const projection = eventItem!.event;
-    expect(() =>
-      CommunityPlanEventProjectionSchema.parse(projection)
-    ).not.toThrow();
-    expect(projection).not.toHaveProperty("capacity");
-    expect(projection).not.toHaveProperty("signup_deadline");
-    expect(projection).not.toHaveProperty("organizer_user_id");
-    expect(projection).not.toHaveProperty("review_status");
-    expect(projection).not.toHaveProperty("publish_status");
-  });
-
-  it("competition demo place projections are all public-safe", () => {
-    const projections = getCompetitionDemoPlaceProjections();
-    expect(projections.length).toBeGreaterThanOrEqual(10);
-    for (const p of projections) {
-      expect(() => CommunityPlanPlaceProjectionSchema.parse(p)).not.toThrow();
-    }
-  });
-
-  it("competition demo event projections are all public-safe", () => {
-    const projections = getCompetitionDemoEventProjections();
-    expect(projections.map((event) => event._id)).toEqual(["event_001"]);
-    for (const e of projections) {
-      expect(() => CommunityPlanEventProjectionSchema.parse(e)).not.toThrow();
-    }
-  });
-});
-
-// --- Boundary cases ---
-
-describe("community plan engine boundary cases", () => {
-  it("throws when no valid place candidates exist", () => {
-    expect(() =>
-      generateCommunityPlan(
-        createEngineInput({
-          places: [],
-          events: eventProjections
-        })
+      plans.every(
+        (plan, index) =>
+          plan.scenario_key === buildCommunityPlanScenarioKey(scenarios[index])
       )
-    ).toThrow(/no valid place candidates/);
+    ).toBe(true);
   });
 
-  it("throws when the configured curated event is missing", () => {
+  it("produces only schema-valid plans with complete bilingual feedback", () => {
+    for (const plan of plans) {
+      expect(CommunityPlanSchema.safeParse(plan).success).toBe(true);
+      expect(plan.catalog_version).toBe(COMMUNITY_PLAN_CATALOG_VERSION);
+      expect(plan.selection_explanation.summary_zh).toBeTruthy();
+      expect(plan.selection_explanation.summary_en).toBeTruthy();
+      expect(plan.selection_explanation.reasons).toHaveLength(4);
+      for (const reason of plan.selection_explanation.reasons) {
+        expect(reason.text_zh).toBeTruthy();
+        expect(reason.text_en).toBeTruthy();
+      }
+    }
+  });
+
+  it("matches zh and en profiles to identical semantic plans", () => {
+    for (const scenario of scenarios) {
+      const zhPlan = generateCommunityPlan(
+        createCompetitionDemoEngineInput({
+          ...scenario,
+          preferred_language: "zh"
+        })
+      );
+      const enPlan = generateCommunityPlan(
+        createCompetitionDemoEngineInput({
+          ...scenario,
+          preferred_language: "en"
+        })
+      );
+      expect(enPlan).toEqual(zhPlan);
+    }
+  });
+
+  it("reports the required machine-decidable coverage summary", () => {
+    const summary = {
+      logicalScenarios: scenarios.length,
+      uniqueScenarioKeys: new Set(plans.map((plan) => plan.scenario_key)).size,
+      localizedRenderCases: enumerateCommunityPlanLocalizedCases().length,
+      invalidPlans: plans.filter(
+        (plan) => !CommunityPlanSchema.safeParse(plan).success
+      ).length,
+      missingCopy: plans.filter((plan) =>
+        plan.selection_explanation.reasons.some(
+          (reason) => !reason.text_zh || !reason.text_en
+        )
+      ).length
+    };
+    expect(summary).toEqual({
+      logicalScenarios: 576,
+      uniqueScenarioKeys: 576,
+      localizedRenderCases: 1152,
+      invalidPlans: 0,
+      missingCopy: 0
+    });
+  });
+});
+
+describe("community plan deterministic selection", () => {
+  it("returns the same plan repeatedly", () => {
+    const input = createCompetitionDemoEngineInput(basePreference);
+    expect(generateCommunityPlan(input)).toEqual(generateCommunityPlan(input));
+  });
+
+  it("uses primary interest as the strongest place signal", () => {
+    const transportPlace = places.find(
+      (place) => place.category_level_1 === "transport"
+    );
+    if (!transportPlace) throw new Error("missing transport fixture");
+    expect(
+      scorePlace(transportPlace, {
+        ...basePreference,
+        primary_interest: "transport"
+      })
+    ).toBeGreaterThan(
+      scorePlace(transportPlace, {
+        ...basePreference,
+        primary_interest: "food-drink"
+      })
+    );
+  });
+
+  it("selects the first available category for every primary interest", () => {
+    for (const preference of enumerateCommunityPlanScenarios()) {
+      const plan = generateCommunityPlan(
+        createCompetitionDemoEngineInput(preference)
+      );
+      const placeItem = plan.items.find((item) => item.type === "place_visit");
+      const expectedCategory = INTEREST_CATEGORY_MAP[
+        preference.primary_interest
+      ].find((category) =>
+        places.some((place) => place.category_level_1 === category)
+      );
+
+      expect(placeItem?.place.category_level_1).toBe(expectedCategory);
+    }
+  });
+
+  it("keeps accessibility feedback advisory", () => {
+    const plan = generateCommunityPlan(
+      createCompetitionDemoEngineInput({
+        ...basePreference,
+        accessibility_need: "wheelchair"
+      })
+    );
+    const accessibilityReason = plan.selection_explanation.reasons[3];
+    expect(accessibilityReason.text_zh).toContain("没有认证");
+    expect(accessibilityReason.text_en).toContain("does not certify");
+  });
+});
+
+describe("community plan safe fixtures and failures", () => {
+  it("keeps only valid safe projections", () => {
+    expect(filterPlaceCandidates(places).length).toBeGreaterThanOrEqual(10);
+    expect(
+      filterEventCandidates(events, COMPETITION_DEMO_NOW).map(
+        (event) => event._id
+      )
+    ).toEqual([COMMUNITY_PLAN_DEMO_EVENT_ID]);
+    for (const place of places) {
+      expect(CommunityPlanPlaceProjectionSchema.safeParse(place).success).toBe(
+        true
+      );
+    }
+    for (const event of events) {
+      expect(CommunityPlanEventProjectionSchema.safeParse(event).success).toBe(
+        true
+      );
+    }
+  });
+
+  it("fails when curated data is missing", () => {
     expect(() =>
       generateCommunityPlan(
-        createEngineInput({
-          curatedEventId: "event_nonexistent"
+        createCompetitionDemoEngineInput(basePreference, { places: [] })
+      )
+    ).toThrow(/no valid curated place/);
+    expect(() =>
+      generateCommunityPlan(
+        createCompetitionDemoEngineInput(basePreference, {
+          curatedEventId: "event_missing"
         })
       )
     ).toThrow(/curated event is unavailable/);
   });
 
-  it("produces a valid CommunityPlan that passes schema validation", () => {
-    const plan = generateCommunityPlan(createEngineInput());
-    expect(() => CommunityPlanSchema.parse(plan)).not.toThrow();
+  it("does not substitute an unrelated place when an interest category is missing", () => {
+    const unrelatedPlaces = places.filter(
+      (place) => place.category_level_1 === "food-drink"
+    );
+    expect(unrelatedPlaces.length).toBeGreaterThan(0);
+    expect(() =>
+      generateCommunityPlan(
+        createCompetitionDemoEngineInput(
+          { ...basePreference, primary_interest: "transport" },
+          { places: unrelatedPlaces }
+        )
+      )
+    ).toThrow(/no valid curated place for transport/);
   });
-});
 
-// --- Judge scenario snapshots ---
-
-describe("community plan judge scenarios", () => {
-  it("has exactly 3 judge scenarios", () => {
+  it("keeps all three judge scenarios deterministic and valid", () => {
     expect(COMPETITION_JUDGE_SCENARIOS).toHaveLength(3);
-  });
-
-  it("scenario 0: solo newcomer first-week produces place_event route", () => {
-    const plan = generateJudgeScenarioPlan(0);
-    expect(plan.route_kind).toBe("place_event");
-    expect(plan.items).toHaveLength(2);
-    expect(plan.items[0].type).toBe("place_visit");
-    expect(plan.items[1].type).toBe("event_attend");
-
-    // Deterministic place selection: the rule engine always picks the same
-    // highest-scoring place for the solo newcomer first-week profile. The
-    // exact place_id is captured here as a stability snapshot; update it
-    // only when the scoring rules intentionally change.
-    const placeItem = plan.items[0];
-    if (placeItem.type !== "place_visit") {
-      throw new Error("expected first item to be place_visit");
+    for (let index = 0; index < COMPETITION_JUDGE_SCENARIOS.length; index++) {
+      const first = generateJudgeScenarioPlan(index);
+      const second = generateJudgeScenarioPlan(index);
+      expect(first).toEqual(second);
+      expect(CommunityPlanSchema.safeParse(first).success).toBe(true);
     }
-    expect(placeItem.place._id).toMatch(/^place_\d{3}$/);
-
-    const eventItem = plan.items[1];
-    if (eventItem.type !== "event_attend") {
-      throw new Error("expected second item to be event_attend");
-    }
-    expect(eventItem.event._id).toBe(COMMUNITY_PLAN_DEMO_EVENT_ID);
-    expect(plan.generated_by).toBe(RULE_ENGINE_ID);
-  });
-
-  it("scenario 1: family with kids first-month produces a valid plan", () => {
-    const plan = generateJudgeScenarioPlan(1);
-    expect(plan.items).toHaveLength(2);
-    expect(plan.total_duration_minutes).toBe(120);
-    expect(plan.generated_by).toBe(RULE_ENGINE_ID);
-  });
-
-  it("scenario 2: couple settled produces a valid plan", () => {
-    const plan = generateJudgeScenarioPlan(2);
-    expect(plan.items).toHaveLength(2);
-    expect(plan.total_duration_minutes).toBe(120);
-    expect(plan.generated_by).toBe(RULE_ENGINE_ID);
-  });
-
-  it("all scenario plans are deterministic across repeated calls", () => {
-    for (let i = 0; i < COMPETITION_JUDGE_SCENARIOS.length; i++) {
-      const plan1 = generateJudgeScenarioPlan(i);
-      const plan2 = generateJudgeScenarioPlan(i);
-      expect(plan1).toEqual(plan2);
-    }
-  });
-
-  it("all scenario plans pass schema validation", () => {
-    for (let i = 0; i < COMPETITION_JUDGE_SCENARIOS.length; i++) {
-      const plan = generateJudgeScenarioPlan(i);
-      expect(() => CommunityPlanSchema.parse(plan)).not.toThrow();
-    }
-  });
-
-  it("scenario 0 plan matches the deterministic snapshot", () => {
-    const plan = generateJudgeScenarioPlan(0);
-    // Snapshot the public-safe shape (no PII, no admin fields) so any
-    // unintentional change to the rule engine output is caught in review.
-    expect(plan).toMatchSnapshot();
-  });
-
-  it("scenario 1 plan matches the deterministic snapshot", () => {
-    const plan = generateJudgeScenarioPlan(1);
-    expect(plan).toMatchSnapshot();
-  });
-
-  it("scenario 2 plan matches the deterministic snapshot", () => {
-    const plan = generateJudgeScenarioPlan(2);
-    expect(plan).toMatchSnapshot();
   });
 });

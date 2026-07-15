@@ -15,16 +15,18 @@ import {
 } from "@/stores/onboarding-store";
 import { useAppStore } from "@/stores/app-store";
 
-const { state: appState } = useAppStore();
+const app = useAppStore();
 const onboarding = useOnboardingStore();
-const copy = computed(() => getMobileCopy(appState.locale).onboarding);
+const copy = computed(
+  () => getMobileCopy(onboarding.state.draft.preferred_language).onboarding
+);
 
 const generatingStepIndex = ref(0);
 const generatingSteps = computed(() => [
   copy.value.generating.checkTime,
   copy.value.generating.matchPlaces,
-  copy.value.generating.checkCapacity,
-  copy.value.generating.organizeTips
+  copy.value.generating.organizeTips,
+  copy.value.generating.prepareRoute
 ]);
 
 const stepNumber = computed(() => {
@@ -57,7 +59,7 @@ const canProceed = computed(() => {
     case "preferences-1":
       return draft.preferred_language !== null;
     case "preferences-2":
-      return draft.interests.length > 0;
+      return draft.primary_interest !== null;
     case "preferences-3":
       return draft.arrival_context !== null && draft.household_type !== null;
     case "preferences-4":
@@ -80,35 +82,23 @@ const generationErrorRequestId = computed(() =>
     : ""
 );
 
-const toggleInterest = (interest: (typeof INTEREST_OPTIONS)[number]) => {
-  const current = [...onboarding.state.draft.interests];
-  const index = current.indexOf(interest);
-  if (index >= 0) {
-    current.splice(index, 1);
-  } else {
-    current.push(interest);
-  }
-  onboarding.updateDraft({ interests: current });
-};
+const selectInterest = (interest: (typeof INTEREST_OPTIONS)[number]) =>
+  onboarding.updateDraft({ primary_interest: interest });
 
-const toggleAccessibilityNeed = (
+const selectAccessibilityNeed = (
   need: (typeof ACCESSIBILITY_NEED_OPTIONS)[number]
-) => {
-  const current = [...onboarding.state.draft.accessibility_needs];
-  const index = current.indexOf(need);
-  if (index >= 0) {
-    current.splice(index, 1);
-  } else {
-    current.push(need);
-  }
-  onboarding.updateDraft({ accessibility_needs: current });
-};
+) => onboarding.updateDraft({ accessibility_need: need });
 
 const isInterestSelected = (interest: string) =>
-  onboarding.state.draft.interests.includes(interest as never);
+  onboarding.state.draft.primary_interest === interest;
 
 const isAccessibilityNeedSelected = (need: string) =>
-  onboarding.state.draft.accessibility_needs.includes(need as never);
+  onboarding.state.draft.accessibility_need === need;
+
+const selectLanguage = async (language: "zh" | "en") => {
+  onboarding.updateDraft({ preferred_language: language });
+  await app.setLocale(language);
+};
 
 const next = () => {
   if (!canProceed.value) return;
@@ -121,20 +111,22 @@ const back = () => {
 
 const submit = async () => {
   if (!isPreferenceComplete(onboarding.state.draft)) return;
-  onboarding.setGenerating();
   const preference = buildPreferenceFromDraft(onboarding.state.draft);
+  await app.setLocale(preference.preferred_language);
+  onboarding.setGenerating();
   const result = await generateCommunityPlanForGuest(preference);
 
   if (result.status === "success" || result.status === "fallback") {
-    onboarding.setPlan(result.plan as never, result.offline);
+    onboarding.setPlan(result.plan as never, result.deliveryMode);
     uni.redirectTo({ url: "/pages/onboarding/plan" });
   } else if (result.errorKey) {
     onboarding.setGenerationError(result.errorKey, result.requestId);
   }
 };
 
-const useExample = () => {
+const useExample = async () => {
   onboarding.useExamplePreference();
+  await app.setLocale(onboarding.state.draft.preferred_language);
 };
 
 // Simulated progressive loading steps for the generating state
@@ -227,24 +219,38 @@ onUnmounted(() => {
           <view class="option-group">
             <view class="option-label">{{ copy.step1Title }}</view>
             <view class="option-row">
-              <view
+              <div
                 class="option-chip"
                 :class="{
                   selected: onboarding.state.draft.preferred_language === 'zh'
                 }"
-                @click="onboarding.updateDraft({ preferred_language: 'zh' })"
+                role="radio"
+                tabindex="0"
+                :aria-checked="
+                  onboarding.state.draft.preferred_language === 'zh'
+                "
+                @click="selectLanguage('zh')"
+                @keyup.enter="selectLanguage('zh')"
+                @keyup.space.prevent="selectLanguage('zh')"
               >
                 {{ copy.languageZh }}
-              </view>
-              <view
+              </div>
+              <div
                 class="option-chip"
                 :class="{
                   selected: onboarding.state.draft.preferred_language === 'en'
                 }"
-                @click="onboarding.updateDraft({ preferred_language: 'en' })"
+                role="radio"
+                tabindex="0"
+                :aria-checked="
+                  onboarding.state.draft.preferred_language === 'en'
+                "
+                @click="selectLanguage('en')"
+                @keyup.enter="selectLanguage('en')"
+                @keyup.space.prevent="selectLanguage('en')"
               >
                 {{ copy.languageEn }}
-              </view>
+              </div>
             </view>
           </view>
           <view class="option-group">
@@ -253,22 +259,27 @@ onUnmounted(() => {
           </view>
         </view>
 
-        <!-- Step 2: Interests -->
+        <!-- Step 2: Primary interest -->
         <view
           v-if="onboarding.state.step === 'preferences-2'"
           class="step-content"
         >
           <view class="option-hint">{{ copy.step2Hint }}</view>
           <view class="chip-grid">
-            <view
+            <div
               v-for="interest in INTEREST_OPTIONS"
               :key="interest"
               class="option-chip"
               :class="{ selected: isInterestSelected(interest) }"
-              @click="toggleInterest(interest)"
+              role="radio"
+              tabindex="0"
+              :aria-checked="isInterestSelected(interest)"
+              @click="selectInterest(interest)"
+              @keyup.enter="selectInterest(interest)"
+              @keyup.space.prevent="selectInterest(interest)"
             >
-              {{ copy.interests[interest] }}
-            </view>
+              {{ copy.primaryInterests[interest] }}
+            </div>
           </view>
         </view>
 
@@ -280,53 +291,76 @@ onUnmounted(() => {
           <view class="option-group">
             <view class="option-label">{{ copy.step3Title }}</view>
             <view class="chip-grid">
-              <view
+              <div
                 v-for="ctx in ARRIVAL_CONTEXT_OPTIONS"
                 :key="ctx"
                 class="option-chip"
                 :class="{
                   selected: onboarding.state.draft.arrival_context === ctx
                 }"
+                role="radio"
+                tabindex="0"
+                :aria-checked="onboarding.state.draft.arrival_context === ctx"
                 @click="onboarding.updateDraft({ arrival_context: ctx })"
+                @keyup.enter="
+                  onboarding.updateDraft({ arrival_context: ctx })
+                "
+                @keyup.space.prevent="
+                  onboarding.updateDraft({ arrival_context: ctx })
+                "
               >
                 {{ copy.arrivalContexts[ctx] }}
-              </view>
+              </div>
             </view>
           </view>
           <view class="option-group">
-            <view class="option-label">{{ copy.step4Title }}</view>
+            <view class="option-label">{{ copy.householdTitle }}</view>
             <view class="chip-grid">
-              <view
+              <div
                 v-for="ht in HOUSEHOLD_TYPE_OPTIONS"
                 :key="ht"
                 class="option-chip"
                 :class="{
                   selected: onboarding.state.draft.household_type === ht
                 }"
+                role="radio"
+                tabindex="0"
+                :aria-checked="onboarding.state.draft.household_type === ht"
                 @click="onboarding.updateDraft({ household_type: ht })"
+                @keyup.enter="
+                  onboarding.updateDraft({ household_type: ht })
+                "
+                @keyup.space.prevent="
+                  onboarding.updateDraft({ household_type: ht })
+                "
               >
                 {{ copy.householdTypes[ht] }}
-              </view>
+              </div>
             </view>
           </view>
         </view>
 
-        <!-- Step 4: Accessibility needs (optional) + submit -->
+        <!-- Step 4: Accessibility or environment preference + submit -->
         <view
           v-if="onboarding.state.step === 'preferences-4'"
           class="step-content"
         >
           <view class="option-hint">{{ copy.step4Hint }}</view>
           <view class="chip-grid">
-            <view
+            <div
               v-for="need in ACCESSIBILITY_NEED_OPTIONS"
               :key="need"
               class="option-chip"
               :class="{ selected: isAccessibilityNeedSelected(need) }"
-              @click="toggleAccessibilityNeed(need)"
+              role="radio"
+              tabindex="0"
+              :aria-checked="isAccessibilityNeedSelected(need)"
+              @click="selectAccessibilityNeed(need)"
+              @keyup.enter="selectAccessibilityNeed(need)"
+              @keyup.space.prevent="selectAccessibilityNeed(need)"
             >
               {{ copy.accessibilityNeeds[need] }}
-            </view>
+            </div>
           </view>
           <view v-if="generationErrorText" class="error-message">
             <view>{{ generationErrorText }}</view>
@@ -335,31 +369,57 @@ onUnmounted(() => {
             </view>
           </view>
           <view class="example-row">
-            <view class="example-button" @click="useExample">
+            <div
+              class="example-button"
+              role="button"
+              tabindex="0"
+              @click="useExample"
+              @keyup.enter="useExample"
+              @keyup.space.prevent="useExample"
+            >
               {{ copy.useExample }}
-            </view>
+            </div>
           </view>
         </view>
 
         <!-- Navigation buttons -->
         <view class="nav-buttons">
-          <view class="nav-button back" @click="back">{{ copy.back }}</view>
-          <view
+          <div
+            class="nav-button back"
+            role="button"
+            tabindex="0"
+            @click="back"
+            @keyup.enter="back"
+            @keyup.space.prevent="back"
+          >
+            {{ copy.back }}
+          </div>
+          <div
             v-if="stepNumber < 4"
             class="nav-button next"
             :class="{ disabled: !canProceed }"
+            role="button"
+            :tabindex="canProceed ? 0 : -1"
+            :aria-disabled="!canProceed"
             @click="next"
+            @keyup.enter="next"
+            @keyup.space.prevent="next"
           >
             {{ copy.next }}
-          </view>
-          <view
+          </div>
+          <div
             v-else
             class="nav-button submit"
             :class="{ disabled: !canProceed }"
+            role="button"
+            :tabindex="canProceed ? 0 : -1"
+            :aria-disabled="!canProceed"
             @click="submit"
+            @keyup.enter="submit"
+            @keyup.space.prevent="submit"
           >
             {{ copy.submit }}
-          </view>
+          </div>
         </view>
       </view>
     </view>
@@ -540,6 +600,11 @@ onUnmounted(() => {
   color: #ffffff;
 }
 
+.option-chip:focus-visible {
+  outline: 4rpx solid #d39a3a;
+  outline-offset: 4rpx;
+}
+
 .error-message {
   padding: 20rpx 24rpx;
   border-radius: 12rpx;
@@ -586,6 +651,12 @@ onUnmounted(() => {
   color: #123b3a;
   font-size: 26rpx;
   font-weight: 500;
+}
+
+.example-button:focus-visible,
+.nav-button:focus-visible {
+  outline: 4rpx solid #d39a3a;
+  outline-offset: 4rpx;
 }
 
 .nav-buttons {

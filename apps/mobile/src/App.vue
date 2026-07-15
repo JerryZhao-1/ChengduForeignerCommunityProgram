@@ -39,6 +39,14 @@ export default {
       });
     }
 
+    // The public competition H5 is intentionally anonymous. Avoid an
+    // expected 401 `/auth/me` request (and its browser-console noise) when
+    // HTTP mode has no development actor. Mini Program and authenticated
+    // development modes keep the existing session initialization path.
+    if (mobileEnv.apiMode === "http" && !mobileEnv.actorId) {
+      return;
+    }
+
     const sessionRequest =
       mobileEnv.apiMode === "cloudbase-function"
         ? mobileApi.auth.wechatMiniappSession()

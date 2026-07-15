@@ -2,13 +2,13 @@
 
 ### Requirement: Mobile UI SHALL provide complete Chinese and English copy
 
-The central mobile catalog SHALL provide recursively identical zh/en keys for every system-owned onboarding title, label, option, control, validation state, loading/empty state, status badge, error, route state, accessibility label, and completion result. Onboarding templates SHALL NOT contain raw user-facing strings, raw API/model messages, raw enum values, or locale ternaries.
+The central mobile catalog SHALL provide recursively identical zh/en keys for every onboarding title, singular option, validation state, matching step, explanation dimension, action, route state, delivery badge, API error, completion result, and Mini Program boundary. Templates SHALL NOT contain raw user-facing strings, API messages, raw enum values, or locale ternaries.
 
 #### Scenario: Judge completes onboarding in either locale
 
 - **WHEN** the active locale is zh or en and the judge follows the canonical H5 path
-- **THEN** every system-owned string is resolved from the active catalog
-- **AND** both locales expose the same actions and state meanings
+- **THEN** every system-owned string resolves from the active catalog
+- **AND** both locales expose identical actions and state meanings
 
 #### Scenario: Catalog parity is broken
 
@@ -17,45 +17,56 @@ The central mobile catalog SHALL provide recursively identical zh/en keys for ev
 
 ## ADDED Requirements
 
-### Requirement: Onboarding catalog SHALL cover the complete judge state machine
+### Requirement: Preference controls SHALL be required single choices
 
-The onboarding namespace SHALL include localized copy for Start, preference fields/options/validation, Generate, plan item types and times, Open Route, route-list/map states, Open Place, Mark Visited, place unavailable, Demo Confirm, Demo-only disclosure, Finish Route disabled/enabled guidance, `1/1` completion results, Start Over, offline/fallback badge, AI source/status badges, refresh/deep-link recovery, and the Mini Program H5-only placeholder.
+Interest SHALL use one selected `primary_interest`. Accessibility SHALL use one selected `accessibility_need`, including explicit `none` copy “无额外需求 / No additional need”. Selecting a new option SHALL replace the previous option.
 
-AI status copy SHALL cover `ok`, `not_configured`, `timeout`, `validation_failed`, `upstream_error`, and `unavailable`. It SHALL describe fallback without exposing model internals or suggesting that offline output is a live AI result.
+#### Scenario: Interest selection is singular
 
-#### Scenario: Every AI failure has localized safe copy
+- **WHEN** the judge selects one interest and then another
+- **THEN** only the latest interest remains selected
 
-- **WHEN** a plan reports timeout, invalid output, upstream error, or unavailable AI
-- **THEN** the active locale displays a catalog message explaining deterministic fallback
-- **AND** no raw exception, provider response, prompt, or enum value is rendered
+#### Scenario: No additional accessibility need is explicit
 
-#### Scenario: Demo event cannot be mistaken for registration
+- **WHEN** the judge chooses `none`
+- **THEN** the localized no-additional-need label is visibly selected
 
-- **WHEN** the event action and completion result render
-- **THEN** both locales state that Demo Confirm creates no booking, reservation, ticket, or capacity hold
+### Requirement: Matching and explanation copy SHALL cover all localized cases
 
-### Requirement: Stable API error codes SHALL map to catalog keys
+The catalog SHALL include localized copy for “核对你的时间偏好”, “匹配社区地点”, “整理参与提示”, “准备两小时路线”, a “为什么这样匹配” section, the four reason dimension labels, and the transparent statement that matching uses Tongzilin community editorial information. All 576 logical scenarios SHALL provide paired content for 1,152 zh/en render cases.
 
-The mobile adapter SHALL map stable API outcomes to catalog keys before UI rendering. At minimum, `VALIDATION_ERROR`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, and `RATE_LIMITED` SHALL map to localized onboarding errors; AI `timeout`, `validation_failed`, `upstream_error`, and `unavailable` SHALL map to localized status keys; transport/5xx offline selection SHALL map to the offline badge. Raw API `error.message`, SDK text, stack traces, and upstream bodies SHALL NOT be shown to users.
+#### Scenario: Explainable plan renders without raw enums
 
-#### Scenario: HTTP 4xx uses mapped localized copy
+- **WHEN** any supported scenario is rendered in either locale
+- **THEN** summary and all four reasons use localized editorial copy
+- **AND** no raw enum value is visible
+
+### Requirement: Delivery state SHALL be distinct from plan content
+
+Normal online plans SHALL not require a source badge. Local mock/fallback mode SHALL show “离线演示 · 使用同版本本地社区目录” and its English equivalent. Delivery state SHALL NOT expose model/provider status or alter explanation content.
+
+#### Scenario: Offline delivery is clearly labelled
+
+- **WHEN** local matching is used
+- **THEN** the offline badge appears in the active locale
+- **AND** the plan content matches the online semantic result for the same profile
+
+### Requirement: Stable API errors SHALL map to catalog keys
+
+`VALIDATION_ERROR`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, and `RATE_LIMITED` SHALL map to localized errors. Transport/5xx local selection SHALL map to the offline badge. Raw API messages, stack traces, SDK text, and upstream bodies SHALL NOT be rendered.
+
+#### Scenario: HTTP 4xx remains a localized error
 
 - **WHEN** generation returns 400, 403, 404, 409, or 429
-- **THEN** the client renders the catalog key associated with the stable error code
-- **AND** it neither shows the raw server message nor activates offline mode
-
-#### Scenario: Unknown error code uses localized generic fallback
-
-- **WHEN** the client receives an unmapped error code
-- **THEN** it displays a generic localized error with the request ID when available
-- **AND** no untranslated or raw upstream text appears
+- **THEN** the mapped localized error renders
+- **AND** offline mode is not activated
 
 ### Requirement: Mini Program H5-only boundary SHALL be localized
 
-The Mini Program deep-link placeholder SHALL have complete zh/en catalog entries and SHALL not reuse the H5 onboarding controls or imply functional support.
+The Mini Program deep-link placeholder SHALL have complete zh/en entries and SHALL not expose Generate, map, visit, or Demo Confirm actions.
 
-#### Scenario: Mini Program page is opened directly
+#### Scenario: Mini Program onboarding page is opened directly
 
-- **WHEN** an onboarding route is loaded in the mp-weixin build
-- **THEN** the active locale displays the H5-only explanation from the catalog
-- **AND** no Generate, map, visit, or Demo Confirm action is exposed
+- **WHEN** an onboarding route is loaded in mp-weixin
+- **THEN** the active locale displays the H5-only explanation
+- **AND** no functional onboarding action is shown

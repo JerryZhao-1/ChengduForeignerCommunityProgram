@@ -185,29 +185,30 @@ const foundationCopy = {
     },
     onboarding: {
       heroTitle: "今天，什么能让桐梓林变成你的家？",
-      heroSubtitle: "30 秒生成你的专属社区融入路线",
+      heroSubtitle: "30 秒匹配你的专属社区融入路线",
       judgeEntry: "30 秒评委体验",
       judgeEntryCaption: "使用预置偏好，快速体验完整流程",
       planEntry: "为我制定计划",
-      planEntryCaption: "回答 4 个问题，生成你的路线",
+      planEntryCaption: "回答 4 个问题，匹配你的路线",
       guestNotice: "评委模式 · 无需登录、验证码或微信授权",
       communityDefault: "桐梓林",
       communityManualHint: "默认定位桐梓林，你也可以手动选择",
       stepIndicator: "第 {current} / {total} 步",
       step1Title: "你更希望使用哪种语言？",
-      step2Title: "你对哪些社区活动感兴趣？",
-      step2Hint: "至少选择一项",
+      step2Title: "你最想先探索什么？",
+      step2Hint: "选择一项；新的选择会替换上一项",
       step3Title: "你来到桐梓林多久了？",
-      step4Title: "还有什么我们需要知道的？",
-      step4Hint: "可跳过",
+      householdTitle: "你和谁一起生活？",
+      step4Title: "你需要怎样的参与提示？",
+      step4Hint: "请选择一项；如无额外需求，选择第一项",
       languageZh: "中文",
       languageEn: "English",
       useExample: "使用示例偏好",
       next: "下一步",
       back: "返回",
-      submit: "生成我的路线",
+      submit: "匹配我的路线",
       skip: "跳过",
-      interests: {
+      primaryInterests: {
         "community-service": "社区服务",
         "food-drink": "美食饮品",
         social: "社交聚会",
@@ -229,6 +230,7 @@ const foundationCopy = {
         shared: "合租共享"
       },
       accessibilityNeeds: {
+        none: "无额外需求",
         wheelchair: "轮椅通行",
         "low-vision": "低视力支持",
         "low-mobility": "行动不便支持",
@@ -236,22 +238,32 @@ const foundationCopy = {
         "quiet-environment": "安静环境"
       },
       generating: {
-        title: "正在为你组织路线...",
-        checkTime: "检查可用时间",
-        matchPlaces: "匹配附近地点",
-        checkCapacity: "检查活动名额",
-        organizeTips: "组织双语提示"
+        title: "正在为你整理社区策展方案...",
+        checkTime: "核对你的时间偏好",
+        matchPlaces: "匹配社区地点",
+        organizeTips: "整理参与提示",
+        prepareRoute: "准备两小时路线"
       },
       plan: {
         title: "你的桐邻 120 分钟",
-        offlineNotice: "离线演示模式 · 使用预置路线",
+        offlineNotice: "离线演示 · 使用同版本本地社区目录",
+        summaryTitle: "社区策展匹配摘要",
+        explanationTitle: "为什么这样匹配",
+        curatedDisclosure: "基于桐梓林社区策展信息匹配",
+        firstAction: "第一步：{title}",
+        dimensionLabels: {
+          primary_interest: "首要兴趣",
+          arrival_context: "到达阶段",
+          household_type: "家庭结构",
+          accessibility_need: "参与提示"
+        },
         validationError: "输入有误，请检查后重试",
         networkError: "网络异常，已切换到离线演示",
         forbiddenError: "当前评委会话不可用，请重新开始",
-        notFoundError: "路线生成服务暂不可用，请稍后重试",
-        conflictError: "当前状态已变化，请重新生成路线",
+        notFoundError: "路线匹配服务暂不可用，请稍后重试",
+        conflictError: "当前状态已变化，请重新匹配路线",
         rateLimitedError: "请求过于频繁，请稍后再试",
-        genericError: "暂时无法生成路线，请稍后重试",
+        genericError: "暂时无法匹配路线，请稍后重试",
         requestId: "请求编号：{requestId}",
         retry: "重试",
         startOver: "重新开始",
@@ -259,6 +271,8 @@ const foundationCopy = {
         viewRoute: "查看路线详情",
         stopLabel: "第 {index} 站",
         openPlace: "打开地点详情",
+        openEvent: "打开活动详情",
+        placeDetailError: "地点详情暂时无法打开；当前路线卡片仍可使用",
         markVisited: "标记为已到访",
         visited: "已到访",
         unavailable: "地点暂不可用",
@@ -270,25 +284,13 @@ const foundationCopy = {
         itemTypes: {
           place_visit: "地点到访",
           event_attend: "活动演示"
-        },
-        generationSources: {
-          rule_based: "规则路线",
-          ai_enhanced: "AI 双语增强",
-          rule_based_fallback: "安全回退路线"
-        },
-        aiStatuses: {
-          ok: "AI 双语提示已生成",
-          not_configured: "使用确定性社区路线",
-          timeout: "AI 响应超时，已使用安全路线",
-          validation_failed: "AI 内容未通过校验，已使用安全路线",
-          upstream_error: "AI 服务暂不可用，已使用安全路线",
-          unavailable: "AI 未启用，已使用安全路线"
         }
       },
       route: {
         title: "路线清单",
         subtitle: "按顺序完成你的桐梓林第一程",
         mapUnavailable: "地图增强未启用，路线清单仍可正常使用",
+        imageUnavailable: "地点图片暂不可用，不影响路线信息",
         back: "返回计划",
         openPlace: "查看地点",
         coordinates: "位置 {latitude}, {longitude}"
@@ -493,30 +495,31 @@ const foundationCopy = {
     },
     onboarding: {
       heroTitle: "What would make Tongzilin feel like home today?",
-      heroSubtitle: "Generate your personalized community route in 30 seconds",
+      heroSubtitle: "Match your community route in 30 seconds",
       judgeEntry: "30-second judge experience",
       judgeEntryCaption: "Use preset preferences to try the full flow",
       planEntry: "Build my plan",
-      planEntryCaption: "Answer 4 questions to generate your route",
+      planEntryCaption: "Answer 4 questions to match your route",
       guestNotice: "Judge mode · No login, code, or WeChat authorization",
       communityDefault: "Tongzilin",
       communityManualHint:
         "Defaults to Tongzilin — you can also choose manually",
       stepIndicator: "Step {current} of {total}",
       step1Title: "Which language do you prefer?",
-      step2Title: "What are you interested in?",
-      step2Hint: "Select at least one",
+      step2Title: "What would you like to explore first?",
+      step2Hint: "Choose one; a new choice replaces the previous one",
       step3Title: "How new are you to Tongzilin?",
-      step4Title: "Anything else we should know?",
-      step4Hint: "Optional",
+      householdTitle: "Who do you live with?",
+      step4Title: "What participation guidance do you need?",
+      step4Hint: "Choose one; select the first option if none is needed",
       languageZh: "中文",
       languageEn: "English",
       useExample: "Use example preferences",
       next: "Next",
       back: "Back",
-      submit: "Generate my route",
+      submit: "Match my route",
       skip: "Skip",
-      interests: {
+      primaryInterests: {
         "community-service": "Community Service",
         "food-drink": "Food & Drink",
         social: "Social",
@@ -538,6 +541,7 @@ const foundationCopy = {
         shared: "Shared"
       },
       accessibilityNeeds: {
+        none: "No additional need",
         wheelchair: "Wheelchair access",
         "low-vision": "Low vision support",
         "low-mobility": "Low mobility support",
@@ -545,24 +549,34 @@ const foundationCopy = {
         "quiet-environment": "Quiet environment"
       },
       generating: {
-        title: "Building your route...",
-        checkTime: "Checking available time",
-        matchPlaces: "Matching nearby places",
-        checkCapacity: "Checking event availability",
-        organizeTips: "Organizing bilingual tips"
+        title: "Preparing your curated community plan...",
+        checkTime: "Checking your time preference",
+        matchPlaces: "Matching community places",
+        organizeTips: "Organizing participation tips",
+        prepareRoute: "Preparing your two-hour route"
       },
       plan: {
         title: "Your Tonglin 120 Minutes",
-        offlineNotice: "Offline demo mode · Using preset route",
+        offlineNotice:
+          "Offline demo · Using the same-version local community catalog",
+        summaryTitle: "Curated match summary",
+        explanationTitle: "Why this was matched",
+        curatedDisclosure: "Matched from curated Tongzilin community information",
+        firstAction: "First action: {title}",
+        dimensionLabels: {
+          primary_interest: "Primary interest",
+          arrival_context: "Arrival stage",
+          household_type: "Household",
+          accessibility_need: "Participation guidance"
+        },
         validationError: "Please check your input and try again",
         networkError: "Network issue, switched to offline demo",
         forbiddenError: "This judge session is unavailable. Please start over.",
         notFoundError:
           "The route service is temporarily unavailable. Please retry.",
-        conflictError:
-          "The current state changed. Please generate a new route.",
+        conflictError: "The current state changed. Please rematch your route.",
         rateLimitedError: "Too many requests. Please try again shortly.",
-        genericError: "Unable to generate a route right now. Please retry.",
+        genericError: "Unable to match a route right now. Please retry.",
         requestId: "Request ID: {requestId}",
         retry: "Retry",
         startOver: "Start over",
@@ -570,6 +584,9 @@ const foundationCopy = {
         viewRoute: "View route details",
         stopLabel: "Stop {index}",
         openPlace: "Open place details",
+        openEvent: "Open event details",
+        placeDetailError:
+          "Place details are temporarily unavailable; this route card still works",
         markVisited: "Mark visited",
         visited: "Visited",
         unavailable: "Place unavailable",
@@ -582,20 +599,6 @@ const foundationCopy = {
         itemTypes: {
           place_visit: "Place visit",
           event_attend: "Demo event"
-        },
-        generationSources: {
-          rule_based: "Rule-based route",
-          ai_enhanced: "AI bilingual enhancement",
-          rule_based_fallback: "Safe fallback route"
-        },
-        aiStatuses: {
-          ok: "AI bilingual tips generated",
-          not_configured: "Using the deterministic community route",
-          timeout: "AI timed out; using the safe route",
-          validation_failed:
-            "AI content did not validate; using the safe route",
-          upstream_error: "AI is temporarily unavailable; using the safe route",
-          unavailable: "AI is not enabled; using the safe route"
         }
       },
       route: {
@@ -603,6 +606,8 @@ const foundationCopy = {
         subtitle: "Follow your first Tongzilin journey in order",
         mapUnavailable:
           "Map enhancement is unavailable; the route list remains fully usable",
+        imageUnavailable:
+          "The place image is unavailable; route information still works",
         back: "Back to plan",
         openPlace: "View place",
         coordinates: "Location {latitude}, {longitude}"

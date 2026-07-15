@@ -1,13 +1,14 @@
 import {
   ApiClientError,
-  communityPlanOfflineBundle,
+  createCompetitionDemoEngineInput,
+  generateCommunityPlan,
   type CommunityPlan,
   type NewResidentPreference
 } from "@community-map/shared";
 
 import {
   createMobileGuestClient,
-  mobileGuestUsesOfflineBundle
+  mobileGuestUsesLocalMatcher
 } from "./client";
 
 export type CommunityPlanGenerationStatus =
@@ -15,6 +16,8 @@ export type CommunityPlanGenerationStatus =
   | "success"
   | "api_error"
   | "fallback";
+
+export type DeliveryMode = "online" | "offline";
 
 export type CommunityPlanErrorKey =
   | "validationError"
@@ -29,8 +32,7 @@ export interface CommunityPlanGenerationState {
   plan: CommunityPlan | null;
   errorKey: CommunityPlanErrorKey | null;
   requestId: string | null;
-  /** True when the plan came from the offline bundle rather than the API. */
-  offline: boolean;
+  deliveryMode: DeliveryMode;
 }
 
 export const INITIAL_GENERATION_STATE: CommunityPlanGenerationState = {
@@ -38,33 +40,34 @@ export const INITIAL_GENERATION_STATE: CommunityPlanGenerationState = {
   plan: null,
   errorKey: null,
   requestId: null,
-  offline: false
+  deliveryMode: "online"
 };
+
+export const generateLocalCommunityPlan = (
+  preference: NewResidentPreference
+): CommunityPlan =>
+  generateCommunityPlan(createCompetitionDemoEngineInput(preference));
 
 /**
  * Generates a Community Plan through the guest judge client.
  *
  * State mapping:
- * - 200 from API → `status: "success"`, `offline: false`
- * - 400 VALIDATION_ERROR → `status: "validation_error"` with server message
- * - 401/403/404/5xx, transport failure, timeout → `status: "fallback"` using
- *   the canonical offline bundle so the judge demo never dead-ends. The UI
- *   surfaces an "offline demo" notice. Network errors that are clearly
- *   transient also surface `status: "network_error"` with a retry option
- *   when the caller distinguishes via `offline` === false.
- *
+ * - 200 from API → `status: "success"`, `deliveryMode: "online"`
+ * - 400/403/404/409/429 → localized `status: "api_error"` without fallback
+ * - 5xx, transport failure, or timeout → `status: "fallback"` using the
+ *   canonical local matcher. The UI surfaces an "offline demo" notice.
  * The adapter never throws — callers receive a normalized state object.
  */
 export const generateCommunityPlanForGuest = async (
   preference: NewResidentPreference
 ): Promise<CommunityPlanGenerationState> => {
-  if (mobileGuestUsesOfflineBundle) {
+  if (mobileGuestUsesLocalMatcher) {
     return {
-      status: "fallback",
-      plan: communityPlanOfflineBundle.plan,
+      status: "success",
+      plan: generateLocalCommunityPlan(preference),
       errorKey: null,
       requestId: null,
-      offline: true
+      deliveryMode: "offline"
     };
   }
 
@@ -78,7 +81,7 @@ export const generateCommunityPlanForGuest = async (
         plan: result.data,
         errorKey: null,
         requestId: result.requestId,
-        offline: false
+        deliveryMode: "online"
       };
     }
 
@@ -86,20 +89,20 @@ export const generateCommunityPlanForGuest = async (
     // issue; fall back to the offline bundle.
     return {
       status: "fallback",
-      plan: communityPlanOfflineBundle.plan,
+      plan: generateLocalCommunityPlan(preference),
       errorKey: null,
       requestId: null,
-      offline: true
+      deliveryMode: "offline"
     };
   } catch (error) {
     if (error instanceof ApiClientError) {
       if (error.status !== undefined && error.status >= 500) {
         return {
           status: "fallback",
-          plan: communityPlanOfflineBundle.plan,
+          plan: generateLocalCommunityPlan(preference),
           errorKey: null,
           requestId: error.requestId ?? null,
-          offline: true
+          deliveryMode: "offline"
         };
       }
 
@@ -117,17 +120,17 @@ export const generateCommunityPlanForGuest = async (
         plan: null,
         errorKey: errorKeys[error.code] ?? "genericError",
         requestId: error.requestId ?? null,
-        offline: false
+        deliveryMode: "online"
       };
     }
 
     // Transport / network failure (DNS, timeout, CORS) → offline fallback.
     return {
       status: "fallback",
-      plan: communityPlanOfflineBundle.plan,
+      plan: generateLocalCommunityPlan(preference),
       errorKey: null,
       requestId: null,
-      offline: true
+      deliveryMode: "offline"
     };
   }
 };

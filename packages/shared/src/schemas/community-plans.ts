@@ -3,8 +3,6 @@ import { z } from "zod";
 import { LocaleSchema } from "./common";
 import { PlaceTopLevelCategorySchema } from "./place-categories";
 
-// --- Preference enums ---
-
 export const COMMUNITY_PLAN_INTERESTS = [
   "community-service",
   "food-drink",
@@ -47,6 +45,7 @@ export type CommunityPlanHouseholdType = z.infer<
 >;
 
 export const COMMUNITY_PLAN_ACCESSIBILITY_NEEDS = [
+  "none",
   "wheelchair",
   "low-vision",
   "low-mobility",
@@ -61,42 +60,15 @@ export type CommunityPlanAccessibilityNeed = z.infer<
   typeof CommunityPlanAccessibilityNeedSchema
 >;
 
-// --- Strict guest preference request (no community_id, no PII, no free text) ---
-
 export const NewResidentPreferenceSchema = z
   .object({
     preferred_language: LocaleSchema,
-    interests: z.array(CommunityPlanInterestSchema).min(1),
+    primary_interest: CommunityPlanInterestSchema,
     arrival_context: CommunityPlanArrivalContextSchema,
     household_type: CommunityPlanHouseholdTypeSchema,
-    accessibility_needs: z
-      .array(CommunityPlanAccessibilityNeedSchema)
-      .default([])
+    accessibility_need: CommunityPlanAccessibilityNeedSchema
   })
-  .strict()
-  .superRefine((preference, ctx) => {
-    const uniqueInterests = new Set(preference.interests);
-    if (uniqueInterests.size !== preference.interests.length) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "interests must not contain duplicate values",
-        path: ["interests"]
-      });
-    }
-
-    const uniqueAccessibilityNeeds = new Set(preference.accessibility_needs);
-    if (
-      uniqueAccessibilityNeeds.size !== preference.accessibility_needs.length
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "accessibility_needs must not contain duplicate values",
-        path: ["accessibility_needs"]
-      });
-    }
-  });
-
-// --- Public-safe projections (explicit allowlists) ---
+  .strict();
 
 export const CommunityPlanPlaceProjectionSchema = z
   .object({
@@ -128,29 +100,6 @@ export const CommunityPlanEventProjectionSchema = z
   })
   .strict();
 
-// --- Plan item discriminated union ---
-
-export const COMMUNITY_PLAN_GENERATION_SOURCES = [
-  "rule_based",
-  "ai_enhanced",
-  "rule_based_fallback"
-] as const;
-
-export const CommunityPlanGenerationSourceSchema = z.enum(
-  COMMUNITY_PLAN_GENERATION_SOURCES
-);
-
-export const COMMUNITY_PLAN_AI_STATUSES = [
-  "ok",
-  "not_configured",
-  "timeout",
-  "validation_failed",
-  "upstream_error",
-  "unavailable"
-] as const;
-
-export const CommunityPlanAiStatusSchema = z.enum(COMMUNITY_PLAN_AI_STATUSES);
-
 export const CommunityPlanItemStatusSchema = z.literal("pending");
 
 const communityPlanItemBaseFields = {
@@ -158,12 +107,12 @@ const communityPlanItemBaseFields = {
   ref_id: z.string(),
   start_offset_minutes: z.number().int().min(0),
   duration_minutes: z.number().int().positive(),
-  title_zh: z.string(),
-  title_en: z.string(),
-  summary_zh: z.string(),
-  summary_en: z.string(),
-  tips_zh: z.string(),
-  tips_en: z.string(),
+  title_zh: z.string().min(1),
+  title_en: z.string().min(1),
+  summary_zh: z.string().min(1),
+  summary_en: z.string().min(1),
+  tips_zh: z.string().min(1),
+  tips_en: z.string().min(1),
   status: CommunityPlanItemStatusSchema
 };
 
@@ -190,93 +139,80 @@ export const CommunityPlanItemSchema = z.discriminatedUnion("type", [
   CommunityPlanEventAttendItemSchema
 ]);
 
-// --- Route kind ---
-
 export const COMMUNITY_PLAN_ROUTE_KINDS = ["place_event"] as const;
-
 export const CommunityPlanRouteKindSchema = z.enum(COMMUNITY_PLAN_ROUTE_KINDS);
 
-// --- AI narration enhancement (strict allowlist) ---
+export const COMMUNITY_PLAN_CATALOG_VERSION = "tongzilin-curated-v1" as const;
+export const CommunityPlanCatalogVersionSchema = z.literal(
+  COMMUNITY_PLAN_CATALOG_VERSION
+);
 
-export const CommunityPlanAIEnhancementItemSchema = z
-  .object({
-    item_id: z.string(),
-    summary_zh: z.string().max(240),
-    summary_en: z.string().max(240),
-    tips_zh: z.string().max(160),
-    tips_en: z.string().max(160)
-  })
-  .strict();
+const interestPattern = COMMUNITY_PLAN_INTERESTS.join("|");
+const arrivalPattern = COMMUNITY_PLAN_ARRIVAL_CONTEXTS.join("|");
+const householdPattern = COMMUNITY_PLAN_HOUSEHOLD_TYPES.join("|");
+const accessibilityPattern = COMMUNITY_PLAN_ACCESSIBILITY_NEEDS.join("|");
 
-export const CommunityPlanAIEnhancementSchema = z
-  .object({
-    items: z.array(CommunityPlanAIEnhancementItemSchema).length(2)
-  })
-  .strict()
-  .superRefine((enhancement, ctx) => {
-    const itemIds = enhancement.items.map((item) => item.item_id);
-    if (new Set(itemIds).size !== itemIds.length) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "AI enhancement item_id values must be unique",
-        path: ["items"]
-      });
-    }
-  });
+export const CommunityPlanScenarioKeySchema = z.string().regex(
+  new RegExp(
+    `^v1:(${interestPattern}):(${arrivalPattern}):(${householdPattern}):(${accessibilityPattern})$`
+  )
+);
 
-/**
- * Binds the strict narration-only payload to the deterministic plan item IDs.
- * The base schema enforces the fixed two-item MVP shape; this schema also
- * missing, extra, or substituted IDs before narration is merged.
- */
-export const createCommunityPlanAIEnhancementSchema = (
-  expectedItemIds: readonly string[]
-) => {
-  const expectedIds = new Set(expectedItemIds);
+export const COMMUNITY_PLAN_FEEDBACK_DIMENSIONS = [
+  "primary_interest",
+  "arrival_context",
+  "household_type",
+  "accessibility_need"
+] as const;
 
-  return CommunityPlanAIEnhancementSchema.superRefine((enhancement, ctx) => {
-    const actualIds = new Set(enhancement.items.map((item) => item.item_id));
-    const hasExactItemIds =
-      actualIds.size === expectedIds.size &&
-      [...expectedIds].every((itemId) => actualIds.has(itemId));
+export const CommunityPlanFeedbackDimensionSchema = z.enum(
+  COMMUNITY_PLAN_FEEDBACK_DIMENSIONS
+);
 
-    if (!hasExactItemIds) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "AI enhancement item_id set must match the source plan",
-        path: ["items"]
-      });
-    }
-  });
+const feedbackTextFields = {
+  text_zh: z.string().min(1),
+  text_en: z.string().min(1)
 };
 
-// --- Usage (only for successful AI output) ---
+export const CommunityPlanFeedbackReasonSchema = z.discriminatedUnion(
+  "dimension",
+  [
+    z.object({ dimension: z.literal("primary_interest"), ...feedbackTextFields }).strict(),
+    z.object({ dimension: z.literal("arrival_context"), ...feedbackTextFields }).strict(),
+    z.object({ dimension: z.literal("household_type"), ...feedbackTextFields }).strict(),
+    z.object({ dimension: z.literal("accessibility_need"), ...feedbackTextFields }).strict()
+  ]
+);
 
-export const CommunityPlanUsageSchema = z.object({
-  prompt_tokens: z.number().int().nonnegative(),
-  completion_tokens: z.number().int().nonnegative(),
-  total_tokens: z.number().int().positive()
-});
-
-// --- Community Plan (invariant-checked) ---
+export const CommunityPlanSelectionExplanationSchema = z
+  .object({
+    summary_zh: z.string().min(1),
+    summary_en: z.string().min(1),
+    reasons: z.tuple([
+      z.object({ dimension: z.literal("primary_interest"), ...feedbackTextFields }).strict(),
+      z.object({ dimension: z.literal("arrival_context"), ...feedbackTextFields }).strict(),
+      z.object({ dimension: z.literal("household_type"), ...feedbackTextFields }).strict(),
+      z.object({ dimension: z.literal("accessibility_need"), ...feedbackTextFields }).strict()
+    ])
+  })
+  .strict();
 
 export const CommunityPlanSchema = z
   .object({
     plan_id: z.string(),
     community_id: z.literal("tongzilin"),
     generated_at: z.string().datetime({ offset: true }),
+    scenario_key: CommunityPlanScenarioKeySchema,
+    catalog_version: CommunityPlanCatalogVersionSchema,
+    selection_explanation: CommunityPlanSelectionExplanationSchema,
     items: z.array(CommunityPlanItemSchema).length(2),
     total_duration_minutes: z.literal(120),
-    route_kind: CommunityPlanRouteKindSchema,
-    generation_source: CommunityPlanGenerationSourceSchema,
-    ai_status: CommunityPlanAiStatusSchema,
-    generated_by: z.string().min(1),
-    usage: CommunityPlanUsageSchema.optional()
+    route_kind: CommunityPlanRouteKindSchema
   })
   .strict()
   .superRefine((plan, ctx) => {
-    const placeVisits = plan.items.filter((i) => i.type === "place_visit");
-    const eventAttends = plan.items.filter((i) => i.type === "event_attend");
+    const placeVisits = plan.items.filter((item) => item.type === "place_visit");
+    const eventAttends = plan.items.filter((item) => item.type === "event_attend");
 
     if (placeVisits.length !== 1) {
       ctx.addIssue({
@@ -293,15 +229,15 @@ export const CommunityPlanSchema = z
       });
     }
 
-    for (let i = 0; i < plan.items.length; i++) {
-      const item = plan.items[i];
+    for (let index = 0; index < plan.items.length; index++) {
+      const item = plan.items[index];
       const projectionId =
         item.type === "place_visit" ? item.place._id : item.event._id;
       if (item.ref_id !== projectionId) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "ref_id must match the embedded public projection ID",
-          path: ["items", i, "ref_id"]
+          path: ["items", index, "ref_id"]
         });
       }
 
@@ -313,20 +249,17 @@ export const CommunityPlanSchema = z
           attendanceStartMs + item.duration_minutes * 60 * 1000;
         const eventStartMs = Date.parse(item.event.start_time);
         const eventEndMs = Date.parse(item.event.end_time);
-
         if (eventStartMs > attendanceStartMs || eventEndMs < attendanceEndMs) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message:
-              "event must cover its complete attendance window in the plan",
-            path: ["items", i, "event"]
+            message: "event must cover its complete attendance window in the plan",
+            path: ["items", index, "event"]
           });
         }
       }
     }
 
-    // Unique item_ids
-    const itemIds = plan.items.map((i) => i.item_id);
+    const itemIds = plan.items.map((item) => item.item_id);
     if (new Set(itemIds).size !== itemIds.length) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -335,8 +268,7 @@ export const CommunityPlanSchema = z
       });
     }
 
-    // Unique ref_ids
-    const refIds = plan.items.map((i) => i.ref_id);
+    const refIds = plan.items.map((item) => item.ref_id);
     if (new Set(refIds).size !== refIds.length) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -345,177 +277,138 @@ export const CommunityPlanSchema = z
       });
     }
 
-    // Chronologically ordered by start_offset_minutes
-    for (let i = 1; i < plan.items.length; i++) {
-      if (
-        plan.items[i].start_offset_minutes <
-        plan.items[i - 1].start_offset_minutes
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            "Items must be chronologically ordered by start_offset_minutes",
-          path: ["items", i]
-        });
-      }
-    }
-
-    // Non-overlapping and end at most minute 120
-    for (let i = 0; i < plan.items.length; i++) {
-      const item = plan.items[i];
+    for (let index = 0; index < plan.items.length; index++) {
+      const item = plan.items[index];
       const end = item.start_offset_minutes + item.duration_minutes;
       if (end > 120) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `Item ${item.item_id} ends after minute 120`,
-          path: ["items", i]
+          path: ["items", index]
         });
       }
-      if (i > 0) {
-        const prev = plan.items[i - 1];
-        const prevEnd = prev.start_offset_minutes + prev.duration_minutes;
-        if (item.start_offset_minutes < prevEnd) {
+      if (index > 0) {
+        const previous = plan.items[index - 1];
+        const previousEnd =
+          previous.start_offset_minutes + previous.duration_minutes;
+        if (item.start_offset_minutes < previous.start_offset_minutes) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Items must be chronologically ordered",
+            path: ["items", index]
+          });
+        }
+        if (item.start_offset_minutes < previousEnd) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `Item ${item.item_id} overlaps with previous item`,
-            path: ["items", i]
+            path: ["items", index]
           });
         }
       }
     }
 
-    // total_duration_minutes equals sum of item durations
-    const sumDurations = plan.items.reduce(
-      (sum, i) => sum + i.duration_minutes,
+    const durationSum = plan.items.reduce(
+      (sum, item) => sum + item.duration_minutes,
       0
     );
-    if (plan.total_duration_minutes !== sumDurations) {
+    if (durationSum !== plan.total_duration_minutes) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          "total_duration_minutes must equal the sum of all item durations",
+        message: "total_duration_minutes must equal the duration sum",
         path: ["total_duration_minutes"]
-      });
-    }
-
-    // Generation source and AI status describe one unambiguous outcome.
-    const hasValidGenerationOutcome =
-      (plan.generation_source === "rule_based" &&
-        plan.ai_status === "not_configured") ||
-      (plan.generation_source === "ai_enhanced" && plan.ai_status === "ok") ||
-      (plan.generation_source === "rule_based_fallback" &&
-        [
-          "timeout",
-          "validation_failed",
-          "upstream_error",
-          "unavailable"
-        ].includes(plan.ai_status));
-
-    if (!hasValidGenerationOutcome) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "generation_source and ai_status must describe a valid outcome",
-        path: ["ai_status"]
-      });
-    }
-
-    // usage present only for successful AI output
-    const isAiSuccess =
-      plan.generation_source === "ai_enhanced" && plan.ai_status === "ok";
-    if (isAiSuccess && plan.usage === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "usage must be present when generation_source is ai_enhanced and ai_status is ok",
-        path: ["usage"]
-      });
-    }
-    if (!isAiSuccess && plan.usage !== undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "usage must only be present for successful AI output",
-        path: ["usage"]
       });
     }
   });
 
-// --- Offline bundle (strict, public-safe) ---
-
-export const CommunityPlanOfflineBundleSchema = z
+export const CommunityPlanCatalogTextSchema = z
   .object({
-    version: z.string(),
-    plan: CommunityPlanSchema,
-    markers: z.array(CommunityPlanPlaceProjectionSchema),
-    places: z.array(CommunityPlanPlaceProjectionSchema),
-    events: z.array(CommunityPlanEventProjectionSchema)
+    summary_zh: z.string().min(1),
+    summary_en: z.string().min(1),
+    reason_zh: z.string().min(1),
+    reason_en: z.string().min(1),
+    tip_zh: z.string().min(1),
+    tip_en: z.string().min(1)
+  })
+  .strict();
+export const CommunityPlanFeedbackCatalogSchema = z
+  .object({
+    primary_interest: z.record(
+      CommunityPlanInterestSchema,
+      CommunityPlanCatalogTextSchema
+    ),
+    arrival_context: z.record(
+      CommunityPlanArrivalContextSchema,
+      CommunityPlanCatalogTextSchema
+    ),
+    household_type: z.record(
+      CommunityPlanHouseholdTypeSchema,
+      CommunityPlanCatalogTextSchema
+    ),
+    accessibility_need: z.record(
+      CommunityPlanAccessibilityNeedSchema,
+      CommunityPlanCatalogTextSchema
+    )
+  })
+  .strict()
+  .superRefine((catalog, ctx) => {
+    const checks: Array<
+      [keyof typeof catalog, readonly string[], Record<string, unknown>]
+    > = [
+      ["primary_interest", COMMUNITY_PLAN_INTERESTS, catalog.primary_interest],
+      ["arrival_context", COMMUNITY_PLAN_ARRIVAL_CONTEXTS, catalog.arrival_context],
+      ["household_type", COMMUNITY_PLAN_HOUSEHOLD_TYPES, catalog.household_type],
+      [
+        "accessibility_need",
+        COMMUNITY_PLAN_ACCESSIBILITY_NEEDS,
+        catalog.accessibility_need
+      ]
+    ];
+
+    for (const [dimension, expectedKeys, record] of checks) {
+      const actualKeys = Object.keys(record).sort();
+      const expected = [...expectedKeys].sort();
+      if (JSON.stringify(actualKeys) !== JSON.stringify(expected)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${dimension} catalog keys must exactly match the enum`,
+          path: [dimension]
+        });
+      }
+    }
+  });
+
+export const CommunityPlanCatalogBundleSchema = z
+  .object({
+    catalog_version: CommunityPlanCatalogVersionSchema,
+    feedback_catalog: CommunityPlanFeedbackCatalogSchema,
+    curated_event_id: z.string().min(1),
+    places: z.array(CommunityPlanPlaceProjectionSchema).min(1),
+    events: z.array(CommunityPlanEventProjectionSchema).min(1)
   })
   .strict()
   .superRefine((bundle, ctx) => {
-    const placeItem = bundle.plan.items.find(
-      (item) => item.type === "place_visit"
-    );
-    const eventItem = bundle.plan.items.find(
-      (item) => item.type === "event_attend"
-    );
-
-    const requireSingleProjection = (
-      collection: "markers" | "places" | "events",
-      expectedId: string | undefined
-    ) => {
-      const projections = bundle[collection];
-      const ids = projections.map((projection) => projection._id);
-      if (
-        expectedId === undefined ||
-        projections.length !== 1 ||
-        ids[0] !== expectedId ||
-        new Set(ids).size !== ids.length
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `${collection} must contain exactly the projection referenced by the plan`,
-          path: [collection]
-        });
-      }
-    };
-
-    requireSingleProjection("markers", placeItem?.ref_id);
-    requireSingleProjection("places", placeItem?.ref_id);
-    requireSingleProjection("events", eventItem?.ref_id);
-
-    if (
-      placeItem?.type === "place_visit" &&
-      bundle.markers[0] !== undefined &&
-      JSON.stringify(bundle.markers[0]) !== JSON.stringify(placeItem.place)
-    ) {
+    const placeIds = bundle.places.map((place) => place._id);
+    const eventIds = bundle.events.map((event) => event._id);
+    if (new Set(placeIds).size !== placeIds.length) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "marker projection must match the plan place projection",
-        path: ["markers", 0]
+        message: "catalog place IDs must be unique",
+        path: ["places"]
       });
     }
-
-    if (
-      placeItem?.type === "place_visit" &&
-      bundle.places[0] !== undefined &&
-      JSON.stringify(bundle.places[0]) !== JSON.stringify(placeItem.place)
-    ) {
+    if (new Set(eventIds).size !== eventIds.length) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "place snapshot must match the plan place projection",
-        path: ["places", 0]
+        message: "catalog event IDs must be unique",
+        path: ["events"]
       });
     }
-
-    if (
-      eventItem?.type === "event_attend" &&
-      bundle.events[0] !== undefined &&
-      JSON.stringify(bundle.events[0]) !== JSON.stringify(eventItem.event)
-    ) {
+    if (!eventIds.includes(bundle.curated_event_id)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "event snapshot must match the plan event projection",
-        path: ["events", 0]
+        message: "curated_event_id must reference a bundled event",
+        path: ["curated_event_id"]
       });
     }
   });
