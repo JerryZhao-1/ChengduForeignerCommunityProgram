@@ -48,12 +48,16 @@ describe("community plan singular preference", () => {
     ).toBe(false);
   });
 
-  it("rejects legacy arrays and unknown fields", () => {
+  it("rejects legacy arrays, unknown fields, community_id, PII, and free text", () => {
     for (const legacy of [
       { ...validPreference, interests: ["community-service"] },
       { ...validPreference, accessibility_needs: [] },
       { ...validPreference, community_id: "tongzilin" },
       { ...validPreference, phone: "13800000000" },
+      { ...validPreference, email: "guest@example.com" },
+      { ...validPreference, name: "Jerry" },
+      { ...validPreference, user_id: "user_001" },
+      { ...validPreference, openid: "openid_001" },
       { ...validPreference, notes: "free text" }
     ]) {
       expect(NewResidentPreferenceSchema.safeParse(legacy).success).toBe(false);
@@ -111,12 +115,14 @@ describe("community plan explainable response", () => {
     ).toBe(false);
   });
 
-  it("rejects legacy model-result fields", () => {
+  it("rejects legacy model-result fields including model and prompt", () => {
     for (const legacyField of [
       { generation_source: "rule_based" },
       { ai_status: "not_configured" },
       { usage: { total_tokens: 1 } },
-      { generated_by: "legacy-engine" }
+      { generated_by: "legacy-engine" },
+      { model: "gpt-4o" },
+      { prompt: "generate a community plan" }
     ]) {
       expect(
         CommunityPlanSchema.safeParse({ ...basePlan, ...legacyField }).success
@@ -179,21 +185,43 @@ describe("community plan safe catalog bundle", () => {
     ).toBe(21);
   });
 
-  it("rejects unsafe place and event fields", () => {
+  it("rejects unsafe place and event projection fields", () => {
     const place = communityPlanCatalogBundle.places[0];
     const event = communityPlanCatalogBundle.events[0];
-    expect(
-      CommunityPlanPlaceProjectionSchema.safeParse({
-        ...place,
-        address_zh: "secret address"
-      }).success
-    ).toBe(false);
-    expect(
-      CommunityPlanEventProjectionSchema.safeParse({
-        ...event,
-        capacity: 30
-      }).success
-    ).toBe(false);
+    const unsafePlaceFields = [
+      { address_zh: "secret address" },
+      { address_en: "secret address" },
+      { gallery_urls: ["https://example.com/secret.jpg"] },
+      { navigation: { latitude: 30.6, longitude: 104.0 } },
+      { intro_zh: "detail intro" },
+      { business_hours_zh: "9-18" },
+      { community_id: "tongzilin" },
+      { review_status: "approved" },
+      { import_review: { status: "approved" } },
+      { contact_phone: "13800000000" }
+    ];
+    const unsafeEventFields = [
+      { capacity: 30 },
+      { organizer_user_id: "user_001" },
+      { review_status: "approved" },
+      { publish_status: "published" },
+      { signup_deadline: "2027-04-01T18:00:00+08:00" },
+      { address_text: "桐梓林" },
+      { contact_phone: "13800000000" },
+      { registration_count: 5 }
+    ];
+    for (const unsafe of unsafePlaceFields) {
+      expect(
+        CommunityPlanPlaceProjectionSchema.safeParse({ ...place, ...unsafe })
+          .success
+      ).toBe(false);
+    }
+    for (const unsafe of unsafeEventFields) {
+      expect(
+        CommunityPlanEventProjectionSchema.safeParse({ ...event, ...unsafe })
+          .success
+      ).toBe(false);
+    }
   });
 
   it("rejects missing curated event and unknown top-level fields", () => {

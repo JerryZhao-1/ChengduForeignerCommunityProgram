@@ -1,0 +1,17 @@
+
+> @community-map/shared@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/packages/shared
+> tsc --noEmit -p tsconfig.json
+
+
+ RUN  v3.2.4 /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram
+
+ ✓ packages/shared/test/community-plans.spec.ts (14 tests) 5ms
+ ✓ packages/shared/test/client.spec.ts (26 tests) 23ms
+ ✓ packages/shared/test/community-plan-engine.spec.ts (14 tests) 92ms
+
+ Test Files  3 passed (3)
+      Tests  54 passed (54)
+   Start at  17:28:49
+   Duration  501ms (transform 177ms, setup 0ms, collect 646ms, tests 120ms, environment 0ms, prepare 138ms)
+
+All R11 CLI assertions completed.
