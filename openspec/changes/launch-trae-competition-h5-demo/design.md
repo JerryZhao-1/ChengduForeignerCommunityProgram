@@ -1,6 +1,6 @@
 ## Context
 
-The repository already provides public places/events APIs, marker-safe place contracts, Koa authentication middleware, mock and CloudBase providers, shared HTTP/mock clients, and a uni-app H5/WeChat codebase. The competition branch also has a working guest Community Plan loop, but its current contract still exposes optional model-enhancement fields and its offline adapter returns one fixed plan.
+The repository already provides public places/events APIs, marker-safe place contracts, Koa authentication middleware, mock and CloudBase providers, shared HTTP/mock clients, and a uni-app H5/WeChat codebase. Earlier competition work produced a guest Community Plan loop with optional model-enhancement fields and a fixed offline plan; those artifacts are the superseded migration baseline, not the current runtime state.
 
 The revised July 15 MVP is a guest-only, AI-free competition path for the single Tongzilin community. It must predefine a meaningful response for every supported preference combination and remain useful when the API is unavailable. The implementation order is: specifications, strict shared contracts, curated catalog/matcher, API/provider cleanup, mobile/offline migration, then exhaustive validation and deployment.
 
@@ -80,9 +80,11 @@ Dimensions are unique. The same logical preference has the same key and semantic
 
 ### 4. The catalog is modular, editorial, and exhaustive
 
-The shared catalog contains paired zh/en modules for all 8 interests, 3 arrival contexts, 4 household types, and 6 accessibility needs. It also contains interest-to-place-category priorities, category narration, the fixed event narration, safe place/event snapshots, and a catalog version.
+The shared catalog contains exactly 21 paired zh/en dimension modules: 8 interests, 3 arrival contexts, 4 household types, and 6 accessibility needs. The matcher composes these modules for 576 logical profiles rather than maintaining 576 duplicated full-text plans. It also contains interest-to-place-category priorities, category narration, the fixed event narration, safe place/event snapshots, and a catalog version.
 
 The matcher may select the same route for multiple profiles, but each profile has its own scenario key and four choice-specific reasons. Stable sorting uses score descending and `_id` ascending as the tie-breaker. Runtime time, random values, object insertion order, and display language never influence semantic selection.
+
+The four-reason tuple is the user-facing correspondence between one preference combination and its feedback. Different profiles may share a place or event, but every reason must be sourced from the module selected by the matching preference dimension.
 
 ### 5. Accessibility content is advice, not facility certification
 
@@ -120,16 +122,16 @@ The H5 target remains CloudBase Web App service `trae-h5-demo`. Existing shared 
 
 ## Failure Matrix
 
-| Condition | Required behavior |
-| --- | --- |
-| Invalid or legacy preference fields | Return `400 VALIDATION_ERROR`; do not strip fields |
-| Missing curated place/event data | Fail configuration; do not invent a successful route |
-| Place detail 404 | Mark the local place unavailable and remove it from the completion denominator |
-| H5 map SDK unavailable | Keep the ordered marker-safe route list usable |
-| HTTP 400/403/404/409/429 | Show localized error; do not use offline mode |
-| Mock mode, transport/DNS/timeout/5xx | Run the shared matcher locally and show the offline badge |
-| Refresh/deep link without session | Redirect safely to welcome |
-| Mini Program deep link | Show localized H5-only placeholder |
+| Condition                            | Required behavior                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------ |
+| Invalid or legacy preference fields  | Return `400 VALIDATION_ERROR`; do not strip fields                             |
+| Missing curated place/event data     | Fail configuration; do not invent a successful route                           |
+| Place detail 404                     | Mark the local place unavailable and remove it from the completion denominator |
+| H5 map SDK unavailable               | Keep the ordered marker-safe route list usable                                 |
+| HTTP 400/403/404/409/429             | Show localized error; do not use offline mode                                  |
+| Mock mode, transport/DNS/timeout/5xx | Run the shared matcher locally and show the offline badge                      |
+| Refresh/deep link without session    | Redirect safely to welcome                                                     |
+| Mini Program deep link               | Show localized H5-only placeholder                                             |
 
 ## Validation Strategy
 

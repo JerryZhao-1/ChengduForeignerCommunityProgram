@@ -8,7 +8,7 @@ This is a substantive iteration rather than a repackaging of existing pages. It 
 
 - Add a public H5 judge entry with no login, bearer token, or mock-user semantics.
 - Replace multi-select preferences with required singular `primary_interest` and `accessibility_need` fields alongside language, arrival context, and household type.
-- Cover exactly `8 × 3 × 4 × 6 = 576` logical profiles and `1,152` localized render cases using one versioned bilingual catalog.
+- Cover exactly `8 × 3 × 4 × 6 = 576` logical profiles and `1,152` localized render cases by composing 21 prewritten bilingual dimension modules from one versioned catalog; the release does not maintain 576 duplicated full-text plans.
 - Add `scenario_key`, `catalog_version`, and a four-reason `selection_explanation` to the strict Community Plan response.
 - Keep only `POST /community-plan/generate`; the request does not accept `community_id`, identity data, or free text, and plans are not persisted.
 - Produce a deterministic two-item, 120-minute plan containing one curated place visit and one fixed demo event.
@@ -45,3 +45,5 @@ This is a substantive iteration rather than a repackaging of existing pages. It 
 Deferred beyond this MVP: authenticated plans, saved preferences, plan persistence/detail GET, real event registration/tickets/capacity, Admin plan management, multi-community behavior, Mini Program onboarding functionality, mandatory map/geolocation/routing, shared plans, and verified venue accessibility facilities.
 
 Release is gated by `576/576` logical profiles, `1,152/1,152` localized render cases, `576/576` API/local semantic parity, successful H5 and mp-weixin builds, an externally accessible H5, and an online and offline judge flow that each complete within 180 seconds. The runtime, public contract, frontend bundle, logs, and current release documentation contain no model call, model credential, or AI result field.
+
+Implementation completion, worker validation-bundle preparation, and Supervisor verification are separate evidence states. A checked implementation task or a prepared run folder is not release-PASS evidence unless the immutable run contains its real outputs/logs and the Supervisor verdict with evidence pointers.

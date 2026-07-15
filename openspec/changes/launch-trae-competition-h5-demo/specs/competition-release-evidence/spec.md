@@ -2,7 +2,7 @@
 
 ### Requirement: Release SHALL prove exhaustive catalog coverage
 
-Before release, machine-decidable evidence SHALL prove 576 logical scenarios, 576 unique scenario keys, 1,152 complete localized render cases, zero invalid plans, and zero missing catalog copy.
+Before release, machine-decidable evidence SHALL prove exactly 21 complete bilingual dimension modules, 576 logical scenarios, 576 unique scenario keys, 1,152 complete localized render cases, zero invalid plans, zero missing catalog copy, and correct selected-module correspondence for every generated reason.
 
 #### Scenario: Coverage gate passes
 
@@ -78,6 +78,8 @@ The production H5 SHALL deploy as CloudBase Web App `trae-h5-demo`, not over exi
 ### Requirement: Evidence SHALL be append-only and supervisor-verifiable
 
 Active tasks R10–R18 SHALL receive new immutable run folders under `auto_test_openspec/launch-trae-competition-h5-demo/`. Historical R1–R9 evidence SHALL remain unchanged and SHALL be labelled superseded rather than reused as current release proof. GUI/MIXED checks SHALL use MCP-only runbooks and screenshots. TRAE session IDs SHALL be copied from TRAE UI and SHALL never be invented.
+
+Evidence status SHALL distinguish `implementation complete`, `worker bundle prepared`, and `supervisor verified`. A checked task or prepared bundle without real outputs/logs and a Supervisor verdict SHALL NOT be treated as release-PASS evidence.
 
 #### Scenario: Active evidence is complete
 

@@ -66,7 +66,7 @@ Each plan SHALL contain exactly one `place_visit` and one `event_attend`, each w
 
 ### Requirement: Shared SHALL provide one versioned bilingual curated catalog
 
-The shared catalog SHALL contain complete zh/en modules for all 8 interests, 3 arrival contexts, 4 household types, and 6 accessibility choices plus place-category and fixed-event narration. The matcher SHALL compose one summary and exactly four choice-specific reasons from this catalog and SHALL use stable score ordering with `_id` tie-breaking.
+The shared catalog SHALL contain exactly 21 complete zh/en dimension modules for all 8 interests, 3 arrival contexts, 4 household types, and 6 accessibility choices, plus place-category and fixed-event narration. The matcher SHALL compose these modules into 576 logical profiles rather than maintaining 576 duplicated full-text plans. It SHALL compose one summary and exactly four choice-specific reasons from this catalog and SHALL use stable score ordering with `_id` tie-breaking.
 
 #### Scenario: Every catalog dimension has bilingual coverage
 
@@ -78,6 +78,12 @@ The shared catalog SHALL contain complete zh/en modules for all 8 interests, 3 a
 
 - **WHEN** the same profile and catalog bundle are matched repeatedly
 - **THEN** scenario key, selected refs, explanation, summaries, and tips remain identical
+
+#### Scenario: Feedback corresponds to every selected option
+
+- **WHEN** any of the 576 logical profiles is matched
+- **THEN** each of the four reasons equals the bilingual module selected for its corresponding preference dimension
+- **AND** profiles MAY share place or event refs without sharing the wrong preference feedback
 
 ### Requirement: Accessibility feedback SHALL be advisory and verifiable
 

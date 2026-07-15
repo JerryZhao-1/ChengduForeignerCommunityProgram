@@ -1,6 +1,7 @@
 import {
   COMMUNITY_PLAN_CATALOG_VERSION,
   COMMUNITY_PLAN_DEMO_EVENT_ID,
+  COMMUNITY_PLAN_FEEDBACK_CATALOG,
   COMPETITION_DEMO_NOW,
   COMPETITION_JUDGE_SCENARIOS,
   CommunityPlanEventProjectionSchema,
@@ -58,6 +59,45 @@ describe("community plan exhaustive curated coverage", () => {
         expect(reason.text_en).toBeTruthy();
       }
     }
+  });
+
+  it("maps every generated reason to the selected bilingual dimension module", () => {
+    const catalogEntryFor = (
+      preference: (typeof scenarios)[number],
+      dimension: (typeof plans)[number]["selection_explanation"]["reasons"][number]["dimension"]
+    ) => {
+      switch (dimension) {
+        case "primary_interest":
+          return COMMUNITY_PLAN_FEEDBACK_CATALOG.primary_interest[
+            preference.primary_interest
+          ];
+        case "arrival_context":
+          return COMMUNITY_PLAN_FEEDBACK_CATALOG.arrival_context[
+            preference.arrival_context
+          ];
+        case "household_type":
+          return COMMUNITY_PLAN_FEEDBACK_CATALOG.household_type[
+            preference.household_type
+          ];
+        case "accessibility_need":
+          return COMMUNITY_PLAN_FEEDBACK_CATALOG.accessibility_need[
+            preference.accessibility_need
+          ];
+      }
+    };
+
+    plans.forEach((plan, index) => {
+      plan.selection_explanation.reasons.forEach((reason) => {
+        const module = catalogEntryFor(scenarios[index], reason.dimension);
+        if (!module) {
+          throw new Error(
+            `Missing feedback module for ${plan.scenario_key}:${reason.dimension}`
+          );
+        }
+        expect(reason.text_zh).toBe(module.reason_zh);
+        expect(reason.text_en).toBe(module.reason_en);
+      });
+    });
   });
 
   it("matches zh and en profiles to identical semantic plans", () => {

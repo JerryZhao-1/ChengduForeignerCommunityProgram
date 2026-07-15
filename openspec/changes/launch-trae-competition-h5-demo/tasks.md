@@ -2,6 +2,10 @@
 
 Tasks and evidence references R1–R9 described the pre-2026-07-15 design that included optional DeepSeek narration. They are retained in git history and existing evidence locations for provenance, but they are superseded by the confirmed AI-free curated-catalog decision and are not current release gates. Existing evidence folders and screenshots must not be edited.
 
+## Evidence State Model
+
+A checked task records implementation completion only. `worker bundle prepared` means a new immutable run folder contains the prescribed scripts, inputs, expected results, and runbook. `supervisor verified` additionally requires real outputs/logs, GUI evidence when applicable, a final PASS/FAIL verdict, and evidence pointers. Prepared or empty run folders MUST NOT be cited as release-PASS evidence.
+
 ## 10. AI-free specification migration
 
 - [x] 10.1 Migrate the active change to the curated-catalog specification [#R10]
@@ -19,7 +23,7 @@ Tasks and evidence references R1–R9 described the pre-2026-07-15 design that i
 ## 12. Curated catalog and matcher
 
 - [x] 12.1 Implement the versioned catalog, matcher, and exhaustive coverage [#R12]
-  - ACCEPT: Shared owns `tongzilin-curated-v1`, complete bilingual modules for 8/3/4/6 dimensions, stable scenario keys, deterministic place selection, fixed event, advisory accessibility copy, safe bundle, scenario enumerator, three updated judge scenarios, and no model constants. Coverage reports 576 logical profiles, 576 unique keys, 1,152 localized cases, zero invalid plans, and zero missing copy.
+  - ACCEPT: Shared owns `tongzilin-curated-v1`, exactly 21 complete bilingual dimension modules for 8/3/4/6 choices, stable scenario keys, deterministic place selection, fixed event, advisory accessibility copy, safe bundle, scenario enumerator, three updated judge scenarios, and no model constants. The matcher composes modules rather than storing 576 duplicated full-text plans, and each generated reason maps to the selected dimension module. Coverage reports 576 logical profiles, 576 unique keys, 1,152 localized cases, zero invalid plans, and zero missing copy.
   - TEST: SCOPE: CLI
     - Run exhaustive matcher/fixture/snapshot tests and shared typecheck. Write the machine-readable coverage summary and exact commands to a new immutable R12 bundle.
 

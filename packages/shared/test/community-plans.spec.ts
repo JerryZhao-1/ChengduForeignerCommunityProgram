@@ -80,9 +80,9 @@ describe("community plan explainable response", () => {
   it("accepts the curated canonical plan", () => {
     const parsed = CommunityPlanSchema.parse(basePlan);
     expect(parsed.catalog_version).toBe(COMMUNITY_PLAN_CATALOG_VERSION);
-    expect(parsed.selection_explanation.reasons.map((reason) => reason.dimension)).toEqual(
-      COMMUNITY_PLAN_FEEDBACK_DIMENSIONS
-    );
+    expect(
+      parsed.selection_explanation.reasons.map((reason) => reason.dimension)
+    ).toEqual(COMMUNITY_PLAN_FEEDBACK_DIMENSIONS);
   });
 
   it("rejects missing or reordered explanation reasons", () => {
@@ -171,6 +171,12 @@ describe("community plan safe catalog bundle", () => {
     expect(Object.keys(catalog.accessibility_need).sort()).toEqual(
       [...COMMUNITY_PLAN_ACCESSIBILITY_NEEDS].sort()
     );
+    expect(
+      Object.values(catalog).reduce(
+        (total, dimension) => total + Object.keys(dimension).length,
+        0
+      )
+    ).toBe(21);
   });
 
   it("rejects unsafe place and event fields", () => {
