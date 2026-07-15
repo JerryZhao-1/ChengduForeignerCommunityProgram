@@ -3,7 +3,7 @@ import {
   CreatePlaceInputSchema,
   PostSchema,
   UserSchema
-} from "../packages/shared/src/index";
+} from "../packages/shared/src/index.ts";
 
 const COMMUNITY_ID = "tongzilin";
 const COMMUNITY_LOCATION = {

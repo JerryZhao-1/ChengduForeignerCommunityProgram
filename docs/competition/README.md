@@ -51,6 +51,13 @@ R18 仍未完成：当前 Browser MCP 没有 API-only request interception，故
 `run-0044__task-18.1__ref-R18__20260715T155349Z/`。历史 CloudBase Web App
 失败闭环 `run-0042` 保持不变。
 
+2026-07-16 内容更新见
+`run-0045__content-rollout-and-redeploy__20260715T164511Z/`：匿名活动修复、
+5 个合成角色、10 篇帖子、4 个地点和 3 场活动已上线；同一 Vercel Preview
+已提升为 Production `dpl_ne41t25XVXQM98SPsUGAHoJhwEn7`，Admin Static
+Hosting 已更新，并保存有效移动端/桌面端产品截图。API-only 离线流程和
+完整 S14 原始 TRAE 证据仍缺失，因此 R18 仍不勾选。
+
 ## 证据结构
 
 - `trae-evidence-log.md`：只记录真实 TRAE Session ID、commit 和截图。
