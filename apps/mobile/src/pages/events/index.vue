@@ -13,6 +13,7 @@ import {
   resolveEventAddress,
   resolveEventCoverSource
 } from "./event-presentation";
+import { loadEventIndexData } from "./event-index-loader";
 import {
   getEventSignupState,
   isActiveEventRegistration,
@@ -42,15 +43,14 @@ const load = async () => {
   error.value = "";
 
   try {
-    const [eventResult, registrationResult] = await Promise.all([
-      mobileApi.events.list({ communityId: state.communityId, pageSize: 50 }),
-      mobileApi.events.myRegistrations()
-    ]);
+    const data = await loadEventIndexData({
+      api: mobileApi,
+      authenticated: state.authenticated,
+      query: { communityId: state.communityId, pageSize: 50 }
+    });
 
-    events.value = eventResult.data.items;
-    registrations.value = Array.isArray(registrationResult.data)
-      ? registrationResult.data
-      : [];
+    events.value = data.events;
+    registrations.value = data.registrations;
   } catch (err) {
     console.error(err);
     error.value = copy.value.states.error;
