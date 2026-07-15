@@ -255,7 +255,7 @@ Worker 不得自行宣告 PASS；由 Supervisor 执行后写最终 verdict。
 - 记录当前 commit、API URL 和 Admin Static Hosting 响应。
 - 检查所有 VITE_ 变量不含服务端 secret。
 - 使用 production API 配置构建 H5。
-- 确认目标是独立 CloudBase Web App trae-h5-demo，不覆盖现有 Admin hosting。
+- 确认目标是独立 Vercel project `trae-h5-demo`；CloudBase 仅保留生产 API 与现有 Admin hosting。
 
 部署后：
 - 记录平台返回的真实公开 URL、build/version ID、时间、commit 和 rollback 操作。

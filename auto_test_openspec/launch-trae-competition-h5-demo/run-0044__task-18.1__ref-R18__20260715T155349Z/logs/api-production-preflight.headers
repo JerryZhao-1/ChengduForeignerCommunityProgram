@@ -1,0 +1,15 @@
+HTTP/1.1 204 No Content
+access-control-allow-headers: authorization,content-type,x-http-method-override,x-mock-user-id,x-wx-openid,x-wx-appid,x-wx-unionid,x-requested-with,x-guest-mode
+access-control-allow-methods: GET,POST,PATCH,DELETE,OPTIONS
+access-control-allow-origin: https://trae-h5-demo.vercel.app
+date: Wed, 15 Jul 2026 15:56:11 GMT
+last-modified: Wed, 15 Jul 2026 15:56:11 GMT
+server: tcbgw
+vary: Origin,Accept-Encoding
+x-cloudbase-request-id: e6d2cf92-82ab-4bf9-a5fa-5c81a12e664a
+x-cloudbase-session-id: e6d2cf92-82ab-4bf9-a5fa-5c81a12e664a
+x-cloudbase-upstream-status-code: 204
+x-cloudbase-upstream-timecost: 48
+x-cloudbase-upstream-type: Tencent-SCF_HTTP
+x-request-id: e6d2cf92-82ab-4bf9-a5fa-5c81a12e664a
+

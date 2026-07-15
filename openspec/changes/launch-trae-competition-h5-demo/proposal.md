@@ -16,7 +16,7 @@ This is a substantive iteration rather than a repackaging of existing pages. It 
 - Keep Demo Confirm explicitly local and non-booking; no registration, ticket, capacity, or availability claim is made.
 - Keep the marker-safe route list mandatory and the H5 Tencent Map SDK optional.
 - Keep the WeChat Mini Program build green without exposing the competition entry.
-- Deploy the H5 as an independent CloudBase Web App service `trae-h5-demo` without replacing existing Admin Static Hosting.
+- Deploy the H5 as an independent Vercel project `trae-h5-demo`; CloudBase retains the production API and existing Admin Static Hosting.
 - Produce separate online and offline acceptance evidence plus append-only TRAE session evidence.
 
 ## Capabilities

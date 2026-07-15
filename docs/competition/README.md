@@ -38,7 +38,18 @@
 
 ## R18 当前状态（2026-07-15）
 
-R18 尚未完成。CloudBase 返回 Web App `trae-h5-demo`、version `trae-h5-demo-001`、build `2601340810` 且构建状态为 SUCCESS，但根路径部署实际覆盖了环境共享 Static Hosting 的 Admin `index.html`。本 Session 已用部署前捕获的原始字节恢复 Admin；根页与 `/places` 的 HTTP 200、ETag、body SHA-256 和入口资源再次与部署前一致。恢复后 Web App 域名也返回 Admin，因此没有可提交的当前 H5 公开 URL。权威失败闭环见 `run-0042__task-18.1__ref-R18__20260715T150307Z/`。
+比赛 H5 已独立部署到 Vercel：
+`https://trae-h5-demo.vercel.app`。Preview
+`dpl_A3ZCGQzuYYKHksnjN8qZMBcocqFt` 与 Production promotion
+`dpl_3dr58TxFu6Y2URu9AbZnMWB2S95d` 均为 READY，Production 元数据记录
+原 Preview ID；中英文在线流程、semantic fingerprint、静态资源和 Admin
+部署前后指纹均通过。
+
+R18 仍未完成：当前 Browser MCP 没有 API-only request interception，故离线
+阻断流程未执行；截图 API 返回空白帧，未保存为产品证据；S14 原始 TRAE
+截图和完整 Session ID 仍缺失。当前权威追加证据见
+`run-0044__task-18.1__ref-R18__20260715T155349Z/`。历史 CloudBase Web App
+失败闭环 `run-0042` 保持不变。
 
 ## 证据结构
 

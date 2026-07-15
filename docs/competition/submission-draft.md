@@ -57,10 +57,16 @@
 
 ## 发布前待补
 
-- [ ] 可长期访问且不覆盖 Admin 的公开 H5 URL（CloudBase build `2601340810` 曾成功，但其根路径与共享 Admin Hosting 冲突，已恢复 Admin，不能作为提交 URL）
+- [x] 可长期访问且不覆盖 Admin 的公开 H5 URL：`https://trae-h5-demo.vercel.app`
 - [ ] 离线 ZIP 与视频 URL
 - [ ] S07A–S15 真实 TRAE Session ID、截图和对应 commit
-- [ ] 外部离线阻断流程记录（中文 36.608 秒、英文 50.198 秒在线流程已有 transient evidence）
-- [x] Admin Static Hosting 部署前指纹与补偿恢复后指纹一致（HTTP 200、ETag、body SHA-256、入口资源）；平台曾发生根入口覆盖，故 R18 仍失败关闭
+- [ ] 外部离线阻断流程记录（Vercel Production 中文 29.741 秒、英文 45.438 秒在线流程已通过）
+- [ ] 有效 Vercel Production 产品截图（本 Session Browser MCP 截图为空白帧，未保存）
+- [x] Admin Static Hosting 部署前后指纹一致（HTTP 200、ETag、body SHA-256、入口资源）
 
-R18 attempt evidence: `auto_test_openspec/launch-trae-competition-h5-demo/run-0042__task-18.1__ref-R18__20260715T150307Z/`. API remains at `https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api`; no TRAE Session ID or accepted public H5 URL is claimed.
+R18 Vercel evidence:
+`auto_test_openspec/launch-trae-competition-h5-demo/run-0044__task-18.1__ref-R18__20260715T155349Z/`.
+Production is `dpl_3dr58TxFu6Y2URu9AbZnMWB2S95d`, promoted from
+`dpl_A3ZCGQzuYYKHksnjN8qZMBcocqFt`. API remains at
+`https://cloud1-d7gxdk8t43bd639c0.service.tcloudbase.com/api`. No S14 TRAE
+Session ID, offline-flow PASS, or product screenshot is claimed.

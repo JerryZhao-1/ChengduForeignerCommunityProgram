@@ -1,0 +1,63 @@
+{
+  "equal": true,
+  "api": {
+    "scenario_key": "v1:community-service:first-week:solo:none",
+    "catalog_version": "tongzilin-curated-v1",
+    "refs": [
+      "place_001",
+      "event_001"
+    ],
+    "reasons": [
+      {
+        "dimension": "primary_interest",
+        "text_zh": "你最关心社区服务，因此路线优先帮助你找到可继续咨询的线下入口。",
+        "text_en": "Community service is your priority, so the route starts with an in-person source of ongoing guidance."
+      },
+      {
+        "dimension": "arrival_context",
+        "text_zh": "你刚到第一周，反馈会把可立即执行和可继续咨询放在前面。",
+        "text_en": "Because this is your first week, the plan prioritizes immediate actions and places to ask follow-up questions."
+      },
+      {
+        "dimension": "household_type",
+        "text_zh": "你独自参与，建议先从有工作人员或志愿者的场景开始。",
+        "text_en": "You are joining alone, so start in a setting with staff or volunteers present."
+      },
+      {
+        "dimension": "accessibility_need",
+        "text_zh": "你未选择额外支持需求；路线使用标准参与提示，仍可按实际情况调整。",
+        "text_en": "You selected no additional support need, so the route uses standard guidance and can still be adjusted as needed."
+      }
+    ]
+  },
+  "local": {
+    "scenario_key": "v1:community-service:first-week:solo:none",
+    "catalog_version": "tongzilin-curated-v1",
+    "refs": [
+      "place_001",
+      "event_001"
+    ],
+    "reasons": [
+      {
+        "dimension": "primary_interest",
+        "text_zh": "你最关心社区服务，因此路线优先帮助你找到可继续咨询的线下入口。",
+        "text_en": "Community service is your priority, so the route starts with an in-person source of ongoing guidance."
+      },
+      {
+        "dimension": "arrival_context",
+        "text_zh": "你刚到第一周，反馈会把可立即执行和可继续咨询放在前面。",
+        "text_en": "Because this is your first week, the plan prioritizes immediate actions and places to ask follow-up questions."
+      },
+      {
+        "dimension": "household_type",
+        "text_zh": "你独自参与，建议先从有工作人员或志愿者的场景开始。",
+        "text_en": "You are joining alone, so start in a setting with staff or volunteers present."
+      },
+      {
+        "dimension": "accessibility_need",
+        "text_zh": "你未选择额外支持需求；路线使用标准参与提示，仍可按实际情况调整。",
+        "text_en": "You selected no additional support need, so the route uses standard guidance and can still be adjusted as needed."
+      }
+    ]
+  }
+}

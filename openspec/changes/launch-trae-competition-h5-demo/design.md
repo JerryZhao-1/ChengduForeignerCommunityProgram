@@ -118,7 +118,11 @@ The five onboarding pages stay outside tabBar. H5 owns functional acceptance. H5
 
 ### 12. Deployment remains isolated
 
-The H5 target remains CloudBase Web App service `trae-h5-demo`. Existing shared Static Hosting/Admin content is captured before and verified unchanged after deployment. The platform-returned URL is the source of truth.
+The H5 target is the independent Vercel project `trae-h5-demo`. CloudBase
+retains the production API and existing shared Static Hosting/Admin content,
+which is captured before and verified unchanged after deployment. The
+platform-returned Vercel URL is the source of truth. The accepted release flow
+validates Preview first and promotes its prebuilt artifacts to Production.
 
 ## Failure Matrix
 
@@ -147,7 +151,9 @@ The H5 target remains CloudBase Web App service `trae-h5-demo`. Existing shared 
 - A versioned curated snapshot can become stale; release preparation must verify its source place/event remains suitable and update the version when editorial content changes.
 - In-memory rate limiting is not multi-instance consistent; this remains a documented competition-MVP limitation.
 - Optional map enhancement may not be ready; the route list is the complete baseline experience.
-- Rollback removes the competition entry/route and independent Web App without changing existing places/events/discover contracts or Admin hosting.
+- Rollback removes the Vercel Production alias/deployment while retaining the
+  project; it does not change existing places/events/discover contracts or
+  CloudBase Admin hosting.
 
 ## Resolved Scope Decisions
 

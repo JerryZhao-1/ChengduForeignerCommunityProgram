@@ -59,7 +59,11 @@ The online run SHALL use the public HTTP API and complete the canonical path wit
 
 ### Requirement: H5 SHALL deploy independently without changing Admin hosting
 
-The production H5 SHALL deploy as CloudBase Web App `trae-h5-demo`, not over existing shared Static Hosting. Evidence SHALL capture pre/post Admin hosting, returned H5 URL, build/version ID, API URL, commit, external access, and rollback action.
+The production H5 SHALL deploy as the independent Vercel project
+`trae-h5-demo`, not over existing CloudBase shared Static Hosting. CloudBase
+SHALL retain the Admin site and production API. Evidence SHALL capture pre/post
+Admin hosting, Preview and Production deployment IDs, returned H5 URL, API URL,
+commit, external access, promotion relationship, and rollback action.
 
 #### Scenario: Hosting isolation is proven
 
