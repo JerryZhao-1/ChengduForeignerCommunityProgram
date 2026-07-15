@@ -222,6 +222,68 @@ describe("api routes", () => {
       expect(
         cloudbaseResponse.headers.get("access-control-allow-origin")
       ).toBeNull();
+
+      const vercelOrigin =
+        "https://trae-h5-demo-orc4nqh4x-jerryzhaoranjie-5014s-projects.vercel.app";
+      const vercelResponse = await fetch(`${cloudbaseServer.baseUrl}/health`, {
+        headers: {
+          Origin: vercelOrigin
+        }
+      });
+
+      expect(vercelResponse.headers.get("access-control-allow-origin")).toBe(
+        vercelOrigin
+      );
+      expect(vercelResponse.headers.get("vary")).toContain("Origin");
+
+      const vercelPreflight = await fetch(
+        `${cloudbaseServer.baseUrl}/community-plan/generate`,
+        {
+          method: "OPTIONS",
+          headers: {
+            Origin: "https://trae-h5-demo.vercel.app",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type,x-guest-mode"
+          }
+        }
+      );
+
+      expect(vercelPreflight.status).toBe(204);
+      expect(
+        vercelPreflight.headers.get("access-control-allow-origin")
+      ).toBe("https://trae-h5-demo.vercel.app");
+      expect(
+        vercelPreflight.headers.get("access-control-allow-methods")
+      ).toContain("POST");
+      expect(
+        vercelPreflight.headers.get("access-control-allow-headers")
+      ).toContain("x-guest-mode");
+
+      const insecureVercelResponse = await fetch(
+        `${cloudbaseServer.baseUrl}/health`,
+        {
+          headers: {
+            Origin: "http://trae-h5-demo.vercel.app"
+          }
+        }
+      );
+
+      expect(
+        insecureVercelResponse.headers.get("access-control-allow-origin")
+      ).toBeNull();
+
+      const unrelatedVercelResponse = await fetch(
+        `${cloudbaseServer.baseUrl}/health`,
+        {
+          headers: {
+            Origin: "https://unrelated-project.vercel.app"
+          }
+        }
+      );
+
+      expect(
+        unrelatedVercelResponse.headers.get("access-control-allow-origin")
+      ).toBeNull();
     } finally {
       await cloudbaseServer.close();
 

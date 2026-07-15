@@ -14,11 +14,32 @@ const usesCloudbaseManagedCors = (host: string) =>
   !!process.env.SCF_FUNCTIONNAME ||
   host.endsWith(".service.tcloudbase.com");
 
+const isVercelPreviewOrProductionOrigin = (origin: string) => {
+  try {
+    const url = new URL(origin);
+    const hostname = url.hostname;
+    return (
+      url.protocol === "https:" &&
+      url.port === "" &&
+      (hostname === "trae-h5-demo.vercel.app" ||
+        (hostname.startsWith("trae-h5-demo-") &&
+          hostname.endsWith(
+            "-jerryzhaoranjie-5014s-projects.vercel.app"
+          )))
+    );
+  } catch {
+    return false;
+  }
+};
+
 export const corsMiddleware = async (ctx: Context, next: Next) => {
-  const managedCors = usesCloudbaseManagedCors(ctx.host);
+  const origin = ctx.get("origin");
+  const managedCors =
+    usesCloudbaseManagedCors(ctx.host) &&
+    !isVercelPreviewOrProductionOrigin(origin);
 
   if (!managedCors) {
-    ctx.set("Access-Control-Allow-Origin", ctx.get("origin") || "*");
+    ctx.set("Access-Control-Allow-Origin", origin || "*");
     ctx.set("Vary", "Origin");
     ctx.set("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
     ctx.set(
