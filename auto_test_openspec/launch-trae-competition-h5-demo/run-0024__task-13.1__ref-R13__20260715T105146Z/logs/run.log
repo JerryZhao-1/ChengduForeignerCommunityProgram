@@ -1,0 +1,20 @@
+=== R13 API typecheck ===
+
+> @community-map/api@0.1.0 typecheck /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/apps/api
+> tsc --noEmit -p tsconfig.json
+
+=== R13 API focused tests (community-plan, app, cloudbase) ===
+JSON report written to /Users/jerry/A/communityMap/ChengduForeignerCommunityProgram/auto_test_openspec/launch-trae-competition-h5-demo/run-0024__task-13.1__ref-R13__20260715T105146Z/logs/vitest.json
+=== R13 shared engine tests (missing catalog) ===
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90m/Users/jerry/A/communityMap/ChengduForeignerCommunityProgram[39m
+
+ [32m✓[39m packages/shared/test/community-plan-engine.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 79[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m   Start at [22m 18:52:40
+[2m   Duration [22m 408ms[2m (transform 113ms, setup 0ms, collect 178ms, tests 79ms, environment 0ms, prepare 29ms)[22m
+
+=== R13 eslint on modified test file ===
+All R13 CLI assertions completed.

@@ -1,5 +1,7 @@
 import { createServer } from "node:http";
 
+import { vi } from "vitest";
+
 import {
   enumerateCommunityPlanScenarios,
   type CommunityPlan
@@ -277,6 +279,67 @@ describe("community-plan routes", () => {
       expect(response.status).toBe(400);
       expect(body.error.code).toBe("VALIDATION_ERROR");
     } finally {
+      await close();
+    }
+  });
+
+  it("emits a privacy-safe generation log with only allowed fields", async () => {
+    const { baseUrl, close } = await createTestBaseUrl();
+    const logSpy = vi
+      .spyOn(console, "info")
+      .mockImplementation(() => undefined);
+
+    try {
+      const response = await fetch(`${baseUrl}/community-plan/generate`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-guest-mode": "judge"
+        },
+        body: JSON.stringify(validPreference)
+      });
+      expect(response.status).toBe(200);
+
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      const [label, payload] = logSpy.mock.calls[0];
+      expect(label).toBe("community_plan_generated");
+
+      const entry = JSON.parse(payload) as Record<string, unknown>;
+      expect(Object.keys(entry).sort()).toEqual(
+        [
+          "actor_kind",
+          "catalog_version",
+          "community_id",
+          "duration_ms",
+          "requestId",
+          "scenario_key",
+          "timestamp"
+        ].sort()
+      );
+      expect(entry.actor_kind).toBe("guest");
+      expect(entry.community_id).toBe("tongzilin");
+      expect(entry.scenario_key).toBe("v1:community-service:first-week:solo:none");
+      expect(entry.catalog_version).toBe("tongzilin-curated-v1");
+      expect(typeof entry.duration_ms).toBe("number");
+      expect(typeof entry.timestamp).toBe("string");
+
+      const serialized = payload as string;
+      const forbidden = [
+        "primary_interest",
+        "accessibility_need",
+        "arrival_context",
+        "household_type",
+        "preferred_language",
+        "selection_explanation",
+        "items",
+        "place_visit",
+        "event_attend"
+      ];
+      for (const key of forbidden) {
+        expect(serialized).not.toContain(key);
+      }
+    } finally {
+      logSpy.mockRestore();
       await close();
     }
   });

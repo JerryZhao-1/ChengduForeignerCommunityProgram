@@ -1,0 +1,39 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "run": "0025",
+  "task": "13.1",
+  "ref": "R13",
+  "scope": "CLI",
+  "finalDecision": "pass",
+  "branch": "competition/trae-h5-demo",
+  "headShort": "6543f9e9",
+  "headFull": "6543f9e963f2cb9f1930efee504cfa39d3a6aa75",
+  "gates": {
+    "apiTypecheck": { "exitCode": 0, "status": "pass" },
+    "apiFocusedTests": {
+      "exitCode": 0,
+      "status": "pass",
+      "numTotalTestSuites": 6,
+      "numPassedTestSuites": 6,
+      "numTotalTests": 51,
+      "numPassedTests": 51,
+      "numFailedTests": 0,
+      "reportFile": "logs/vitest.json"
+    },
+    "sharedEngineTests": {
+      "exitCode": 0,
+      "status": "pass",
+      "numTotalTests": 14,
+      "numPassedTests": 14,
+      "numFailedTests": 0
+    },
+    "eslint": { "exitCode": 0, "status": "pass", "issueCount": 0 }
+  },
+  "windowsEvidenceCapture": {
+    "status": "parity-inspected-not-executed",
+    "runLogCapture": true,
+    "consoleReplay": true,
+    "exitCodePreserved": true
+  },
+  "boundary": "Corrected R13 retry. Windows execution, GUI acceptance, and R18 public deployment remain out of scope."
+}

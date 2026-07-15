@@ -1,0 +1,58 @@
+{
+  "change": "launch-trae-competition-h5-demo",
+  "run": "0024",
+  "task": "13.1",
+  "ref": "R13",
+  "scope": "CLI",
+  "finalDecision": "pass",
+  "branch": "competition/trae-h5-demo",
+  "headShort": "6543f9e9",
+  "headFull": "6543f9e963f2cb9f1930efee504cfa39d3a6aa75",
+  "workingTreeChange": "apps/api/test/community-plan.spec.ts (added privacy-safe log-field assertion test, uncommitted at validation time)",
+  "gates": {
+    "apiTypecheck": { "exitCode": 0, "status": "pass" },
+    "apiFocusedTests": {
+      "command": "vitest run apps/api/test/community-plan.spec.ts apps/api/test/app.spec.ts apps/api/test/cloudbase.spec.ts",
+      "exitCode": 0,
+      "status": "pass",
+      "numTotalTestSuites": 6,
+      "numPassedTestSuites": 6,
+      "numFailedTestSuites": 0,
+      "numTotalTests": 51,
+      "numPassedTests": 51,
+      "numFailedTests": 0,
+      "reportFile": "logs/vitest.json"
+    },
+    "sharedEngineTests": {
+      "command": "vitest run packages/shared/test/community-plan-engine.spec.ts",
+      "exitCode": 0,
+      "status": "pass",
+      "numTotalTests": 14,
+      "numPassedTests": 14,
+      "numFailedTests": 0
+    },
+    "eslint": {
+      "command": "eslint apps/api/test/community-plan.spec.ts",
+      "exitCode": 0,
+      "status": "pass",
+      "issueCount": 0
+    }
+  },
+  "acceptanceCriteriaMet": [
+    "All providers (mock, cloudbase live, deploy-fallback) call shared generateCommunityPlan(createCompetitionDemoEngineInput(input)); no model/LLM service in apps/api/src",
+    "Guest judge-only generation; non-guest identities receive 403 FORBIDDEN",
+    "Guest mutations except generation and public reads rejected with 403 FORBIDDEN",
+    "Spoof-resistant 10/60s limiter with 120s bucket expiry, 10000 bucket cap, API_TRUSTED_PROXY_IPS-aware XFF; 11th request returns 429 RATE_LIMITED",
+    "Strict Zod input (.strict()); legacy arrays, unknown keys, PII, community_id rejected with 400 VALIDATION_ERROR",
+    "Unified success/error envelope validated by ApiFailureResultSchema",
+    "Generation log emits exactly {requestId, actor_kind, community_id, scenario_key, catalog_version, duration_ms, timestamp}; excludes preferences, accessibility_need, explanation copy, entity details, request body (now asserted by test)",
+    "CORS only adds necessary x-guest-mode allow-header; CloudBase-managed CORS path unaffected",
+    "Places list/map/detail field boundaries unaffected",
+    "576 provider profiles generate 576 plans with 576 unique scenario_key values",
+    "Missing curated place/event fails explicitly; matcher does not invent a route (shared engine tests)"
+  ],
+  "gapClosed": "Privacy-safe log-field assertion gap (run-0012 worker bundle claimed coverage but no test existed). Added 'emits a privacy-safe generation log with only allowed fields' test in apps/api/test/community-plan.spec.ts.",
+  "r18Status": "unchecked",
+  "existingRunFoldersModified": false,
+  "boundary": "Validates R13 only. Does not provide GUI acceptance, R12, R15, R17 consolidated, R18 deployment, or TRAE Session UI evidence."
+}
